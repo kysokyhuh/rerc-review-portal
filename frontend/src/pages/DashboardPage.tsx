@@ -5,7 +5,7 @@ import { QueueTable } from "@/components/QueueTable";
 import "../styles/globals.css";
 
 export const DashboardPage: React.FC = () => {
-  const [committeeCode] = useState("RERC-HUMAN"); // TODO: Make this selectable or get from context
+  const [committeeCode] = useState("RERC-HUMAN");
   const {
     counts,
     classificationQueue,
@@ -15,11 +15,14 @@ export const DashboardPage: React.FC = () => {
     error,
   } = useDashboardQueues(committeeCode);
 
+  console.log("Dashboard state:", { loading, error, counts });
+
   if (error) {
     return (
       <div className="error-state">
         <h1>Error Loading Dashboard</h1>
         <p>{error}</p>
+        <pre>{error}</pre>
       </div>
     );
   }
@@ -28,6 +31,15 @@ export const DashboardPage: React.FC = () => {
     return (
       <div className="loading-state">
         <p>Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  if (!counts) {
+    return (
+      <div className="error-state">
+        <h1>No Data</h1>
+        <p>Dashboard loaded but received no queue data</p>
       </div>
     );
   }

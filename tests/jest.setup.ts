@@ -8,7 +8,8 @@ process.env.TZ = "UTC";
 
 // Set test database URL (must exist before running tests)
 if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = "postgresql://jasperadrada@localhost:5432/rerc_test?schema=public";
+  process.env.DATABASE_URL =
+    "postgresql://jasperadrada@localhost:5432/rerc_test?schema=public";
 }
 
 // Suppress console logs during tests (optional)
