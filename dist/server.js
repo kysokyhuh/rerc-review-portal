@@ -10,6 +10,7 @@ const prisma_1 = __importDefault(require("./prisma"));
 const slaUtils_1 = require("./slaUtils");
 const client_1 = require("./generated/prisma/client");
 const letters_1 = require("./letters");
+const json2csv_1 = require("json2csv");
 function csvEscape(value) {
     if (value === null || value === undefined) {
         return "";
@@ -515,6 +516,74 @@ app.get("/mail-merge/initial-ack/:submissionId", async (req, res) => {
         res.status(500).json({ message: "Failed to build initial ack payload" });
     }
 });
+// CSV export for initial acknowledgement
+app.get("/mail-merge/initial-ack/:submissionId/csv", async (req, res) => {
+    try {
+        const submissionId = Number(req.params.submissionId);
+        if (Number.isNaN(submissionId)) {
+            return res.status(400).json({ message: "Invalid submission id" });
+        }
+        const submission = await prisma_1.default.submission.findUnique({
+            where: { id: submissionId },
+            include: {
+                project: {
+                    include: {
+                        committee: true,
+                        createdBy: true,
+                    },
+                },
+                classification: true,
+            },
+        });
+        if (!submission || !submission.project || !submission.project.committee) {
+            return res.status(404).json({ message: "Submission not found" });
+        }
+        const project = submission.project;
+        const committee = project.committee;
+        const classification = submission.classification;
+        const letterDate = submission.receivedDate ?? new Date();
+        const data = {
+            project_code: project.projectCode,
+            project_title: project.title,
+            pi_name: project.piName,
+            pi_affiliation: project.piAffiliation,
+            committee_code: committee.code,
+            committee_name: committee.name,
+            submission_type: submission.submissionType,
+            review_type: classification?.reviewType ?? null,
+            received_date: submission.receivedDate?.toISOString().slice(0, 10) ?? null,
+            classification_date: classification?.classificationDate?.toISOString().slice(0, 10) ?? null,
+            letter_date: letterDate.toISOString().slice(0, 10),
+            ra_full_name: project.createdBy?.fullName ?? null,
+            ra_email: project.createdBy?.email ?? null,
+        };
+        const fields = [
+            "project_code",
+            "project_title",
+            "pi_name",
+            "pi_affiliation",
+            "committee_code",
+            "committee_name",
+            "submission_type",
+            "review_type",
+            "received_date",
+            "classification_date",
+            "letter_date",
+            "ra_full_name",
+            "ra_email",
+        ];
+        const parser = new json2csv_1.Parser({ fields });
+        const csv = parser.parse([data]);
+        const filename = `initial_ack_${project.projectCode}.csv`;
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+        res.send(csv);
+    }
+    catch (error) {
+        console.error("Error exporting initial ack CSV:", error);
+        res.status(500).json({ message: "Failed to export CSV" });
+    }
+});
 // Mail merge payload for a single submission's initial approval letter
 app.get("/mail-merge/initial-approval/:submissionId", async (req, res) => {
     try {
@@ -566,6 +635,80 @@ app.get("/mail-merge/initial-approval/:submissionId", async (req, res) => {
         res.status(500).json({ message: "Failed to build initial approval payload" });
     }
 });
+// CSV export for initial approval
+app.get("/mail-merge/initial-approval/:submissionId/csv", async (req, res) => {
+    try {
+        const submissionId = Number(req.params.submissionId);
+        if (Number.isNaN(submissionId)) {
+            return res.status(400).json({ message: "Invalid submission id" });
+        }
+        const submission = await prisma_1.default.submission.findUnique({
+            where: { id: submissionId },
+            include: {
+                project: {
+                    include: {
+                        committee: true,
+                        createdBy: true,
+                    },
+                },
+                classification: true,
+            },
+        });
+        if (!submission || !submission.project || !submission.project.committee) {
+            return res.status(404).json({ message: "Submission not found" });
+        }
+        const project = submission.project;
+        const committee = project.committee;
+        const classification = submission.classification;
+        const letterDate = submission.finalDecisionDate ??
+            project.approvalStartDate ??
+            new Date();
+        const data = {
+            project_code: project.projectCode,
+            project_title: project.title,
+            pi_name: project.piName,
+            pi_affiliation: project.piAffiliation,
+            committee_code: committee.code,
+            committee_name: committee.name,
+            submission_type: submission.submissionType,
+            review_type: classification?.reviewType ?? null,
+            final_decision: submission.finalDecision,
+            final_decision_date: submission.finalDecisionDate?.toISOString().slice(0, 10) ?? null,
+            approval_start_date: project.approvalStartDate?.toISOString().slice(0, 10) ?? null,
+            approval_end_date: project.approvalEndDate?.toISOString().slice(0, 10) ?? null,
+            letter_date: letterDate.toISOString().slice(0, 10),
+            ra_full_name: project.createdBy?.fullName ?? null,
+            ra_email: project.createdBy?.email ?? null,
+        };
+        const fields = [
+            "project_code",
+            "project_title",
+            "pi_name",
+            "pi_affiliation",
+            "committee_code",
+            "committee_name",
+            "submission_type",
+            "review_type",
+            "final_decision",
+            "final_decision_date",
+            "approval_start_date",
+            "approval_end_date",
+            "letter_date",
+            "ra_full_name",
+            "ra_email",
+        ];
+        const parser = new json2csv_1.Parser({ fields });
+        const csv = parser.parse([data]);
+        const filename = `initial_approval_${project.projectCode}.csv`;
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+        res.send(csv);
+    }
+    catch (error) {
+        console.error("Error exporting initial approval CSV:", error);
+        res.status(500).json({ message: "Failed to export CSV" });
+    }
+});
 app.get("/letters/initial-ack/:submissionId.docx", async (req, res) => {
     try {
         const submissionId = Number(req.params.submissionId);
@@ -598,36 +741,274 @@ app.get("/letters/initial-approval/:submissionId.docx", async (req, res) => {
         res.status(500).json({ message: "Failed to generate letter" });
     }
 });
-// Get SLA configuration (optionally filter by committee, reviewType, or stage)
-app.get("/config/sla", async (req, res) => {
+// RA dashboard - queues overview
+app.get("/ra/dashboard", async (_req, res, next) => {
     try {
-        const { committeeCode, reviewType, stage } = req.query;
-        const where = {};
-        if (committeeCode) {
-            where.committee = { code: String(committeeCode) };
+        const html = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>RA Dashboard – RERC-HUMAN</title>
+    <style>
+      body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 24px; max-width: 1100px; }
+      h1 { margin-bottom: 0.5rem; }
+      p { margin-top: 0; color: #4b5563; }
+      .tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+      .tab-btn {
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid #d1d5db;
+        background: #f9fafb;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .tab-btn.active {
+        background: #2563eb;
+        color: white;
+        border-color: #2563eb;
+      }
+      table { border-collapse: collapse; width: 100%; margin-top: 0.5rem; }
+      th, td { border: 1px solid #ddd; padding: 6px 8px; font-size: 13px; }
+      th { background: #f3f4f6; text-align: left; }
+      .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; background: #eef2ff; }
+      .btn-link { color: #2563eb; text-decoration: none; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <h1>RA Dashboard – RERC-HUMAN</h1>
+    <p>Queues based on current submission statuses. Click “Open submission” for details.</p>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="classification">Classification queue</button>
+      <button class="tab-btn" data-tab="review">Review queue</button>
+      <button class="tab-btn" data-tab="revision">Revision queue</button>
+    </div>
+
+    <div id="table-container"><p>Loading…</p></div>
+
+    <script>
+      const committeeCode = "RERC-HUMAN";
+      let queuesData = null;
+      let currentTab = "classification";
+
+      async function loadQueues() {
+        const res = await fetch("/dashboard/queues?committeeCode=" + encodeURIComponent(committeeCode));
+        queuesData = await res.json();
+        renderTable();
+      }
+
+      function renderTable() {
+        if (!queuesData) return;
+        const container = document.getElementById("table-container");
+
+        let rows = [];
+        if (currentTab === "classification") {
+          rows = queuesData.classificationQueue;
+        } else if (currentTab === "review") {
+          rows = queuesData.reviewQueue;
+        } else {
+          rows = queuesData.revisionQueue;
         }
-        if (reviewType) {
-            where.reviewType = String(reviewType);
+
+        if (!rows || rows.length === 0) {
+          container.innerHTML = "<p><em>No items in this queue.</em></p>";
+          return;
         }
-        if (stage) {
-            where.stage = String(stage);
-        }
-        const slas = await prisma_1.default.configSLA.findMany({
-            where,
-            include: {
-                committee: true,
-            },
-            orderBy: [
-                { committeeId: "asc" },
-                { stage: "asc" },
-                { reviewType: "asc" },
-            ],
+
+        const rowsHtml = rows
+          .map((s) => {
+            const received = new Date(s.receivedDate).toISOString().slice(0, 10);
+            return \`
+            <tr>
+              <td>\${s.project.projectCode}</td>
+              <td>\${s.project.title}</td>
+              <td>\${s.project.piName}</td>
+              <td>\${s.submissionType}</td>
+              <td><span class="badge">\${s.status}</span></td>
+              <td>\${received}</td>
+              <td><a class="btn-link" href="/ra/submissions/\${s.id}">Open submission</a></td>
+            </tr>\`;
+          })
+          .join("");
+
+        container.innerHTML = \`
+          <table>
+            <thead>
+              <tr>
+                <th>Project code</th>
+                <th>Title</th>
+                <th>PI</th>
+                <th>Submission type</th>
+                <th>Status</th>
+                <th>Received</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>\${rowsHtml}</tbody>
+          </table>\`;
+      }
+
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentTab = btn.getAttribute("data-tab");
+          renderTable();
         });
-        res.json(slas);
+      });
+
+      loadQueues();
+    </script>
+  </body>
+</html>`;
+        res.send(html);
     }
     catch (error) {
-        console.error("Error fetching ConfigSLA:", error);
-        res.status(500).json({ message: "Failed to fetch SLA config" });
+        next(error);
+    }
+});
+// RA submission detail page with letter actions
+app.get("/ra/submissions/:submissionId", async (req, res, next) => {
+    try {
+        const submissionId = Number(req.params.submissionId);
+        if (Number.isNaN(submissionId)) {
+            return res.status(400).send("Invalid submission id");
+        }
+        const submission = await prisma_1.default.submission.findUnique({
+            where: { id: submissionId },
+            include: {
+                project: {
+                    include: {
+                        committee: true,
+                        createdBy: true,
+                    },
+                },
+                classification: true,
+                statusHistory: {
+                    orderBy: { effectiveDate: "asc" },
+                    include: { changedBy: true },
+                },
+            },
+        });
+        if (!submission || !submission.project || !submission.project.committee) {
+            return res.status(404).send("Submission not found");
+        }
+        const project = submission.project;
+        const canDownloadAck = true;
+        const canDownloadApproval = submission.finalDecision === "APPROVED" &&
+            project.approvalStartDate &&
+            project.approvalEndDate;
+        const statusRows = submission.statusHistory
+            .map((history) => {
+            const date = history.effectiveDate?.toISOString().slice(0, 10) ?? "-";
+            const who = history.changedBy?.fullName ?? "System";
+            return `<tr>
+            <td>${date}</td>
+            <td>${history.oldStatus ?? ""}</td>
+            <td>${history.newStatus ?? ""}</td>
+            <td>${who}</td>
+            <td>${history.reason ?? ""}</td>
+          </tr>`;
+        })
+            .join("") || `<tr><td colspan="5"><em>No status changes recorded yet.</em></td></tr>`;
+        const classificationBlock = submission.classification
+            ? `
+      <p><strong>Review type:</strong> ${submission.classification.reviewType}</p>
+      <p><strong>Classification date:</strong> ${submission.classification.classificationDate?.toISOString().slice(0, 10) ?? "-"}</p>
+      <p><strong>Rationale:</strong> ${submission.classification.rationale ?? "-"}</p>
+    `
+            : "<p><em>No classification recorded yet.</em></p>";
+        const approvalBlock = canDownloadApproval
+            ? `
+      <p><strong>Final decision:</strong> ${submission.finalDecision}</p>
+      <p><strong>Final decision date:</strong> ${submission.finalDecisionDate?.toISOString().slice(0, 10) ?? "-"}</p>
+      <p><strong>Approval period:</strong> ${project.approvalStartDate?.toISOString().slice(0, 10) ?? "?"} to ${project.approvalEndDate?.toISOString().slice(0, 10) ?? "?"}</p>
+    `
+            : "<p><em>No approval period set yet.</em></p>";
+        const html = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>RA – Submission ${submission.id}</title>
+    <style>
+      body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 24px; max-width: 960px; }
+      h1, h2 { margin-bottom: 0.3rem; }
+      p { margin-top: 0; }
+      .section { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; }
+      .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: #eef2ff; }
+      table { border-collapse: collapse; width: 100%; margin-top: 0.5rem; }
+      th, td { border: 1px solid #ddd; padding: 6px 8px; font-size: 13px; }
+      th { background: #f3f4f6; text-align: left; }
+      .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 4px 16px; font-size: 14px; }
+      .btn { display: inline-block; padding: 6px 12px; font-size: 14px; border-radius: 4px; border: 1px solid #4b5563; text-decoration: none; color: #111827; background: #f9fafb; }
+      .btn.primary { background: #2563eb; border-color: #2563eb; color: white; }
+      .btn.disabled { opacity: 0.5; pointer-events: none; }
+      .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    </style>
+  </head>
+  <body>
+    <a href="/ra/dashboard" class="btn">&larr; Back to RA dashboard</a>
+    <h1>Submission ${submission.id} <span class="badge">${submission.status}</span></h1>
+
+    <div class="section">
+      <h2>Project information</h2>
+      <div class="meta-grid">
+        <div><strong>Project code:</strong> ${project.projectCode}</div>
+        <div><strong>Title:</strong> ${project.title}</div>
+        <div><strong>PI:</strong> ${project.piName}</div>
+        <div><strong>Affiliation:</strong> ${project.piAffiliation ?? "-"}</div>
+        <div><strong>Committee:</strong> ${project.committee.code} – ${project.committee.name}</div>
+        <div><strong>Submission type:</strong> ${submission.submissionType}</div>
+        <div><strong>Received date:</strong> ${submission.receivedDate.toISOString().slice(0, 10)}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Classification</h2>
+      ${classificationBlock}
+    </div>
+
+    <div class="section">
+      <h2>Approval summary</h2>
+      ${approvalBlock}
+    </div>
+
+    <div class="section">
+      <h2>Actions / Letters</h2>
+      <p>Use these buttons to generate Word letters with the current database values.</p>
+      <div class="actions">
+        ${canDownloadAck
+            ? `<a class="btn" href="/letters/initial-ack/${submission.id}.docx">Download Initial Acknowledgment Letter</a>`
+            : `<span class="btn disabled">Initial acknowledgment not available</span>`}
+        ${canDownloadApproval
+            ? `<a class="btn primary" href="/letters/initial-approval/${submission.id}.docx">Download Initial Approval Letter</a>`
+            : `<span class="btn disabled">Approval letter not available yet</span>`}
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Status history</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Effective date</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Changed by</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${statusRows}
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>`;
+        res.send(html);
+    }
+    catch (error) {
+        next(error);
     }
 });
 // Create a new project (RA / Chair encoding a protocol)

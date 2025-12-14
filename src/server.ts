@@ -8,6 +8,7 @@ import {
   buildInitialAckLetter,
   buildInitialApprovalLetter,
 } from "./letters";
+import { Parser as Json2CsvParser } from "json2csv";
 
 function csvEscape(value: unknown): string {
   if (value === null || value === undefined) {
@@ -569,6 +570,83 @@ app.get("/mail-merge/initial-ack/:submissionId", async (req, res) => {
   }
 });
 
+// CSV export for initial acknowledgement
+app.get("/mail-merge/initial-ack/:submissionId/csv", async (req, res) => {
+  try {
+    const submissionId = Number(req.params.submissionId);
+    if (Number.isNaN(submissionId)) {
+      return res.status(400).json({ message: "Invalid submission id" });
+    }
+
+    const submission = await prisma.submission.findUnique({
+      where: { id: submissionId },
+      include: {
+        project: {
+          include: {
+            committee: true,
+            createdBy: true,
+          },
+        },
+        classification: true,
+      },
+    });
+
+    if (!submission || !submission.project || !submission.project.committee) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    const project = submission.project;
+    const committee = project.committee;
+    const classification = submission.classification;
+
+    const letterDate = submission.receivedDate ?? new Date();
+
+    const data = {
+      project_code: project.projectCode,
+      project_title: project.title,
+      pi_name: project.piName,
+      pi_affiliation: project.piAffiliation,
+      committee_code: committee.code,
+      committee_name: committee.name,
+      submission_type: submission.submissionType,
+      review_type: classification?.reviewType ?? null,
+      received_date: submission.receivedDate?.toISOString().slice(0, 10) ?? null,
+      classification_date: classification?.classificationDate?.toISOString().slice(0, 10) ?? null,
+      letter_date: letterDate.toISOString().slice(0, 10),
+      ra_full_name: project.createdBy?.fullName ?? null,
+      ra_email: project.createdBy?.email ?? null,
+    };
+
+    const fields = [
+      "project_code",
+      "project_title",
+      "pi_name",
+      "pi_affiliation",
+      "committee_code",
+      "committee_name",
+      "submission_type",
+      "review_type",
+      "received_date",
+      "classification_date",
+      "letter_date",
+      "ra_full_name",
+      "ra_email",
+    ];
+
+    const parser = new Json2CsvParser({ fields });
+    const csv = parser.parse([data]);
+
+    const filename = `initial_ack_${project.projectCode}.csv`;
+
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(csv);
+  } catch (error) {
+    console.error("Error exporting initial ack CSV:", error);
+    res.status(500).json({ message: "Failed to export CSV" });
+  }
+});
+
 // Mail merge payload for a single submission's initial approval letter
 app.get("/mail-merge/initial-approval/:submissionId", async (req, res) => {
   try {
@@ -623,6 +701,90 @@ app.get("/mail-merge/initial-approval/:submissionId", async (req, res) => {
   } catch (error) {
     console.error("Error building initial approval payload:", error);
     res.status(500).json({ message: "Failed to build initial approval payload" });
+  }
+});
+
+// CSV export for initial approval
+app.get("/mail-merge/initial-approval/:submissionId/csv", async (req, res) => {
+  try {
+    const submissionId = Number(req.params.submissionId);
+    if (Number.isNaN(submissionId)) {
+      return res.status(400).json({ message: "Invalid submission id" });
+    }
+
+    const submission = await prisma.submission.findUnique({
+      where: { id: submissionId },
+      include: {
+        project: {
+          include: {
+            committee: true,
+            createdBy: true,
+          },
+        },
+        classification: true,
+      },
+    });
+
+    if (!submission || !submission.project || !submission.project.committee) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    const project = submission.project;
+    const committee = project.committee;
+    const classification = submission.classification;
+
+    const letterDate =
+      submission.finalDecisionDate ??
+      project.approvalStartDate ??
+      new Date();
+
+    const data = {
+      project_code: project.projectCode,
+      project_title: project.title,
+      pi_name: project.piName,
+      pi_affiliation: project.piAffiliation,
+      committee_code: committee.code,
+      committee_name: committee.name,
+      submission_type: submission.submissionType,
+      review_type: classification?.reviewType ?? null,
+      final_decision: submission.finalDecision,
+      final_decision_date: submission.finalDecisionDate?.toISOString().slice(0, 10) ?? null,
+      approval_start_date: project.approvalStartDate?.toISOString().slice(0, 10) ?? null,
+      approval_end_date: project.approvalEndDate?.toISOString().slice(0, 10) ?? null,
+      letter_date: letterDate.toISOString().slice(0, 10),
+      ra_full_name: project.createdBy?.fullName ?? null,
+      ra_email: project.createdBy?.email ?? null,
+    };
+
+    const fields = [
+      "project_code",
+      "project_title",
+      "pi_name",
+      "pi_affiliation",
+      "committee_code",
+      "committee_name",
+      "submission_type",
+      "review_type",
+      "final_decision",
+      "final_decision_date",
+      "approval_start_date",
+      "approval_end_date",
+      "letter_date",
+      "ra_full_name",
+      "ra_email",
+    ];
+
+    const parser = new Json2CsvParser({ fields });
+    const csv = parser.parse([data]);
+
+    const filename = `initial_approval_${project.projectCode}.csv`;
+
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(csv);
+  } catch (error) {
+    console.error("Error exporting initial approval CSV:", error);
+    res.status(500).json({ message: "Failed to export CSV" });
   }
 });
 
