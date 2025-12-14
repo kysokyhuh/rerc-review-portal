@@ -4,10 +4,7 @@ import "dotenv/config";
 import prisma from "./prisma";
 import { workingDaysBetween } from "./slaUtils";
 import { SubmissionStatus } from "./generated/prisma/client";
-import {
-  buildInitialAckLetter,
-  buildInitialApprovalLetter,
-} from "./letters";
+import { buildInitialAckLetter, buildInitialApprovalLetter } from "./letters";
 import { Parser as Json2CsvParser } from "json2csv";
 
 function csvEscape(value: unknown): string {
@@ -369,14 +366,14 @@ app.get("/mail-merge/initial-ack.csv", async (req, res) => {
           csvEscape(letterDate),
           csvEscape(ra?.fullName ?? ""),
           csvEscape(ra?.email ?? ""),
-        ].join(","),
+        ].join(",")
       );
     }
 
     res.setHeader("Content-Type", "text/csv");
     res.setHeader(
       "Content-Disposition",
-      'attachment; filename="initial_ack_mail_merge.csv"',
+      'attachment; filename="initial_ack_mail_merge.csv"'
     );
     res.send(rows.join("\r\n"));
   } catch (error) {
@@ -502,14 +499,14 @@ app.get("/mail-merge/initial-approval.csv", async (req, res) => {
           csvEscape(letterDate),
           csvEscape(ra?.fullName ?? ""),
           csvEscape(ra?.email ?? ""),
-        ].join(","),
+        ].join(",")
       );
     }
 
     res.setHeader("Content-Type", "text/csv");
     res.setHeader(
       "Content-Disposition",
-      'attachment; filename="initial_approval_mail_merge.csv"',
+      'attachment; filename="initial_approval_mail_merge.csv"'
     );
     res.send(rows.join("\r\n"));
   } catch (error) {
@@ -610,8 +607,10 @@ app.get("/mail-merge/initial-ack/:submissionId/csv", async (req, res) => {
       committee_name: committee.name,
       submission_type: submission.submissionType,
       review_type: classification?.reviewType ?? null,
-      received_date: submission.receivedDate?.toISOString().slice(0, 10) ?? null,
-      classification_date: classification?.classificationDate?.toISOString().slice(0, 10) ?? null,
+      received_date:
+        submission.receivedDate?.toISOString().slice(0, 10) ?? null,
+      classification_date:
+        classification?.classificationDate?.toISOString().slice(0, 10) ?? null,
       letter_date: letterDate.toISOString().slice(0, 10),
       ra_full_name: project.createdBy?.fullName ?? null,
       ra_email: project.createdBy?.email ?? null,
@@ -677,9 +676,7 @@ app.get("/mail-merge/initial-approval/:submissionId", async (req, res) => {
     const classification = submission.classification;
 
     const letterDate =
-      submission.finalDecisionDate ??
-      project.approvalStartDate ??
-      new Date();
+      submission.finalDecisionDate ?? project.approvalStartDate ?? new Date();
 
     res.json({
       project_code: project.projectCode,
@@ -700,7 +697,9 @@ app.get("/mail-merge/initial-approval/:submissionId", async (req, res) => {
     });
   } catch (error) {
     console.error("Error building initial approval payload:", error);
-    res.status(500).json({ message: "Failed to build initial approval payload" });
+    res
+      .status(500)
+      .json({ message: "Failed to build initial approval payload" });
   }
 });
 
@@ -734,9 +733,7 @@ app.get("/mail-merge/initial-approval/:submissionId/csv", async (req, res) => {
     const classification = submission.classification;
 
     const letterDate =
-      submission.finalDecisionDate ??
-      project.approvalStartDate ??
-      new Date();
+      submission.finalDecisionDate ?? project.approvalStartDate ?? new Date();
 
     const data = {
       project_code: project.projectCode,
@@ -748,9 +745,12 @@ app.get("/mail-merge/initial-approval/:submissionId/csv", async (req, res) => {
       submission_type: submission.submissionType,
       review_type: classification?.reviewType ?? null,
       final_decision: submission.finalDecision,
-      final_decision_date: submission.finalDecisionDate?.toISOString().slice(0, 10) ?? null,
-      approval_start_date: project.approvalStartDate?.toISOString().slice(0, 10) ?? null,
-      approval_end_date: project.approvalEndDate?.toISOString().slice(0, 10) ?? null,
+      final_decision_date:
+        submission.finalDecisionDate?.toISOString().slice(0, 10) ?? null,
+      approval_start_date:
+        project.approvalStartDate?.toISOString().slice(0, 10) ?? null,
+      approval_end_date:
+        project.approvalEndDate?.toISOString().slice(0, 10) ?? null,
       letter_date: letterDate.toISOString().slice(0, 10),
       ra_full_name: project.createdBy?.fullName ?? null,
       ra_email: project.createdBy?.email ?? null,
@@ -797,11 +797,11 @@ app.get("/letters/initial-ack/:submissionId.docx", async (req, res) => {
     const buffer = await buildInitialAckLetter(submissionId);
     res.setHeader(
       "Content-Type",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     );
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=initial_ack_${submissionId}.docx`,
+      `attachment; filename=initial_ack_${submissionId}.docx`
     );
     res.send(buffer);
   } catch (error) {
@@ -819,11 +819,11 @@ app.get("/letters/initial-approval/:submissionId.docx", async (req, res) => {
     const buffer = await buildInitialApprovalLetter(submissionId);
     res.setHeader(
       "Content-Type",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     );
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=initial_approval_${submissionId}.docx`,
+      `attachment; filename=initial_approval_${submissionId}.docx`
     );
     res.send(buffer);
   } catch (error) {
@@ -1007,15 +1007,22 @@ app.get("/ra/submissions/:submissionId", async (req, res, next) => {
             <td>${history.reason ?? ""}</td>
           </tr>`;
         })
-        .join("") || `<tr><td colspan="5"><em>No status changes recorded yet.</em></td></tr>`;
+        .join("") ||
+      `<tr><td colspan="5"><em>No status changes recorded yet.</em></td></tr>`;
 
     const classificationBlock = submission.classification
       ? `
-      <p><strong>Review type:</strong> ${submission.classification.reviewType}</p>
-      <p><strong>Classification date:</strong> ${
-        submission.classification.classificationDate?.toISOString().slice(0, 10) ?? "-"
+      <p><strong>Review type:</strong> ${
+        submission.classification.reviewType
       }</p>
-      <p><strong>Rationale:</strong> ${submission.classification.rationale ?? "-"}</p>
+      <p><strong>Classification date:</strong> ${
+        submission.classification.classificationDate
+          ?.toISOString()
+          .slice(0, 10) ?? "-"
+      }</p>
+      <p><strong>Rationale:</strong> ${
+        submission.classification.rationale ?? "-"
+      }</p>
     `
       : "<p><em>No classification recorded yet.</em></p>";
 
@@ -1054,7 +1061,9 @@ app.get("/ra/submissions/:submissionId", async (req, res, next) => {
   </head>
   <body>
     <a href="/ra/dashboard" class="btn">&larr; Back to RA dashboard</a>
-    <h1>Submission ${submission.id} <span class="badge">${submission.status}</span></h1>
+    <h1>Submission ${submission.id} <span class="badge">${
+      submission.status
+    }</span></h1>
 
     <div class="section">
       <h2>Project information</h2>
@@ -1063,9 +1072,15 @@ app.get("/ra/submissions/:submissionId", async (req, res, next) => {
         <div><strong>Title:</strong> ${project.title}</div>
         <div><strong>PI:</strong> ${project.piName}</div>
         <div><strong>Affiliation:</strong> ${project.piAffiliation ?? "-"}</div>
-        <div><strong>Committee:</strong> ${project.committee.code} – ${project.committee.name}</div>
-        <div><strong>Submission type:</strong> ${submission.submissionType}</div>
-        <div><strong>Received date:</strong> ${submission.receivedDate.toISOString().slice(0, 10)}</div>
+        <div><strong>Committee:</strong> ${project.committee.code} – ${
+      project.committee.name
+    }</div>
+        <div><strong>Submission type:</strong> ${
+          submission.submissionType
+        }</div>
+        <div><strong>Received date:</strong> ${submission.receivedDate
+          .toISOString()
+          .slice(0, 10)}</div>
       </div>
     </div>
 
@@ -1122,7 +1137,6 @@ app.get("/ra/submissions/:submissionId", async (req, res, next) => {
   }
 });
 
-
 // Create a new project (RA / Chair encoding a protocol)
 app.post("/projects", async (req, res) => {
   try {
@@ -1153,7 +1167,9 @@ app.post("/projects", async (req, res) => {
     ];
     if (!allowedFundingTypes.includes(fundingType)) {
       return res.status(400).json({
-        message: `Invalid fundingType. Allowed: ${allowedFundingTypes.join(", ")}`,
+        message: `Invalid fundingType. Allowed: ${allowedFundingTypes.join(
+          ", "
+        )}`,
       });
     }
 
@@ -1253,10 +1269,7 @@ app.get("/projects/:id/full", async (req, res) => {
         committee: true,
         createdBy: true,
         submissions: {
-          orderBy: [
-            { receivedDate: "asc" },
-            { id: "asc" },
-          ],
+          orderBy: [{ receivedDate: "asc" }, { id: "asc" }],
           include: {
             classification: true,
             reviews: {
@@ -1320,7 +1333,9 @@ app.post("/projects/:projectId/submissions", async (req, res) => {
     ];
     if (!allowedSubmissionTypes.includes(submissionType)) {
       return res.status(400).json({
-        message: `Invalid submissionType. Allowed: ${allowedSubmissionTypes.join(", ")}`,
+        message: `Invalid submissionType. Allowed: ${allowedSubmissionTypes.join(
+          ", "
+        )}`,
       });
     }
 
@@ -1336,7 +1351,9 @@ app.post("/projects/:projectId/submissions", async (req, res) => {
       !allowedCompleteness.includes(completenessStatus)
     ) {
       return res.status(400).json({
-        message: `Invalid completenessStatus. Allowed: ${allowedCompleteness.join(", ")}`,
+        message: `Invalid completenessStatus. Allowed: ${allowedCompleteness.join(
+          ", "
+        )}`,
       });
     }
 
@@ -1387,7 +1404,9 @@ app.post("/submissions/:submissionId/classifications", async (req, res) => {
     const allowedReviewTypes = ["EXEMPT", "EXPEDITED", "FULL_BOARD"];
     if (!allowedReviewTypes.includes(reviewType)) {
       return res.status(400).json({
-        message: `Invalid reviewType. Allowed: ${allowedReviewTypes.join(", ")}`,
+        message: `Invalid reviewType. Allowed: ${allowedReviewTypes.join(
+          ", "
+        )}`,
       });
     }
 
@@ -1659,11 +1678,15 @@ app.post("/submissions/:id/final-decision", async (req, res) => {
 
     if (!allowedDecisions.includes(finalDecision)) {
       return res.status(400).json({
-        message: `Invalid finalDecision. Allowed: ${allowedDecisions.join(", ")}`,
+        message: `Invalid finalDecision. Allowed: ${allowedDecisions.join(
+          ", "
+        )}`,
       });
     }
 
-    let decisionDate = finalDecisionDate ? new Date(finalDecisionDate) : new Date();
+    let decisionDate = finalDecisionDate
+      ? new Date(finalDecisionDate)
+      : new Date();
     if (Number.isNaN(decisionDate.getTime())) {
       return res.status(400).json({ message: "Invalid finalDecisionDate" });
     }
@@ -1754,7 +1777,7 @@ app.get("/submissions/:id/sla-summary", async (req, res) => {
     });
 
     const classificationStartHistory = submission.statusHistory.find(
-      (history) => history.newStatus === SubmissionStatus.UNDER_CLASSIFICATION,
+      (history) => history.newStatus === SubmissionStatus.UNDER_CLASSIFICATION
     );
 
     const classificationStart =
@@ -1765,10 +1788,11 @@ app.get("/submissions/:id/sla-summary", async (req, res) => {
 
     const classificationActual = workingDaysBetween(
       new Date(classificationStart),
-      new Date(classificationEnd),
+      new Date(classificationEnd)
     );
 
-    const classificationConfigured = classificationSlaConfig?.workingDays ?? null;
+    const classificationConfigured =
+      classificationSlaConfig?.workingDays ?? null;
     const classificationWithin =
       classificationConfigured === null
         ? null
@@ -1784,7 +1808,7 @@ app.get("/submissions/:id/sla-summary", async (req, res) => {
     });
 
     const reviewStartHistory = submission.statusHistory.find(
-      (history) => history.newStatus === SubmissionStatus.UNDER_REVIEW,
+      (history) => history.newStatus === SubmissionStatus.UNDER_REVIEW
     );
     const reviewStart = reviewStartHistory?.effectiveDate ?? null;
 
@@ -1807,7 +1831,7 @@ app.get("/submissions/:id/sla-summary", async (req, res) => {
     if (reviewStart && reviewEnd && reviewSlaConfig) {
       reviewActual = workingDaysBetween(
         new Date(reviewStart),
-        new Date(reviewEnd),
+        new Date(reviewEnd)
       );
       reviewWithin = reviewActual <= reviewSlaConfig.workingDays;
     }
@@ -1822,10 +1846,10 @@ app.get("/submissions/:id/sla-summary", async (req, res) => {
     });
 
     const revisionStartHistory = submission.statusHistory.find(
-      (history) => history.newStatus === SubmissionStatus.AWAITING_REVISIONS,
+      (history) => history.newStatus === SubmissionStatus.AWAITING_REVISIONS
     );
     const revisionEndHistory = submission.statusHistory.find(
-      (history) => history.newStatus === SubmissionStatus.REVISION_SUBMITTED,
+      (history) => history.newStatus === SubmissionStatus.REVISION_SUBMITTED
     );
 
     const revisionStart = revisionStartHistory?.effectiveDate ?? null;
@@ -1836,7 +1860,7 @@ app.get("/submissions/:id/sla-summary", async (req, res) => {
     if (revisionStart && revisionEnd && revisionSlaConfig) {
       revisionActual = workingDaysBetween(
         new Date(revisionStart),
-        new Date(revisionEnd),
+        new Date(revisionEnd)
       );
       revisionWithin = revisionActual <= revisionSlaConfig.workingDays;
     }
