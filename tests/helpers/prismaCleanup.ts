@@ -3,7 +3,7 @@
  * Provides utilities to reset database state between tests
  */
 
-import prisma from "../../src/prisma";
+import prisma from "../../src/config/prismaClient";
 
 /**
  * Clears all user-created data (respects foreign key constraints)

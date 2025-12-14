@@ -1,5 +1,5 @@
 import { Document, Packer, Paragraph, TextRun } from "docx";
-import prisma from "./prisma";
+import prisma from "../config/prismaClient";
 
 async function fetchSubmission(submissionId: number) {
   return prisma.submission.findUnique({
@@ -48,7 +48,9 @@ export async function buildInitialAckLetter(submissionId: number) {
               }),
             ],
           }),
-          new Paragraph(formatDate(submission.receivedDate) || formatDate(new Date())),
+          new Paragraph(
+            formatDate(submission.receivedDate) || formatDate(new Date())
+          ),
           new Paragraph(""),
           new Paragraph({
             children: [
@@ -70,22 +72,24 @@ export async function buildInitialAckLetter(submissionId: number) {
           }),
           new Paragraph(""),
           new Paragraph(
-            `Dear ${project.piName}, this letter acknowledges receipt of protocol ${project.projectCode} - "${project.title}".`,
+            `Dear ${project.piName}, this letter acknowledges receipt of protocol ${project.projectCode} - "${project.title}".`
           ),
           new Paragraph(
             `The submission was received on ${formatDate(
-              submission.receivedDate,
-            )} and classified as ${classification?.reviewType ?? "TBD"}.`,
+              submission.receivedDate
+            )} and classified as ${classification?.reviewType ?? "TBD"}.`
           ),
           new Paragraph({
-            text:
-              "Our office will contact you if additional documents are required.",
+            text: "Our office will contact you if additional documents are required.",
           }),
           new Paragraph(""),
           new Paragraph("Sincerely,"),
           new Paragraph({
             children: [
-              new TextRun({ text: ra?.fullName ?? "Research Associate", break: 1 }),
+              new TextRun({
+                text: ra?.fullName ?? "Research Associate",
+                break: 1,
+              }),
               new TextRun("Research Associate"),
               new TextRun({ text: `\n${committee.name}` }),
             ],
@@ -114,11 +118,11 @@ export async function buildInitialApprovalLetter(submissionId: number) {
       {
         children: [
           new Paragraph({
-            children: [
-              new TextRun({ text: committee.name, bold: true }),
-            ],
+            children: [new TextRun({ text: committee.name, bold: true })],
           }),
-          new Paragraph(formatDate(submission.finalDecisionDate) || formatDate(new Date())),
+          new Paragraph(
+            formatDate(submission.finalDecisionDate) || formatDate(new Date())
+          ),
           new Paragraph(""),
           new Paragraph({
             children: [
@@ -140,22 +144,27 @@ export async function buildInitialApprovalLetter(submissionId: number) {
           }),
           new Paragraph(""),
           new Paragraph(
-            `Dear ${project.piName}, the RERC has approved protocol ${project.projectCode} - "${project.title}".`,
+            `Dear ${project.piName}, the RERC has approved protocol ${project.projectCode} - "${project.title}".`
           ),
           new Paragraph(
-            `Review Type: ${classification?.reviewType ?? "TBD"}; Decision: ${submission.finalDecision ?? "APPROVED"}.`,
+            `Review Type: ${classification?.reviewType ?? "TBD"}; Decision: ${
+              submission.finalDecision ?? "APPROVED"
+            }.`
           ),
           new Paragraph(
             `Approval validity: ${formatDate(
-              project.approvalStartDate,
-            )} to ${formatDate(project.approvalEndDate)}.`,
+              project.approvalStartDate
+            )} to ${formatDate(project.approvalEndDate)}.`
           ),
           new Paragraph("Please ensure adherence to the approved protocol."),
           new Paragraph(""),
           new Paragraph("Sincerely,"),
           new Paragraph({
             children: [
-              new TextRun({ text: ra?.fullName ?? "Research Associate", break: 1 }),
+              new TextRun({
+                text: ra?.fullName ?? "Research Associate",
+                break: 1,
+              }),
               new TextRun("Research Associate"),
               new TextRun({ text: `\n${committee.name}` }),
             ],

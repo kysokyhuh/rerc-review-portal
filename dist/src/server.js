@@ -6,10 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const path_1 = __importDefault(require("path"));
 require("dotenv/config");
-const prisma_1 = __importDefault(require("./prisma"));
-const slaUtils_1 = require("./slaUtils");
+const prismaClient_1 = __importDefault(require("./config/prismaClient"));
+const slaUtils_1 = require("./utils/slaUtils");
 const client_1 = require("./generated/prisma/client");
-const letters_1 = require("./letters");
+const letterGenerator_1 = require("./services/letterGenerator");
 const json2csv_1 = require("json2csv");
 function csvEscape(value) {
     if (value === null || value === undefined) {
@@ -38,7 +38,7 @@ app.get("/", (_req, res) => {
 // DB health route – checks Prisma/Postgres connection
 app.get("/health", async (_req, res) => {
     try {
-        const userCount = await prisma_1.default.user.count();
+        const userCount = await prismaClient_1.default.user.count();
         res.json({
             status: "ok",
             db: "connected",
@@ -56,7 +56,7 @@ app.get("/health", async (_req, res) => {
 // List committees with panels and members (including user info)
 app.get("/committees", async (_req, res) => {
     try {
-        const committees = await prisma_1.default.committee.findMany({
+        const committees = await prismaClient_1.default.committee.findMany({
             include: {
                 panels: true,
                 members: {
@@ -80,7 +80,7 @@ app.get("/panels/:id/members", async (req, res) => {
         if (Number.isNaN(id)) {
             return res.status(400).json({ message: "Invalid panel id" });
         }
-        const panel = await prisma_1.default.panel.findUnique({
+        const panel = await prismaClient_1.default.panel.findUnique({
             where: { id },
             include: {
                 committee: true,
@@ -125,7 +125,7 @@ app.get("/panels/:id/members", async (req, res) => {
 // Get all panels for a committee including members
 app.get("/committees/:code/panels", async (req, res) => {
     try {
-        const committee = await prisma_1.default.committee.findUnique({
+        const committee = await prismaClient_1.default.committee.findUnique({
             where: { code: req.params.code },
             include: {
                 panels: {
@@ -174,7 +174,7 @@ app.get("/committees/:code/panels", async (req, res) => {
 app.get("/dashboard/queues", async (req, res) => {
     try {
         const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
-        const classificationQueue = await prisma_1.default.submission.findMany({
+        const classificationQueue = await prismaClient_1.default.submission.findMany({
             where: {
                 status: { in: ["RECEIVED", "UNDER_CLASSIFICATION"] },
                 project: {
@@ -191,7 +191,7 @@ app.get("/dashboard/queues", async (req, res) => {
                 receivedDate: "asc",
             },
         });
-        const reviewQueue = await prisma_1.default.submission.findMany({
+        const reviewQueue = await prismaClient_1.default.submission.findMany({
             where: {
                 status: "UNDER_REVIEW",
                 project: {
@@ -208,7 +208,7 @@ app.get("/dashboard/queues", async (req, res) => {
                 receivedDate: "asc",
             },
         });
-        const revisionQueue = await prisma_1.default.submission.findMany({
+        const revisionQueue = await prismaClient_1.default.submission.findMany({
             where: {
                 status: "AWAITING_REVISIONS",
                 project: {
@@ -292,7 +292,7 @@ app.get("/mail-merge/initial-ack.csv", async (req, res) => {
                 where.receivedDate.lte = toDate;
             }
         }
-        const submissions = await prisma_1.default.submission.findMany({
+        const submissions = await prismaClient_1.default.submission.findMany({
             where,
             include: {
                 project: {
@@ -404,7 +404,7 @@ app.get("/mail-merge/initial-approval.csv", async (req, res) => {
                 where.finalDecisionDate.lte = toDate;
             }
         }
-        const submissions = await prisma_1.default.submission.findMany({
+        const submissions = await prismaClient_1.default.submission.findMany({
             where,
             include: {
                 project: {
@@ -476,7 +476,7 @@ app.get("/mail-merge/initial-ack/:submissionId", async (req, res) => {
         if (Number.isNaN(submissionId)) {
             return res.status(400).json({ message: "Invalid submission id" });
         }
-        const submission = await prisma_1.default.submission.findUnique({
+        const submission = await prismaClient_1.default.submission.findUnique({
             where: { id: submissionId },
             include: {
                 project: {
@@ -523,7 +523,7 @@ app.get("/mail-merge/initial-ack/:submissionId/csv", async (req, res) => {
         if (Number.isNaN(submissionId)) {
             return res.status(400).json({ message: "Invalid submission id" });
         }
-        const submission = await prisma_1.default.submission.findUnique({
+        const submission = await prismaClient_1.default.submission.findUnique({
             where: { id: submissionId },
             include: {
                 project: {
@@ -591,7 +591,7 @@ app.get("/mail-merge/initial-approval/:submissionId", async (req, res) => {
         if (Number.isNaN(submissionId)) {
             return res.status(400).json({ message: "Invalid submission id" });
         }
-        const submission = await prisma_1.default.submission.findUnique({
+        const submission = await prismaClient_1.default.submission.findUnique({
             where: { id: submissionId },
             include: {
                 project: {
@@ -609,9 +609,7 @@ app.get("/mail-merge/initial-approval/:submissionId", async (req, res) => {
         const project = submission.project;
         const committee = project.committee;
         const classification = submission.classification;
-        const letterDate = submission.finalDecisionDate ??
-            project.approvalStartDate ??
-            new Date();
+        const letterDate = submission.finalDecisionDate ?? project.approvalStartDate ?? new Date();
         res.json({
             project_code: project.projectCode,
             project_title: project.title,
@@ -632,7 +630,9 @@ app.get("/mail-merge/initial-approval/:submissionId", async (req, res) => {
     }
     catch (error) {
         console.error("Error building initial approval payload:", error);
-        res.status(500).json({ message: "Failed to build initial approval payload" });
+        res
+            .status(500)
+            .json({ message: "Failed to build initial approval payload" });
     }
 });
 // CSV export for initial approval
@@ -642,7 +642,7 @@ app.get("/mail-merge/initial-approval/:submissionId/csv", async (req, res) => {
         if (Number.isNaN(submissionId)) {
             return res.status(400).json({ message: "Invalid submission id" });
         }
-        const submission = await prisma_1.default.submission.findUnique({
+        const submission = await prismaClient_1.default.submission.findUnique({
             where: { id: submissionId },
             include: {
                 project: {
@@ -660,9 +660,7 @@ app.get("/mail-merge/initial-approval/:submissionId/csv", async (req, res) => {
         const project = submission.project;
         const committee = project.committee;
         const classification = submission.classification;
-        const letterDate = submission.finalDecisionDate ??
-            project.approvalStartDate ??
-            new Date();
+        const letterDate = submission.finalDecisionDate ?? project.approvalStartDate ?? new Date();
         const data = {
             project_code: project.projectCode,
             project_title: project.title,
@@ -715,7 +713,7 @@ app.get("/letters/initial-ack/:submissionId.docx", async (req, res) => {
         if (Number.isNaN(submissionId)) {
             return res.status(400).json({ message: "Invalid submission id" });
         }
-        const buffer = await (0, letters_1.buildInitialAckLetter)(submissionId);
+        const buffer = await (0, letterGenerator_1.buildInitialAckLetter)(submissionId);
         res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
         res.setHeader("Content-Disposition", `attachment; filename=initial_ack_${submissionId}.docx`);
         res.send(buffer);
@@ -731,7 +729,7 @@ app.get("/letters/initial-approval/:submissionId.docx", async (req, res) => {
         if (Number.isNaN(submissionId)) {
             return res.status(400).json({ message: "Invalid submission id" });
         }
-        const buffer = await (0, letters_1.buildInitialApprovalLetter)(submissionId);
+        const buffer = await (0, letterGenerator_1.buildInitialApprovalLetter)(submissionId);
         res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
         res.setHeader("Content-Disposition", `attachment; filename=initial_approval_${submissionId}.docx`);
         res.send(buffer);
@@ -874,7 +872,7 @@ app.get("/ra/submissions/:submissionId", async (req, res, next) => {
         if (Number.isNaN(submissionId)) {
             return res.status(400).send("Invalid submission id");
         }
-        const submission = await prisma_1.default.submission.findUnique({
+        const submission = await prismaClient_1.default.submission.findUnique({
             where: { id: submissionId },
             include: {
                 project: {
@@ -910,11 +908,14 @@ app.get("/ra/submissions/:submissionId", async (req, res, next) => {
             <td>${history.reason ?? ""}</td>
           </tr>`;
         })
-            .join("") || `<tr><td colspan="5"><em>No status changes recorded yet.</em></td></tr>`;
+            .join("") ||
+            `<tr><td colspan="5"><em>No status changes recorded yet.</em></td></tr>`;
         const classificationBlock = submission.classification
             ? `
       <p><strong>Review type:</strong> ${submission.classification.reviewType}</p>
-      <p><strong>Classification date:</strong> ${submission.classification.classificationDate?.toISOString().slice(0, 10) ?? "-"}</p>
+      <p><strong>Classification date:</strong> ${submission.classification.classificationDate
+                ?.toISOString()
+                .slice(0, 10) ?? "-"}</p>
       <p><strong>Rationale:</strong> ${submission.classification.rationale ?? "-"}</p>
     `
             : "<p><em>No classification recorded yet.</em></p>";
@@ -959,7 +960,9 @@ app.get("/ra/submissions/:submissionId", async (req, res, next) => {
         <div><strong>Affiliation:</strong> ${project.piAffiliation ?? "-"}</div>
         <div><strong>Committee:</strong> ${project.committee.code} – ${project.committee.name}</div>
         <div><strong>Submission type:</strong> ${submission.submissionType}</div>
-        <div><strong>Received date:</strong> ${submission.receivedDate.toISOString().slice(0, 10)}</div>
+        <div><strong>Received date:</strong> ${submission.receivedDate
+            .toISOString()
+            .slice(0, 10)}</div>
       </div>
     </div>
 
@@ -1037,7 +1040,7 @@ app.post("/projects", async (req, res) => {
         const initialDate = initialSubmissionDate
             ? new Date(initialSubmissionDate)
             : null;
-        const project = await prisma_1.default.project.create({
+        const project = await prismaClient_1.default.project.create({
             data: {
                 projectCode,
                 title,
@@ -1066,7 +1069,7 @@ app.post("/projects", async (req, res) => {
 // List all projects (with basic metadata)
 app.get("/projects", async (_req, res) => {
     try {
-        const projects = await prisma_1.default.project.findMany({
+        const projects = await prismaClient_1.default.project.findMany({
             orderBy: { createdAt: "desc" },
             include: {
                 committee: true, // which committee handles it
@@ -1087,7 +1090,7 @@ app.get("/projects/:id", async (req, res) => {
         if (Number.isNaN(id)) {
             return res.status(400).json({ message: "Invalid project id" });
         }
-        const project = await prisma_1.default.project.findUnique({
+        const project = await prismaClient_1.default.project.findUnique({
             where: { id },
             include: {
                 committee: true,
@@ -1114,16 +1117,13 @@ app.get("/projects/:id/full", async (req, res) => {
         if (Number.isNaN(id)) {
             return res.status(400).json({ message: "Invalid project id" });
         }
-        const project = await prisma_1.default.project.findUnique({
+        const project = await prismaClient_1.default.project.findUnique({
             where: { id },
             include: {
                 committee: true,
                 createdBy: true,
                 submissions: {
-                    orderBy: [
-                        { receivedDate: "asc" },
-                        { id: "asc" },
-                    ],
+                    orderBy: [{ receivedDate: "asc" }, { id: "asc" }],
                     include: {
                         classification: true,
                         reviews: {
@@ -1199,11 +1199,11 @@ app.post("/projects/:projectId/submissions", async (req, res) => {
         }
         const receivedAt = new Date(receivedDate);
         // Compute next sequenceNumber for this project
-        const existingCount = await prisma_1.default.submission.count({
+        const existingCount = await prismaClient_1.default.submission.count({
             where: { projectId },
         });
         const sequenceNumber = existingCount + 1;
-        const submission = await prisma_1.default.submission.create({
+        const submission = await prismaClient_1.default.submission.create({
             data: {
                 projectId,
                 submissionType,
@@ -1243,14 +1243,14 @@ app.post("/submissions/:submissionId/classifications", async (req, res) => {
         }
         const classifiedAt = new Date(classificationDate);
         // Optional: verify the submission exists
-        const submission = await prisma_1.default.submission.findUnique({
+        const submission = await prismaClient_1.default.submission.findUnique({
             where: { id: submissionId },
         });
         if (!submission) {
             return res.status(404).json({ message: "Submission not found" });
         }
         // For FULL_BOARD, panelId should be provided; for EXEMPT/EXPEDITED, it's optional
-        const classification = await prisma_1.default.classification.upsert({
+        const classification = await prismaClient_1.default.classification.upsert({
             where: { submissionId }, // there should be max 1 per submission
             update: {
                 reviewType,
@@ -1282,7 +1282,7 @@ app.get("/submissions/:id", async (req, res) => {
         if (Number.isNaN(id)) {
             return res.status(400).json({ message: "Invalid submission id" });
         }
-        const submission = await prisma_1.default.submission.findUnique({
+        const submission = await prismaClient_1.default.submission.findUnique({
             where: { id },
             include: {
                 project: true,
@@ -1341,7 +1341,7 @@ app.patch("/submissions/:id/status", async (req, res) => {
                 message: `Invalid status. Allowed: ${allowedStatuses.join(", ")}`,
             });
         }
-        const submission = await prisma_1.default.submission.findUnique({
+        const submission = await prismaClient_1.default.submission.findUnique({
             where: { id },
             select: {
                 status: true,
@@ -1351,8 +1351,8 @@ app.patch("/submissions/:id/status", async (req, res) => {
             return res.status(404).json({ message: "Submission not found" });
         }
         const changedById = 1; // TODO: replace with authenticated user later
-        const [history, updated] = await prisma_1.default.$transaction([
-            prisma_1.default.submissionStatusHistory.create({
+        const [history, updated] = await prismaClient_1.default.$transaction([
+            prismaClient_1.default.submissionStatusHistory.create({
                 data: {
                     submissionId: id,
                     oldStatus: submission.status,
@@ -1361,7 +1361,7 @@ app.patch("/submissions/:id/status", async (req, res) => {
                     changedById,
                 },
             }),
-            prisma_1.default.submission.update({
+            prismaClient_1.default.submission.update({
                 where: { id },
                 data: { status: newStatus },
             }),
@@ -1385,19 +1385,19 @@ app.post("/submissions/:submissionId/reviews", async (req, res) => {
             return res.status(400).json({ message: "Invalid reviewerId" });
         }
         const isPrimary = Boolean(req.body.isPrimary);
-        const submission = await prisma_1.default.submission.findUnique({
+        const submission = await prismaClient_1.default.submission.findUnique({
             where: { id: submissionId },
         });
         if (!submission) {
             return res.status(404).json({ message: "Submission not found" });
         }
-        const reviewer = await prisma_1.default.user.findUnique({
+        const reviewer = await prismaClient_1.default.user.findUnique({
             where: { id: reviewerId },
         });
         if (!reviewer) {
             return res.status(404).json({ message: "Reviewer not found" });
         }
-        const review = await prisma_1.default.review.create({
+        const review = await prismaClient_1.default.review.create({
             data: {
                 submissionId,
                 reviewerId,
@@ -1434,13 +1434,13 @@ app.post("/reviews/:reviewId/decision", async (req, res) => {
                 message: `Invalid decision. Allowed: ${allowedDecisions.join(", ")}`,
             });
         }
-        const existingReview = await prisma_1.default.review.findUnique({
+        const existingReview = await prismaClient_1.default.review.findUnique({
             where: { id: reviewId },
         });
         if (!existingReview) {
             return res.status(404).json({ message: "Review not found" });
         }
-        const updatedReview = await prisma_1.default.review.update({
+        const updatedReview = await prismaClient_1.default.review.update({
             where: { id: reviewId },
             data: {
                 decision,
@@ -1478,7 +1478,9 @@ app.post("/submissions/:id/final-decision", async (req, res) => {
                 message: `Invalid finalDecision. Allowed: ${allowedDecisions.join(", ")}`,
             });
         }
-        let decisionDate = finalDecisionDate ? new Date(finalDecisionDate) : new Date();
+        let decisionDate = finalDecisionDate
+            ? new Date(finalDecisionDate)
+            : new Date();
         if (Number.isNaN(decisionDate.getTime())) {
             return res.status(400).json({ message: "Invalid finalDecisionDate" });
         }
@@ -1490,7 +1492,7 @@ app.post("/submissions/:id/final-decision", async (req, res) => {
         if (approvalEnd && Number.isNaN(approvalEnd.getTime())) {
             return res.status(400).json({ message: "Invalid approvalEndDate" });
         }
-        const submission = await prisma_1.default.submission.update({
+        const submission = await prismaClient_1.default.submission.update({
             where: { id: submissionId },
             data: {
                 finalDecision,
@@ -1522,7 +1524,7 @@ app.get("/submissions/:id/sla-summary", async (req, res) => {
         if (Number.isNaN(id)) {
             return res.status(400).json({ message: "Invalid submission id" });
         }
-        const submission = await prisma_1.default.submission.findUnique({
+        const submission = await prismaClient_1.default.submission.findUnique({
             where: { id },
             include: {
                 project: {
@@ -1548,7 +1550,7 @@ app.get("/submissions/:id/sla-summary", async (req, res) => {
         }
         const committeeId = submission.project.committeeId;
         const reviewType = submission.classification.reviewType; // EXEMPT / EXPEDITED / FULL_BOARD
-        const classificationSlaConfig = await prisma_1.default.configSLA.findFirst({
+        const classificationSlaConfig = await prismaClient_1.default.configSLA.findFirst({
             where: {
                 committeeId,
                 stage: "CLASSIFICATION",
@@ -1564,7 +1566,7 @@ app.get("/submissions/:id/sla-summary", async (req, res) => {
         const classificationWithin = classificationConfigured === null
             ? null
             : classificationActual <= classificationConfigured;
-        const reviewSlaConfig = await prisma_1.default.configSLA.findFirst({
+        const reviewSlaConfig = await prismaClient_1.default.configSLA.findFirst({
             where: {
                 committeeId,
                 stage: "REVIEW",
@@ -1591,7 +1593,7 @@ app.get("/submissions/:id/sla-summary", async (req, res) => {
             reviewActual = (0, slaUtils_1.workingDaysBetween)(new Date(reviewStart), new Date(reviewEnd));
             reviewWithin = reviewActual <= reviewSlaConfig.workingDays;
         }
-        const revisionSlaConfig = await prisma_1.default.configSLA.findFirst({
+        const revisionSlaConfig = await prismaClient_1.default.configSLA.findFirst({
             where: {
                 committeeId,
                 stage: "REVISION_RESPONSE",
