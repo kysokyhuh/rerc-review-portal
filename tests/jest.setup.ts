@@ -4,10 +4,15 @@
  */
 
 // Set timezone for consistent date testing
-process.env.TZ = 'UTC';
+process.env.TZ = "UTC";
+
+// Set test database URL (must exist before running tests)
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = "postgresql://jasperadrada@localhost:5432/rerc_test?schema=public";
+}
 
 // Suppress console logs during tests (optional)
-if (process.env.SUPPRESS_LOGS === 'true') {
+if (process.env.SUPPRESS_LOGS === "true") {
   global.console = {
     ...console,
     log: jest.fn(),
@@ -18,5 +23,7 @@ if (process.env.SUPPRESS_LOGS === 'true') {
 }
 
 // Set test environment variables
-process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:test@localhost:5432/rerc_test';
-process.env.NODE_ENV = 'test';
+process.env.DATABASE_URL =
+  process.env.DATABASE_URL ||
+  "postgresql://postgres:test@localhost:5432/rerc_test";
+process.env.NODE_ENV = "test";
