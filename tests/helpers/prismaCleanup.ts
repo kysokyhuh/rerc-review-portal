@@ -3,7 +3,7 @@
  * Provides utilities to reset database state between tests
  */
 
-import prisma from '@/prisma';
+import prisma from "../../src/prisma";
 
 /**
  * Clears all user-created data (respects foreign key constraints)
@@ -26,7 +26,7 @@ export async function cleanupDatabase() {
       prisma.user.deleteMany({}),
     ]);
   } catch (err) {
-    console.error('Failed to cleanup database:', err);
+    console.error("Failed to cleanup database:", err);
     throw err;
   }
 }
