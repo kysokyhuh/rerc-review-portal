@@ -1,10 +1,13 @@
 import express from "express";
 import path from "path";
 import "dotenv/config";
-import prisma from "./prisma";
-import { workingDaysBetween } from "./slaUtils";
+import prisma from "./config/prismaClient";
+import { workingDaysBetween } from "./utils/slaUtils";
 import { SubmissionStatus } from "./generated/prisma/client";
-import { buildInitialAckLetter, buildInitialApprovalLetter } from "./letters";
+import {
+  buildInitialAckLetter,
+  buildInitialApprovalLetter,
+} from "./services/letterGenerator";
 import { Parser as Json2CsvParser } from "json2csv";
 
 function csvEscape(value: unknown): string {

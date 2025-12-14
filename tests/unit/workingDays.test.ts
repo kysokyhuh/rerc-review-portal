@@ -3,7 +3,7 @@
  * Tests the core SLA timeline math: Mon–Fri only, exclude start, include end
  */
 
-import { workingDaysBetween } from "../../src/slaUtils";
+import { workingDaysBetween } from "../../src/utils/slaUtils";
 
 describe("workingDaysBetween", () => {
   describe("Same-day calculations", () => {

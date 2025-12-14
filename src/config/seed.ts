@@ -1,10 +1,6 @@
 import "dotenv/config";
-import prisma from "./prisma";
-import {
-  RoleType,
-  ReviewType,
-  SLAStage,
-} from "./generated/prisma/client";
+import prisma from "./prismaClient";
+import { RoleType, ReviewType, SLAStage } from "../generated/prisma/client";
 
 async function main() {
   // 1) Ensure a Research Associate user exists
@@ -148,7 +144,8 @@ async function main() {
       stage: SLAStage.MEMBERSHIP,
       reviewType: null,
       workingDays: 3,
-      description: "SOP 1B Step 3: Receipt of appointment papers of new members",
+      description:
+        "SOP 1B Step 3: Receipt of appointment papers of new members",
     },
     {
       committeeId: committee.id,

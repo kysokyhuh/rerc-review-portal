@@ -3,7 +3,7 @@
  * Tests uniqueness, foreign keys, cascades, and transaction guarantees
  */
 
-import prisma from "../../src/prisma";
+import prisma from "../../src/config/prismaClient";
 import { cleanupDatabase } from "../helpers/prismaCleanup";
 
 describe("Prisma Schema Integrity", () => {
