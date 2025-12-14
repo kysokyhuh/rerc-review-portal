@@ -1,0 +1,290 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client"
+  // Generate the client into src/generated/prisma
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- ENUMS ---
+
+enum RoleType {
+  CHAIR
+  MEMBER
+  RESEARCH_ASSOCIATE
+  RESEARCH_ASSISTANT
+  REVIEWER
+  ADMIN
+}
+
+enum FundingType {
+  INTERNAL
+  EXTERNAL
+  SELF_FUNDED
+  NO_FUNDING
+}
+
+enum SubmissionType {
+  INITIAL
+  AMENDMENT
+  CONTINUING_REVIEW
+  FINAL_REPORT
+  WITHDRAWAL
+  SAFETY_REPORT
+  PROTOCOL_DEVIATION
+}
+
+enum ProjectStatus {
+  DRAFT          // encoding in progress
+  ACTIVE         // approved & within validity
+  INACTIVE       // lapsed / no ongoing activity
+  WITHDRAWN      // formally withdrawn
+  CLOSED         // final report accepted / archive
+}
+
+enum CompletenessStatus {
+  COMPLETE
+  MINOR_MISSING
+  MAJOR_MISSING
+  MISSING_SIGNATURES
+  OTHER
+}
+
+enum ReviewType {
+  EXEMPT
+  EXPEDITED
+  FULL_BOARD
+}
+
+enum ReviewDecision {
+  APPROVED
+  MINOR_REVISIONS
+  MAJOR_REVISIONS
+  DISAPPROVED
+  INFO_ONLY
+}
+
+enum SubmissionStatus {
+  RECEIVED
+  UNDER_COMPLETENESS_CHECK
+  AWAITING_CLASSIFICATION
+  UNDER_CLASSIFICATION
+  CLASSIFIED
+  UNDER_REVIEW
+  AWAITING_REVISIONS
+  REVISION_SUBMITTED
+  CLOSED
+  WITHDRAWN
+}
+
+enum SLAStage {
+  CLASSIFICATION
+  REVIEW
+  REVISION_RESPONSE
+  CONTINUING_REVIEW_DUE
+  FINAL_REPORT_DUE
+  MEMBERSHIP
+  MEETING
+}
+
+enum PanelMemberRole {
+  CHAIR
+  MEMBER
+  SECRETARIAT
+}
+
+
+// --- MODELS ---
+
+model User {
+  id        Int                @id @default(autoincrement())
+  email     String             @unique
+  fullName  String
+  isActive  Boolean            @default(true)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  // relations
+  committeeMemberships CommitteeMember[]
+  projectsCreated      Project[]         @relation("ProjectsCreated")
+  submissionsCreated   Submission[]      @relation("SubmissionsCreated")
+  classificationsMade  Classification[]  @relation("ClassificationsClassified")
+  reviewsAssigned      Review[]          @relation("UserReviews")
+  statusChanges        SubmissionStatusHistory[] @relation("SubmissionStatusChanges")
+  panelMemberships     PanelMember[]
+}
+
+model Committee {
+  id          Int               @id @default(autoincrement())
+  name        String
+  code        String            @unique      // e.g. "RERC-HUMAN"
+  description String?
+  isActive    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+
+  panels      Panel[]
+  projects    Project[]
+  members     CommitteeMember[]
+  configSlas  ConfigSLA[]
+}
+
+model Panel {
+  id          Int        @id @default(autoincrement())
+  committee   Committee  @relation(fields: [committeeId], references: [id])
+  committeeId Int
+  name        String                  // e.g. "Panel 1"
+  code        String?                 // optional short code
+  isActive    Boolean   @default(true)
+
+  // later: full-board assignments; for now we keep no relations here
+  classifications Classification[] @relation("PanelClassifications")
+  members         PanelMember[]
+}
+
+model CommitteeMember {
+  id          Int        @id @default(autoincrement())
+  committee   Committee  @relation(fields: [committeeId], references: [id])
+  committeeId Int
+  user        User       @relation(fields: [userId], references: [id])
+  userId      Int
+  role        RoleType
+  isPrimary   Boolean    @default(false)  // e.g. primary chair / primary RA
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+
+  @@unique([committeeId, userId, role])
+}
+
+model Project {
+  id                    Int            @id @default(autoincrement())
+  projectCode           String         @unique      // e.g. "2025-350"
+  title                 String
+  piName                String
+  piAffiliation         String?
+  fundingType           FundingType
+  initialSubmissionDate DateTime?
+  committee             Committee      @relation(fields: [committeeId], references: [id])
+  committeeId           Int
+  overallStatus         ProjectStatus  @default(DRAFT)
+  approvalStartDate     DateTime?
+  approvalEndDate       DateTime?
+  isArchived            Boolean        @default(false)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  // relations
+  submissions           Submission[]
+  createdBy             User?          @relation("ProjectsCreated", fields: [createdById], references: [id])
+  createdById           Int?
+}
+
+model Submission {
+  id                  Int                @id @default(autoincrement())
+  project             Project            @relation(fields: [projectId], references: [id])
+  projectId           Int
+  submissionType      SubmissionType
+  sequenceNumber      Int                @default(1) // 1 = initial, higher for follow-ups
+  receivedDate        DateTime
+  documentLink        String?            // e.g. Google Drive folder URL
+  completenessStatus  CompletenessStatus @default(COMPLETE)
+  completenessRemarks String?
+  status              SubmissionStatus   @default(RECEIVED)
+  revisionDueDate         DateTime?
+  continuingReviewDueDate DateTime?
+  finalReportDueDate      DateTime?
+  finalDecision          ReviewDecision?
+  finalDecisionDate      DateTime?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  createdBy           User?              @relation("SubmissionsCreated", fields: [createdById], references: [id])
+  createdById         Int?
+
+  classification      Classification?
+  reviews             Review[]
+  statusHistory       SubmissionStatusHistory[]
+
+  @@index([projectId, submissionType])
+}
+
+model Classification {
+  id                 Int        @id @default(autoincrement())
+  submission         Submission @relation(fields: [submissionId], references: [id])
+  submissionId       Int        @unique
+  reviewType         ReviewType
+  classificationDate DateTime
+  panel              Panel?     @relation("PanelClassifications", fields: [panelId], references: [id])
+  panelId            Int?
+  rationale          String?    // notes / reason for classification
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  classifiedBy       User?      @relation("ClassificationsClassified", fields: [classifiedById], references: [id])
+  classifiedById     Int?
+}
+
+model SubmissionStatusHistory {
+  id            Int               @id @default(autoincrement())
+  submission    Submission        @relation(fields: [submissionId], references: [id])
+  submissionId  Int
+  oldStatus     SubmissionStatus?
+  newStatus     SubmissionStatus
+  effectiveDate DateTime          @default(now())
+  reason        String?
+  changedBy     User?             @relation("SubmissionStatusChanges", fields: [changedById], references: [id])
+  changedById   Int?
+  createdAt     DateTime          @default(now())
+}
+
+model Review {
+  id           Int             @id @default(autoincrement())
+  submission   Submission      @relation(fields: [submissionId], references: [id])
+  submissionId Int
+  reviewer     User            @relation("UserReviews", fields: [reviewerId], references: [id])
+  reviewerId   Int
+
+  isPrimary    Boolean         @default(false)
+
+  assignedAt   DateTime        @default(now())
+  respondedAt  DateTime?
+
+  decision     ReviewDecision?
+  remarks      String?
+
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@unique([submissionId, reviewerId])
+  @@index([submissionId])
+}
+
+model PanelMember {
+  id        Int             @id @default(autoincrement())
+  panelId   Int
+  userId    Int
+  role      PanelMemberRole
+  isActive  Boolean         @default(true)
+  createdAt DateTime        @default(now())
+
+  panel     Panel           @relation(fields: [panelId], references: [id])
+  user      User            @relation(fields: [userId], references: [id])
+
+  @@unique([panelId, userId])
+}
+
+model ConfigSLA {
+  id            Int        @id @default(autoincrement())
+  committee     Committee  @relation(fields: [committeeId], references: [id])
+  committeeId   Int
+  reviewType    ReviewType?
+  stage         SLAStage
+  workingDays   Int
+  description   String?
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
