@@ -24,6 +24,7 @@ function App() {
 
         <main className="app-main">
           <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route
               path="/projects/:projectId"
