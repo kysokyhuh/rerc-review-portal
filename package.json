@@ -17,11 +17,13 @@
     "@prisma/client": "^7.1.0",
     "docx": "^9.5.1",
     "express": "^5.2.1",
+    "json2csv": "^6.0.0-alpha.2",
     "pg": "^8.16.3",
     "prisma": "^7.1.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
+    "@types/json2csv": "^5.0.7",
     "@types/node": "^25.0.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
