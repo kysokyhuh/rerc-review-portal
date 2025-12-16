@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useProjectDetail } from "@/hooks/useProjectDetail";
 import { exportInitialAckCSV, exportInitialApprovalDocx } from "@/services/api";
 import { Timeline } from "@/components/Timeline";
@@ -8,6 +8,7 @@ import "../styles/globals.css";
 export const ProjectDetailPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [exporting, setExporting] = useState<string | null>(null);
 
   if (!projectId) {
@@ -17,12 +18,13 @@ export const ProjectDetailPage: React.FC = () => {
   const { project, loading, error } = useProjectDetail(parseInt(projectId));
 
   if (error) {
+    const backTarget = `/dashboard${location.search ?? ""}`;
     return (
       <div className="error-state">
         <h1>Error Loading Project</h1>
         <p>{error}</p>
         <button
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate(backTarget)}
           className="btn btn-primary"
         >
           Back to Dashboard
@@ -84,7 +86,10 @@ export const ProjectDetailPage: React.FC = () => {
   return (
     <div className="project-detail-page">
       <header className="page-header">
-        <button onClick={() => navigate("/dashboard")} className="btn btn-link">
+        <button
+          onClick={() => navigate(`/dashboard${location.search ?? ""}`)}
+          className="btn btn-secondary btn-sm"
+        >
           ← Back to Dashboard
         </button>
         <h1>

@@ -4,9 +4,11 @@ import {
   Routes,
   Route,
   Navigate,
+  Link,
 } from "react-router-dom";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { ProjectDetailPage } from "@/pages/ProjectDetailPage";
+import { SubmissionDetailPage } from "@/pages/SubmissionDetailPage";
 import "./styles/globals.css";
 
 function App() {
@@ -15,10 +17,10 @@ function App() {
       <div className="app-container">
         <nav className="app-nav">
           <div className="nav-brand">
-            <h1>RERC Review Portal</h1>
+            <h1>RERC – RA Dashboard</h1>
           </div>
           <div className="nav-links">
-            <a href="/dashboard">Dashboard</a>
+            <Link to="/dashboard">Dashboard</Link>
           </div>
         </nav>
 
@@ -30,7 +32,10 @@ function App() {
               path="/projects/:projectId"
               element={<ProjectDetailPage />}
             />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route
+              path="/submissions/:submissionId"
+              element={<SubmissionDetailPage />}
+            />
           </Routes>
         </main>
 
