@@ -1,0 +1,822 @@
+================================================================================
+RERC SYSTEM - COMPLETE FILE EXPLANATIONS & ORGANIZATION
+================================================================================
+Date: December 16, 2025
+Version: Enhanced Dashboard with SLA & Workflow Actions
+Repository: rerc-review-portal (kysokyhuh)
+================================================================================
+
+TABLE OF CONTENTS
+================================================================================
+1. PROJECT STRUCTURE OVERVIEW
+2. CORE BACKEND FILES
+3. NEW MODULAR ARCHITECTURE (packages/shared, backend/src)
+4. DATABASE & PRISMA FILES
+5. FRONTEND FILES (React + Vanilla JS Dashboard)
+6. CONFIGURATION FILES
+7. UTILITY FILES
+8. MIGRATION FILES
+9. DATA FILES
+10. DEPENDENCIES & SCRIPTS
+11. WORKFLOW & DATA FLOW
+12. API ENDPOINTS REFERENCE
+
+================================================================================
+1. PROJECT STRUCTURE OVERVIEW
+================================================================================
+
+The RERC System has been refactored into a modular architecture:
+
+ROOT STRUCTURE:
+  rerc-system/
+  ├── src/                    # Main backend server (legacy + active)
+  ├── backend/src/            # New modular backend structure
+  ├── packages/shared/        # Shared constants & types
+  ├── frontend/               # React frontend (Vite)
+  ├── public/                 # Vanilla JS RA Dashboard
+  ├── prisma/                 # Database schema & migrations
+  ├── dist/                   # Compiled TypeScript output
+  └── docs/                   # Documentation
+
+BACKEND LAYER:
+  - Main Express.js server (src/server.ts) - 2000+ lines, 33 endpoints
+  - Modular routes (backend/src/routes/) - 9 route modules
+  - Modular services (backend/src/services/) - SLA & MailMerge
+  - Shared package (packages/shared/) - Constants, types, enums
+
+FRONTEND LAYER:
+  - React components (frontend/src/components/)
+  - React pages (frontend/src/pages/)
+  - React hooks (frontend/src/hooks/)
+  - Vanilla JS Dashboard (public/index.html) - 1580+ lines
+
+DATABASE LAYER:
+  - PostgreSQL 18 (localhost:5432)
+  - Prisma ORM for database access
+  - 11 interconnected models
+  - 9 migration files for schema evolution
+
+DEPLOYMENT:
+  - Backend runs on port 3000
+  - React Frontend runs on port 5173 (Vite dev server)
+  - Vanilla Dashboard served at http://localhost:3000 (static)
+  - Database at localhost:5432
+
+================================================================================
+2. CORE BACKEND FILES
+================================================================================
+
+FILE: src/server.ts (2000+ lines)
+─────────────────────────────────────────────────────────────────────────────
+PURPOSE:
+  Main Express.js application containing all API endpoints and business logic
+
+TOTAL ENDPOINTS: 33
+
+ENDPOINT CATEGORIES:
+
+  HEALTH & STATUS (2 endpoints):
+    GET  /                           - Server status check
+    GET  /health                     - Database connection check
+
+  COMMITTEE MANAGEMENT (3 endpoints):
+    GET  /committees                 - List all committees with panels/members
+    GET  /committees/:code/panels    - Get panels for a committee
+    GET  /panels/:id/members         - Get panel members
+
+  DASHBOARD (2 endpoints):
+    GET  /dashboard/queues           - Get submission queues by status
+    GET  /dashboard/upcoming-due     - Get submissions with upcoming deadlines
+
+  PROJECT MANAGEMENT (5 endpoints):
+    POST /projects                   - Create new project
+    GET  /projects                   - List all projects
+    GET  /projects/:id               - Get project by ID
+    GET  /projects/:id/full          - Get project with all relations
+    POST /projects/:projectId/submissions - Create submission for project
+
+  SUBMISSION MANAGEMENT (7 endpoints):
+    GET  /submissions/:id            - Get submission by ID
+    PATCH /submissions/:id/status    - Update submission status
+    POST /submissions/:id/classifications - Add classification
+    POST /submissions/:submissionId/classifications - Add classification (alt)
+    POST /submissions/:id/reviews    - Add reviewer assignment
+    POST /submissions/:submissionId/reviews - Add reviewer (alt)
+    GET  /submissions/:id/sla-summary - Get SLA deadline summary
+
+  REVIEW MANAGEMENT (2 endpoints):
+    POST /reviews/:reviewId/decision - Submit review decision
+    POST /submissions/:id/final-decision - Record final committee decision
+
+  MAIL-MERGE EXPORTS (6 endpoints):
+    GET  /mail-merge/initial-ack.csv - Bulk acknowledgment CSV
+    GET  /mail-merge/initial-approval.csv - Bulk approval CSV
+    GET  /mail-merge/initial-ack/:submissionId - Single ack letter
+    GET  /mail-merge/initial-ack/:submissionId/csv - Single ack CSV
+    GET  /mail-merge/initial-approval/:submissionId - Single approval letter
+    GET  /mail-merge/initial-approval/:submissionId/csv - Single approval CSV
+
+  LETTER GENERATION (2 endpoints):
+    GET  /letters/initial-ack/:submissionId.docx - Generate DOCX ack letter
+    GET  /letters/initial-approval/:submissionId.docx - Generate DOCX approval
+
+  RA PORTAL (2 endpoints):
+    GET  /ra/dashboard               - RA-specific dashboard data
+    GET  /ra/submissions/:submissionId - RA submission detail view
+
+HELPER FUNCTIONS:
+  csvEscape(value)      - Escapes special characters in CSV output
+  workingDaysBetween()  - Calculates business days between dates
+  addWorkingDays()      - Adds business days to a date
+  formatDate()          - Formats date for display
+
+================================================================================
+3. NEW MODULAR ARCHITECTURE
+================================================================================
+
+DIRECTORY: packages/shared/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: packages/shared/src/constants.ts
+PURPOSE:
+  Centralized constants and enums shared across backend and frontend
+
+EXPORTS:
+  ROLES = {
+    CHAIR, VICE_CHAIR, MEMBER, RESEARCH_ASSOCIATE,
+    RESEARCH_ASSISTANT, SECRETARIAT
+  }
+
+  SUBMISSION_STATUSES = {
+    RECEIVED, UNDER_COMPLETENESS_CHECK, COMPLETE, INCOMPLETE,
+    UNDER_CLASSIFICATION, CLASSIFIED, UNDER_REVIEW,
+    REVISION_REQUESTED, UNDER_REVISION, CLOSED
+  }
+
+  PROJECT_STATUSES = {
+    DRAFT, ACTIVE, INACTIVE, WITHDRAWN, CLOSED
+  }
+
+  REVIEW_TYPES = {
+    EXEMPT, EXPEDITED, FULL_BOARD
+  }
+
+  REVIEW_DECISIONS = {
+    APPROVED, MINOR_REVISIONS, MAJOR_REVISIONS,
+    DISAPPROVED, DEFERRED
+  }
+
+  FUNDING_TYPES = {
+    INTERNAL, EXTERNAL, SELF_FUNDED, NO_FUNDING
+  }
+
+  SLA_STAGES = {
+    CLASSIFICATION, REVIEW, REVISION_RESPONSE,
+    CONTINUING_REVIEW, FINAL_REPORT, APPEAL, CLOSURE
+  }
+
+  COMPLETENESS_STATUSES = {
+    COMPLETE, MINOR_MISSING, MAJOR_MISSING,
+    PENDING_CLARIFICATION, NOT_ASSESSED
+  }
+
+  RBAC_RULES - Role-based access control matrix
+
+FILE: packages/shared/src/types.ts
+PURPOSE:
+  Shared TypeScript interfaces and DTOs
+
+EXPORTS:
+  ApiResponse<T>         - Standard API response wrapper
+  PaginatedResponse<T>   - Paginated list response
+  UserDTO                - User data transfer object
+  ProjectDTO             - Project data transfer object
+  SubmissionDTO          - Submission data transfer object
+  ClassificationDTO      - Classification data transfer object
+  ReviewDTO              - Review data transfer object
+  StatusHistoryDTO       - Status change audit record
+  SLAConfigDTO           - SLA configuration
+  DashboardQueuesDTO     - Dashboard queue data
+  MailMergeDataDTO       - Mail merge template data
+
+FILE: packages/shared/src/index.ts
+PURPOSE:
+  Barrel export for all shared modules
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: backend/src/routes/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: backend/src/routes/index.ts
+PURPOSE:
+  Central router that combines all route modules
+
+FILE: backend/src/routes/health.ts
+PURPOSE:
+  Health check endpoints
+ENDPOINTS:
+  GET /          - Server status
+  GET /health    - Database connection check
+
+FILE: backend/src/routes/committees.ts
+PURPOSE:
+  Committee management endpoints
+ENDPOINTS:
+  GET  /committees           - List all committees
+  POST /committees           - Create committee
+  GET  /committees/:code     - Get committee by code
+  GET  /committees/:code/panels - Get committee panels
+
+FILE: backend/src/routes/panels.ts
+PURPOSE:
+  Panel management endpoints
+ENDPOINTS:
+  GET  /panels/:id          - Get panel by ID
+  GET  /panels/:id/members  - Get panel members
+  POST /panels              - Create panel
+
+FILE: backend/src/routes/dashboard.ts
+PURPOSE:
+  Dashboard data endpoints
+ENDPOINTS:
+  GET /dashboard/queues       - Get submission queues
+  GET /dashboard/upcoming-due - Get upcoming deadlines
+
+FILE: backend/src/routes/projects.ts
+PURPOSE:
+  Project management endpoints
+ENDPOINTS:
+  GET  /projects         - List all projects
+  POST /projects         - Create project
+  GET  /projects/:id     - Get project by ID
+  GET  /projects/:id/full - Get project with relations
+
+FILE: backend/src/routes/submissions.ts
+PURPOSE:
+  Submission management endpoints
+ENDPOINTS:
+  GET   /submissions/:id           - Get submission
+  PATCH /submissions/:id/status    - Update status
+  POST  /submissions/:id/classifications - Add classification
+  POST  /submissions/:id/reviews   - Add reviewer
+  POST  /submissions/:id/final-decision - Record decision
+
+FILE: backend/src/routes/mailMerge.ts
+PURPOSE:
+  Mail merge and letter generation endpoints
+ENDPOINTS:
+  GET /mail-merge/initial-ack.csv
+  GET /mail-merge/initial-approval.csv
+  GET /mail-merge/initial-ack/:id
+  GET /mail-merge/initial-approval/:id
+
+FILE: backend/src/routes/raPortal.ts
+PURPOSE:
+  Research Associate portal endpoints
+ENDPOINTS:
+  GET /ra/dashboard
+  GET /ra/submissions/:id
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: backend/src/services/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: backend/src/services/slaService.ts
+PURPOSE:
+  SLA (Service Level Agreement) calculation service
+
+FUNCTIONS:
+  workingDaysBetween(from: Date, to: Date): number
+    - Calculates business days between two dates
+    - Excludes weekends (Saturday, Sunday)
+    - Returns integer count
+
+  addWorkingDays(date: Date, days: number): Date
+    - Adds specified working days to a date
+    - Skips weekends
+    - Returns new Date
+
+  calculateSLADeadline(startDate: Date, stage: SLAStage): Date
+    - Calculates deadline based on SLA configuration
+    - Uses ConfigSLA table for working days per stage
+
+  formatDate(date: Date): string
+    - Formats date as YYYY-MM-DD
+
+FILE: backend/src/services/mailMergeService.ts
+PURPOSE:
+  Mail merge letter generation service
+
+FUNCTIONS:
+  buildInitialAckLetter(project, submission, letterDate): LetterData
+    - Generates Form 6B acknowledgment letter
+    - Returns structured letter data
+
+  buildInitialApprovalLetter(project, submission, classification): LetterData
+    - Generates Form 20B approval letter
+    - Includes approval period dates
+
+  buildLetter(template, data): string
+    - Generic letter builder with template substitution
+
+================================================================================
+4. DATABASE & PRISMA FILES
+================================================================================
+
+FILE: prisma/schema.prisma (291 lines)
+─────────────────────────────────────────────────────────────────────────────
+PURPOSE:
+  Defines complete database schema using Prisma syntax
+
+11 DATABASE MODELS:
+
+  1. User
+     - id, email, fullName, isActive, createdAt, updatedAt
+     - Relations: committeeMemberships, panelMemberships, reviews
+
+  2. Committee
+     - id, name, code, description, isActive, createdAt
+     - Relations: panels, members, projects
+
+  3. Panel
+     - id, committeeId, name, code, isActive
+     - Relations: committee, members
+
+  4. CommitteeMember
+     - id, committeeId, userId, role, isPrimary, isActive, createdAt
+     - Unique: (committeeId, userId, role)
+
+  5. Project
+     - id, committeeId, projectCode, title, principalInvestigator
+     - department, fundingType, status, createdById, createdAt, updatedAt
+     - Relations: committee, submissions, createdBy
+
+  6. Submission
+     - id, projectId, submissionType, status, receivedDate
+     - completenessStatus, completenessNotes, completenessCheckedAt
+     - revisionDueDate, continuingReviewDueDate, finalReportDueDate
+     - finalDecision, finalDecisionDate, finalDecisionById
+     - approvalStartDate, approvalEndDate
+     - Relations: project, classification, reviews, statusHistory
+
+  7. Classification
+     - id, submissionId, reviewType, riskLevel, classificationDate
+     - classifiedById, notes
+     - Relations: submission, classifiedBy
+
+  8. Review
+     - id, submissionId, reviewerId, assignedDate, dueDate
+     - decision, decisionDate, comments
+     - Relations: submission, reviewer
+
+  9. SubmissionStatusHistory
+     - id, submissionId, status, changedAt, changedById, notes
+     - Relations: submission, changedBy
+
+  10. PanelMember
+      - id, panelId, userId, role, isActive
+      - Unique: (panelId, userId)
+
+  11. ConfigSLA
+      - id, stage, workingDays, description, isActive
+
+13 ENUMS:
+  RoleType, FundingType, SubmissionType, ProjectStatus,
+  SubmissionStatus, ReviewType, ReviewDecision,
+  CompletenessStatus, PanelMemberRole, SLAStage
+
+================================================================================
+5. FRONTEND FILES
+================================================================================
+
+DIRECTORY: public/ (Vanilla JS RA Dashboard)
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: public/index.html (1580+ lines)
+PURPOSE:
+  Research Associate Dashboard - Main operational interface
+
+FEATURES:
+  ✓ Status Filter Bar (All, Classification, Review, Revision, Due Soon)
+  ✓ 4 KPI Summary Cards with overdue alerts
+  ✓ 4 Queue Tables with SLA compliance columns
+  ✓ Slide-in Detail Panel with timeline
+  ✓ 3 Action Modals (Classification, Reviewer, Decision)
+  ✓ Working days calculator
+  ✓ Real-time data refresh
+
+SECTIONS:
+
+  1. STATUS FILTER BAR (Lines ~50-80)
+     - Clickable status pills
+     - Active state highlighting
+     - Filter submissions by status
+
+  2. KPI CARDS (Lines ~85-150)
+     Card 1: Pending Classification
+       - Count of submissions awaiting classification
+       - Overdue alert (>5 working days)
+     Card 2: Under Review
+       - Count of submissions in review
+       - Overdue alert (>15/30 working days)
+     Card 3: Awaiting Revision
+       - Count of submissions needing PI response
+       - Overdue based on revisionDueDate
+     Card 4: Due Soon
+       - Upcoming continuing reviews & final reports
+       - 30-day lookahead
+
+  3. QUEUE TABLES (Lines ~155-500)
+     Table 1: Classification Queue
+       - Project code, title, PI, department
+       - Received date, working days elapsed
+       - SLA status badge (On Track/Due Soon/Overdue)
+       - View action button
+
+     Table 2: Review Queue
+       - Project code, title, submission type
+       - Review type (Exempt/Expedited/Full Board)
+       - Classification date, reviewer progress
+       - SLA status badge
+       - View action button
+
+     Table 3: Revision Queue
+       - Project code, title, revision type
+       - Requested date, due date
+       - Days remaining, SLA status
+       - View action button
+
+     Table 4: Upcoming Due
+       - Project code, title
+       - Due type (Continuing Review/Final Report)
+       - Due date, days until due
+       - View action button
+
+  4. DETAIL PANEL (Lines ~505-700)
+     - Slide-in from right
+     - Project header (code, title)
+     - Submission info section
+     - Timeline of status changes
+     - Action buttons based on status:
+       * Classify (for RECEIVED status)
+       * Assign Reviewer (for CLASSIFIED status)
+       * Record Decision (for UNDER_REVIEW status)
+     - Close button
+
+  5. ACTION MODALS (Lines ~705-850)
+     Modal 1: Classification Modal
+       - Review type selector (Exempt/Expedited/Full Board)
+       - Risk level input
+       - Notes field
+       - Submit button → POST /submissions/:id/classifications
+
+     Modal 2: Assign Reviewer Modal
+       - Reviewer selector dropdown
+       - Due date picker
+       - Notes field
+       - Submit button → POST /submissions/:id/reviews
+
+     Modal 3: Decision Modal
+       - Decision selector (Approved/Minor/Major/Disapproved)
+       - Approval period dates (if approved)
+       - Notes field
+       - Submit button → POST /submissions/:id/final-decision
+
+  6. JAVASCRIPT FUNCTIONS (Lines ~855-1580)
+
+     Data Loading:
+       loadQueues()           - Fetches all queue data
+       loadUpcomingDueDates() - Fetches upcoming deadlines
+       loadProjectDetail(id)  - Fetches project with submissions
+
+     Rendering:
+       renderClassificationQueue(rows) - Renders classification table
+       renderReviewQueue(rows)         - Renders review table
+       renderRevisionQueue(rows)       - Renders revision table
+       renderUpcomingDueQueue(rows)    - Renders upcoming due table
+       renderDetailPanel(project, sub) - Renders detail panel content
+       renderTimeline(history)         - Renders status timeline
+
+     Utilities:
+       workingDaysBetween(from, to)    - Business days calculation
+       getSLABadge(startDate, limit)   - Returns SLA status badge HTML
+       formatShortDate(date)           - Formats as "Dec 16"
+       truncate(text, len)             - Truncates long text
+
+     Actions:
+       openDetailPanel(projectId, subId) - Opens detail panel
+       closeDetailPanel()                - Closes detail panel
+       openClassificationModal()         - Opens classification modal
+       openReviewerModal()               - Opens reviewer modal
+       openDecisionModal()               - Opens decision modal
+       submitClassification()            - Submits classification
+       submitReviewer()                  - Submits reviewer assignment
+       submitDecision()                  - Submits final decision
+
+     Filtering:
+       filterByStatus(status)            - Filters queues by status
+
+FILE: public/styles.css
+PURPOSE:
+  CSS styles for the vanilla JS dashboard
+  Includes: colors, layout, cards, tables, modals, responsive design
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: frontend/src/ (React Frontend)
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: frontend/src/main.tsx
+PURPOSE:
+  React application entry point
+
+FILE: frontend/src/App.tsx
+PURPOSE:
+  Root React component with routing
+
+DIRECTORY: frontend/src/components/
+
+  QueueTable.tsx    - Reusable table for submission queues
+  SummaryCards.tsx  - KPI summary cards
+  Timeline.tsx      - Status change timeline
+
+DIRECTORY: frontend/src/pages/
+
+  DashboardPage.tsx     - Main dashboard (route: /)
+  ProjectDetailPage.tsx - Project detail view (route: /projects/:id)
+
+DIRECTORY: frontend/src/hooks/
+
+  useDashboardQueues.ts - Hook for fetching dashboard data
+  useProjectDetail.ts   - Hook for fetching project details
+
+DIRECTORY: frontend/src/services/
+
+  api.ts - Centralized API client with all backend calls
+
+================================================================================
+6. CONFIGURATION FILES
+================================================================================
+
+FILE: .env
+─────────────────────────────────────────────────────────────────────────────
+  DATABASE_URL=postgresql://rerc:password@localhost:5432/rerc
+  PORT=3000
+  CORS_ORIGINS=http://localhost:5173
+  FRONTEND_URL=http://localhost:5173
+
+FILE: tsconfig.json (Root)
+─────────────────────────────────────────────────────────────────────────────
+  Includes: src/, backend/src/, packages/shared/src/
+  Target: ES2020
+  Module: CommonJS
+  Strict: true
+  OutDir: dist/
+
+FILE: package.json
+─────────────────────────────────────────────────────────────────────────────
+  Scripts:
+    dev   - ts-node-dev --respawn src/server.ts
+    build - tsc
+    start - node dist/server.js
+    seed  - ts-node src/seed.ts
+
+  Dependencies:
+    express ^5.2.1
+    @prisma/client ^7.1.0
+    prisma ^7.1.0
+    typescript ^5.9.3
+    pg ^8.16.3
+    json2csv ^6.0.0-alpha.2
+    docx ^9.5.1
+    cors, dotenv
+
+================================================================================
+7. UTILITY FILES
+================================================================================
+
+FILE: src/slaUtils.ts
+─────────────────────────────────────────────────────────────────────────────
+PURPOSE:
+  Working day calculations for SLA tracking
+
+FUNCTIONS:
+  workingDaysBetween(fromDate, toDate) → number
+  addWorkingDays(startDate, days) → Date
+
+SLA DEFAULTS:
+  Classification: 5 working days
+  Expedited Review: 15 working days
+  Full Board Review: 30 working days
+  Revision Response: 30 working days
+
+FILE: src/letters.ts
+─────────────────────────────────────────────────────────────────────────────
+PURPOSE:
+  Letter template generation for mail-merge
+
+TEMPLATES:
+  Form 6B - Initial Acknowledgment
+  Form 20B - Initial Approval
+
+================================================================================
+8. MIGRATION FILES
+================================================================================
+
+DIRECTORY: prisma/migrations/ (9 migrations)
+─────────────────────────────────────────────────────────────────────────────
+
+  1. 20251211100203_init_user
+     └─ Creates User table
+
+  2. 20251211103050_rerc_core
+     └─ Creates Committee, Panel, CommitteeMember, Project, Submission
+
+  3. 20251211130711_add_classification
+     └─ Adds Classification model
+
+  4. 20251211132529_add_reviews
+     └─ Adds Review model
+
+  5. 20251211134028_add_submission_status
+     └─ Adds SubmissionStatusHistory model
+
+  6. 20251211135517_add_config_sla
+     └─ Adds ConfigSLA model
+
+  7. 20251211142937_extend_sla_stages
+     └─ Extends SLAStage enum
+
+  8. 20251211150930_add_panel_member_and_deadlines
+     └─ Adds PanelMember, deadline fields
+
+  9. 20251211155533_add_submission_final_decision
+     └─ Adds finalDecision fields to Submission
+
+================================================================================
+9. DATA FILES
+================================================================================
+
+FILE: initial_ack.csv
+  Sample acknowledgment letter data for testing
+
+FILE: initial_approval.csv
+  Sample approval letter data for testing
+
+================================================================================
+10. DEPENDENCIES & SCRIPTS
+================================================================================
+
+RUNNING THE SYSTEM:
+
+  # Install dependencies
+  npm install
+
+  # Start development server (backend + static dashboard)
+  npm run dev
+  # Server runs at http://localhost:3000
+  # Dashboard at http://localhost:3000 (serves public/index.html)
+
+  # Start React frontend (optional)
+  cd frontend && npm run dev
+  # React app at http://localhost:5173
+
+  # Build for production
+  npm run build
+
+  # Seed database with sample data
+  npm run seed
+
+  # Run database migrations
+  npx prisma migrate dev
+
+================================================================================
+11. WORKFLOW & DATA FLOW
+================================================================================
+
+SUBMISSION WORKFLOW:
+
+  1. RECEIVED
+     └─ Project created, submission received
+     └─ Action: Completeness check
+
+  2. UNDER_COMPLETENESS_CHECK
+     └─ RA reviews submission documents
+     └─ Action: Mark complete or request missing items
+
+  3. COMPLETE / INCOMPLETE
+     └─ If incomplete, notify PI for resubmission
+     └─ If complete, proceed to classification
+
+  4. UNDER_CLASSIFICATION
+     └─ Committee determines review type
+     └─ Action: Classify (Exempt/Expedited/Full Board)
+
+  5. CLASSIFIED
+     └─ Review type assigned
+     └─ Action: Assign reviewers
+
+  6. UNDER_REVIEW
+     └─ Reviewers evaluate submission
+     └─ Action: Submit individual reviews
+
+  7. REVISION_REQUESTED (if needed)
+     └─ PI must address reviewer concerns
+     └─ Action: Wait for PI response
+
+  8. UNDER_REVISION
+     └─ PI submitting revisions
+     └─ Action: Review revised submission
+
+  9. CLOSED
+     └─ Final decision recorded
+     └─ Approval period set (if approved)
+
+SLA TRACKING:
+
+  Classification: 5 working days from receipt
+  Expedited Review: 15 working days from classification
+  Full Board Review: 30 working days from classification
+  Revision Response: 30 working days from request
+
+DASHBOARD DATA FLOW:
+
+  Browser → GET /dashboard/queues
+    ↓
+  Server queries Prisma for submissions by status
+    ↓
+  Returns JSON: { counts, classificationQueue, reviewQueue, revisionQueue }
+    ↓
+  Dashboard JavaScript renders tables with SLA badges
+    ↓
+  User clicks "View" → openDetailPanel(projectId, submissionId)
+    ↓
+  GET /projects/:id/full
+    ↓
+  Renders detail panel with timeline and action buttons
+
+================================================================================
+12. API ENDPOINTS REFERENCE
+================================================================================
+
+HEALTH:
+  GET  /                                    → { status: "ok" }
+  GET  /health                              → { database: "connected" }
+
+COMMITTEES:
+  GET  /committees                          → Committee[]
+  GET  /committees/:code/panels             → Panel[]
+  GET  /panels/:id/members                  → PanelMember[]
+
+DASHBOARD:
+  GET  /dashboard/queues?committeeCode=X    → DashboardQueues
+  GET  /dashboard/upcoming-due              → UpcomingDue[]
+
+PROJECTS:
+  POST /projects                            → Project
+  GET  /projects                            → Project[]
+  GET  /projects/:id                        → Project
+  GET  /projects/:id/full                   → Project (with relations)
+
+SUBMISSIONS:
+  POST /projects/:projectId/submissions     → Submission
+  GET  /submissions/:id                     → Submission
+  PATCH /submissions/:id/status             → Submission
+  GET  /submissions/:id/sla-summary         → SLASummary
+
+CLASSIFICATION:
+  POST /submissions/:id/classifications     → Classification
+    Body: { reviewType, riskLevel, classifiedById }
+
+REVIEWS:
+  POST /submissions/:id/reviews             → Review
+    Body: { reviewerId, dueDate }
+  POST /reviews/:reviewId/decision          → Review
+    Body: { decision, comments }
+
+FINAL DECISION:
+  POST /submissions/:id/final-decision      → Submission
+    Body: { decision, approvalStartDate, approvalEndDate }
+
+MAIL MERGE:
+  GET  /mail-merge/initial-ack.csv          → CSV file
+  GET  /mail-merge/initial-approval.csv     → CSV file
+  GET  /mail-merge/initial-ack/:id          → JSON letter data
+  GET  /mail-merge/initial-approval/:id     → JSON letter data
+
+LETTERS:
+  GET  /letters/initial-ack/:id.docx        → DOCX file
+  GET  /letters/initial-approval/:id.docx   → DOCX file
+
+RA PORTAL:
+  GET  /ra/dashboard                        → RA Dashboard data
+  GET  /ra/submissions/:id                  → Submission detail
+
+================================================================================
+END OF DOCUMENT
+================================================================================
+Generated: December 16, 2025
+Features: Enhanced Dashboard, SLA Tracking, Workflow Actions, Modular Architecture
+================================================================================
