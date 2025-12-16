@@ -2,92 +2,131 @@
 RERC SYSTEM - COMPLETE FILE EXPLANATIONS & ORGANIZATION
 ================================================================================
 Date: December 16, 2025
-Version: Enhanced Dashboard with DLSU Theme + React Frontend
+Version: Restructured Monorepo (Backend + Frontend Separation)
 Repository: rerc-review-portal (kysokyhuh)
 ================================================================================
 
 TABLE OF CONTENTS
 ================================================================================
 1. PROJECT STRUCTURE OVERVIEW
-2. CORE BACKEND FILES
-3. SHARED PACKAGE (packages/shared)
-4. DATABASE & PRISMA FILES
-5. FRONTEND FILES (React + Vanilla JS Dashboard)
+2. BACKEND FILES (backend/)
+3. FRONTEND FILES (frontend/)
+4. SHARED PACKAGE (packages/shared/)
+5. DATABASE & PRISMA FILES
 6. CONFIGURATION FILES
-7. UTILITY FILES
-8. MIGRATION FILES
-9. SAMPLE DATA FILES
-10. DEPENDENCIES & SCRIPTS
-11. WORKFLOW & DATA FLOW
-12. API ENDPOINTS REFERENCE
+7. MIGRATION FILES
+8. SAMPLE DATA FILES
+9. DEPENDENCIES & SCRIPTS
+10. WORKFLOW & DATA FLOW
+11. API ENDPOINTS REFERENCE
 
 ================================================================================
 1. PROJECT STRUCTURE OVERVIEW
 ================================================================================
 
-The RERC System has been refactored into a modular architecture:
+The RERC System uses a monorepo structure with separated backend and frontend:
 
 ROOT STRUCTURE:
   rerc-system/
-  ├── src/                    # Main backend server (Express.js)
-  ├── packages/shared/        # Shared constants & types
+  ├── backend/                # Express.js API server
+  │   ├── src/                # Server source code
+  │   ├── prisma/             # Database schema & migrations
+  │   └── tests/              # Backend tests
   ├── frontend/               # React frontend (Vite + DLSU theme)
-  ├── public/                 # Vanilla JS RA Dashboard (legacy)
-  ├── prisma/                 # Database schema & migrations
-  ├── samples/                # Sample data files (CSV)
-  ├── dist/                   # Compiled TypeScript output
-  └── docs/                   # Documentation
+  │   ├── src/                # React source code
+  │   └── dist/               # Production build output
+  ├── packages/shared/        # Shared constants & types
+  ├── samples/                # Sample CSV data files
+  ├── docs/                   # Documentation
+  └── .env                    # Environment variables (root level)
 
-BACKEND LAYER:
-  - Main Express.js server (src/server.ts) - 1900+ lines, 33 endpoints
+BACKEND LAYER (backend/):
+  - Express.js server (backend/src/server.ts) - 1900+ lines, 33 endpoints
   - CORS enabled for React frontend (localhost:5173)
-  - Services (src/services/) - Letter generation
-  - Utilities (src/utils/) - SLA calculations
-  - Shared package (packages/shared/) - Constants, types, enums
+  - Services (backend/src/services/) - Letter generation
+  - Utilities (backend/src/utils/) - SLA calculations
+  - Prisma ORM (backend/prisma/) - Database schema & migrations
+  - Generated Prisma client (backend/src/generated/prisma/)
 
-FRONTEND LAYER (TWO OPTIONS):
-  Option 1: React Frontend (frontend/) - RECOMMENDED
-    - DLSU Manila institutional theme (green/gold)
-    - Modern component architecture
-    - URL-based filter state
-    - Runs on port 5173 via Vite
-    - Start: cd frontend && npm run dev
-  
-  Option 2: Vanilla JS Dashboard (public/index.html)
-    - Purple gradient theme
-    - Single HTML file with embedded CSS/JS
-    - Served statically by Express
-    - Access at http://localhost:3000
+FRONTEND LAYER (frontend/):
+  - React 18 + TypeScript
+  - Vite dev server (port 5173)
+  - DLSU Manila institutional theme (green/gold)
+  - Modern component architecture
+  - URL-based filter state
 
-DATABASE LAYER:
-  - PostgreSQL 18 (localhost:5432)
-  - Prisma ORM for database access
-  - 11 interconnected models
-  - 9 migration files for schema evolution
+SHARED LAYER (packages/shared/):
+  - Constants and enums
+  - TypeScript interfaces
+  - Shared between backend and frontend
 
 DEPLOYMENT:
-  - Backend: http://localhost:3000 (Express + CORS)
-  - React Frontend: http://localhost:5173 (Vite dev server)
-  - Vanilla Dashboard: http://localhost:3000 (static fallback)
-  - Database: localhost:5432
+  - Backend API: http://localhost:3000
+  - React Frontend: http://localhost:5173
+  - Database: PostgreSQL on localhost:5432
 
 HOW TO RUN:
+
   # Terminal 1 - Start Backend
-  cd rerc-system
+  cd rerc-system/backend
+  npm install    # first time only
   npm run dev
-  
-  # Terminal 2 - Start React Frontend
+  # Backend runs at http://localhost:3000
+
+  # Terminal 2 - Start Frontend
   cd rerc-system/frontend
+  npm install    # first time only
   npm run dev
-  
+  # Frontend runs at http://localhost:5173
+
   # Open browser to http://localhost:5173
 
 ================================================================================
-2. CORE BACKEND FILES
+2. BACKEND FILES (backend/)
 ================================================================================
 
-FILE: src/server.ts (1900+ lines)
+DIRECTORY: backend/
 ─────────────────────────────────────────────────────────────────────────────
+
+FILE: backend/package.json
+PURPOSE:
+  Backend dependencies and scripts
+
+SCRIPTS:
+  dev    - ts-node-dev --respawn src/server.ts
+  build  - tsc
+  start  - node dist/server.js
+  seed   - ts-node src/config/seed.ts
+  test   - jest
+
+DEPENDENCIES:
+  express ^5.2.1
+  @prisma/client ^7.1.0
+  prisma ^7.1.0
+  typescript ^5.9.3
+  pg ^8.16.3
+  json2csv ^6.0.0-alpha.2
+  docx ^9.5.1
+  cors, dotenv
+
+FILE: backend/tsconfig.json
+PURPOSE:
+  TypeScript configuration for backend compilation
+
+FILE: backend/jest.config.js
+PURPOSE:
+  Jest test configuration
+
+FILE: backend/prisma.config.ts
+PURPOSE:
+  Prisma configuration settings
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: backend/src/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: backend/src/server.ts (1900+ lines)
 PURPOSE:
   Main Express.js application containing all API endpoints and business logic
 
@@ -150,11 +189,410 @@ HELPER FUNCTIONS:
   addWorkingDays()      - Adds business days to a date
   formatDate()          - Formats date for display
 
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: backend/src/config/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: backend/src/config/prismaClient.ts
+PURPOSE:
+  Prisma client singleton instance for database access
+EXPORTS:
+  prisma - PrismaClient instance
+
+FILE: backend/src/config/seed.ts
+PURPOSE:
+  Database seeding script for initial/test data
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: backend/src/services/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: backend/src/services/letterGenerator.ts
+PURPOSE:
+  Letter template generation for mail-merge (DOCX format)
+TEMPLATES:
+  Form 6B - Initial Acknowledgment
+  Form 20B - Initial Approval
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: backend/src/utils/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: backend/src/utils/slaUtils.ts
+PURPOSE:
+  Working day calculations for SLA tracking
+
+FUNCTIONS:
+  workingDaysBetween(fromDate, toDate) → number
+  addWorkingDays(startDate, days) → Date
+
+SLA DEFAULTS:
+  Classification: 5 working days
+  Expedited Review: 15 working days
+  Full Board Review: 30 working days
+  Revision Response: 30 working days
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: backend/src/generated/prisma/
+─────────────────────────────────────────────────────────────────────────────
+PURPOSE:
+  Auto-generated Prisma client files (DO NOT EDIT MANUALLY)
+
+FILES:
+  browser.ts           - Browser-compatible client
+  client.ts            - Main Prisma client
+  commonInputTypes.ts  - Input type definitions
+  enums.ts             - Enum definitions
+  models.ts            - Model type definitions
+  internal/            - Internal Prisma utilities
+  models/              - Individual model files
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: backend/tests/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: backend/tests/jest.setup.ts
+PURPOSE:
+  Jest test setup and configuration
+
+FILE: backend/tests/api/security.test.ts
+PURPOSE:
+  API security tests
+
+FILE: backend/tests/integration/schemaIntegrity.test.ts
+PURPOSE:
+  Database schema integrity tests
+
+FILE: backend/tests/unit/workingDays.test.ts
+PURPOSE:
+  Unit tests for working days calculations
+
+FILE: backend/tests/helpers/prismaCleanup.ts
+PURPOSE:
+  Test helper for cleaning up test data
+
 ================================================================================
-3. SHARED PACKAGE
+3. FRONTEND FILES (frontend/)
+================================================================================
+
+DIRECTORY: frontend/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: frontend/package.json
+PURPOSE:
+  Frontend dependencies and scripts
+
+SCRIPTS:
+  dev     - vite (starts dev server on port 5173)
+  build   - tsc && vite build
+  preview - vite preview
+
+DEPENDENCIES:
+  react ^18.x
+  react-dom ^18.x
+  react-router-dom ^6.x
+  axios ^1.x
+  vite ^5.x
+  typescript ^5.x
+
+FILE: frontend/index.html
+PURPOSE:
+  HTML entry point for Vite
+
+FILE: frontend/vite.config.ts
+PURPOSE:
+  Vite bundler configuration
+
+FILE: frontend/tsconfig.json
+PURPOSE:
+  TypeScript configuration for frontend
+
+FILE: frontend/tsconfig.node.json
+PURPOSE:
+  TypeScript config for Vite config files
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: frontend/src/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: frontend/src/main.tsx
+PURPOSE:
+  React application entry point, renders App component to DOM
+
+FILE: frontend/src/App.tsx
+PURPOSE:
+  Root React component with React Router navigation
+ROUTES:
+  /                      - Redirects to /dashboard
+  /dashboard             - Main RA Dashboard (DashboardPage)
+  /projects/:projectId   - Project detail page (ProjectDetailPage)
+  /submissions/:submissionId - Submission detail page (SubmissionDetailPage)
+
+FILE: frontend/src/vite-env.d.ts
+PURPOSE:
+  Vite environment type declarations
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: frontend/src/components/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: frontend/src/components/CommandBar.tsx
+PURPOSE:
+  Sticky header with filters and search
+FEATURES:
+  - Role badge ("Research Associate")
+  - Committee name display
+  - Global search input (code/title/PI)
+  - Stage filter chips with counts
+  - Saved Views dropdown
+  - Refresh button with "Last updated" timestamp
+  - Clear filters link
+  - Export Report shortcut
+
+FILE: frontend/src/components/AttentionStrip.tsx
+PURPOSE:
+  Risk-first alert banner below header
+FEATURES:
+  - Overdue count (clickable → filters to overdue)
+  - Due in ≤3 days count
+  - Classification wait count
+  - Missing letter fields count
+  - Gold/red color coding for urgency
+
+FILE: frontend/src/components/SummaryCards.tsx
+PURPOSE:
+  Actionable KPI cards
+CARDS:
+  - For Classification (click → scrolls to queue)
+  - Under Review (click → scrolls to queue)
+  - Awaiting Revisions (click → scrolls to queue)
+  - Due Soon (click → filters)
+  - Subtext explaining what's counted
+
+FILE: frontend/src/components/QueueTable.tsx
+PURPOSE:
+  Operator-grade data tables with sorting and pagination
+FEATURES:
+  - Sortable columns (age, date, SLA, due)
+  - Pagination with page size selector
+  - Row selection checkboxes
+  - Bulk actions bar (Export CSV, etc.)
+  - Row expansion for quick details
+  - Loading skeleton states
+  - Empty states with helpful links
+
+FILE: frontend/src/components/SLAStatusChip.tsx
+PURPOSE:
+  SLA status indicator with tooltip details
+FEATURES:
+  - Status chip: ON_TRACK / DUE_SOON / OVERDUE
+  - Working-days remaining badge
+  - Tooltip with full SLA breakdown:
+    * Stage start date
+    * Target working days
+    * Elapsed working days
+    * Computed due date
+
+FILE: frontend/src/components/LetterReadinessPanel.tsx
+PURPOSE:
+  Mail-merge readiness panel
+FEATURES:
+  - Groups by template codes (6B, 20B, 8B, 9B)
+  - READY count per template
+  - MISSING_FIELDS count (click to view details)
+  - Export CSV button per template
+
+FILE: frontend/src/components/EmptyState.tsx
+PURPOSE:
+  Helpful empty state component
+FEATURES:
+  - Explanation text
+  - Quick links: Show all active, Show overdue, Go to reports
+
+FILE: frontend/src/components/Timeline.tsx
+PURPOSE:
+  Status change history visualization
+FEATURES:
+  - Date, status, and notes for each change
+  - Vertical timeline layout
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: frontend/src/pages/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: frontend/src/pages/DashboardPage.tsx (320+ lines)
+PURPOSE:
+  Main RA Dashboard page
+FEATURES:
+  - URL query params for filters (?stage=CLASSIFICATION&q=RERC-2025)
+  - Sticky CommandBar
+  - AttentionStrip
+  - SummaryCards
+  - 4 QueueTable sections (Classification, Review, Revision, Due)
+  - LetterReadinessPanel
+  - Scroll-to-section on filter click
+  - CSV export functionality
+
+FILE: frontend/src/pages/ProjectDetailPage.tsx
+PURPOSE:
+  Project detail view
+FEATURES:
+  - Full project information
+  - All submissions list
+  - Back to dashboard navigation
+
+FILE: frontend/src/pages/SubmissionDetailPage.tsx
+PURPOSE:
+  Submission detail view
+FEATURES:
+  - Submission details
+  - SLA summary
+  - Timeline
+  - Export buttons (CSV, DOCX)
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: frontend/src/hooks/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: frontend/src/hooks/useDashboardQueues.ts (230+ lines)
+PURPOSE:
+  Custom hook for fetching and managing dashboard data
+RETURNS:
+  - counts: Queue item counts
+  - queues: Classification, Review, Revision, Due queues
+  - letterReadiness: Mail-merge readiness data
+  - attention: Attention metrics (overdue, due soon)
+  - lastUpdated: Timestamp of last refresh
+  - loading, error: Loading and error states
+FEATURES:
+  - Fetches /dashboard/queues
+  - Decorates items with SLA calculations
+  - Computes attention metrics
+  - Letter readiness aggregation
+  - Polling support (60-120s refresh)
+
+FILE: frontend/src/hooks/useProjectDetail.ts
+PURPOSE:
+  Custom hook for fetching project details
+FEATURES:
+  - Fetches /projects/:id/full
+  - Returns project with all relations
+
+FILE: frontend/src/hooks/useSubmissionDetail.ts
+PURPOSE:
+  Custom hook for fetching submission details
+FEATURES:
+  - Fetches /submissions/:id
+  - Fetches /submissions/:id/sla-summary
+  - Returns submission details and SLA breakdown
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: frontend/src/services/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: frontend/src/services/api.ts (270+ lines)
+PURPOSE:
+  API client for backend communication
+CONFIGURATION:
+  - Base URL: http://localhost:3000 (or VITE_API_URL)
+  - Axios instance with error handling
+TYPES:
+  - QueueItem, DecoratedQueueItem
+  - AttentionMetrics
+  - LetterReadiness
+  - ProjectDetail, SubmissionDetail
+FUNCTIONS:
+  - fetchDashboardQueues(committeeCode)
+  - fetchProjectDetail(projectId)
+  - fetchSubmissionDetail(submissionId)
+  - fetchSubmissionSlaSummary(submissionId)
+  - exportInitialAckCSV(submissionId)
+  - exportInitialApprovalDocx(submissionId)
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: frontend/src/utils/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: frontend/src/utils/dateUtils.ts
+PURPOSE:
+  Date utility functions
+FUNCTIONS:
+  - workingDaysBetween(start, end) - Business days calculation
+  - addWorkingDays(start, days) - Add working days to date
+  - formatDateDisplay(date) - "Dec 16, 2025" format
+  - formatTimeAgo(date) - "5m ago" format
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: frontend/src/styles/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: frontend/src/styles/globals.css (800+ lines)
+PURPOSE:
+  Global styles with DLSU Manila theme
+
+CSS CUSTOM PROPERTIES (Theme Tokens):
+  --primary-green: #0b5d3b (institutional green)
+  --primary-green-hover: #0a4e32
+  --primary-green-soft: #e6f1ea
+  --accent-gold: #c8a100 (warning/attention)
+  --accent-gold-soft: #f8f2d9
+  --danger-red: #b42318 (overdue only)
+  --danger-soft: #fbeaea
+  --neutral-900 through --neutral-100
+  --surface, --surface-muted
+  --shadow-sm, --shadow-md
+  --radius-sm, --radius-md, --radius-lg
+
+COMPONENT STYLES:
+  - .app-container, .app-nav, .app-main, .app-footer
+  - .command-bar, .stage-chips, .search-input
+  - .attention-strip, .attention-item
+  - .summary-cards, .kpi-card
+  - .queue-card, .queue-table
+  - .sla-chip, .sla-ontrack, .sla-due, .sla-overdue
+  - .letter-panel, .template-card
+  - .empty-state
+  - .detail-page, .timeline
+
+─────────────────────────────────────────────────────────────────────────────
+
+DIRECTORY: frontend/dist/
+─────────────────────────────────────────────────────────────────────────────
+PURPOSE:
+  Production build output (generated by npm run build)
+
+FILES:
+  index.html              - Built HTML entry point
+  assets/index-*.css      - Bundled CSS
+  assets/index-*.js       - Bundled JavaScript
+
+================================================================================
+4. SHARED PACKAGE (packages/shared/)
 ================================================================================
 
 DIRECTORY: packages/shared/
+─────────────────────────────────────────────────────────────────────────────
+
+FILE: packages/shared/package.json
+PURPOSE:
+  Shared package configuration
+
+FILE: packages/shared/tsconfig.json
+PURPOSE:
+  TypeScript configuration for shared package
+
 ─────────────────────────────────────────────────────────────────────────────
 
 FILE: packages/shared/src/constants.ts
@@ -224,10 +662,10 @@ PURPOSE:
   Barrel export for all shared modules
 
 ================================================================================
-4. DATABASE & PRISMA FILES
+5. DATABASE & PRISMA FILES
 ================================================================================
 
-FILE: prisma/schema.prisma (291 lines)
+FILE: backend/prisma/schema.prisma (291 lines)
 ─────────────────────────────────────────────────────────────────────────────
 PURPOSE:
   Defines complete database schema using Prisma syntax
@@ -289,388 +727,46 @@ PURPOSE:
   SubmissionStatus, ReviewType, ReviewDecision,
   CompletenessStatus, PanelMemberRole, SLAStage
 
-================================================================================
-5. FRONTEND FILES
-================================================================================
-
-DIRECTORY: public/ (Vanilla JS RA Dashboard)
-─────────────────────────────────────────────────────────────────────────────
-
-FILE: public/index.html (1580+ lines)
-PURPOSE:
-  Research Associate Dashboard - Main operational interface
-
-FEATURES:
-  ✓ Status Filter Bar (All, Classification, Review, Revision, Due Soon)
-  ✓ 4 KPI Summary Cards with overdue alerts
-  ✓ 4 Queue Tables with SLA compliance columns
-  ✓ Slide-in Detail Panel with timeline
-  ✓ 3 Action Modals (Classification, Reviewer, Decision)
-  ✓ Working days calculator
-  ✓ Real-time data refresh
-
-SECTIONS:
-
-  1. STATUS FILTER BAR (Lines ~50-80)
-     - Clickable status pills
-     - Active state highlighting
-     - Filter submissions by status
-
-  2. KPI CARDS (Lines ~85-150)
-     Card 1: Pending Classification
-       - Count of submissions awaiting classification
-       - Overdue alert (>5 working days)
-     Card 2: Under Review
-       - Count of submissions in review
-       - Overdue alert (>15/30 working days)
-     Card 3: Awaiting Revision
-       - Count of submissions needing PI response
-       - Overdue based on revisionDueDate
-     Card 4: Due Soon
-       - Upcoming continuing reviews & final reports
-       - 30-day lookahead
-
-  3. QUEUE TABLES (Lines ~155-500)
-     Table 1: Classification Queue
-       - Project code, title, PI, department
-       - Received date, working days elapsed
-       - SLA status badge (On Track/Due Soon/Overdue)
-       - View action button
-
-     Table 2: Review Queue
-       - Project code, title, submission type
-       - Review type (Exempt/Expedited/Full Board)
-       - Classification date, reviewer progress
-       - SLA status badge
-       - View action button
-
-     Table 3: Revision Queue
-       - Project code, title, revision type
-       - Requested date, due date
-       - Days remaining, SLA status
-       - View action button
-
-     Table 4: Upcoming Due
-       - Project code, title
-       - Due type (Continuing Review/Final Report)
-       - Due date, days until due
-       - View action button
-
-  4. DETAIL PANEL (Lines ~505-700)
-     - Slide-in from right
-     - Project header (code, title)
-     - Submission info section
-     - Timeline of status changes
-     - Action buttons based on status:
-       * Classify (for RECEIVED status)
-       * Assign Reviewer (for CLASSIFIED status)
-       * Record Decision (for UNDER_REVIEW status)
-     - Close button
-
-  5. ACTION MODALS (Lines ~705-850)
-     Modal 1: Classification Modal
-       - Review type selector (Exempt/Expedited/Full Board)
-       - Risk level input
-       - Notes field
-       - Submit button → POST /submissions/:id/classifications
-
-     Modal 2: Assign Reviewer Modal
-       - Reviewer selector dropdown
-       - Due date picker
-       - Notes field
-       - Submit button → POST /submissions/:id/reviews
-
-     Modal 3: Decision Modal
-       - Decision selector (Approved/Minor/Major/Disapproved)
-       - Approval period dates (if approved)
-       - Notes field
-       - Submit button → POST /submissions/:id/final-decision
-
-  6. JAVASCRIPT FUNCTIONS (Lines ~855-1580)
-
-     Data Loading:
-       loadQueues()           - Fetches all queue data
-       loadUpcomingDueDates() - Fetches upcoming deadlines
-       loadProjectDetail(id)  - Fetches project with submissions
-
-     Rendering:
-       renderClassificationQueue(rows) - Renders classification table
-       renderReviewQueue(rows)         - Renders review table
-       renderRevisionQueue(rows)       - Renders revision table
-       renderUpcomingDueQueue(rows)    - Renders upcoming due table
-       renderDetailPanel(project, sub) - Renders detail panel content
-       renderTimeline(history)         - Renders status timeline
-
-     Utilities:
-       workingDaysBetween(from, to)    - Business days calculation
-       getSLABadge(startDate, limit)   - Returns SLA status badge HTML
-       formatShortDate(date)           - Formats as "Dec 16"
-       truncate(text, len)             - Truncates long text
-
-     Actions:
-       openDetailPanel(projectId, subId) - Opens detail panel
-       closeDetailPanel()                - Closes detail panel
-       openClassificationModal()         - Opens classification modal
-       openReviewerModal()               - Opens reviewer modal
-       openDecisionModal()               - Opens decision modal
-       submitClassification()            - Submits classification
-       submitReviewer()                  - Submits reviewer assignment
-       submitDecision()                  - Submits final decision
-
-     Filtering:
-       filterByStatus(status)            - Filters queues by status
-
-FILE: public/styles.css
-PURPOSE:
-  CSS styles for the vanilla JS dashboard
-  Includes: colors, layout, cards, tables, modals, responsive design
-
-─────────────────────────────────────────────────────────────────────────────
-
-DIRECTORY: frontend/src/ (React Frontend - DLSU Themed)
-─────────────────────────────────────────────────────────────────────────────
-PURPOSE:
-  Enhanced React dashboard with DLSU Manila institutional theme
-  Runs on port 5173 via Vite dev server
-  Connects to backend API at port 3000 (requires CORS enabled)
-
-FILE: frontend/src/main.tsx
-PURPOSE:
-  React application entry point, renders App component
-
-FILE: frontend/src/App.tsx
-PURPOSE:
-  Root React component with React Router navigation
-ROUTES:
-  /                      - Redirects to /dashboard
-  /dashboard             - Main RA Dashboard
-  /projects/:projectId   - Project detail page
-  /submissions/:submissionId - Submission detail page
-
-DIRECTORY: frontend/src/components/
-─────────────────────────────────────────────────────────────────────────────
-
-  CommandBar.tsx (Sticky Header)
-    - Role badge ("Research Associate")
-    - Committee name display
-    - Global search input (code/title/PI)
-    - Stage filter chips with counts
-    - Saved Views dropdown
-    - Refresh button with "Last updated" timestamp
-    - Clear filters link
-    - Export Report shortcut
-
-  AttentionStrip.tsx (Risk-First Alerts)
-    - Overdue count (clickable → filters to overdue)
-    - Due in ≤3 days count
-    - Classification wait count
-    - Missing letter fields count
-    - Gold/red color coding for urgency
-
-  SummaryCards.tsx (Actionable KPIs)
-    - For Classification (click → scrolls to queue)
-    - Under Review (click → scrolls to queue)
-    - Awaiting Revisions (click → scrolls to queue)
-    - Due Soon (click → filters)
-    - Subtext explaining what's counted
-
-  QueueTable.tsx (Operator-Grade Tables)
-    - Sortable columns (age, date, SLA, due)
-    - Pagination with page size selector
-    - Row selection checkboxes
-    - Bulk actions bar (Export CSV, etc.)
-    - Row expansion for quick details
-    - Loading skeleton states
-    - Empty states with helpful links
-
-  SLAStatusChip.tsx (SLA Explainability)
-    - Status chip: ON_TRACK / DUE_SOON / OVERDUE
-    - Working-days remaining badge
-    - Tooltip with full SLA breakdown:
-      * Stage start date
-      * Target working days
-      * Elapsed working days
-      * Computed due date
-
-  LetterReadinessPanel.tsx (Mail-Merge Ready)
-    - Groups by template codes (6B, 20B, 8B, 9B)
-    - READY count per template
-    - MISSING_FIELDS count (click to view details)
-    - Export CSV button per template
-
-  EmptyState.tsx (Useful Empty States)
-    - Explanation text
-    - Quick links: Show all active, Show overdue, Go to reports
-
-  Timeline.tsx
-    - Status change history visualization
-    - Date, status, and notes for each change
-
-DIRECTORY: frontend/src/pages/
-─────────────────────────────────────────────────────────────────────────────
-
-  DashboardPage.tsx (Main Dashboard - 320+ lines)
-    - URL query params for filters (?stage=CLASSIFICATION&q=RERC-2025)
-    - Sticky CommandBar
-    - AttentionStrip
-    - SummaryCards
-    - 4 QueueTable sections (Classification, Review, Revision, Due)
-    - LetterReadinessPanel
-    - Scroll-to-section on filter click
-    - CSV export functionality
-
-  ProjectDetailPage.tsx
-    - Full project information
-    - All submissions list
-    - Back to dashboard navigation
-
-  SubmissionDetailPage.tsx
-    - Submission details
-    - SLA summary
-    - Timeline
-    - Export buttons (CSV, DOCX)
-
-DIRECTORY: frontend/src/hooks/
-─────────────────────────────────────────────────────────────────────────────
-
-  useDashboardQueues.ts (230+ lines)
-    - Fetches /dashboard/queues
-    - Decorates items with SLA calculations
-    - Computes attention metrics
-    - Letter readiness aggregation
-    - Polling support (60-120s refresh)
-    - Returns: counts, queues, letterReadiness, attention, lastUpdated
-
-  useProjectDetail.ts
-    - Fetches /projects/:id/full
-    - Returns project with all relations
-
-  useSubmissionDetail.ts
-    - Fetches /submissions/:id
-    - Fetches /submissions/:id/sla-summary
-    - Returns submission details and SLA breakdown
-
-DIRECTORY: frontend/src/services/
-─────────────────────────────────────────────────────────────────────────────
-
-  api.ts (270+ lines)
-    - Axios client configured for localhost:3000
-    - Types: QueueItem, DecoratedQueueItem, AttentionMetrics, etc.
-    - Functions:
-      * fetchDashboardQueues(committeeCode)
-      * fetchProjectDetail(projectId)
-      * fetchSubmissionDetail(submissionId)
-      * fetchSubmissionSlaSummary(submissionId)
-      * exportInitialAckCSV(submissionId)
-      * exportInitialApprovalDocx(submissionId)
-
-DIRECTORY: frontend/src/utils/
-─────────────────────────────────────────────────────────────────────────────
-
-  dateUtils.ts
-    - workingDaysBetween(start, end) - Business days calculation
-    - addWorkingDays(start, days) - Add working days to date
-    - formatDateDisplay(date) - "Dec 16, 2025" format
-    - formatTimeAgo(date) - "5m ago" format
-
-DIRECTORY: frontend/src/styles/
-─────────────────────────────────────────────────────────────────────────────
-
-  globals.css (800+ lines)
-    DLSU Manila Theme Tokens:
-    - --primary-green: #0b5d3b (institutional green)
-    - --primary-green-hover: #0a4e32
-    - --primary-green-soft: #e6f1ea
-    - --accent-gold: #c8a100 (warning/attention)
-    - --accent-gold-soft: #f8f2d9
-    - --danger-red: #b42318 (overdue only)
-    - --danger-soft: #fbeaea
-    - --neutral-900 through --neutral-100
-    - --surface, --surface-muted
-    - --shadow-sm, --shadow-md
-    - --radius-sm, --radius-md, --radius-lg
-
-    Component Styles:
-    - .app-container, .app-nav, .app-main, .app-footer
-    - .command-bar, .stage-chips, .search-input
-    - .attention-strip, .attention-item
-    - .summary-cards, .kpi-card
-    - .queue-card, .queue-table
-    - .sla-chip, .sla-ontrack, .sla-due, .sla-overdue
-    - .letter-panel, .template-card
-    - .empty-state
-    - .detail-page, .timeline
+ERD DIAGRAMS (backend/prisma/):
+  ERD.svg              - Complete entity relationship diagram
+  ERD-overview.svg     - High-level overview
+  ERD-workflow.svg     - Workflow-focused view
+  ERD-governance.svg   - Governance structures
+  ERD-sla.svg          - SLA tracking structures
 
 ================================================================================
 6. CONFIGURATION FILES
 ================================================================================
 
-FILE: .env
+FILE: .env (Root Level)
 ─────────────────────────────────────────────────────────────────────────────
   DATABASE_URL=postgresql://rerc:password@localhost:5432/rerc
   PORT=3000
-  CORS_ORIGINS=http://localhost:5173
-  FRONTEND_URL=http://localhost:5173
 
-FILE: tsconfig.json (Root)
+FILE: backend/tsconfig.json
 ─────────────────────────────────────────────────────────────────────────────
-  Includes: src/, backend/src/, packages/shared/src/
   Target: ES2020
   Module: CommonJS
   Strict: true
   OutDir: dist/
 
-FILE: package.json
+FILE: frontend/vite.config.ts
 ─────────────────────────────────────────────────────────────────────────────
-  Scripts:
-    dev   - ts-node-dev --respawn src/server.ts
-    build - tsc
-    start - node dist/server.js
-    seed  - ts-node src/seed.ts
+  Dev server port: 5173
+  API proxy (optional): Can proxy /api to backend
 
-  Dependencies:
-    express ^5.2.1
-    @prisma/client ^7.1.0
-    prisma ^7.1.0
-    typescript ^5.9.3
-    pg ^8.16.3
-    json2csv ^6.0.0-alpha.2
-    docx ^9.5.1
-    cors, dotenv
-
-================================================================================
-7. UTILITY FILES
-================================================================================
-
-FILE: src/slaUtils.ts
+FILE: frontend/tsconfig.json
 ─────────────────────────────────────────────────────────────────────────────
-PURPOSE:
-  Working day calculations for SLA tracking
-
-FUNCTIONS:
-  workingDaysBetween(fromDate, toDate) → number
-  addWorkingDays(startDate, days) → Date
-
-SLA DEFAULTS:
-  Classification: 5 working days
-  Expedited Review: 15 working days
-  Full Board Review: 30 working days
-  Revision Response: 30 working days
-
-FILE: src/letters.ts
-─────────────────────────────────────────────────────────────────────────────
-PURPOSE:
-  Letter template generation for mail-merge
-
-TEMPLATES:
-  Form 6B - Initial Acknowledgment
-  Form 20B - Initial Approval
+  Target: ES2020
+  Module: ESNext
+  JSX: react-jsx
+  Strict: true
 
 ================================================================================
-8. MIGRATION FILES
+7. MIGRATION FILES
 ================================================================================
 
-DIRECTORY: prisma/migrations/ (9 migrations)
+DIRECTORY: backend/prisma/migrations/ (11 migrations)
 ─────────────────────────────────────────────────────────────────────────────
 
   1. 20251211100203_init_user
@@ -700,8 +796,14 @@ DIRECTORY: prisma/migrations/ (9 migrations)
   9. 20251211155533_add_submission_final_decision
      └─ Adds finalDecision fields to Submission
 
+  10. 20251215021511_init
+      └─ Schema consolidation
+
+  11. 20251215025323_init
+      └─ Final schema updates
+
 ================================================================================
-9. SAMPLE DATA FILES
+8. SAMPLE DATA FILES
 ================================================================================
 
 DIRECTORY: samples/
@@ -714,34 +816,47 @@ FILE: samples/initial_approval.csv
   Sample approval letter data for testing mail-merge
 
 ================================================================================
-10. DEPENDENCIES & SCRIPTS
+9. DEPENDENCIES & SCRIPTS
 ================================================================================
 
 RUNNING THE SYSTEM:
 
-  # Install dependencies
+  # Install backend dependencies
+  cd backend
   npm install
 
-  # Start development server (backend + static dashboard)
+  # Install frontend dependencies
+  cd frontend
+  npm install
+
+  # Start backend (Terminal 1)
+  cd backend
   npm run dev
   # Server runs at http://localhost:3000
-  # Dashboard at http://localhost:3000 (serves public/index.html)
 
-  # Start React frontend (optional)
-  cd frontend && npm run dev
+  # Start frontend (Terminal 2)
+  cd frontend
+  npm run dev
   # React app at http://localhost:5173
 
-  # Build for production
+  # Build frontend for production
+  cd frontend
   npm run build
 
   # Seed database with sample data
+  cd backend
   npm run seed
 
   # Run database migrations
+  cd backend
   npx prisma migrate dev
 
+  # Run backend tests
+  cd backend
+  npm test
+
 ================================================================================
-11. WORKFLOW & DATA FLOW
+10. WORKFLOW & DATA FLOW
 ================================================================================
 
 SUBMISSION WORKFLOW:
@@ -789,24 +904,28 @@ SLA TRACKING:
   Full Board Review: 30 working days from classification
   Revision Response: 30 working days from request
 
-DASHBOARD DATA FLOW:
+FRONTEND-BACKEND DATA FLOW:
 
-  Browser → GET /dashboard/queues
+  React App (localhost:5173)
     ↓
-  Server queries Prisma for submissions by status
+  Axios GET /dashboard/queues?committeeCode=RERC-HUMAN
+    ↓
+  Backend (localhost:3000)
+    ↓
+  Prisma queries PostgreSQL
     ↓
   Returns JSON: { counts, classificationQueue, reviewQueue, revisionQueue }
     ↓
-  Dashboard JavaScript renders tables with SLA badges
+  useDashboardQueues hook decorates with SLA calculations
     ↓
-  User clicks "View" → openDetailPanel(projectId, submissionId)
+  DashboardPage renders components
     ↓
-  GET /projects/:id/full
+  User clicks row → navigates to /submissions/:id
     ↓
-  Renders detail panel with timeline and action buttons
+  SubmissionDetailPage fetches and displays details
 
 ================================================================================
-12. API ENDPOINTS REFERENCE
+11. API ENDPOINTS REFERENCE
 ================================================================================
 
 HEALTH:
@@ -866,5 +985,7 @@ RA PORTAL:
 END OF DOCUMENT
 ================================================================================
 Generated: December 16, 2025
-Features: Enhanced Dashboard, SLA Tracking, Workflow Actions, Modular Architecture
+Structure: Monorepo with backend/ and frontend/ separation
+Features: DLSU Theme, SLA Tracking, Workflow Actions, React + Express
+Repository: https://github.com/kysokyhuh/rerc-review-portal
 ================================================================================
