@@ -1,7 +1,7 @@
 ================================================================================
 RERC SYSTEM - COMPLETE FILE EXPLANATIONS & ORGANIZATION
 ================================================================================
-Date: December 16, 2025
+Date: December 29, 2025
 Version: Restructured Monorepo (Backend + Frontend Separation)
 Repository: rerc-review-portal (kysokyhuh)
 ================================================================================
@@ -28,6 +28,13 @@ The RERC System uses a monorepo structure with separated backend and frontend:
 
 ROOT STRUCTURE:
   rerc-system/
+  ├── .env                    # Environment variables (root level)
+  ├── .env.example            # Sample environment variables
+  ├── .gitignore              # Git ignore rules
+  ├── .vscode/                # Workspace settings
+  │   └── settings.json       # VS Code workspace settings
+  ├── FILE_EXPLANATIONS.txt   # Complete file map (this document)
+  ├── README.md               # Project overview and setup
   ├── backend/                # Express.js API server
   │   ├── src/                # Server source code
   │   ├── prisma/             # Database schema & migrations
@@ -36,9 +43,7 @@ ROOT STRUCTURE:
   │   ├── src/                # React source code
   │   └── dist/               # Production build output
   ├── packages/shared/        # Shared constants & types
-  ├── samples/                # Sample CSV data files
-  ├── docs/                   # Documentation
-  └── .env                    # Environment variables (root level)
+  └── samples/                # Sample CSV data files
 
 BACKEND LAYER (backend/):
   - Express.js server (backend/src/server.ts) - 1900+ lines, 33 endpoints
@@ -108,6 +113,10 @@ DEPENDENCIES:
   json2csv ^6.0.0-alpha.2
   docx ^9.5.1
   cors, dotenv
+
+FILE: backend/package-lock.json
+PURPOSE:
+  NPM lockfile for backend dependencies
 
 FILE: backend/tsconfig.json
 PURPOSE:
@@ -242,14 +251,81 @@ DIRECTORY: backend/src/generated/prisma/
 PURPOSE:
   Auto-generated Prisma client files (DO NOT EDIT MANUALLY)
 
-FILES:
-  browser.ts           - Browser-compatible client
-  client.ts            - Main Prisma client
-  commonInputTypes.ts  - Input type definitions
-  enums.ts             - Enum definitions
-  models.ts            - Model type definitions
-  internal/            - Internal Prisma utilities
-  models/              - Individual model files
+FILE: backend/src/generated/prisma/browser.ts
+PURPOSE:
+  Browser-compatible Prisma client entry
+
+FILE: backend/src/generated/prisma/client.ts
+PURPOSE:
+  Main Prisma client entry
+
+FILE: backend/src/generated/prisma/commonInputTypes.ts
+PURPOSE:
+  Generated input type definitions
+
+FILE: backend/src/generated/prisma/enums.ts
+PURPOSE:
+  Generated enum definitions
+
+FILE: backend/src/generated/prisma/models.ts
+PURPOSE:
+  Generated model type definitions
+
+FILE: backend/src/generated/prisma/internal/class.ts
+PURPOSE:
+  Internal Prisma class helpers
+
+FILE: backend/src/generated/prisma/internal/prismaNamespace.ts
+PURPOSE:
+  Prisma namespace typings (Node)
+
+FILE: backend/src/generated/prisma/internal/prismaNamespaceBrowser.ts
+PURPOSE:
+  Prisma namespace typings (browser)
+
+FILE: backend/src/generated/prisma/models/Classification.ts
+PURPOSE:
+  Generated model types for Classification
+
+FILE: backend/src/generated/prisma/models/Committee.ts
+PURPOSE:
+  Generated model types for Committee
+
+FILE: backend/src/generated/prisma/models/CommitteeMember.ts
+PURPOSE:
+  Generated model types for CommitteeMember
+
+FILE: backend/src/generated/prisma/models/ConfigSLA.ts
+PURPOSE:
+  Generated model types for ConfigSLA
+
+FILE: backend/src/generated/prisma/models/Panel.ts
+PURPOSE:
+  Generated model types for Panel
+
+FILE: backend/src/generated/prisma/models/PanelMember.ts
+PURPOSE:
+  Generated model types for PanelMember
+
+FILE: backend/src/generated/prisma/models/Project.ts
+PURPOSE:
+  Generated model types for Project
+
+FILE: backend/src/generated/prisma/models/Review.ts
+PURPOSE:
+  Generated model types for Review
+
+FILE: backend/src/generated/prisma/models/Submission.ts
+PURPOSE:
+  Generated model types for Submission
+
+FILE: backend/src/generated/prisma/models/SubmissionStatusHistory.ts
+PURPOSE:
+  Generated model types for SubmissionStatusHistory
+
+FILE: backend/src/generated/prisma/models/User.ts
+PURPOSE:
+  Generated model types for User
 
 ─────────────────────────────────────────────────────────────────────────────
 
@@ -300,6 +376,10 @@ DEPENDENCIES:
   vite ^5.x
   typescript ^5.x
 
+FILE: frontend/package-lock.json
+PURPOSE:
+  NPM lockfile for frontend dependencies
+
 FILE: frontend/index.html
 PURPOSE:
   HTML entry point for Vite
@@ -308,6 +388,14 @@ FILE: frontend/vite.config.ts
 PURPOSE:
   Vite bundler configuration
 
+FILE: frontend/vite.config.js
+PURPOSE:
+  Compiled Vite config (generated JavaScript)
+
+FILE: frontend/vite.config.d.ts
+PURPOSE:
+  Type declarations for Vite config (generated)
+
 FILE: frontend/tsconfig.json
 PURPOSE:
   TypeScript configuration for frontend
@@ -315,6 +403,14 @@ PURPOSE:
 FILE: frontend/tsconfig.node.json
 PURPOSE:
   TypeScript config for Vite config files
+
+FILE: frontend/tsconfig.tsbuildinfo
+PURPOSE:
+  TypeScript incremental build cache (generated)
+
+FILE: frontend/tsconfig.node.tsbuildinfo
+PURPOSE:
+  TypeScript incremental build cache for node config (generated)
 
 ─────────────────────────────────────────────────────────────────────────────
 
@@ -573,10 +669,17 @@ DIRECTORY: frontend/dist/
 PURPOSE:
   Production build output (generated by npm run build)
 
-FILES:
-  index.html              - Built HTML entry point
-  assets/index-*.css      - Bundled CSS
-  assets/index-*.js       - Bundled JavaScript
+FILE: frontend/dist/index.html
+PURPOSE:
+  Built HTML entry point (generated)
+
+FILE: frontend/dist/assets/index-COioxD08.css
+PURPOSE:
+  Bundled CSS (generated)
+
+FILE: frontend/dist/assets/index-CTt8odgN.js
+PURPOSE:
+  Bundled JavaScript (generated)
 
 ================================================================================
 4. SHARED PACKAGE (packages/shared/)
@@ -728,39 +831,108 @@ PURPOSE:
   CompletenessStatus, PanelMemberRole, SLAStage
 
 ERD DIAGRAMS (backend/prisma/):
-  ERD.svg              - Complete entity relationship diagram
-  ERD-overview.svg     - High-level overview
-  ERD-workflow.svg     - Workflow-focused view
-  ERD-governance.svg   - Governance structures
-  ERD-sla.svg          - SLA tracking structures
+
+FILE: backend/prisma/ERD.svg
+PURPOSE:
+  Complete entity relationship diagram
+
+FILE: backend/prisma/ERD-overview.svg
+PURPOSE:
+  High-level overview diagram
+
+FILE: backend/prisma/ERD-workflow.svg
+PURPOSE:
+  Workflow-focused diagram
+
+FILE: backend/prisma/ERD-governance.svg
+PURPOSE:
+  Governance structures diagram
+
+FILE: backend/prisma/ERD-sla.svg
+PURPOSE:
+  SLA tracking diagram
 
 ================================================================================
 6. CONFIGURATION FILES
 ================================================================================
 
-FILE: .env (Root Level)
+ROOT-LEVEL CONFIG & DOCS
 ─────────────────────────────────────────────────────────────────────────────
+
+FILE: README.md
+PURPOSE:
+  Project overview, setup instructions, and usage notes
+
+FILE: FILE_EXPLANATIONS.txt
+PURPOSE:
+  Comprehensive file map and explanations (this document)
+
+FILE: .env
+PURPOSE:
+  Environment variables for local development (root level)
+EXAMPLE:
   DATABASE_URL=postgresql://rerc:password@localhost:5432/rerc
   PORT=3000
 
-FILE: backend/tsconfig.json
+FILE: .env.example
+PURPOSE:
+  Sample environment variables for local setup
+
+FILE: backend/.env
+PURPOSE:
+  Backend-specific environment variables (local overrides)
+
+FILE: .gitignore
+PURPOSE:
+  Git ignore rules for dependencies and generated files
+
+FILE: .vscode/settings.json
+PURPOSE:
+  VS Code workspace settings for this project
+
+PROJECT CONFIG
 ─────────────────────────────────────────────────────────────────────────────
+
+FILE: backend/tsconfig.json
+PURPOSE:
+  TypeScript configuration for backend compilation
+SETTINGS:
   Target: ES2020
   Module: CommonJS
   Strict: true
   OutDir: dist/
 
 FILE: frontend/vite.config.ts
-─────────────────────────────────────────────────────────────────────────────
+PURPOSE:
+  Vite bundler configuration (TypeScript source)
+SETTINGS:
   Dev server port: 5173
   API proxy (optional): Can proxy /api to backend
 
+FILE: frontend/vite.config.js
+PURPOSE:
+  Compiled Vite config (generated JavaScript)
+
+FILE: frontend/vite.config.d.ts
+PURPOSE:
+  Type declarations for Vite config (generated)
+
 FILE: frontend/tsconfig.json
-─────────────────────────────────────────────────────────────────────────────
+PURPOSE:
+  TypeScript configuration for frontend
+SETTINGS:
   Target: ES2020
   Module: ESNext
   JSX: react-jsx
   Strict: true
+
+FILE: frontend/tsconfig.tsbuildinfo
+PURPOSE:
+  TypeScript incremental build cache (generated)
+
+FILE: frontend/tsconfig.node.tsbuildinfo
+PURPOSE:
+  TypeScript incremental build cache for node config (generated)
 
 ================================================================================
 7. MIGRATION FILES
@@ -770,37 +942,63 @@ DIRECTORY: backend/prisma/migrations/ (11 migrations)
 ─────────────────────────────────────────────────────────────────────────────
 
   1. 20251211100203_init_user
-     └─ Creates User table
+     FILE: backend/prisma/migrations/20251211100203_init_user/migration.sql
+     PURPOSE:
+       Creates User table
 
   2. 20251211103050_rerc_core
-     └─ Creates Committee, Panel, CommitteeMember, Project, Submission
+     FILE: backend/prisma/migrations/20251211103050_rerc_core/migration.sql
+     PURPOSE:
+       Creates Committee, Panel, CommitteeMember, Project, Submission
 
   3. 20251211130711_add_classification
-     └─ Adds Classification model
+     FILE: backend/prisma/migrations/20251211130711_add_classification/migration.sql
+     PURPOSE:
+       Adds Classification model
 
   4. 20251211132529_add_reviews
-     └─ Adds Review model
+     FILE: backend/prisma/migrations/20251211132529_add_reviews/migration.sql
+     PURPOSE:
+       Adds Review model
 
   5. 20251211134028_add_submission_status
-     └─ Adds SubmissionStatusHistory model
+     FILE: backend/prisma/migrations/20251211134028_add_submission_status/migration.sql
+     PURPOSE:
+       Adds SubmissionStatusHistory model
 
   6. 20251211135517_add_config_sla
-     └─ Adds ConfigSLA model
+     FILE: backend/prisma/migrations/20251211135517_add_config_sla/migration.sql
+     PURPOSE:
+       Adds ConfigSLA model
 
   7. 20251211142937_extend_sla_stages
-     └─ Extends SLAStage enum
+     FILE: backend/prisma/migrations/20251211142937_extend_sla_stages/migration.sql
+     PURPOSE:
+       Extends SLAStage enum
 
   8. 20251211150930_add_panel_member_and_deadlines
-     └─ Adds PanelMember, deadline fields
+     FILE: backend/prisma/migrations/20251211150930_add_panel_member_and_deadlines/migration.sql
+     PURPOSE:
+       Adds PanelMember and deadline fields
 
   9. 20251211155533_add_submission_final_decision
-     └─ Adds finalDecision fields to Submission
+     FILE: backend/prisma/migrations/20251211155533_add_submission_final_decision/migration.sql
+     PURPOSE:
+       Adds finalDecision fields to Submission
 
   10. 20251215021511_init
-      └─ Schema consolidation
+      FILE: backend/prisma/migrations/20251215021511_init/migration.sql
+      PURPOSE:
+        Schema consolidation
 
   11. 20251215025323_init
-      └─ Final schema updates
+      FILE: backend/prisma/migrations/20251215025323_init/migration.sql
+      PURPOSE:
+        Final schema updates
+
+FILE: backend/prisma/migrations/migration_lock.toml
+PURPOSE:
+  Prisma migration lockfile tracking applied migrations
 
 ================================================================================
 8. SAMPLE DATA FILES
@@ -984,7 +1182,7 @@ RA PORTAL:
 ================================================================================
 END OF DOCUMENT
 ================================================================================
-Generated: December 16, 2025
+Generated: December 29, 2025
 Structure: Monorepo with backend/ and frontend/ separation
 Features: DLSU Theme, SLA Tracking, Workflow Actions, React + Express
 Repository: https://github.com/kysokyhuh/rerc-review-portal
