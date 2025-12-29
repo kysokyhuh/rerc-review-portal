@@ -1,0 +1,56 @@
+KAT UPDATE NOTES - December 29, 2025
+
+What this project is
+- RERC System = RA dashboard + API for managing research ethics review submissions.
+- Backend: Node/Express + Prisma ORM + PostgreSQL (port 3000).
+- Frontend: React 18 + Vite (port 5173).
+- Shared package: common types/constants used by both.
+
+Quick orientation to folders
+- backend/: API (Express), Prisma schema/migrations, tests.
+- frontend/: React app (src) and built assets (dist/).
+- packages/shared/: shared TS types/constants.
+- samples/: example CSVs for letters.
+- FILE_EXPLANATIONS.txt: full file-by-file map with purposes (updated).
+
+Setup and run (happy path)
+- Prereqs: Node/npm, PostgreSQL running locally.
+- Env: copy .env.example to .env (root), adjust DB URL; backend/.env also exists locally.
+- Backend: cd backend && npm install && npm run dev   # http://localhost:3000
+- Frontend: cd frontend && npm install && npm run dev # http://localhost:5173
+- Visit http://localhost:5173 to use the app.
+
+Current state of repo
+- Latest push on main: commit 30b69bc “Update FILE_EXPLANATIONS to list all files.”
+- FILE_EXPLANATIONS.txt now documents every file (locks, generated Prisma files, dist assets, env samples).
+- Local-only: docs/SECURITY.md and docs/fixes.md are deleted but not committed/pushed—decide to restore or commit removal before next push.
+
+What to read first
+- README.md for setup basics.
+- FILE_EXPLANATIONS.txt for a guided map of all files (backend, frontend, prisma, generated, dist).
+
+What needs a decision/action
+- Choose: keep or remove docs/SECURITY.md and docs/fixes.md. If keeping, restore; if removing, commit and push.
+- If you regenerate Prisma or rebuild frontend, update FILE_EXPLANATIONS.txt again to stay in sync.
+
+Reminders
+- Keep .env and backend/.env out of git.
+- Samples live in samples/ (initial_ack.csv, initial_approval.csv).
+- DB schema and migrations in backend/prisma/; ERD diagrams there too.
+
+Local-only items (not pushed)
+- docs/SECURITY.md and docs/fixes.md are deleted locally but not committed or pushed. Decide whether to restore them or commit the deletions before the next push.
+
+Where things are
+- Branch: main (tracking origin/main).
+- Key references: README.md for setup; FILE_EXPLANATIONS.txt for the full file map; samples/ for test CSVs.
+- Envs: .env at root and backend/.env exist locally; keep them out of git.
+
+How to run (quick reminder)
+- Backend: cd backend && npm install && npm run dev (port 3000).
+- Frontend: cd frontend && npm install && npm run dev (port 5173).
+
+Next steps for Kat
+- Skim FILE_EXPLANATIONS.txt to see the current structure and all generated/lock files now documented.
+- Decide on the two deleted docs (keep or remove) and push once resolved.
+- If you rebuild frontend or regenerate Prisma, note any new artifacts and update FILE_EXPLANATIONS.txt to stay in sync.
