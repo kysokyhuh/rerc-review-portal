@@ -44,6 +44,10 @@ export type ProjectMinAggregateOutputType = {
   title: string | null
   piName: string | null
   piAffiliation: string | null
+  department: string | null
+  proponent: string | null
+  researchTypePHREB: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther: string | null
   fundingType: $Enums.FundingType | null
   initialSubmissionDate: Date | null
   committeeId: number | null
@@ -62,6 +66,10 @@ export type ProjectMaxAggregateOutputType = {
   title: string | null
   piName: string | null
   piAffiliation: string | null
+  department: string | null
+  proponent: string | null
+  researchTypePHREB: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther: string | null
   fundingType: $Enums.FundingType | null
   initialSubmissionDate: Date | null
   committeeId: number | null
@@ -80,6 +88,10 @@ export type ProjectCountAggregateOutputType = {
   title: number
   piName: number
   piAffiliation: number
+  department: number
+  proponent: number
+  researchTypePHREB: number
+  researchTypePHREBOther: number
   fundingType: number
   initialSubmissionDate: number
   committeeId: number
@@ -112,6 +124,10 @@ export type ProjectMinAggregateInputType = {
   title?: true
   piName?: true
   piAffiliation?: true
+  department?: true
+  proponent?: true
+  researchTypePHREB?: true
+  researchTypePHREBOther?: true
   fundingType?: true
   initialSubmissionDate?: true
   committeeId?: true
@@ -130,6 +146,10 @@ export type ProjectMaxAggregateInputType = {
   title?: true
   piName?: true
   piAffiliation?: true
+  department?: true
+  proponent?: true
+  researchTypePHREB?: true
+  researchTypePHREBOther?: true
   fundingType?: true
   initialSubmissionDate?: true
   committeeId?: true
@@ -148,6 +168,10 @@ export type ProjectCountAggregateInputType = {
   title?: true
   piName?: true
   piAffiliation?: true
+  department?: true
+  proponent?: true
+  researchTypePHREB?: true
+  researchTypePHREBOther?: true
   fundingType?: true
   initialSubmissionDate?: true
   committeeId?: true
@@ -253,6 +277,10 @@ export type ProjectGroupByOutputType = {
   title: string
   piName: string
   piAffiliation: string | null
+  department: string | null
+  proponent: string | null
+  researchTypePHREB: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther: string | null
   fundingType: $Enums.FundingType
   initialSubmissionDate: Date | null
   committeeId: number
@@ -294,6 +322,10 @@ export type ProjectWhereInput = {
   title?: Prisma.StringFilter<"Project"> | string
   piName?: Prisma.StringFilter<"Project"> | string
   piAffiliation?: Prisma.StringNullableFilter<"Project"> | string | null
+  department?: Prisma.StringNullableFilter<"Project"> | string | null
+  proponent?: Prisma.StringNullableFilter<"Project"> | string | null
+  researchTypePHREB?: Prisma.EnumResearchTypePHREBNullableFilter<"Project"> | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.StringNullableFilter<"Project"> | string | null
   fundingType?: Prisma.EnumFundingTypeFilter<"Project"> | $Enums.FundingType
   initialSubmissionDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   committeeId?: Prisma.IntFilter<"Project"> | number
@@ -315,6 +347,10 @@ export type ProjectOrderByWithRelationInput = {
   title?: Prisma.SortOrder
   piName?: Prisma.SortOrder
   piAffiliation?: Prisma.SortOrderInput | Prisma.SortOrder
+  department?: Prisma.SortOrderInput | Prisma.SortOrder
+  proponent?: Prisma.SortOrderInput | Prisma.SortOrder
+  researchTypePHREB?: Prisma.SortOrderInput | Prisma.SortOrder
+  researchTypePHREBOther?: Prisma.SortOrderInput | Prisma.SortOrder
   fundingType?: Prisma.SortOrder
   initialSubmissionDate?: Prisma.SortOrderInput | Prisma.SortOrder
   committeeId?: Prisma.SortOrder
@@ -339,6 +375,10 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   title?: Prisma.StringFilter<"Project"> | string
   piName?: Prisma.StringFilter<"Project"> | string
   piAffiliation?: Prisma.StringNullableFilter<"Project"> | string | null
+  department?: Prisma.StringNullableFilter<"Project"> | string | null
+  proponent?: Prisma.StringNullableFilter<"Project"> | string | null
+  researchTypePHREB?: Prisma.EnumResearchTypePHREBNullableFilter<"Project"> | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.StringNullableFilter<"Project"> | string | null
   fundingType?: Prisma.EnumFundingTypeFilter<"Project"> | $Enums.FundingType
   initialSubmissionDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   committeeId?: Prisma.IntFilter<"Project"> | number
@@ -360,6 +400,10 @@ export type ProjectOrderByWithAggregationInput = {
   title?: Prisma.SortOrder
   piName?: Prisma.SortOrder
   piAffiliation?: Prisma.SortOrderInput | Prisma.SortOrder
+  department?: Prisma.SortOrderInput | Prisma.SortOrder
+  proponent?: Prisma.SortOrderInput | Prisma.SortOrder
+  researchTypePHREB?: Prisma.SortOrderInput | Prisma.SortOrder
+  researchTypePHREBOther?: Prisma.SortOrderInput | Prisma.SortOrder
   fundingType?: Prisma.SortOrder
   initialSubmissionDate?: Prisma.SortOrderInput | Prisma.SortOrder
   committeeId?: Prisma.SortOrder
@@ -386,6 +430,10 @@ export type ProjectScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"Project"> | string
   piName?: Prisma.StringWithAggregatesFilter<"Project"> | string
   piAffiliation?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
+  department?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
+  proponent?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
+  researchTypePHREB?: Prisma.EnumResearchTypePHREBNullableWithAggregatesFilter<"Project"> | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   fundingType?: Prisma.EnumFundingTypeWithAggregatesFilter<"Project"> | $Enums.FundingType
   initialSubmissionDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
   committeeId?: Prisma.IntWithAggregatesFilter<"Project"> | number
@@ -403,6 +451,10 @@ export type ProjectCreateInput = {
   title: string
   piName: string
   piAffiliation?: string | null
+  department?: string | null
+  proponent?: string | null
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
   fundingType: $Enums.FundingType
   initialSubmissionDate?: Date | string | null
   overallStatus?: $Enums.ProjectStatus
@@ -422,6 +474,10 @@ export type ProjectUncheckedCreateInput = {
   title: string
   piName: string
   piAffiliation?: string | null
+  department?: string | null
+  proponent?: string | null
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
   fundingType: $Enums.FundingType
   initialSubmissionDate?: Date | string | null
   committeeId: number
@@ -440,6 +496,10 @@ export type ProjectUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
@@ -459,6 +519,10 @@ export type ProjectUncheckedUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -478,6 +542,10 @@ export type ProjectCreateManyInput = {
   title: string
   piName: string
   piAffiliation?: string | null
+  department?: string | null
+  proponent?: string | null
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
   fundingType: $Enums.FundingType
   initialSubmissionDate?: Date | string | null
   committeeId: number
@@ -495,6 +563,10 @@ export type ProjectUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
@@ -511,6 +583,10 @@ export type ProjectUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -539,6 +615,10 @@ export type ProjectCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   piName?: Prisma.SortOrder
   piAffiliation?: Prisma.SortOrder
+  department?: Prisma.SortOrder
+  proponent?: Prisma.SortOrder
+  researchTypePHREB?: Prisma.SortOrder
+  researchTypePHREBOther?: Prisma.SortOrder
   fundingType?: Prisma.SortOrder
   initialSubmissionDate?: Prisma.SortOrder
   committeeId?: Prisma.SortOrder
@@ -563,6 +643,10 @@ export type ProjectMaxOrderByAggregateInput = {
   title?: Prisma.SortOrder
   piName?: Prisma.SortOrder
   piAffiliation?: Prisma.SortOrder
+  department?: Prisma.SortOrder
+  proponent?: Prisma.SortOrder
+  researchTypePHREB?: Prisma.SortOrder
+  researchTypePHREBOther?: Prisma.SortOrder
   fundingType?: Prisma.SortOrder
   initialSubmissionDate?: Prisma.SortOrder
   committeeId?: Prisma.SortOrder
@@ -581,6 +665,10 @@ export type ProjectMinOrderByAggregateInput = {
   title?: Prisma.SortOrder
   piName?: Prisma.SortOrder
   piAffiliation?: Prisma.SortOrder
+  department?: Prisma.SortOrder
+  proponent?: Prisma.SortOrder
+  researchTypePHREB?: Prisma.SortOrder
+  researchTypePHREBOther?: Prisma.SortOrder
   fundingType?: Prisma.SortOrder
   initialSubmissionDate?: Prisma.SortOrder
   committeeId?: Prisma.SortOrder
@@ -688,6 +776,10 @@ export type ProjectUncheckedUpdateManyWithoutCommitteeNestedInput = {
   deleteMany?: Prisma.ProjectScalarWhereInput | Prisma.ProjectScalarWhereInput[]
 }
 
+export type NullableEnumResearchTypePHREBFieldUpdateOperationsInput = {
+  set?: $Enums.ResearchTypePHREB | null
+}
+
 export type EnumFundingTypeFieldUpdateOperationsInput = {
   set?: $Enums.FundingType
 }
@@ -727,6 +819,10 @@ export type ProjectCreateWithoutCreatedByInput = {
   title: string
   piName: string
   piAffiliation?: string | null
+  department?: string | null
+  proponent?: string | null
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
   fundingType: $Enums.FundingType
   initialSubmissionDate?: Date | string | null
   overallStatus?: $Enums.ProjectStatus
@@ -745,6 +841,10 @@ export type ProjectUncheckedCreateWithoutCreatedByInput = {
   title: string
   piName: string
   piAffiliation?: string | null
+  department?: string | null
+  proponent?: string | null
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
   fundingType: $Enums.FundingType
   initialSubmissionDate?: Date | string | null
   committeeId: number
@@ -792,6 +892,10 @@ export type ProjectScalarWhereInput = {
   title?: Prisma.StringFilter<"Project"> | string
   piName?: Prisma.StringFilter<"Project"> | string
   piAffiliation?: Prisma.StringNullableFilter<"Project"> | string | null
+  department?: Prisma.StringNullableFilter<"Project"> | string | null
+  proponent?: Prisma.StringNullableFilter<"Project"> | string | null
+  researchTypePHREB?: Prisma.EnumResearchTypePHREBNullableFilter<"Project"> | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.StringNullableFilter<"Project"> | string | null
   fundingType?: Prisma.EnumFundingTypeFilter<"Project"> | $Enums.FundingType
   initialSubmissionDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   committeeId?: Prisma.IntFilter<"Project"> | number
@@ -809,6 +913,10 @@ export type ProjectCreateWithoutCommitteeInput = {
   title: string
   piName: string
   piAffiliation?: string | null
+  department?: string | null
+  proponent?: string | null
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
   fundingType: $Enums.FundingType
   initialSubmissionDate?: Date | string | null
   overallStatus?: $Enums.ProjectStatus
@@ -827,6 +935,10 @@ export type ProjectUncheckedCreateWithoutCommitteeInput = {
   title: string
   piName: string
   piAffiliation?: string | null
+  department?: string | null
+  proponent?: string | null
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
   fundingType: $Enums.FundingType
   initialSubmissionDate?: Date | string | null
   overallStatus?: $Enums.ProjectStatus
@@ -870,6 +982,10 @@ export type ProjectCreateWithoutSubmissionsInput = {
   title: string
   piName: string
   piAffiliation?: string | null
+  department?: string | null
+  proponent?: string | null
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
   fundingType: $Enums.FundingType
   initialSubmissionDate?: Date | string | null
   overallStatus?: $Enums.ProjectStatus
@@ -888,6 +1004,10 @@ export type ProjectUncheckedCreateWithoutSubmissionsInput = {
   title: string
   piName: string
   piAffiliation?: string | null
+  department?: string | null
+  proponent?: string | null
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
   fundingType: $Enums.FundingType
   initialSubmissionDate?: Date | string | null
   committeeId: number
@@ -921,6 +1041,10 @@ export type ProjectUpdateWithoutSubmissionsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
@@ -939,6 +1063,10 @@ export type ProjectUncheckedUpdateWithoutSubmissionsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -957,6 +1085,10 @@ export type ProjectCreateManyCreatedByInput = {
   title: string
   piName: string
   piAffiliation?: string | null
+  department?: string | null
+  proponent?: string | null
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
   fundingType: $Enums.FundingType
   initialSubmissionDate?: Date | string | null
   committeeId: number
@@ -973,6 +1105,10 @@ export type ProjectUpdateWithoutCreatedByInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
@@ -991,6 +1127,10 @@ export type ProjectUncheckedUpdateWithoutCreatedByInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1009,6 +1149,10 @@ export type ProjectUncheckedUpdateManyWithoutCreatedByInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1026,6 +1170,10 @@ export type ProjectCreateManyCommitteeInput = {
   title: string
   piName: string
   piAffiliation?: string | null
+  department?: string | null
+  proponent?: string | null
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
   fundingType: $Enums.FundingType
   initialSubmissionDate?: Date | string | null
   overallStatus?: $Enums.ProjectStatus
@@ -1042,6 +1190,10 @@ export type ProjectUpdateWithoutCommitteeInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
@@ -1060,6 +1212,10 @@ export type ProjectUncheckedUpdateWithoutCommitteeInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
@@ -1078,6 +1234,10 @@ export type ProjectUncheckedUpdateManyWithoutCommitteeInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
@@ -1126,6 +1286,10 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   title?: boolean
   piName?: boolean
   piAffiliation?: boolean
+  department?: boolean
+  proponent?: boolean
+  researchTypePHREB?: boolean
+  researchTypePHREBOther?: boolean
   fundingType?: boolean
   initialSubmissionDate?: boolean
   committeeId?: boolean
@@ -1148,6 +1312,10 @@ export type ProjectSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   title?: boolean
   piName?: boolean
   piAffiliation?: boolean
+  department?: boolean
+  proponent?: boolean
+  researchTypePHREB?: boolean
+  researchTypePHREBOther?: boolean
   fundingType?: boolean
   initialSubmissionDate?: boolean
   committeeId?: boolean
@@ -1168,6 +1336,10 @@ export type ProjectSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   title?: boolean
   piName?: boolean
   piAffiliation?: boolean
+  department?: boolean
+  proponent?: boolean
+  researchTypePHREB?: boolean
+  researchTypePHREBOther?: boolean
   fundingType?: boolean
   initialSubmissionDate?: boolean
   committeeId?: boolean
@@ -1188,6 +1360,10 @@ export type ProjectSelectScalar = {
   title?: boolean
   piName?: boolean
   piAffiliation?: boolean
+  department?: boolean
+  proponent?: boolean
+  researchTypePHREB?: boolean
+  researchTypePHREBOther?: boolean
   fundingType?: boolean
   initialSubmissionDate?: boolean
   committeeId?: boolean
@@ -1200,7 +1376,7 @@ export type ProjectSelectScalar = {
   createdById?: boolean
 }
 
-export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectCode" | "title" | "piName" | "piAffiliation" | "fundingType" | "initialSubmissionDate" | "committeeId" | "overallStatus" | "approvalStartDate" | "approvalEndDate" | "isArchived" | "createdAt" | "updatedAt" | "createdById", ExtArgs["result"]["project"]>
+export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectCode" | "title" | "piName" | "piAffiliation" | "department" | "proponent" | "researchTypePHREB" | "researchTypePHREBOther" | "fundingType" | "initialSubmissionDate" | "committeeId" | "overallStatus" | "approvalStartDate" | "approvalEndDate" | "isArchived" | "createdAt" | "updatedAt" | "createdById", ExtArgs["result"]["project"]>
 export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   committee?: boolean | Prisma.CommitteeDefaultArgs<ExtArgs>
   submissions?: boolean | Prisma.Project$submissionsArgs<ExtArgs>
@@ -1229,6 +1405,10 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     title: string
     piName: string
     piAffiliation: string | null
+    department: string | null
+    proponent: string | null
+    researchTypePHREB: $Enums.ResearchTypePHREB | null
+    researchTypePHREBOther: string | null
     fundingType: $Enums.FundingType
     initialSubmissionDate: Date | null
     committeeId: number
@@ -1670,6 +1850,10 @@ export interface ProjectFieldRefs {
   readonly title: Prisma.FieldRef<"Project", 'String'>
   readonly piName: Prisma.FieldRef<"Project", 'String'>
   readonly piAffiliation: Prisma.FieldRef<"Project", 'String'>
+  readonly department: Prisma.FieldRef<"Project", 'String'>
+  readonly proponent: Prisma.FieldRef<"Project", 'String'>
+  readonly researchTypePHREB: Prisma.FieldRef<"Project", 'ResearchTypePHREB'>
+  readonly researchTypePHREBOther: Prisma.FieldRef<"Project", 'String'>
   readonly fundingType: Prisma.FieldRef<"Project", 'FundingType'>
   readonly initialSubmissionDate: Prisma.FieldRef<"Project", 'DateTime'>
   readonly committeeId: Prisma.FieldRef<"Project", 'Int'>

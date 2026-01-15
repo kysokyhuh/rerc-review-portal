@@ -394,7 +394,8 @@ export const ModelName = {
   SubmissionStatusHistory: 'SubmissionStatusHistory',
   Review: 'Review',
   PanelMember: 'PanelMember',
-  ConfigSLA: 'ConfigSLA'
+  ConfigSLA: 'ConfigSLA',
+  WorkflowEvent: 'WorkflowEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -410,7 +411,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "committee" | "panel" | "committeeMember" | "project" | "submission" | "classification" | "submissionStatusHistory" | "review" | "panelMember" | "configSLA"
+    modelProps: "user" | "committee" | "panel" | "committeeMember" | "project" | "submission" | "classification" | "submissionStatusHistory" | "review" | "panelMember" | "configSLA" | "workflowEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1228,6 +1229,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    WorkflowEvent: {
+      payload: Prisma.$WorkflowEventPayload<ExtArgs>
+      fields: Prisma.WorkflowEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.WorkflowEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.WorkflowEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowEventPayload>
+        }
+        findFirst: {
+          args: Prisma.WorkflowEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.WorkflowEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowEventPayload>
+        }
+        findMany: {
+          args: Prisma.WorkflowEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowEventPayload>[]
+        }
+        create: {
+          args: Prisma.WorkflowEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowEventPayload>
+        }
+        createMany: {
+          args: Prisma.WorkflowEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.WorkflowEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowEventPayload>[]
+        }
+        delete: {
+          args: Prisma.WorkflowEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowEventPayload>
+        }
+        update: {
+          args: Prisma.WorkflowEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.WorkflowEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.WorkflowEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.WorkflowEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.WorkflowEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkflowEventPayload>
+        }
+        aggregate: {
+          args: Prisma.WorkflowEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWorkflowEvent>
+        }
+        groupBy: {
+          args: Prisma.WorkflowEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WorkflowEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.WorkflowEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WorkflowEventCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1321,6 +1396,10 @@ export const ProjectScalarFieldEnum = {
   title: 'title',
   piName: 'piName',
   piAffiliation: 'piAffiliation',
+  department: 'department',
+  proponent: 'proponent',
+  researchTypePHREB: 'researchTypePHREB',
+  researchTypePHREBOther: 'researchTypePHREBOther',
   fundingType: 'fundingType',
   initialSubmissionDate: 'initialSubmissionDate',
   committeeId: 'committeeId',
@@ -1351,6 +1430,7 @@ export const SubmissionScalarFieldEnum = {
   finalReportDueDate: 'finalReportDueDate',
   finalDecision: 'finalDecision',
   finalDecisionDate: 'finalDecisionDate',
+  remarks: 'remarks',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   createdById: 'createdById'
@@ -1393,6 +1473,8 @@ export const ReviewScalarFieldEnum = {
   submissionId: 'submissionId',
   reviewerId: 'reviewerId',
   isPrimary: 'isPrimary',
+  reviewerRole: 'reviewerRole',
+  honorariumStatus: 'honorariumStatus',
   assignedAt: 'assignedAt',
   respondedAt: 'respondedAt',
   decision: 'decision',
@@ -1429,6 +1511,20 @@ export const ConfigSLAScalarFieldEnum = {
 } as const
 
 export type ConfigSLAScalarFieldEnum = (typeof ConfigSLAScalarFieldEnum)[keyof typeof ConfigSLAScalarFieldEnum]
+
+
+export const WorkflowEventScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  eventType: 'eventType',
+  cycleNumber: 'cycleNumber',
+  eventDate: 'eventDate',
+  daysFromPrevious: 'daysFromPrevious',
+  remarks: 'remarks',
+  createdAt: 'createdAt'
+} as const
+
+export type WorkflowEventScalarFieldEnum = (typeof WorkflowEventScalarFieldEnum)[keyof typeof WorkflowEventScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1521,6 +1617,20 @@ export type EnumRoleTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
  * Reference to a field of type 'RoleType[]'
  */
 export type ListEnumRoleTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RoleType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ResearchTypePHREB'
+ */
+export type EnumResearchTypePHREBFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResearchTypePHREB'>
+    
+
+
+/**
+ * Reference to a field of type 'ResearchTypePHREB[]'
+ */
+export type ListEnumResearchTypePHREBFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ResearchTypePHREB[]'>
     
 
 
@@ -1623,6 +1733,34 @@ export type ListEnumReviewTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$P
 
 
 /**
+ * Reference to a field of type 'ReviewerRoleType'
+ */
+export type EnumReviewerRoleTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReviewerRoleType'>
+    
+
+
+/**
+ * Reference to a field of type 'ReviewerRoleType[]'
+ */
+export type ListEnumReviewerRoleTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReviewerRoleType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'HonorariumStatus'
+ */
+export type EnumHonorariumStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'HonorariumStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'HonorariumStatus[]'
+ */
+export type ListEnumHonorariumStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'HonorariumStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'PanelMemberRole'
  */
 export type EnumPanelMemberRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PanelMemberRole'>
@@ -1647,6 +1785,20 @@ export type EnumSLAStageFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
  * Reference to a field of type 'SLAStage[]'
  */
 export type ListEnumSLAStageFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SLAStage[]'>
+    
+
+
+/**
+ * Reference to a field of type 'WorkflowEventType'
+ */
+export type EnumWorkflowEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WorkflowEventType'>
+    
+
+
+/**
+ * Reference to a field of type 'WorkflowEventType[]'
+ */
+export type ListEnumWorkflowEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WorkflowEventType[]'>
     
 
 
@@ -1769,6 +1921,7 @@ export type GlobalOmitConfig = {
   review?: Prisma.ReviewOmit
   panelMember?: Prisma.PanelMemberOmit
   configSLA?: Prisma.ConfigSLAOmit
+  workflowEvent?: Prisma.WorkflowEventOmit
 }
 
 /* Types for Logging */

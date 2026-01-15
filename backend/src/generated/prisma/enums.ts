@@ -122,3 +122,49 @@ export const PanelMemberRole = {
 } as const
 
 export type PanelMemberRole = (typeof PanelMemberRole)[keyof typeof PanelMemberRole]
+
+
+export const ResearchTypePHREB = {
+  BIOMEDICAL: 'BIOMEDICAL',
+  SOCIAL_BEHAVIORAL: 'SOCIAL_BEHAVIORAL',
+  PUBLIC_HEALTH: 'PUBLIC_HEALTH',
+  CLINICAL_TRIAL: 'CLINICAL_TRIAL',
+  EPIDEMIOLOGICAL: 'EPIDEMIOLOGICAL',
+  OTHER: 'OTHER'
+} as const
+
+export type ResearchTypePHREB = (typeof ResearchTypePHREB)[keyof typeof ResearchTypePHREB]
+
+
+export const ReviewerRoleType = {
+  SCIENTIST: 'SCIENTIST',
+  LAY: 'LAY',
+  INDEPENDENT_CONSULTANT: 'INDEPENDENT_CONSULTANT'
+} as const
+
+export type ReviewerRoleType = (typeof ReviewerRoleType)[keyof typeof ReviewerRoleType]
+
+
+export const HonorariumStatus = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  PAID: 'PAID',
+  NOT_APPLICABLE: 'NOT_APPLICABLE'
+} as const
+
+export type HonorariumStatus = (typeof HonorariumStatus)[keyof typeof HonorariumStatus]
+
+
+export const WorkflowEventType = {
+  CLASSIFICATION_DONE: 'CLASSIFICATION_DONE',
+  DOCUMENTS_TO_REVIEWER: 'DOCUMENTS_TO_REVIEWER',
+  ASSESSMENT_FORMS_COMPLETED: 'ASSESSMENT_FORMS_COMPLETED',
+  FULL_REVIEW_MEETING: 'FULL_REVIEW_MEETING',
+  REVIEW_RESULTS_FINALIZED: 'REVIEW_RESULTS_FINALIZED',
+  RESULTS_COMMUNICATED: 'RESULTS_COMMUNICATED',
+  RESUBMISSION_RECEIVED: 'RESUBMISSION_RECEIVED',
+  RESUBMISSION_REVIEWED: 'RESUBMISSION_REVIEWED',
+  RESUBMISSION_FINALIZED: 'RESUBMISSION_FINALIZED'
+} as const
+
+export type WorkflowEventType = (typeof WorkflowEventType)[keyof typeof WorkflowEventType]
