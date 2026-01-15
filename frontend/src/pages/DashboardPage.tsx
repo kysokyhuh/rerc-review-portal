@@ -255,7 +255,7 @@ export const DashboardPage: React.FC = () => {
     <div className="dashboard-page">
       <header className="page-header">
         <h1>RA Dashboard – {committeeCode}</h1>
-        <p>Queue-first cockpit with DLSU Manila theme</p>
+        <p></p>
       </header>
 
       <CommandBar
@@ -301,6 +301,14 @@ export const DashboardPage: React.FC = () => {
           items={filteredClassification}
           loading={loading}
           searchTerm={searchTerm}
+          showStatusFilter={true}
+          statusOptions={[
+            { value: "RECEIVED", label: "Received" },
+            { value: "UNDER_COMPLETENESS_CHECK", label: "Completeness Check" },
+            { value: "AWAITING_CLASSIFICATION", label: "Awaiting Classification" },
+            { value: "UNDER_CLASSIFICATION", label: "Under Classification" },
+            { value: "CLASSIFIED", label: "Classified" },
+          ]}
         />
       </div>
 

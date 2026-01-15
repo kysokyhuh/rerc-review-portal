@@ -97,6 +97,40 @@ enum PanelMemberRole {
   SECRETARIAT
 }
 
+enum ResearchTypePHREB {
+  BIOMEDICAL
+  SOCIAL_BEHAVIORAL
+  PUBLIC_HEALTH
+  CLINICAL_TRIAL
+  EPIDEMIOLOGICAL
+  OTHER
+}
+
+enum ReviewerRoleType {
+  SCIENTIST
+  LAY
+  INDEPENDENT_CONSULTANT
+}
+
+enum HonorariumStatus {
+  PENDING
+  PROCESSING
+  PAID
+  NOT_APPLICABLE
+}
+
+enum WorkflowEventType {
+  CLASSIFICATION_DONE
+  DOCUMENTS_TO_REVIEWER
+  ASSESSMENT_FORMS_COMPLETED
+  FULL_REVIEW_MEETING
+  REVIEW_RESULTS_FINALIZED
+  RESULTS_COMMUNICATED
+  RESUBMISSION_RECEIVED
+  RESUBMISSION_REVIEWED
+  RESUBMISSION_FINALIZED
+}
+
 
 // --- MODELS ---
 
@@ -164,7 +198,11 @@ model Project {
   projectCode           String         @unique      // e.g. "2025-350"
   title                 String
   piName                String
-  piAffiliation         String?
+  piAffiliation         String?                     // College
+  department            String?                     // Department
+  proponent             String?                     // Proponent (if different from PI)
+  researchTypePHREB     ResearchTypePHREB?
+  researchTypePHREBOther String?                    // For "Other" specification
   fundingType           FundingType
   initialSubmissionDate DateTime?
   committee             Committee      @relation(fields: [committeeId], references: [id])
@@ -198,6 +236,7 @@ model Submission {
   finalReportDueDate      DateTime?
   finalDecision          ReviewDecision?
   finalDecisionDate      DateTime?
+  remarks                String?                    // General remarks
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
@@ -206,6 +245,7 @@ model Submission {
 
   classification      Classification?
   reviews             Review[]
+  workflowEvents      WorkflowEvent[]
   statusHistory       SubmissionStatusHistory[]
 
   @@index([projectId, submissionType])
@@ -247,7 +287,9 @@ model Review {
   reviewer     User            @relation("UserReviews", fields: [reviewerId], references: [id])
   reviewerId   Int
 
-  isPrimary    Boolean         @default(false)
+  isPrimary        Boolean           @default(false)
+  reviewerRole     ReviewerRoleType?              // Scientist, Lay, Independent Consultant
+  honorariumStatus HonorariumStatus  @default(NOT_APPLICABLE)
 
   assignedAt   DateTime        @default(now())
   respondedAt  DateTime?
@@ -287,4 +329,21 @@ model ConfigSLA {
   isActive      Boolean    @default(true)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
+}
+
+// Tracks granular workflow events/stages for each submission
+// Maps to CSV columns like "Provision of Documents", "Assessment Forms Completed", etc.
+model WorkflowEvent {
+  id              Int               @id @default(autoincrement())
+  submission      Submission        @relation(fields: [submissionId], references: [id])
+  submissionId    Int
+  eventType       WorkflowEventType
+  cycleNumber     Int               @default(1)  // 1 = initial, 2 = 1st resubmission, 3 = 2nd resubmission, etc.
+  eventDate       DateTime
+  daysFromPrevious Int?                          // # days from previous event
+  remarks         String?
+  createdAt       DateTime          @default(now())
+
+  @@index([submissionId, eventType])
+  @@unique([submissionId, eventType, cycleNumber])
 }

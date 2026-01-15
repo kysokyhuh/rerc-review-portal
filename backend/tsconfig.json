@@ -13,6 +13,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src", "../packages/shared/src"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist", "tests"]
 }

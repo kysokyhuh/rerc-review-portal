@@ -238,6 +238,96 @@ async function main() {
     committeeId: committee.id,
     panelId: panel1.id,
   });
+
+  // --- Optional demo data so the dashboard has something to display ---
+  // Create a few sample projects/submissions if none exist yet.
+  const existingSubmissionCount = await prisma.submission.count({
+    where: {
+      project: {
+        committeeId: committee.id,
+      },
+    },
+  });
+
+  if (existingSubmissionCount === 0) {
+    const daysAgo = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const sampleSpecs: Array<{
+      projectCode: string;
+      title: string;
+      piName: string;
+      status: "RECEIVED" | "UNDER_REVIEW" | "AWAITING_REVISIONS";
+      reviewType?: ReviewType;
+    }> = [
+      {
+        projectCode: "2026-0001",
+        title: "Sample Project (For Classification)",
+        piName: "Sample PI",
+        status: "RECEIVED",
+      },
+      {
+        projectCode: "2026-0002",
+        title: "Sample Project (Under Review)",
+        piName: "Sample PI",
+        status: "UNDER_REVIEW",
+        reviewType: ReviewType.EXPEDITED,
+      },
+      {
+        projectCode: "2026-0003",
+        title: "Sample Project (Awaiting Revisions)",
+        piName: "Sample PI",
+        status: "AWAITING_REVISIONS",
+        reviewType: ReviewType.FULL_BOARD,
+      },
+    ];
+
+    for (const spec of sampleSpecs) {
+      const project = await prisma.project.upsert({
+        where: { projectCode: spec.projectCode },
+        update: {
+          committeeId: committee.id,
+        },
+        create: {
+          projectCode: spec.projectCode,
+          title: spec.title,
+          piName: spec.piName,
+          piAffiliation: "DLSU Manila",
+          fundingType: "INTERNAL",
+          overallStatus: "ACTIVE",
+          initialSubmissionDate: daysAgo(10),
+          committeeId: committee.id,
+          createdById: raUser.id,
+        },
+      });
+
+      const submission = await prisma.submission.create({
+        data: {
+          projectId: project.id,
+          submissionType: "INITIAL",
+          sequenceNumber: 1,
+          receivedDate: spec.status === "RECEIVED" ? daysAgo(2) : daysAgo(20),
+          status: spec.status,
+          createdById: raUser.id,
+          revisionDueDate: spec.status === "AWAITING_REVISIONS" ? daysAgo(-10) : null,
+        },
+      });
+
+      if (spec.reviewType) {
+        await prisma.classification.create({
+          data: {
+            submissionId: submission.id,
+            reviewType: spec.reviewType,
+            classificationDate: daysAgo(18),
+            panelId: panel1.id,
+            classifiedById: raUser.id,
+            rationale: "Seeded demo classification",
+          },
+        });
+      }
+    }
+
+    console.log("Seeded demo projects/submissions for dashboard queues");
+  }
 }
 
 main()

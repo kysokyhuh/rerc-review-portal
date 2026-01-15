@@ -43,6 +43,8 @@ export type ReviewMinAggregateOutputType = {
   submissionId: number | null
   reviewerId: number | null
   isPrimary: boolean | null
+  reviewerRole: $Enums.ReviewerRoleType | null
+  honorariumStatus: $Enums.HonorariumStatus | null
   assignedAt: Date | null
   respondedAt: Date | null
   decision: $Enums.ReviewDecision | null
@@ -56,6 +58,8 @@ export type ReviewMaxAggregateOutputType = {
   submissionId: number | null
   reviewerId: number | null
   isPrimary: boolean | null
+  reviewerRole: $Enums.ReviewerRoleType | null
+  honorariumStatus: $Enums.HonorariumStatus | null
   assignedAt: Date | null
   respondedAt: Date | null
   decision: $Enums.ReviewDecision | null
@@ -69,6 +73,8 @@ export type ReviewCountAggregateOutputType = {
   submissionId: number
   reviewerId: number
   isPrimary: number
+  reviewerRole: number
+  honorariumStatus: number
   assignedAt: number
   respondedAt: number
   decision: number
@@ -96,6 +102,8 @@ export type ReviewMinAggregateInputType = {
   submissionId?: true
   reviewerId?: true
   isPrimary?: true
+  reviewerRole?: true
+  honorariumStatus?: true
   assignedAt?: true
   respondedAt?: true
   decision?: true
@@ -109,6 +117,8 @@ export type ReviewMaxAggregateInputType = {
   submissionId?: true
   reviewerId?: true
   isPrimary?: true
+  reviewerRole?: true
+  honorariumStatus?: true
   assignedAt?: true
   respondedAt?: true
   decision?: true
@@ -122,6 +132,8 @@ export type ReviewCountAggregateInputType = {
   submissionId?: true
   reviewerId?: true
   isPrimary?: true
+  reviewerRole?: true
+  honorariumStatus?: true
   assignedAt?: true
   respondedAt?: true
   decision?: true
@@ -222,6 +234,8 @@ export type ReviewGroupByOutputType = {
   submissionId: number
   reviewerId: number
   isPrimary: boolean
+  reviewerRole: $Enums.ReviewerRoleType | null
+  honorariumStatus: $Enums.HonorariumStatus
   assignedAt: Date
   respondedAt: Date | null
   decision: $Enums.ReviewDecision | null
@@ -258,6 +272,8 @@ export type ReviewWhereInput = {
   submissionId?: Prisma.IntFilter<"Review"> | number
   reviewerId?: Prisma.IntFilter<"Review"> | number
   isPrimary?: Prisma.BoolFilter<"Review"> | boolean
+  reviewerRole?: Prisma.EnumReviewerRoleTypeNullableFilter<"Review"> | $Enums.ReviewerRoleType | null
+  honorariumStatus?: Prisma.EnumHonorariumStatusFilter<"Review"> | $Enums.HonorariumStatus
   assignedAt?: Prisma.DateTimeFilter<"Review"> | Date | string
   respondedAt?: Prisma.DateTimeNullableFilter<"Review"> | Date | string | null
   decision?: Prisma.EnumReviewDecisionNullableFilter<"Review"> | $Enums.ReviewDecision | null
@@ -273,6 +289,8 @@ export type ReviewOrderByWithRelationInput = {
   submissionId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
   isPrimary?: Prisma.SortOrder
+  reviewerRole?: Prisma.SortOrderInput | Prisma.SortOrder
+  honorariumStatus?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
   respondedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   decision?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -292,6 +310,8 @@ export type ReviewWhereUniqueInput = Prisma.AtLeast<{
   submissionId?: Prisma.IntFilter<"Review"> | number
   reviewerId?: Prisma.IntFilter<"Review"> | number
   isPrimary?: Prisma.BoolFilter<"Review"> | boolean
+  reviewerRole?: Prisma.EnumReviewerRoleTypeNullableFilter<"Review"> | $Enums.ReviewerRoleType | null
+  honorariumStatus?: Prisma.EnumHonorariumStatusFilter<"Review"> | $Enums.HonorariumStatus
   assignedAt?: Prisma.DateTimeFilter<"Review"> | Date | string
   respondedAt?: Prisma.DateTimeNullableFilter<"Review"> | Date | string | null
   decision?: Prisma.EnumReviewDecisionNullableFilter<"Review"> | $Enums.ReviewDecision | null
@@ -307,6 +327,8 @@ export type ReviewOrderByWithAggregationInput = {
   submissionId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
   isPrimary?: Prisma.SortOrder
+  reviewerRole?: Prisma.SortOrderInput | Prisma.SortOrder
+  honorariumStatus?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
   respondedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   decision?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -328,6 +350,8 @@ export type ReviewScalarWhereWithAggregatesInput = {
   submissionId?: Prisma.IntWithAggregatesFilter<"Review"> | number
   reviewerId?: Prisma.IntWithAggregatesFilter<"Review"> | number
   isPrimary?: Prisma.BoolWithAggregatesFilter<"Review"> | boolean
+  reviewerRole?: Prisma.EnumReviewerRoleTypeNullableWithAggregatesFilter<"Review"> | $Enums.ReviewerRoleType | null
+  honorariumStatus?: Prisma.EnumHonorariumStatusWithAggregatesFilter<"Review"> | $Enums.HonorariumStatus
   assignedAt?: Prisma.DateTimeWithAggregatesFilter<"Review"> | Date | string
   respondedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Review"> | Date | string | null
   decision?: Prisma.EnumReviewDecisionNullableWithAggregatesFilter<"Review"> | $Enums.ReviewDecision | null
@@ -338,6 +362,8 @@ export type ReviewScalarWhereWithAggregatesInput = {
 
 export type ReviewCreateInput = {
   isPrimary?: boolean
+  reviewerRole?: $Enums.ReviewerRoleType | null
+  honorariumStatus?: $Enums.HonorariumStatus
   assignedAt?: Date | string
   respondedAt?: Date | string | null
   decision?: $Enums.ReviewDecision | null
@@ -353,6 +379,8 @@ export type ReviewUncheckedCreateInput = {
   submissionId: number
   reviewerId: number
   isPrimary?: boolean
+  reviewerRole?: $Enums.ReviewerRoleType | null
+  honorariumStatus?: $Enums.HonorariumStatus
   assignedAt?: Date | string
   respondedAt?: Date | string | null
   decision?: $Enums.ReviewDecision | null
@@ -363,6 +391,8 @@ export type ReviewUncheckedCreateInput = {
 
 export type ReviewUpdateInput = {
   isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerRole?: Prisma.NullableEnumReviewerRoleTypeFieldUpdateOperationsInput | $Enums.ReviewerRoleType | null
+  honorariumStatus?: Prisma.EnumHonorariumStatusFieldUpdateOperationsInput | $Enums.HonorariumStatus
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
@@ -378,6 +408,8 @@ export type ReviewUncheckedUpdateInput = {
   submissionId?: Prisma.IntFieldUpdateOperationsInput | number
   reviewerId?: Prisma.IntFieldUpdateOperationsInput | number
   isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerRole?: Prisma.NullableEnumReviewerRoleTypeFieldUpdateOperationsInput | $Enums.ReviewerRoleType | null
+  honorariumStatus?: Prisma.EnumHonorariumStatusFieldUpdateOperationsInput | $Enums.HonorariumStatus
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
@@ -391,6 +423,8 @@ export type ReviewCreateManyInput = {
   submissionId: number
   reviewerId: number
   isPrimary?: boolean
+  reviewerRole?: $Enums.ReviewerRoleType | null
+  honorariumStatus?: $Enums.HonorariumStatus
   assignedAt?: Date | string
   respondedAt?: Date | string | null
   decision?: $Enums.ReviewDecision | null
@@ -401,6 +435,8 @@ export type ReviewCreateManyInput = {
 
 export type ReviewUpdateManyMutationInput = {
   isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerRole?: Prisma.NullableEnumReviewerRoleTypeFieldUpdateOperationsInput | $Enums.ReviewerRoleType | null
+  honorariumStatus?: Prisma.EnumHonorariumStatusFieldUpdateOperationsInput | $Enums.HonorariumStatus
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
@@ -414,6 +450,8 @@ export type ReviewUncheckedUpdateManyInput = {
   submissionId?: Prisma.IntFieldUpdateOperationsInput | number
   reviewerId?: Prisma.IntFieldUpdateOperationsInput | number
   isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerRole?: Prisma.NullableEnumReviewerRoleTypeFieldUpdateOperationsInput | $Enums.ReviewerRoleType | null
+  honorariumStatus?: Prisma.EnumHonorariumStatusFieldUpdateOperationsInput | $Enums.HonorariumStatus
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
@@ -442,6 +480,8 @@ export type ReviewCountOrderByAggregateInput = {
   submissionId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
   isPrimary?: Prisma.SortOrder
+  reviewerRole?: Prisma.SortOrder
+  honorariumStatus?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
   respondedAt?: Prisma.SortOrder
   decision?: Prisma.SortOrder
@@ -461,6 +501,8 @@ export type ReviewMaxOrderByAggregateInput = {
   submissionId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
   isPrimary?: Prisma.SortOrder
+  reviewerRole?: Prisma.SortOrder
+  honorariumStatus?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
   respondedAt?: Prisma.SortOrder
   decision?: Prisma.SortOrder
@@ -474,6 +516,8 @@ export type ReviewMinOrderByAggregateInput = {
   submissionId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
   isPrimary?: Prisma.SortOrder
+  reviewerRole?: Prisma.SortOrder
+  honorariumStatus?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
   respondedAt?: Prisma.SortOrder
   decision?: Prisma.SortOrder
@@ -572,8 +616,18 @@ export type ReviewUncheckedUpdateManyWithoutSubmissionNestedInput = {
   deleteMany?: Prisma.ReviewScalarWhereInput | Prisma.ReviewScalarWhereInput[]
 }
 
+export type NullableEnumReviewerRoleTypeFieldUpdateOperationsInput = {
+  set?: $Enums.ReviewerRoleType | null
+}
+
+export type EnumHonorariumStatusFieldUpdateOperationsInput = {
+  set?: $Enums.HonorariumStatus
+}
+
 export type ReviewCreateWithoutReviewerInput = {
   isPrimary?: boolean
+  reviewerRole?: $Enums.ReviewerRoleType | null
+  honorariumStatus?: $Enums.HonorariumStatus
   assignedAt?: Date | string
   respondedAt?: Date | string | null
   decision?: $Enums.ReviewDecision | null
@@ -587,6 +641,8 @@ export type ReviewUncheckedCreateWithoutReviewerInput = {
   id?: number
   submissionId: number
   isPrimary?: boolean
+  reviewerRole?: $Enums.ReviewerRoleType | null
+  honorariumStatus?: $Enums.HonorariumStatus
   assignedAt?: Date | string
   respondedAt?: Date | string | null
   decision?: $Enums.ReviewDecision | null
@@ -629,6 +685,8 @@ export type ReviewScalarWhereInput = {
   submissionId?: Prisma.IntFilter<"Review"> | number
   reviewerId?: Prisma.IntFilter<"Review"> | number
   isPrimary?: Prisma.BoolFilter<"Review"> | boolean
+  reviewerRole?: Prisma.EnumReviewerRoleTypeNullableFilter<"Review"> | $Enums.ReviewerRoleType | null
+  honorariumStatus?: Prisma.EnumHonorariumStatusFilter<"Review"> | $Enums.HonorariumStatus
   assignedAt?: Prisma.DateTimeFilter<"Review"> | Date | string
   respondedAt?: Prisma.DateTimeNullableFilter<"Review"> | Date | string | null
   decision?: Prisma.EnumReviewDecisionNullableFilter<"Review"> | $Enums.ReviewDecision | null
@@ -639,6 +697,8 @@ export type ReviewScalarWhereInput = {
 
 export type ReviewCreateWithoutSubmissionInput = {
   isPrimary?: boolean
+  reviewerRole?: $Enums.ReviewerRoleType | null
+  honorariumStatus?: $Enums.HonorariumStatus
   assignedAt?: Date | string
   respondedAt?: Date | string | null
   decision?: $Enums.ReviewDecision | null
@@ -652,6 +712,8 @@ export type ReviewUncheckedCreateWithoutSubmissionInput = {
   id?: number
   reviewerId: number
   isPrimary?: boolean
+  reviewerRole?: $Enums.ReviewerRoleType | null
+  honorariumStatus?: $Enums.HonorariumStatus
   assignedAt?: Date | string
   respondedAt?: Date | string | null
   decision?: $Enums.ReviewDecision | null
@@ -690,6 +752,8 @@ export type ReviewCreateManyReviewerInput = {
   id?: number
   submissionId: number
   isPrimary?: boolean
+  reviewerRole?: $Enums.ReviewerRoleType | null
+  honorariumStatus?: $Enums.HonorariumStatus
   assignedAt?: Date | string
   respondedAt?: Date | string | null
   decision?: $Enums.ReviewDecision | null
@@ -700,6 +764,8 @@ export type ReviewCreateManyReviewerInput = {
 
 export type ReviewUpdateWithoutReviewerInput = {
   isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerRole?: Prisma.NullableEnumReviewerRoleTypeFieldUpdateOperationsInput | $Enums.ReviewerRoleType | null
+  honorariumStatus?: Prisma.EnumHonorariumStatusFieldUpdateOperationsInput | $Enums.HonorariumStatus
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
@@ -713,6 +779,8 @@ export type ReviewUncheckedUpdateWithoutReviewerInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   submissionId?: Prisma.IntFieldUpdateOperationsInput | number
   isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerRole?: Prisma.NullableEnumReviewerRoleTypeFieldUpdateOperationsInput | $Enums.ReviewerRoleType | null
+  honorariumStatus?: Prisma.EnumHonorariumStatusFieldUpdateOperationsInput | $Enums.HonorariumStatus
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
@@ -725,6 +793,8 @@ export type ReviewUncheckedUpdateManyWithoutReviewerInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   submissionId?: Prisma.IntFieldUpdateOperationsInput | number
   isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerRole?: Prisma.NullableEnumReviewerRoleTypeFieldUpdateOperationsInput | $Enums.ReviewerRoleType | null
+  honorariumStatus?: Prisma.EnumHonorariumStatusFieldUpdateOperationsInput | $Enums.HonorariumStatus
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
@@ -737,6 +807,8 @@ export type ReviewCreateManySubmissionInput = {
   id?: number
   reviewerId: number
   isPrimary?: boolean
+  reviewerRole?: $Enums.ReviewerRoleType | null
+  honorariumStatus?: $Enums.HonorariumStatus
   assignedAt?: Date | string
   respondedAt?: Date | string | null
   decision?: $Enums.ReviewDecision | null
@@ -747,6 +819,8 @@ export type ReviewCreateManySubmissionInput = {
 
 export type ReviewUpdateWithoutSubmissionInput = {
   isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerRole?: Prisma.NullableEnumReviewerRoleTypeFieldUpdateOperationsInput | $Enums.ReviewerRoleType | null
+  honorariumStatus?: Prisma.EnumHonorariumStatusFieldUpdateOperationsInput | $Enums.HonorariumStatus
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
@@ -760,6 +834,8 @@ export type ReviewUncheckedUpdateWithoutSubmissionInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   reviewerId?: Prisma.IntFieldUpdateOperationsInput | number
   isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerRole?: Prisma.NullableEnumReviewerRoleTypeFieldUpdateOperationsInput | $Enums.ReviewerRoleType | null
+  honorariumStatus?: Prisma.EnumHonorariumStatusFieldUpdateOperationsInput | $Enums.HonorariumStatus
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
@@ -772,6 +848,8 @@ export type ReviewUncheckedUpdateManyWithoutSubmissionInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   reviewerId?: Prisma.IntFieldUpdateOperationsInput | number
   isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerRole?: Prisma.NullableEnumReviewerRoleTypeFieldUpdateOperationsInput | $Enums.ReviewerRoleType | null
+  honorariumStatus?: Prisma.EnumHonorariumStatusFieldUpdateOperationsInput | $Enums.HonorariumStatus
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   decision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
@@ -787,6 +865,8 @@ export type ReviewSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   submissionId?: boolean
   reviewerId?: boolean
   isPrimary?: boolean
+  reviewerRole?: boolean
+  honorariumStatus?: boolean
   assignedAt?: boolean
   respondedAt?: boolean
   decision?: boolean
@@ -802,6 +882,8 @@ export type ReviewSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   submissionId?: boolean
   reviewerId?: boolean
   isPrimary?: boolean
+  reviewerRole?: boolean
+  honorariumStatus?: boolean
   assignedAt?: boolean
   respondedAt?: boolean
   decision?: boolean
@@ -817,6 +899,8 @@ export type ReviewSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   submissionId?: boolean
   reviewerId?: boolean
   isPrimary?: boolean
+  reviewerRole?: boolean
+  honorariumStatus?: boolean
   assignedAt?: boolean
   respondedAt?: boolean
   decision?: boolean
@@ -832,6 +916,8 @@ export type ReviewSelectScalar = {
   submissionId?: boolean
   reviewerId?: boolean
   isPrimary?: boolean
+  reviewerRole?: boolean
+  honorariumStatus?: boolean
   assignedAt?: boolean
   respondedAt?: boolean
   decision?: boolean
@@ -840,7 +926,7 @@ export type ReviewSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ReviewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "submissionId" | "reviewerId" | "isPrimary" | "assignedAt" | "respondedAt" | "decision" | "remarks" | "createdAt" | "updatedAt", ExtArgs["result"]["review"]>
+export type ReviewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "submissionId" | "reviewerId" | "isPrimary" | "reviewerRole" | "honorariumStatus" | "assignedAt" | "respondedAt" | "decision" | "remarks" | "createdAt" | "updatedAt", ExtArgs["result"]["review"]>
 export type ReviewInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   submission?: boolean | Prisma.SubmissionDefaultArgs<ExtArgs>
   reviewer?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -865,6 +951,8 @@ export type $ReviewPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     submissionId: number
     reviewerId: number
     isPrimary: boolean
+    reviewerRole: $Enums.ReviewerRoleType | null
+    honorariumStatus: $Enums.HonorariumStatus
     assignedAt: Date
     respondedAt: Date | null
     decision: $Enums.ReviewDecision | null
@@ -1300,6 +1388,8 @@ export interface ReviewFieldRefs {
   readonly submissionId: Prisma.FieldRef<"Review", 'Int'>
   readonly reviewerId: Prisma.FieldRef<"Review", 'Int'>
   readonly isPrimary: Prisma.FieldRef<"Review", 'Boolean'>
+  readonly reviewerRole: Prisma.FieldRef<"Review", 'ReviewerRoleType'>
+  readonly honorariumStatus: Prisma.FieldRef<"Review", 'HonorariumStatus'>
   readonly assignedAt: Prisma.FieldRef<"Review", 'DateTime'>
   readonly respondedAt: Prisma.FieldRef<"Review", 'DateTime'>
   readonly decision: Prisma.FieldRef<"Review", 'ReviewDecision'>

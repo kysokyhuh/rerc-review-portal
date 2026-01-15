@@ -92,3 +92,8 @@ export type PanelMember = Prisma.PanelMemberModel
  * 
  */
 export type ConfigSLA = Prisma.ConfigSLAModel
+/**
+ * Model WorkflowEvent
+ * 
+ */
+export type WorkflowEvent = Prisma.WorkflowEventModel

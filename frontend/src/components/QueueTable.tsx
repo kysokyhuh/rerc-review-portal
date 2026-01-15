@@ -20,6 +20,8 @@ interface QueueTableProps {
   anchorId?: string;
   searchTerm?: string;
   preserveQuery?: string;
+  showStatusFilter?: boolean;
+  statusOptions?: { value: string; label: string }[];
 }
 
 export const QueueTable: React.FC<QueueTableProps> = ({
@@ -30,6 +32,8 @@ export const QueueTable: React.FC<QueueTableProps> = ({
   anchorId,
   searchTerm = "",
   preserveQuery,
+  showStatusFilter = false,
+  statusOptions = [],
 }) => {
   const [sortKey, setSortKey] = useState<SortKey>("slaDueDate");
   const [direction, setDirection] = useState<"asc" | "desc">("asc");
@@ -37,21 +41,33 @@ export const QueueTable: React.FC<QueueTableProps> = ({
   const [pageSize, setPageSize] = useState(10);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const location = useLocation();
 
   useEffect(() => {
     setPage(1);
     setSelectedIds(new Set());
-  }, [items, searchTerm]);
+  }, [items, searchTerm, statusFilter]);
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const filteredItems = useMemo(() => {
-    if (!normalizedSearch) return items;
-    return items.filter((item) => {
-      const haystack = `${item.projectCode} ${item.projectTitle} ${item.piName} ${item.submissionType}`.toLowerCase();
-      return haystack.includes(normalizedSearch);
-    });
-  }, [items, normalizedSearch]);
+    let result = items;
+    
+    // Apply status filter if enabled
+    if (showStatusFilter && statusFilter !== "ALL") {
+      result = result.filter((item) => item.status === statusFilter);
+    }
+    
+    // Apply search filter
+    if (normalizedSearch) {
+      result = result.filter((item) => {
+        const haystack = `${item.projectCode} ${item.projectTitle} ${item.piName} ${item.submissionType}`.toLowerCase();
+        return haystack.includes(normalizedSearch);
+      });
+    }
+    
+    return result;
+  }, [items, normalizedSearch, showStatusFilter, statusFilter]);
 
   const sortedItems = useMemo(() => {
     const arr = [...filteredItems];
@@ -209,6 +225,23 @@ export const QueueTable: React.FC<QueueTableProps> = ({
           {description && <p className="section-description">{description}</p>}
         </div>
         <div className="table-tools">
+          {showStatusFilter && statusOptions.length > 0 && (
+            <label className="table-meta">
+              Filter by status
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                style={{ marginLeft: 6 }}
+              >
+                <option value="ALL">All statuses</option>
+                {statusOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <div className="table-meta">
             {filteredItems.length} items • page {currentPage} / {totalPages}
           </div>

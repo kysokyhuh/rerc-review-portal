@@ -61,7 +61,8 @@ export const ModelName = {
   SubmissionStatusHistory: 'SubmissionStatusHistory',
   Review: 'Review',
   PanelMember: 'PanelMember',
-  ConfigSLA: 'ConfigSLA'
+  ConfigSLA: 'ConfigSLA',
+  WorkflowEvent: 'WorkflowEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -134,6 +135,10 @@ export const ProjectScalarFieldEnum = {
   title: 'title',
   piName: 'piName',
   piAffiliation: 'piAffiliation',
+  department: 'department',
+  proponent: 'proponent',
+  researchTypePHREB: 'researchTypePHREB',
+  researchTypePHREBOther: 'researchTypePHREBOther',
   fundingType: 'fundingType',
   initialSubmissionDate: 'initialSubmissionDate',
   committeeId: 'committeeId',
@@ -164,6 +169,7 @@ export const SubmissionScalarFieldEnum = {
   finalReportDueDate: 'finalReportDueDate',
   finalDecision: 'finalDecision',
   finalDecisionDate: 'finalDecisionDate',
+  remarks: 'remarks',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   createdById: 'createdById'
@@ -206,6 +212,8 @@ export const ReviewScalarFieldEnum = {
   submissionId: 'submissionId',
   reviewerId: 'reviewerId',
   isPrimary: 'isPrimary',
+  reviewerRole: 'reviewerRole',
+  honorariumStatus: 'honorariumStatus',
   assignedAt: 'assignedAt',
   respondedAt: 'respondedAt',
   decision: 'decision',
@@ -242,6 +250,20 @@ export const ConfigSLAScalarFieldEnum = {
 } as const
 
 export type ConfigSLAScalarFieldEnum = (typeof ConfigSLAScalarFieldEnum)[keyof typeof ConfigSLAScalarFieldEnum]
+
+
+export const WorkflowEventScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  eventType: 'eventType',
+  cycleNumber: 'cycleNumber',
+  eventDate: 'eventDate',
+  daysFromPrevious: 'daysFromPrevious',
+  remarks: 'remarks',
+  createdAt: 'createdAt'
+} as const
+
+export type WorkflowEventScalarFieldEnum = (typeof WorkflowEventScalarFieldEnum)[keyof typeof WorkflowEventScalarFieldEnum]
 
 
 export const SortOrder = {
