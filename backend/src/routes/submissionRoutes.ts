@@ -349,8 +349,15 @@ router.patch("/submissions/:id/overview", async (req, res) => {
         .json({ message: "Submission is not linked to a project" });
     }
 
+    const isValidStatus = (value: any): value is SubmissionStatus =>
+      Object.values(SubmissionStatus).includes(value as SubmissionStatus);
     const statusChanged =
-      status && status !== submission.status ? String(status) : null;
+      status && status !== submission.status && isValidStatus(status)
+        ? (status as SubmissionStatus)
+        : null;
+    if (status && !statusChanged && status !== submission.status) {
+      return res.status(400).json({ message: "Invalid status value" });
+    }
     if (statusChanged) {
       submissionUpdate.status = statusChanged;
     }

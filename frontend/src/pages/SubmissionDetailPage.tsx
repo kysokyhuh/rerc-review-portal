@@ -104,7 +104,7 @@ export const SubmissionDetailPage: React.FC = () => {
     "INFO_ONLY",
   ];
 
-  const toInputDate = (value?: string | null) => {
+  const toInputDate = (value?: string | Date | null) => {
     if (!value) return "";
     if (typeof value === "string") {
       return value.slice(0, 10);

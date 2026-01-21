@@ -8,7 +8,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 const express_1 = require("express");
 const prismaClient_1 = __importDefault(require("../config/prismaClient"));
+const requireApiKey = (req, res, next) => {
+    const expected = process.env.API_KEY;
+    if (!expected)
+        return next();
+    const provided = req.header("x-api-key");
+    if (provided !== expected) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    next();
+};
 const router = (0, express_1.Router)();
+router.use(requireApiKey);
 // List committees with panels and members (including user info)
 router.get("/committees", async (_req, res) => {
     try {
@@ -17,7 +28,14 @@ router.get("/committees", async (_req, res) => {
                 panels: true,
                 members: {
                     include: {
-                        user: true,
+                        user: {
+                            select: {
+                                id: true,
+                                fullName: true,
+                                email: true,
+                                isActive: true,
+                            },
+                        },
                     },
                 },
             },
@@ -42,7 +60,14 @@ router.get("/panels/:id/members", async (req, res) => {
                 committee: true,
                 members: {
                     include: {
-                        user: true,
+                        user: {
+                            select: {
+                                id: true,
+                                fullName: true,
+                                email: true,
+                                isActive: true,
+                            },
+                        },
                     },
                 },
             },
@@ -88,7 +113,14 @@ router.get("/committees/:code/panels", async (req, res) => {
                     include: {
                         members: {
                             include: {
-                                user: true,
+                                user: {
+                                    select: {
+                                        id: true,
+                                        fullName: true,
+                                        email: true,
+                                        isActive: true,
+                                    },
+                                },
                             },
                         },
                     },

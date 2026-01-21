@@ -9,6 +9,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const prismaClient_1 = __importDefault(require("../config/prismaClient"));
 const router = (0, express_1.Router)();
+const escapeHtml = (value) => String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 // Dashboard queues for classification, review, revision
 router.get("/dashboard/queues", async (req, res) => {
     try {
@@ -294,11 +300,11 @@ router.get("/ra/dashboard", async (_req, res, next) => {
             const received = new Date(s.receivedDate).toISOString().slice(0, 10);
             return \`
             <tr>
-              <td>\${s.project.projectCode}</td>
-              <td>\${s.project.title}</td>
-              <td>\${s.project.piName}</td>
-              <td>\${s.submissionType}</td>
-              <td><span class="badge">\${s.status}</span></td>
+              <td>\${escapeHtml(s.project.projectCode)}</td>
+              <td>\${escapeHtml(s.project.title)}</td>
+              <td>\${escapeHtml(s.project.piName)}</td>
+              <td>\${escapeHtml(s.submissionType)}</td>
+              <td><span class="badge">\${escapeHtml(s.status)}</span></td>
               <td>\${received}</td>
               <td><a class="btn-link" href="/ra/submissions/\${s.id}">Open submission</a></td>
             </tr>\`;
@@ -375,29 +381,29 @@ router.get("/ra/submissions/:submissionId", async (req, res, next) => {
         const statusRows = submission.statusHistory
             .map((history) => {
             const date = history.effectiveDate?.toISOString().slice(0, 10) ?? "-";
-            const who = history.changedBy?.fullName ?? "System";
+            const who = escapeHtml(history.changedBy?.fullName ?? "System");
             return `<tr>
             <td>${date}</td>
-            <td>${history.oldStatus ?? ""}</td>
-            <td>${history.newStatus ?? ""}</td>
+            <td>${escapeHtml(history.oldStatus ?? "")}</td>
+            <td>${escapeHtml(history.newStatus ?? "")}</td>
             <td>${who}</td>
-            <td>${history.reason ?? ""}</td>
+            <td>${escapeHtml(history.reason ?? "")}</td>
           </tr>`;
         })
             .join("") ||
             `<tr><td colspan="5"><em>No status changes recorded yet.</em></td></tr>`;
         const classificationBlock = submission.classification
             ? `
-      <p><strong>Review type:</strong> ${submission.classification.reviewType}</p>
+      <p><strong>Review type:</strong> ${escapeHtml(submission.classification.reviewType)}</p>
       <p><strong>Classification date:</strong> ${submission.classification.classificationDate
                 ?.toISOString()
                 .slice(0, 10) ?? "-"}</p>
-      <p><strong>Rationale:</strong> ${submission.classification.rationale ?? "-"}</p>
+      <p><strong>Rationale:</strong> ${escapeHtml(submission.classification.rationale ?? "-")}</p>
     `
             : "<p><em>No classification recorded yet.</em></p>";
         const approvalBlock = canDownloadApproval
             ? `
-      <p><strong>Final decision:</strong> ${submission.finalDecision}</p>
+      <p><strong>Final decision:</strong> ${escapeHtml(submission.finalDecision ?? "")}</p>
       <p><strong>Final decision date:</strong> ${submission.finalDecisionDate?.toISOString().slice(0, 10) ?? "-"}</p>
       <p><strong>Approval period:</strong> ${project.approvalStartDate?.toISOString().slice(0, 10) ?? "?"} to ${project.approvalEndDate?.toISOString().slice(0, 10) ?? "?"}</p>
     `
@@ -430,12 +436,12 @@ router.get("/ra/submissions/:submissionId", async (req, res, next) => {
     <div class="section">
       <h2>Project information</h2>
       <div class="meta-grid">
-        <div><strong>Project code:</strong> ${project.projectCode}</div>
-        <div><strong>Title:</strong> ${project.title}</div>
-        <div><strong>PI:</strong> ${project.piName}</div>
-        <div><strong>Affiliation:</strong> ${project.piAffiliation ?? "-"}</div>
-        <div><strong>Committee:</strong> ${project.committee.code} – ${project.committee.name}</div>
-        <div><strong>Submission type:</strong> ${submission.submissionType}</div>
+        <div><strong>Project code:</strong> ${escapeHtml(project.projectCode)}</div>
+        <div><strong>Title:</strong> ${escapeHtml(project.title)}</div>
+        <div><strong>PI:</strong> ${escapeHtml(project.piName)}</div>
+        <div><strong>Affiliation:</strong> ${escapeHtml(project.piAffiliation ?? "-")}</div>
+        <div><strong>Committee:</strong> ${escapeHtml(project.committee.code)} – ${escapeHtml(project.committee.name)}</div>
+        <div><strong>Submission type:</strong> ${escapeHtml(submission.submissionType)}</div>
         <div><strong>Received date:</strong> ${submission.receivedDate
             .toISOString()
             .slice(0, 10)}</div>

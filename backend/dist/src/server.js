@@ -16,22 +16,21 @@ require("dotenv/config");
 const routes_1 = require("./routes");
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
+const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 // =============================================================================
 // Middleware
 // =============================================================================
 // Enable CORS for React frontend
 app.use((0, cors_1.default)({
-    origin: [
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://localhost:5175",
-        "http://localhost:5176",
-        "http://localhost:3000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174",
-        "http://127.0.0.1:5175",
-        "http://127.0.0.1:3000",
-    ],
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
 }));
 app.use(express_1.default.json());
