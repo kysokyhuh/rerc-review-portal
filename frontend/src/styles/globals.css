@@ -1,29 +1,32 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap");
 
 :root {
-  --primary-green: #0b5d3b;
-  --primary-green-hover: #0a4e32;
-  --primary-green-soft: #e6f1ea;
-  --accent-gold: #c8a100;
-  --accent-gold-soft: #f8f2d9;
-  --danger-red: #b42318;
-  --danger-soft: #fbeaea;
-  --neutral-900: #12201a;
-  --neutral-800: #1f2a27;
-  --neutral-700: #32413c;
-  --neutral-600: #4f5b57;
-  --neutral-500: #6b746f;
-  --neutral-400: #8a938d;
-  --neutral-300: #c5cbc7;
-  --neutral-200: #d9e0e6;
-  --neutral-100: #eef1f4;
+  --primary-green: #2d6a4f;
+  --primary-green-hover: #24543f;
+  --primary-green-soft: #e6efe9;
+  --accent-gold: #b0721e;
+  --accent-gold-soft: #f3e4ce;
+  --danger-red: #b02a1c;
+  --danger-soft: #f3e1df;
+  --neutral-900: #111418;
+  --neutral-800: #1b1f24;
+  --neutral-700: #313842;
+  --neutral-600: #4b525c;
+  --neutral-500: #5f6772;
+  --neutral-400: #7a828c;
+  --neutral-300: #c3c9cf;
+  --neutral-200: #d7dce1;
+  --neutral-100: #f2f4f6;
   --surface: #ffffff;
-  --surface-muted: #f7f8fa;
-  --shadow-sm: 0 4px 10px rgba(12, 31, 23, 0.08);
-  --shadow-md: 0 12px 30px rgba(12, 31, 23, 0.12);
+  --surface-muted: #f5f6f8;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.12);
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --motion-fast: 140ms;
+  --motion-base: 160ms;
+  --motion-slow: 200ms;
   --font-family: "DM Sans", "Segoe UI", -apple-system, BlinkMacSystemFont,
     "Helvetica Neue", Arial, sans-serif;
 }
@@ -42,11 +45,7 @@ body {
   margin: 0;
   font-family: var(--font-family);
   color: var(--neutral-800);
-  background: linear-gradient(
-    120deg,
-    var(--surface-muted) 0%,
-    var(--neutral-100) 100%
-  );
+  background: var(--surface-muted);
 }
 
 a {
@@ -168,7 +167,7 @@ a:hover {
   font-weight: 600;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color var(--motion-base) ease, border-color var(--motion-base) ease, color var(--motion-base) ease;
   text-decoration: none;
   background: var(--surface);
   color: var(--neutral-800);
@@ -182,8 +181,7 @@ a:hover {
 .btn-primary {
   background: var(--primary-green);
   color: var(--surface);
-  border-color: var(--primary-green);
-  box-shadow: 0 8px 16px rgba(11, 93, 59, 0.2);
+  border-color: var(--primary-green-hover);
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -199,7 +197,7 @@ a:hover {
 
 .btn-secondary:hover:not(:disabled) {
   border-color: var(--neutral-300);
-  box-shadow: var(--shadow-sm);
+  background: var(--surface-muted);
 }
 
 .btn-ghost {
@@ -261,20 +259,17 @@ a:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.2s ease, transform 0.15s ease;
+  transition: color var(--motion-base) ease, background-color var(--motion-base) ease, border-color var(--motion-base) ease;
 }
 
 .stage-chip.active {
   background: var(--primary-green-soft);
   color: var(--primary-green);
   border-color: var(--primary-green);
-  box-shadow: 0 8px 20px rgba(11, 93, 59, 0.16);
 }
 
 .stage-chip:hover {
   border-color: var(--primary-green);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
 }
 
 .chip-count {
@@ -292,14 +287,13 @@ a:hover {
   position: sticky;
   top: 56px;
   z-index: 15;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(6px);
+  background: var(--surface);
   border: 1px solid var(--neutral-200);
   box-shadow: var(--shadow-sm);
   padding: 14px 16px;
   border-radius: var(--radius-lg);
   margin-bottom: 18px;
-  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  transition: border-color var(--motion-base) ease, box-shadow var(--motion-base) ease;
 }
 
 .command-row {
@@ -379,20 +373,8 @@ a:hover {
   border-radius: 50%;
   background: currentColor;
   display: inline-block;
-  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.08);
-  animation: pulse 1.8s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.16);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
-  }
+  border: 1px solid currentColor;
+  box-shadow: none;
 }
 
 .command-actions select {
@@ -416,17 +398,16 @@ a:hover {
   border-radius: var(--radius-md);
   border: 1px solid var(--neutral-200);
   background: var(--surface);
-  box-shadow: var(--shadow-sm);
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: background-color var(--motion-base) ease, border-color var(--motion-base) ease;
 }
 
 .attention-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  border-color: var(--neutral-300);
+  background: var(--surface-muted);
 }
 
 .attention-card.danger {
@@ -467,14 +448,13 @@ a:hover {
   border-radius: var(--radius-lg);
   border: 1px solid var(--neutral-200);
   background: var(--surface);
-  box-shadow: var(--shadow-sm);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  transition: background-color var(--motion-base) ease, border-color var(--motion-base) ease;
 }
 
 .kpi-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
+  border-color: var(--neutral-300);
+  background: var(--surface-muted);
 }
 
 .kpi-label {
@@ -499,7 +479,6 @@ a:hover {
   background: var(--surface);
   border: 1px solid var(--neutral-200);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
   padding: 16px;
 }
 
@@ -578,9 +557,7 @@ a:hover {
 }
 
 .queue-table tbody tr:hover {
-  background: var(--primary-green-soft);
-  box-shadow: inset 0 0 0 999px rgba(11, 93, 59, 0.04);
-  transform: translateX(2px);
+  background: var(--neutral-100);
 }
 
 .code {
@@ -694,7 +671,6 @@ a:hover {
   border-radius: var(--radius-md);
   padding: 10px 12px;
   margin: 8px 0;
-  box-shadow: var(--shadow-sm);
 }
 
 .pagination {
@@ -741,23 +717,7 @@ a:hover {
 }
 
 .skeleton::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.6),
-    transparent
-  );
-  animation: shimmer 1.4s infinite;
-}
-
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
+  display: none;
 }
 
 /* Panels */
@@ -857,6 +817,80 @@ a:hover {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;
   margin-bottom: 12px;
+}
+
+.project-detail-page .field-input {
+  width: 100%;
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: var(--font-family);
+  color: var(--neutral-800);
+  background: var(--surface);
+  transition: border-color var(--motion-base) ease, box-shadow var(--motion-base) ease;
+}
+
+.project-detail-page .field-input:focus {
+  outline: none;
+  border-color: var(--primary-green-hover);
+  box-shadow: 0 0 0 2px var(--primary-green-soft);
+}
+
+.project-detail-page .field-wide {
+  grid-column: 1 / -1;
+}
+
+.project-detail-page .section-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.project-detail-page .error-text {
+  margin: 6px 0 0;
+  color: var(--danger-red);
+  font-size: 13px;
+}
+
+.project-detail-page .history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.project-detail-page .history-item {
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  background: var(--surface-muted);
+}
+
+.project-detail-page .history-meta {
+  font-size: 12px;
+  color: var(--neutral-500);
+  margin-bottom: 6px;
+}
+
+.project-detail-page .history-change {
+  font-weight: 600;
+  color: var(--neutral-800);
+  font-size: 14px;
+}
+
+.project-detail-page .history-old {
+  color: var(--neutral-600);
+}
+
+.project-detail-page .history-new {
+  color: var(--primary-green);
+}
+
+.project-detail-page .history-reason {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--neutral-600);
 }
 
 .field label {
