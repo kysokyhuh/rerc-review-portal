@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDashboardQueues } from "@/hooks/useDashboardQueues";
 import { useDashboardActivity } from "@/hooks/useDashboardActivity";
@@ -201,8 +201,10 @@ export const DashboardPage: React.FC = () => {
     item.missingFields && item.missingFields.length > 0;
   const isUnassigned = (item: SubmissionDetail | any) =>
     !item.staffInChargeName;
-  const isPaused = (item: SubmissionDetail | any) =>
-    ["WITHDRAWN", "CLOSED"].includes(item.status);
+  const isPaused = useCallback(
+    (item: SubmissionDetail | any) => ["WITHDRAWN", "CLOSED"].includes(item.status),
+    []
+  );
 
   const baseItems = useMemo(() => {
     switch (queueFilter) {

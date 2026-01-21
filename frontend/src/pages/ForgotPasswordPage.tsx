@@ -14,11 +14,26 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
+      if (!email.trim()) {
+        throw new Error("Email is required");
+      }
       // TODO: Replace with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise<void>((resolve, reject) =>
+        setTimeout(() => {
+          if (!email.includes("@")) {
+            reject(new Error("Invalid email address"));
+          } else {
+            resolve();
+          }
+        }, 1000)
+      );
       setSubmitted(true);
     } catch (err) {
-      setError('Something went wrong. Please try again.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }

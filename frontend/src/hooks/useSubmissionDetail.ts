@@ -13,50 +13,50 @@ export function useSubmissionDetail(submissionId: number) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [detail, sla] = await Promise.all([
-        fetchSubmissionDetail(submissionId),
-        fetchSubmissionSlaSummary(submissionId).catch(() => null),
-      ]);
-      setSubmission(detail);
-      setSlaSummary(sla);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load submission");
-    } finally {
-      setLoading(false);
-    }
-  }, [submissionId]);
-
-  useEffect(() => {
-    let isMounted = true;
-    const run = async () => {
+  const load = useCallback(
+    async (isMountedRef?: { current: boolean }) => {
+      setLoading(true);
+      if (!Number.isFinite(submissionId)) {
+        if (!isMountedRef || isMountedRef.current) {
+          setError("Invalid submission id");
+          setSubmission(null);
+          setSlaSummary(null);
+          setLoading(false);
+        }
+        return;
+      }
       try {
-        setLoading(true);
         const [detail, sla] = await Promise.all([
           fetchSubmissionDetail(submissionId),
           fetchSubmissionSlaSummary(submissionId).catch(() => null),
         ]);
-        if (!isMounted) return;
-        setSubmission(detail);
-        setSlaSummary(sla);
-        setError(null);
+        if (!isMountedRef || isMountedRef.current) {
+          setSubmission(detail);
+          setSlaSummary(sla);
+          setError(null);
+        }
       } catch (err) {
-        if (!isMounted) return;
-        setError(
-          err instanceof Error ? err.message : "Failed to load submission"
-        );
+        if (!isMountedRef || isMountedRef.current) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load submission"
+          );
+        }
       } finally {
-        if (isMounted) setLoading(false);
+        if (!isMountedRef || isMountedRef.current) {
+          setLoading(false);
+        }
       }
-    };
-    run();
+    },
+    [submissionId]
+  );
+
+  useEffect(() => {
+    const mounted = { current: true };
+    load(mounted);
     return () => {
-      isMounted = false;
+      mounted.current = false;
     };
-  }, [submissionId]);
+  }, [load, submissionId]);
 
   return { submission, slaSummary, loading, error, reload: load, setSubmission };
 }
