@@ -1,9 +1,16 @@
 import "dotenv/config";
+import fs from "fs";
+import path from "path";
+import { parse } from "csv-parse/sync";
 import prisma from "./prismaClient";
 import {
   EndorsementStatus,
+  FundingType,
   LetterDraftStatus,
   ProjectMemberRole,
+  ProjectStatus,
+  ResearchTypePHREB,
+  ReviewDecision,
   ReviewType,
   ReviewerRoleType,
   RoleType,
@@ -13,6 +20,292 @@ import {
   SubmissionStatus,
   SubmissionType,
 } from "../generated/prisma/client";
+
+const CSV_FILENAME =
+  "[Intern Copy] RERC Protocol Database 2024 - 2024 Submission.csv";
+
+const safeTrim = (value: unknown) => String(value ?? "").trim();
+
+const parseDate = (value?: string | null) => {
+  const raw = safeTrim(value);
+  if (!raw) return null;
+  const mdy = raw.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})$/);
+  if (mdy) {
+    const month = Number(mdy[1]);
+    const day = Number(mdy[2]);
+    let year = Number(mdy[3]);
+    if (year < 100) year += 2000;
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  const ymd = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (ymd) {
+    const year = Number(ymd[1]);
+    const month = Number(ymd[2]);
+    const day = Number(ymd[3]);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  const fallback = new Date(raw);
+  return Number.isNaN(fallback.getTime()) ? null : fallback;
+};
+
+const mapReviewType = (value: string | null | undefined) => {
+  const normalized = safeTrim(value).toLowerCase();
+  if (normalized.startsWith("exempt")) return ReviewType.EXEMPT;
+  if (normalized.startsWith("expedit")) return ReviewType.EXPEDITED;
+  if (normalized.startsWith("full")) return ReviewType.FULL_BOARD;
+  return null;
+};
+
+const mapFundingType = (value: string | null | undefined) => {
+  const normalized = safeTrim(value).toLowerCase();
+  if (!normalized || normalized === "n/a") return FundingType.NO_FUNDING;
+  if (normalized.includes("self")) return FundingType.SELF_FUNDED;
+  if (normalized === "rgmo") return FundingType.INTERNAL;
+  return FundingType.EXTERNAL;
+};
+
+const mapResearchType = (
+  value: string | null | undefined,
+  otherValue: string | null | undefined
+) => {
+  const normalized = safeTrim(value).toLowerCase();
+  if (!normalized) return { type: null, other: null };
+  if (normalized.includes("social")) {
+    return { type: ResearchTypePHREB.SOCIAL_BEHAVIORAL, other: null };
+  }
+  if (normalized.includes("biomedical")) {
+    return { type: ResearchTypePHREB.BIOMEDICAL, other: null };
+  }
+  if (normalized.includes("epidemiologic")) {
+    return { type: ResearchTypePHREB.EPIDEMIOLOGICAL, other: null };
+  }
+  if (normalized.includes("public health")) {
+    return { type: ResearchTypePHREB.PUBLIC_HEALTH, other: null };
+  }
+  if (normalized.includes("clinical")) {
+    return { type: ResearchTypePHREB.CLINICAL_TRIAL, other: null };
+  }
+  if (normalized.includes("other")) {
+    return {
+      type: ResearchTypePHREB.OTHER,
+      other: safeTrim(otherValue) || safeTrim(value),
+    };
+  }
+  return {
+    type: ResearchTypePHREB.OTHER,
+    other: safeTrim(otherValue) || safeTrim(value),
+  };
+};
+
+const mapSubmissionStatus = (
+  statusValue: string | null | undefined,
+  reviewValue: string | null | undefined,
+  finishDate: Date | null,
+  reviewType: ReviewType | null
+) => {
+  const status = safeTrim(statusValue).toLowerCase();
+  const review = safeTrim(reviewValue).toLowerCase();
+  if (status === "withdrawn" || review === "withdrawn") {
+    return SubmissionStatus.WITHDRAWN;
+  }
+  if (status === "cleared") {
+    return SubmissionStatus.CLOSED;
+  }
+  if (status === "exempted") {
+    return finishDate ? SubmissionStatus.CLOSED : SubmissionStatus.CLASSIFIED;
+  }
+  if (reviewType === ReviewType.EXEMPT) {
+    return SubmissionStatus.CLASSIFIED;
+  }
+  return SubmissionStatus.RECEIVED;
+};
+
+const mapProjectStatus = (status: SubmissionStatus) => {
+  if (status === SubmissionStatus.WITHDRAWN) return ProjectStatus.WITHDRAWN;
+  if (status === SubmissionStatus.CLOSED) return ProjectStatus.CLOSED;
+  return ProjectStatus.ACTIVE;
+};
+
+const importLegacyCsv = async ({
+  committeeId,
+  raUserId,
+  panelId,
+}: {
+  committeeId: number;
+  raUserId: number;
+  panelId: number | null;
+}) => {
+  const csvPath = path.resolve(process.cwd(), CSV_FILENAME);
+  if (!fs.existsSync(csvPath)) {
+    console.log(`CSV file not found at ${csvPath}. Skipping legacy import.`);
+    return { importedCount: 0 };
+  }
+
+  const raw = fs.readFileSync(csvPath, "utf-8");
+  const records: string[][] = parse(raw, {
+    relax_quotes: true,
+    relax_column_count: true,
+    skip_empty_lines: true,
+  });
+
+  if (records.length <= 1) {
+    console.log("CSV file is empty. Skipping legacy import.");
+    return { importedCount: 0 };
+  }
+
+  const rows = records.slice(1);
+  let importedCount = 0;
+
+  for (const row of rows) {
+    const projectCode = safeTrim(row[0]);
+    if (!projectCode) continue;
+
+    const title = safeTrim(row[1]) || "Untitled project";
+    const piName = safeTrim(row[2]) || "Unknown PI";
+    const college = safeTrim(row[3]) || null;
+    const department = safeTrim(row[4]) || null;
+    const receivedDate = parseDate(row[5]);
+    const reviewLabel = safeTrim(row[7]);
+    const proponent = safeTrim(row[8]) || null;
+    const fundingLabel = safeTrim(row[9]);
+    const researchLabel = safeTrim(row[10]);
+    const researchOther = safeTrim(row[11]) || null;
+    const statusLabel = safeTrim(row[12]);
+    const finishDate = parseDate(row[13]);
+    const classificationDate = parseDate(row[22]);
+    const clearanceExpiration = parseDate(row[64]);
+    const progressTarget = parseDate(row[65]);
+    const finalReportTarget = parseDate(row[70]);
+
+    const reviewType = mapReviewType(reviewLabel);
+    const fundingType = mapFundingType(fundingLabel);
+    const researchType = mapResearchType(researchLabel, researchOther);
+    const status = mapSubmissionStatus(
+      statusLabel,
+      reviewLabel,
+      finishDate,
+      reviewType
+    );
+    const finalDecision =
+      statusLabel.toLowerCase() === "cleared" ||
+      statusLabel.toLowerCase() === "exempted"
+        ? ReviewDecision.APPROVED
+        : null;
+    const finalDecisionDate = finalDecision ? finishDate : null;
+
+    const project = await prisma.project.upsert({
+      where: { projectCode },
+      update: {
+        title,
+        piName,
+        piAffiliation: college,
+        department,
+        proponent,
+        fundingType,
+        researchTypePHREB: researchType.type,
+        researchTypePHREBOther: researchType.other,
+        initialSubmissionDate: receivedDate ?? finishDate ?? null,
+        overallStatus: mapProjectStatus(status),
+        approvalStartDate: finishDate ?? null,
+        approvalEndDate: clearanceExpiration ?? null,
+        committeeId,
+      },
+      create: {
+        projectCode,
+        title,
+        piName,
+        piAffiliation: college,
+        department,
+        proponent,
+        fundingType,
+        researchTypePHREB: researchType.type,
+        researchTypePHREBOther: researchType.other,
+        initialSubmissionDate: receivedDate ?? finishDate ?? null,
+        overallStatus: mapProjectStatus(status),
+        approvalStartDate: finishDate ?? null,
+        approvalEndDate: clearanceExpiration ?? null,
+        committeeId,
+        createdById: raUserId,
+      },
+    });
+
+    const baseReceivedDate =
+      receivedDate ?? finishDate ?? classificationDate ?? new Date();
+
+    const existingSubmission = await prisma.submission.findFirst({
+      where: {
+        projectId: project.id,
+        submissionType: SubmissionType.INITIAL,
+        sequenceNumber: 1,
+      },
+    });
+
+    const submissionData = {
+      projectId: project.id,
+      submissionType: SubmissionType.INITIAL,
+      sequenceNumber: 1,
+      receivedDate: baseReceivedDate,
+      status,
+      finalDecision,
+      finalDecisionDate,
+      continuingReviewDueDate: progressTarget ?? null,
+      finalReportDueDate: finalReportTarget ?? null,
+      createdById: raUserId,
+    };
+
+    const submission = existingSubmission
+      ? await prisma.submission.update({
+          where: { id: existingSubmission.id },
+          data: submissionData,
+        })
+      : await prisma.submission.create({ data: submissionData });
+
+    if (reviewType && classificationDate) {
+      await prisma.classification.upsert({
+        where: { submissionId: submission.id },
+        update: {
+          reviewType,
+          classificationDate,
+          panelId,
+          classifiedById: raUserId,
+          rationale: "Imported from legacy CSV",
+        },
+        create: {
+          submissionId: submission.id,
+          reviewType,
+          classificationDate,
+          panelId,
+          classifiedById: raUserId,
+          rationale: "Imported from legacy CSV",
+        },
+      });
+    }
+
+    const existingHistory = await prisma.submissionStatusHistory.findFirst({
+      where: { submissionId: submission.id },
+      select: { id: true },
+    });
+    if (!existingHistory) {
+      await prisma.submissionStatusHistory.create({
+        data: {
+          submissionId: submission.id,
+          oldStatus: null,
+          newStatus: status,
+          effectiveDate: finishDate ?? classificationDate ?? baseReceivedDate,
+          reason: "Imported from legacy CSV",
+          changedById: raUserId,
+        },
+      });
+    }
+
+    importedCount += 1;
+  }
+
+  console.log(`Imported ${importedCount} CSV submissions.`);
+  return { importedCount };
+};
 
 async function main() {
   // 1) Ensure a Research Associate user exists
@@ -251,6 +544,14 @@ async function main() {
     panelId: panel1.id,
   });
 
+  const { importedCount } = await importLegacyCsv({
+    committeeId: committee.id,
+    raUserId: raUser.id,
+    panelId: panel1?.id ?? null,
+  });
+
+  const allowDemoData = process.env.SEED_DEMO_DATA === "true";
+
   // --- Optional demo data so the dashboard has something to display ---
   // Create a few sample projects/submissions if none exist yet.
   const existingSubmissionCount = await prisma.submission.count({
@@ -261,7 +562,7 @@ async function main() {
     },
   });
 
-  if (existingSubmissionCount === 0) {
+  if (allowDemoData && importedCount === 0 && existingSubmissionCount === 0) {
     const daysAgo = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     const sampleSpecs: Array<{
@@ -341,6 +642,7 @@ async function main() {
     console.log("Seeded demo projects/submissions for dashboard queues");
   }
 
+  if (allowDemoData) {
   // --- Dashboard mock data (idempotent) ---
   const daysAgo = (days: number) =>
     new Date(Date.now() - days * 24 * 60 * 60 * 1000);
@@ -770,6 +1072,7 @@ async function main() {
   }
 
   console.log("Seeded dashboard mock data (projects, submissions, reviews)");
+  }
 }
 
 main()
