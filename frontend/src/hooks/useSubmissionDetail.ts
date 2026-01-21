@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { SubmissionDetail, SubmissionSlaSummary } from "@/types";
 import {
-  SubmissionDetail,
-  SubmissionSlaSummary,
   fetchSubmissionDetail,
   fetchSubmissionSlaSummary,
 } from "@/services/api";
@@ -14,10 +13,26 @@ export function useSubmissionDetail(submissionId: number) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [detail, sla] = await Promise.all([
+        fetchSubmissionDetail(submissionId),
+        fetchSubmissionSlaSummary(submissionId).catch(() => null),
+      ]);
+      setSubmission(detail);
+      setSlaSummary(sla);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load submission");
+    } finally {
+      setLoading(false);
+    }
+  }, [submissionId]);
+
   useEffect(() => {
     let isMounted = true;
-
-    const load = async () => {
+    const run = async () => {
       try {
         setLoading(true);
         const [detail, sla] = await Promise.all([
@@ -37,12 +52,11 @@ export function useSubmissionDetail(submissionId: number) {
         if (isMounted) setLoading(false);
       }
     };
-
-    load();
+    run();
     return () => {
       isMounted = false;
     };
   }, [submissionId]);
 
-  return { submission, slaSummary, loading, error };
+  return { submission, slaSummary, loading, error, reload: load, setSubmission };
 }

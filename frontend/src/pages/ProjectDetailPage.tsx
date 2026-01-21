@@ -3,7 +3,6 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useProjectDetail } from "@/hooks/useProjectDetail";
 import { exportInitialAckCSV, exportInitialApprovalDocx } from "@/services/api";
 import { Timeline } from "@/components/Timeline";
-import "../styles/globals.css";
 
 export const ProjectDetailPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();

@@ -155,6 +155,59 @@ export const HonorariumStatus = {
 export type HonorariumStatus = (typeof HonorariumStatus)[keyof typeof HonorariumStatus]
 
 
+export const EndorsementStatus = {
+  PENDING: 'PENDING',
+  RECEIVED: 'RECEIVED',
+  WAIVED: 'WAIVED',
+  NOT_REQUIRED: 'NOT_REQUIRED'
+} as const
+
+export type EndorsementStatus = (typeof EndorsementStatus)[keyof typeof EndorsementStatus]
+
+
+export const ProjectMemberRole = {
+  PI: 'PI',
+  CO_PI: 'CO_PI',
+  CO_INVESTIGATOR: 'CO_INVESTIGATOR',
+  RESEARCH_ASSISTANT: 'RESEARCH_ASSISTANT',
+  STATISTICIAN: 'STATISTICIAN',
+  OTHER: 'OTHER'
+} as const
+
+export type ProjectMemberRole = (typeof ProjectMemberRole)[keyof typeof ProjectMemberRole]
+
+
+export const SubmissionDocumentType = {
+  INFORMED_CONSENT: 'INFORMED_CONSENT',
+  DATA_GATHERING_INSTRUMENT: 'DATA_GATHERING_INSTRUMENT',
+  MATERIAL_TRANSFER_AGREEMENT: 'MATERIAL_TRANSFER_AGREEMENT',
+  PERMISSION_LETTER: 'PERMISSION_LETTER',
+  OTHER: 'OTHER'
+} as const
+
+export type SubmissionDocumentType = (typeof SubmissionDocumentType)[keyof typeof SubmissionDocumentType]
+
+
+export const SubmissionDocumentStatus = {
+  MISSING: 'MISSING',
+  PENDING: 'PENDING',
+  RECEIVED: 'RECEIVED',
+  REVIEWED: 'REVIEWED'
+} as const
+
+export type SubmissionDocumentStatus = (typeof SubmissionDocumentStatus)[keyof typeof SubmissionDocumentStatus]
+
+
+export const LetterDraftStatus = {
+  DRAFT: 'DRAFT',
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  APPROVED: 'APPROVED',
+  SENT: 'SENT'
+} as const
+
+export type LetterDraftStatus = (typeof LetterDraftStatus)[keyof typeof LetterDraftStatus]
+
+
 export const WorkflowEventType = {
   CLASSIFICATION_DONE: 'CLASSIFICATION_DONE',
   DOCUMENTS_TO_REVIEWER: 'DOCUMENTS_TO_REVIEWER',

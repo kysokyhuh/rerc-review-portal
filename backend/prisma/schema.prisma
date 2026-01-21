@@ -39,11 +39,11 @@ enum SubmissionType {
 }
 
 enum ProjectStatus {
-  DRAFT          // encoding in progress
-  ACTIVE         // approved & within validity
-  INACTIVE       // lapsed / no ongoing activity
-  WITHDRAWN      // formally withdrawn
-  CLOSED         // final report accepted / archive
+  DRAFT // encoding in progress
+  ACTIVE // approved & within validity
+  INACTIVE // lapsed / no ongoing activity
+  WITHDRAWN // formally withdrawn
+  CLOSED // final report accepted / archive
 }
 
 enum CompletenessStatus {
@@ -119,6 +119,44 @@ enum HonorariumStatus {
   NOT_APPLICABLE
 }
 
+enum EndorsementStatus {
+  PENDING
+  RECEIVED
+  WAIVED
+  NOT_REQUIRED
+}
+
+enum ProjectMemberRole {
+  PI
+  CO_PI
+  CO_INVESTIGATOR
+  RESEARCH_ASSISTANT
+  STATISTICIAN
+  OTHER
+}
+
+enum SubmissionDocumentType {
+  INFORMED_CONSENT
+  DATA_GATHERING_INSTRUMENT
+  MATERIAL_TRANSFER_AGREEMENT
+  PERMISSION_LETTER
+  OTHER
+}
+
+enum SubmissionDocumentStatus {
+  MISSING
+  PENDING
+  RECEIVED
+  REVIEWED
+}
+
+enum LetterDraftStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  SENT
+}
+
 enum WorkflowEventType {
   CLASSIFICATION_DONE
   DOCUMENTS_TO_REVIEWER
@@ -131,47 +169,59 @@ enum WorkflowEventType {
   RESUBMISSION_FINALIZED
 }
 
-
 // --- MODELS ---
 
 model User {
-  id        Int                @id @default(autoincrement())
-  email     String             @unique
-  fullName  String
-  isActive  Boolean            @default(true)
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
+  id                     Int       @id @default(autoincrement())
+  email                  String    @unique
+  fullName               String
+  passwordHash           String?
+  passwordResetToken     String?
+  passwordResetExpiresAt DateTime?
+  lastLoginAt            DateTime?
+  lastLoginIp            String?
+  isCommonReviewer       Boolean   @default(false)
+  reviewerExpertise      String[]  @default([])
+  isActive               Boolean   @default(true)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   // relations
-  committeeMemberships CommitteeMember[]
-  projectsCreated      Project[]         @relation("ProjectsCreated")
-  submissionsCreated   Submission[]      @relation("SubmissionsCreated")
-  classificationsMade  Classification[]  @relation("ClassificationsClassified")
-  reviewsAssigned      Review[]          @relation("UserReviews")
-  statusChanges        SubmissionStatusHistory[] @relation("SubmissionStatusChanges")
-  panelMemberships     PanelMember[]
+  committeeMemberships  CommitteeMember[]
+  projectsCreated       Project[]                 @relation("ProjectsCreated")
+  submissionsCreated    Submission[]              @relation("SubmissionsCreated")
+  classificationsMade   Classification[]          @relation("ClassificationsClassified")
+  reviewsAssigned       Review[]                  @relation("UserReviews")
+  statusChanges         SubmissionStatusHistory[] @relation("SubmissionStatusChanges")
+  panelMemberships      PanelMember[]
+  assignedSubmissions   Submission[]              @relation("SubmissionStaff")
+  projectChanges        ProjectChangeLog[]        @relation("ProjectChangeLogChangedBy")
+  submissionChanges     SubmissionChangeLog[]     @relation("SubmissionChangeLogChangedBy")
+  letterDraftsGenerated LetterDraft[]             @relation("LetterDraftGeneratedBy")
+  letterDraftsApproved  LetterDraft[]             @relation("LetterDraftApprovedBy")
 }
 
 model Committee {
-  id          Int               @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
-  code        String            @unique      // e.g. "RERC-HUMAN"
+  code        String   @unique // e.g. "RERC-HUMAN"
   description String?
-  isActive    Boolean           @default(true)
-  createdAt   DateTime          @default(now())
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
 
-  panels      Panel[]
-  projects    Project[]
-  members     CommitteeMember[]
-  configSlas  ConfigSLA[]
+  panels          Panel[]
+  projects        Project[]
+  members         CommitteeMember[]
+  configSlas      ConfigSLA[]
+  contractPeriods ContractPeriod[]
 }
 
 model Panel {
-  id          Int        @id @default(autoincrement())
-  committee   Committee  @relation(fields: [committeeId], references: [id])
+  id          Int       @id @default(autoincrement())
+  committee   Committee @relation(fields: [committeeId], references: [id])
   committeeId Int
-  name        String                  // e.g. "Panel 1"
-  code        String?                 // optional short code
+  name        String // e.g. "Panel 1"
+  code        String? // optional short code
   isActive    Boolean   @default(true)
 
   // later: full-board assignments; for now we keep no relations here
@@ -180,91 +230,174 @@ model Panel {
 }
 
 model CommitteeMember {
-  id          Int        @id @default(autoincrement())
-  committee   Committee  @relation(fields: [committeeId], references: [id])
+  id          Int       @id @default(autoincrement())
+  committee   Committee @relation(fields: [committeeId], references: [id])
   committeeId Int
-  user        User       @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
   userId      Int
   role        RoleType
-  isPrimary   Boolean    @default(false)  // e.g. primary chair / primary RA
-  isActive    Boolean    @default(true)
-  createdAt   DateTime   @default(now())
+  isPrimary   Boolean   @default(false) // e.g. primary chair / primary RA
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
 
   @@unique([committeeId, userId, role])
 }
 
 model Project {
-  id                    Int            @id @default(autoincrement())
-  projectCode           String         @unique      // e.g. "2025-350"
-  title                 String
-  piName                String
-  piAffiliation         String?                     // College
-  department            String?                     // Department
-  proponent             String?                     // Proponent (if different from PI)
-  researchTypePHREB     ResearchTypePHREB?
-  researchTypePHREBOther String?                    // For "Other" specification
-  fundingType           FundingType
-  initialSubmissionDate DateTime?
-  committee             Committee      @relation(fields: [committeeId], references: [id])
-  committeeId           Int
-  overallStatus         ProjectStatus  @default(DRAFT)
-  approvalStartDate     DateTime?
-  approvalEndDate       DateTime?
-  isArchived            Boolean        @default(false)
-  createdAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
+  id                     Int                @id @default(autoincrement())
+  projectCode            String             @unique // e.g. "2025-350"
+  title                  String
+  piName                 String
+  piSurname              String?
+  piAffiliation          String? // College
+  department             String? // Department
+  proponent              String? // Proponent (if different from PI)
+  keywords               String[]           @default([])
+  researchTypePHREB      ResearchTypePHREB?
+  researchTypePHREBOther String? // For "Other" specification
+  fundingType            FundingType
+  initialSubmissionDate  DateTime?
+  proposedStartDate      DateTime?
+  proposedEndDate        DateTime?
+  committee              Committee          @relation(fields: [committeeId], references: [id])
+  committeeId            Int
+  overallStatus          ProjectStatus      @default(DRAFT)
+  approvalStartDate      DateTime?
+  approvalEndDate        DateTime?
+  isArchived             Boolean            @default(false)
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
 
   // relations
-  submissions           Submission[]
-  createdBy             User?          @relation("ProjectsCreated", fields: [createdById], references: [id])
-  createdById           Int?
+  submissions Submission[]
+  proponents  ProjectProponent[]
+  members     ProjectMember[]
+  changeLog   ProjectChangeLog[]
+  createdBy   User?              @relation("ProjectsCreated", fields: [createdById], references: [id])
+  createdById Int?
+}
+
+model Proponent {
+  id          Int      @id @default(autoincrement())
+  printedName String
+  signature   String?
+  email       String?
+  affiliation String?
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  projects ProjectProponent[]
+}
+
+model ProjectProponent {
+  id          Int       @id @default(autoincrement())
+  project     Project   @relation(fields: [projectId], references: [id])
+  projectId   Int
+  proponent   Proponent @relation(fields: [proponentId], references: [id])
+  proponentId Int
+  role        String?
+  createdAt   DateTime  @default(now())
+
+  @@unique([projectId, proponentId])
+}
+
+model ProjectMember {
+  id          Int               @id @default(autoincrement())
+  project     Project           @relation(fields: [projectId], references: [id])
+  projectId   Int
+  fullName    String
+  role        ProjectMemberRole
+  email       String?
+  affiliation String?
+  createdAt   DateTime          @default(now())
+}
+
+model ProjectChangeLog {
+  id                 Int         @id @default(autoincrement())
+  project            Project     @relation(fields: [projectId], references: [id])
+  projectId          Int
+  fieldName          String
+  oldValue           String?
+  newValue           String?
+  reason             String?
+  sourceSubmission   Submission? @relation(fields: [sourceSubmissionId], references: [id])
+  sourceSubmissionId Int?
+  changedBy          User?       @relation("ProjectChangeLogChangedBy", fields: [changedById], references: [id])
+  changedById        Int?
+  createdAt          DateTime    @default(now())
+
+  @@index([projectId])
 }
 
 model Submission {
-  id                  Int                @id @default(autoincrement())
-  project             Project            @relation(fields: [projectId], references: [id])
-  projectId           Int
-  submissionType      SubmissionType
-  sequenceNumber      Int                @default(1) // 1 = initial, higher for follow-ups
-  receivedDate        DateTime
-  documentLink        String?            // e.g. Google Drive folder URL
-  completenessStatus  CompletenessStatus @default(COMPLETE)
-  completenessRemarks String?
-  status              SubmissionStatus   @default(RECEIVED)
+  id                      Int                @id @default(autoincrement())
+  project                 Project?           @relation(fields: [projectId], references: [id])
+  projectId               Int?
+  submissionType          SubmissionType
+  sequenceNumber          Int                @default(1) // 1 = initial, higher for follow-ups
+  receivedDate            DateTime
+  documentLink            String? // e.g. Google Drive folder URL
+  completenessStatus      CompletenessStatus @default(COMPLETE)
+  completenessRemarks     String?
+  status                  SubmissionStatus   @default(RECEIVED)
   revisionDueDate         DateTime?
   continuingReviewDueDate DateTime?
   finalReportDueDate      DateTime?
-  finalDecision          ReviewDecision?
-  finalDecisionDate      DateTime?
-  remarks                String?                    // General remarks
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  finalDecision           ReviewDecision?
+  finalDecisionDate       DateTime?
+  remarks                 String? // General remarks
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
 
-  createdBy           User?              @relation("SubmissionsCreated", fields: [createdById], references: [id])
-  createdById         Int?
+  createdBy       User? @relation("SubmissionsCreated", fields: [createdById], references: [id])
+  createdById     Int?
+  staffInCharge   User? @relation("SubmissionStaff", fields: [staffInChargeId], references: [id])
+  staffInChargeId Int?
 
-  classification      Classification?
-  reviews             Review[]
-  workflowEvents      WorkflowEvent[]
-  statusHistory       SubmissionStatusHistory[]
+  classification    Classification?
+  reviews           Review[]
+  documents         SubmissionDocument[]
+  letterDrafts      LetterDraft[]
+  workflowEvents    WorkflowEvent[]
+  statusHistory     SubmissionStatusHistory[]
+  projectChangeLogs ProjectChangeLog[]
+  changeLogs        SubmissionChangeLog[]
 
   @@index([projectId, submissionType])
 }
 
-model Classification {
-  id                 Int        @id @default(autoincrement())
-  submission         Submission @relation(fields: [submissionId], references: [id])
-  submissionId       Int        @unique
-  reviewType         ReviewType
-  classificationDate DateTime
-  panel              Panel?     @relation("PanelClassifications", fields: [panelId], references: [id])
-  panelId            Int?
-  rationale          String?    // notes / reason for classification
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+model SubmissionChangeLog {
+  id           Int        @id @default(autoincrement())
+  submission   Submission @relation(fields: [submissionId], references: [id])
+  submissionId Int
+  fieldName    String
+  oldValue     String?
+  newValue     String?
+  reason       String?
+  changedBy    User?      @relation("SubmissionChangeLogChangedBy", fields: [changedById], references: [id])
+  changedById  Int?
+  createdAt    DateTime   @default(now())
 
-  classifiedBy       User?      @relation("ClassificationsClassified", fields: [classifiedById], references: [id])
-  classifiedById     Int?
+  @@index([submissionId])
+}
+
+model Classification {
+  id                   Int        @id @default(autoincrement())
+  submission           Submission @relation(fields: [submissionId], references: [id])
+  submissionId         Int        @unique
+  reviewType           ReviewType
+  classificationDate   DateTime
+  panel                Panel?     @relation("PanelClassifications", fields: [panelId], references: [id])
+  panelId              Int?
+  rationale            String? // notes / reason for classification
+  missingDocuments     String[]   @default([])
+  clarificationsNeeded String[]   @default([])
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  classifiedBy   User? @relation("ClassificationsClassified", fields: [classifiedById], references: [id])
+  classifiedById Int?
 }
 
 model SubmissionStatusHistory {
@@ -281,27 +414,86 @@ model SubmissionStatusHistory {
 }
 
 model Review {
-  id           Int             @id @default(autoincrement())
-  submission   Submission      @relation(fields: [submissionId], references: [id])
+  id           Int        @id @default(autoincrement())
+  submission   Submission @relation(fields: [submissionId], references: [id])
   submissionId Int
-  reviewer     User            @relation("UserReviews", fields: [reviewerId], references: [id])
+  reviewer     User       @relation("UserReviews", fields: [reviewerId], references: [id])
   reviewerId   Int
 
   isPrimary        Boolean           @default(false)
-  reviewerRole     ReviewerRoleType?              // Scientist, Lay, Independent Consultant
+  reviewerRole     ReviewerRoleType? // Scientist, Lay, Independent Consultant
   honorariumStatus HonorariumStatus  @default(NOT_APPLICABLE)
 
-  assignedAt   DateTime        @default(now())
-  respondedAt  DateTime?
+  assignedAt            DateTime           @default(now())
+  receivedAt            DateTime?
+  dueDate               DateTime?
+  respondedAt           DateTime?
+  endorsementStatus     EndorsementStatus?
+  endorsementReceivedAt DateTime?
 
-  decision     ReviewDecision?
-  remarks      String?
+  decision ReviewDecision?
+  remarks  String?
 
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([submissionId, reviewerId])
   @@index([submissionId])
+}
+
+model SubmissionDocument {
+  id           Int                      @id @default(autoincrement())
+  submission   Submission               @relation(fields: [submissionId], references: [id])
+  submissionId Int
+  type         SubmissionDocumentType
+  title        String
+  status       SubmissionDocumentStatus @default(PENDING)
+  documentUrl  String?
+  notes        String?
+  receivedAt   DateTime?
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  @@index([submissionId, type])
+}
+
+model Holiday {
+  id        Int      @id @default(autoincrement())
+  date      DateTime @unique
+  name      String
+  createdAt DateTime @default(now())
+}
+
+model LetterDraft {
+  id            Int               @id @default(autoincrement())
+  submission    Submission        @relation(fields: [submissionId], references: [id])
+  submissionId  Int
+  templateCode  String
+  status        LetterDraftStatus @default(DRAFT)
+  content       Json?
+  fileUrl       String?
+  notes         String?
+  generatedBy   User?             @relation("LetterDraftGeneratedBy", fields: [generatedById], references: [id])
+  generatedById Int?
+  approvedBy    User?             @relation("LetterDraftApprovedBy", fields: [approvedById], references: [id])
+  approvedById  Int?
+  approvedAt    DateTime?
+  sentAt        DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([submissionId, status])
+}
+
+model ContractPeriod {
+  id          Int        @id @default(autoincrement())
+  committee   Committee? @relation(fields: [committeeId], references: [id])
+  committeeId Int?
+  name        String
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
 }
 
 model PanelMember {
@@ -312,38 +504,38 @@ model PanelMember {
   isActive  Boolean         @default(true)
   createdAt DateTime        @default(now())
 
-  panel     Panel           @relation(fields: [panelId], references: [id])
-  user      User            @relation(fields: [userId], references: [id])
+  panel Panel @relation(fields: [panelId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
 
   @@unique([panelId, userId])
 }
 
 model ConfigSLA {
-  id            Int        @id @default(autoincrement())
-  committee     Committee  @relation(fields: [committeeId], references: [id])
-  committeeId   Int
-  reviewType    ReviewType?
-  stage         SLAStage
-  workingDays   Int
-  description   String?
-  isActive      Boolean    @default(true)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id          Int         @id @default(autoincrement())
+  committee   Committee   @relation(fields: [committeeId], references: [id])
+  committeeId Int
+  reviewType  ReviewType?
+  stage       SLAStage
+  workingDays Int
+  description String?
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 // Tracks granular workflow events/stages for each submission
 // Maps to CSV columns like "Provision of Documents", "Assessment Forms Completed", etc.
 model WorkflowEvent {
-  id              Int               @id @default(autoincrement())
-  submission      Submission        @relation(fields: [submissionId], references: [id])
-  submissionId    Int
-  eventType       WorkflowEventType
-  cycleNumber     Int               @default(1)  // 1 = initial, 2 = 1st resubmission, 3 = 2nd resubmission, etc.
-  eventDate       DateTime
-  daysFromPrevious Int?                          // # days from previous event
-  remarks         String?
-  createdAt       DateTime          @default(now())
+  id               Int               @id @default(autoincrement())
+  submission       Submission        @relation(fields: [submissionId], references: [id])
+  submissionId     Int
+  eventType        WorkflowEventType
+  cycleNumber      Int               @default(1) // 1 = initial, 2 = 1st resubmission, 3 = 2nd resubmission, etc.
+  eventDate        DateTime
+  daysFromPrevious Int? // # days from previous event
+  remarks          String?
+  createdAt        DateTime          @default(now())
 
-  @@index([submissionId, eventType])
   @@unique([submissionId, eventType, cycleNumber])
+  @@index([submissionId, eventType])
 }

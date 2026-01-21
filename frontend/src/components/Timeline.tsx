@@ -1,5 +1,5 @@
 import React from "react";
-import { StatusHistoryEntry } from "@/services/api";
+import type { StatusHistoryEntry } from "@/types";
 
 interface TimelineProps {
   entries: StatusHistoryEntry[];

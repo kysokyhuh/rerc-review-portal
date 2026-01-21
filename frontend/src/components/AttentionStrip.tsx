@@ -1,5 +1,5 @@
 import React from "react";
-import { AttentionMetrics } from "@/services/api";
+import type { AttentionMetrics } from "@/types";
 
 interface AttentionStripProps {
   metrics: AttentionMetrics;

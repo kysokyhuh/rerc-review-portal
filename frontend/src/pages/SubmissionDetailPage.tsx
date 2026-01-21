@@ -1,26 +1,42 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   exportInitialAckCSV,
   exportInitialApprovalDocx,
+  fetchCommittees,
+  updateSubmissionOverview,
 } from "@/services/api";
 import { useSubmissionDetail } from "@/hooks/useSubmissionDetail";
 import { formatDateDisplay } from "@/utils/dateUtils";
 import { Timeline } from "@/components/Timeline";
-import "../styles/globals.css";
+import type { CommitteeSummary, SubmissionDetail } from "@/types";
 
 export const SubmissionDetailPage: React.FC = () => {
   const { submissionId } = useParams<{ submissionId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const [exporting, setExporting] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [committees, setCommittees] = useState<CommitteeSummary[]>([]);
+  const [formState, setFormState] = useState({
+    piName: "",
+    committeeId: "",
+    submissionType: "",
+    receivedDate: "",
+    status: "",
+    finalDecision: "",
+    finalDecisionDate: "",
+    changeReason: "",
+  });
 
   if (!submissionId) {
     return <div>Submission ID is required</div>;
   }
 
   const numericId = Number(submissionId);
-  const { submission, slaSummary, loading, error } =
+  const { submission, slaSummary, loading, error, setSubmission } =
     useSubmissionDetail(numericId);
 
   const backTarget = `/dashboard${location.search ?? ""}`;
@@ -63,6 +79,177 @@ export const SubmissionDetailPage: React.FC = () => {
     }
   };
 
+  const submissionTypeOptions = [
+    "INITIAL",
+    "AMENDMENT",
+    "CONTINUING_REVIEW",
+    "FINAL_REPORT",
+    "WITHDRAWAL",
+    "SAFETY_REPORT",
+    "PROTOCOL_DEVIATION",
+  ];
+  const statusOptions = [
+    "RECEIVED",
+    "UNDER_COMPLETENESS_CHECK",
+    "AWAITING_CLASSIFICATION",
+    "UNDER_CLASSIFICATION",
+    "CLASSIFIED",
+    "UNDER_REVIEW",
+    "AWAITING_REVISIONS",
+    "REVISION_SUBMITTED",
+    "CLOSED",
+    "WITHDRAWN",
+  ];
+  const finalDecisionOptions = [
+    "APPROVED",
+    "MINOR_REVISIONS",
+    "MAJOR_REVISIONS",
+    "DISAPPROVED",
+    "INFO_ONLY",
+  ];
+
+  const toInputDate = (value?: string | null) =>
+    value ? new Date(value).toISOString().slice(0, 10) : "";
+
+  const resetFormState = (source: SubmissionDetail) => {
+    setFormState({
+      piName: source.project?.piName ?? "",
+      committeeId: source.project?.committee?.id
+        ? String(source.project.committee.id)
+        : "",
+      submissionType: source.submissionType ?? "",
+      receivedDate: toInputDate(source.receivedDate),
+      status: source.status ?? "",
+      finalDecision: source.finalDecision ?? "",
+      finalDecisionDate: toInputDate(source.finalDecisionDate),
+      changeReason: "",
+    });
+  };
+
+  useEffect(() => {
+    let active = true;
+    fetchCommittees()
+      .then((data) => {
+        if (active) setCommittees(data);
+      })
+      .catch(() => {
+        if (active) setCommittees([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!submission) return;
+    resetFormState(submission);
+  }, [submission]);
+
+  const changeHistory = useMemo(() => {
+    if (!submission) return [];
+    const combined = [
+      ...(submission.changeLogs ?? []).map((entry) => ({
+        ...entry,
+        source: "Submission",
+      })),
+      ...(submission.projectChangeLogs ?? []).map((entry) => ({
+        ...entry,
+        source: "Project",
+      })),
+    ];
+    return combined.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [submission]);
+
+  const formatFieldName = (fieldName: string) => {
+    switch (fieldName) {
+      case "piName":
+        return "PI name";
+      case "committeeId":
+        return "Committee";
+      case "submissionType":
+        return "Submission type";
+      case "receivedDate":
+        return "Received date";
+      case "finalDecision":
+        return "Final decision";
+      case "finalDecisionDate":
+        return "Decision date";
+      default:
+        return fieldName.replace(/([A-Z])/g, " $1").toLowerCase();
+    }
+  };
+
+  const formatChangeValue = (fieldName: string, value: string | null) => {
+    if (!value) return "—";
+    if (fieldName === "committeeId") {
+      const match = committees.find((c) => String(c.id) === value);
+      return match ? `${match.code} – ${match.name}` : value;
+    }
+    if (fieldName.toLowerCase().includes("date")) {
+      return formatDateDisplay(value);
+    }
+    return value;
+  };
+
+  const formatHistoryDate = (value: string) => {
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "—";
+    return parsed.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  const handleEditStart = () => {
+    setSaveError(null);
+    setIsEditing(true);
+  };
+
+  const handleEditCancel = () => {
+    if (submission) resetFormState(submission);
+    setSaveError(null);
+    setIsEditing(false);
+  };
+
+  const handleSave = async () => {
+    if (!submission) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const payload = {
+        submissionType: formState.submissionType || undefined,
+        receivedDate: formState.receivedDate
+          ? new Date(formState.receivedDate).toISOString()
+          : undefined,
+        status: formState.status || undefined,
+        finalDecision: formState.finalDecision || null,
+        finalDecisionDate: formState.finalDecisionDate
+          ? new Date(formState.finalDecisionDate).toISOString()
+          : null,
+        piName: formState.piName.trim() || undefined,
+        committeeId: formState.committeeId
+          ? Number(formState.committeeId)
+          : undefined,
+        changeReason: formState.changeReason.trim() || undefined,
+      };
+
+      const updated = await updateSubmissionOverview(numericId, payload);
+      setSubmission(updated);
+      setIsEditing(false);
+    } catch (err) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to update submission"
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (error) {
     return (
       <div className="error-state">
@@ -102,39 +289,208 @@ export const SubmissionDetailPage: React.FC = () => {
 
       <section className="card" style={{ marginBottom: 14 }}>
         <div className="section-title">
-          <h2>Submission overview</h2>
-          <span className="badge badge-positive">
-            {submission.status}
-          </span>
+          <div>
+            <h2>Submission overview</h2>
+            {saveError && <p className="error-text">{saveError}</p>}
+          </div>
+          <div className="section-actions">
+            <span className="badge badge-positive">{submission.status}</span>
+            {isEditing ? (
+              <>
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : "Save"}
+                </button>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={handleEditCancel}
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={handleEditStart}
+              >
+                Edit overview
+              </button>
+            )}
+          </div>
         </div>
         <div className="header-grid">
           <div className="field">
             <label>PI</label>
-            <p>{submission.project?.piName ?? "—"}</p>
+            {isEditing ? (
+              <input
+                className="field-input"
+                value={formState.piName}
+                onChange={(event) =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    piName: event.target.value,
+                  }))
+                }
+                placeholder="Principal investigator name"
+              />
+            ) : (
+              <p>{submission.project?.piName ?? "—"}</p>
+            )}
           </div>
           <div className="field">
             <label>Committee</label>
-            <p>{submission.project?.committee?.name ?? "—"}</p>
+            {isEditing ? (
+              <select
+                className="field-input"
+                value={formState.committeeId}
+                onChange={(event) =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    committeeId: event.target.value,
+                  }))
+                }
+              >
+                <option value="">Select committee</option>
+                {committees.map((committee) => (
+                  <option key={committee.id} value={committee.id}>
+                    {committee.code} – {committee.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p>{submission.project?.committee?.name ?? "—"}</p>
+            )}
           </div>
           <div className="field">
             <label>Submission type</label>
-            <p>{submission.submissionType}</p>
+            {isEditing ? (
+              <select
+                className="field-input"
+                value={formState.submissionType}
+                onChange={(event) =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    submissionType: event.target.value,
+                  }))
+                }
+              >
+                {submissionTypeOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p>{submission.submissionType}</p>
+            )}
           </div>
           <div className="field">
             <label>Received</label>
-            <p>{formatDateDisplay(submission.receivedDate)}</p>
+            {isEditing ? (
+              <input
+                className="field-input"
+                type="date"
+                value={formState.receivedDate}
+                onChange={(event) =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    receivedDate: event.target.value,
+                  }))
+                }
+              />
+            ) : (
+              <p>{formatDateDisplay(submission.receivedDate)}</p>
+            )}
           </div>
-          {submission.finalDecision && (
+          <div className="field">
+            <label>Status</label>
+            {isEditing ? (
+              <select
+                className="field-input"
+                value={formState.status}
+                onChange={(event) =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    status: event.target.value,
+                  }))
+                }
+              >
+                {statusOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p>{submission.status}</p>
+            )}
+          </div>
+          {(isEditing || submission.finalDecision) && (
             <>
               <div className="field">
                 <label>Final decision</label>
-                <p>{submission.finalDecision}</p>
+                {isEditing ? (
+                  <select
+                    className="field-input"
+                    value={formState.finalDecision}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        finalDecision: event.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">—</option>
+                    {finalDecisionOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p>{submission.finalDecision ?? "—"}</p>
+                )}
               </div>
               <div className="field">
                 <label>Decision date</label>
-                <p>{formatDateDisplay(submission.finalDecisionDate)}</p>
+                {isEditing ? (
+                  <input
+                    className="field-input"
+                    type="date"
+                    value={formState.finalDecisionDate}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        finalDecisionDate: event.target.value,
+                      }))
+                    }
+                  />
+                ) : (
+                  <p>{formatDateDisplay(submission.finalDecisionDate)}</p>
+                )}
               </div>
             </>
+          )}
+          {isEditing && (
+            <div className="field field-wide">
+              <label>Reason for change (optional)</label>
+              <textarea
+                className="field-input"
+                rows={3}
+                value={formState.changeReason}
+                onChange={(event) =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    changeReason: event.target.value,
+                  }))
+                }
+                placeholder="Add context for the update..."
+              />
+            </div>
           )}
         </div>
       </section>
@@ -203,6 +559,41 @@ export const SubmissionDetailPage: React.FC = () => {
           <Timeline entries={submission.statusHistory} />
         </section>
       )}
+
+      <section className="card" style={{ marginTop: 14 }}>
+        <div className="section-title">
+          <h2>Edit history</h2>
+        </div>
+        {changeHistory.length === 0 ? (
+          <p className="attention-muted">No edits logged yet.</p>
+        ) : (
+          <div className="history-list">
+            {changeHistory.map((entry) => (
+              <div key={`${entry.source}-${entry.id}`} className="history-item">
+                <div className="history-meta">
+                  {entry.source} • {formatHistoryDate(entry.createdAt)}
+                  {entry.changedBy
+                    ? ` • ${entry.changedBy.fullName} (${entry.changedBy.email})`
+                    : ""}
+                </div>
+                <div className="history-change">
+                  {formatFieldName(entry.fieldName)}:{" "}
+                  <span className="history-old">
+                    {formatChangeValue(entry.fieldName, entry.oldValue)}
+                  </span>{" "}
+                  →{" "}
+                  <span className="history-new">
+                    {formatChangeValue(entry.fieldName, entry.newValue)}
+                  </span>
+                </div>
+                {entry.reason && (
+                  <div className="history-reason">{entry.reason}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 };

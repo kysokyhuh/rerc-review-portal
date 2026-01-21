@@ -71,6 +71,8 @@ export type ClassificationCountAggregateOutputType = {
   classificationDate: number
   panelId: number
   rationale: number
+  missingDocuments: number
+  clarificationsNeeded: number
   createdAt: number
   updatedAt: number
   classifiedById: number
@@ -123,6 +125,8 @@ export type ClassificationCountAggregateInputType = {
   classificationDate?: true
   panelId?: true
   rationale?: true
+  missingDocuments?: true
+  clarificationsNeeded?: true
   createdAt?: true
   updatedAt?: true
   classifiedById?: true
@@ -222,6 +226,8 @@ export type ClassificationGroupByOutputType = {
   classificationDate: Date
   panelId: number | null
   rationale: string | null
+  missingDocuments: string[]
+  clarificationsNeeded: string[]
   createdAt: Date
   updatedAt: Date
   classifiedById: number | null
@@ -257,6 +263,8 @@ export type ClassificationWhereInput = {
   classificationDate?: Prisma.DateTimeFilter<"Classification"> | Date | string
   panelId?: Prisma.IntNullableFilter<"Classification"> | number | null
   rationale?: Prisma.StringNullableFilter<"Classification"> | string | null
+  missingDocuments?: Prisma.StringNullableListFilter<"Classification">
+  clarificationsNeeded?: Prisma.StringNullableListFilter<"Classification">
   createdAt?: Prisma.DateTimeFilter<"Classification"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Classification"> | Date | string
   classifiedById?: Prisma.IntNullableFilter<"Classification"> | number | null
@@ -272,6 +280,8 @@ export type ClassificationOrderByWithRelationInput = {
   classificationDate?: Prisma.SortOrder
   panelId?: Prisma.SortOrderInput | Prisma.SortOrder
   rationale?: Prisma.SortOrderInput | Prisma.SortOrder
+  missingDocuments?: Prisma.SortOrder
+  clarificationsNeeded?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   classifiedById?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -290,6 +300,8 @@ export type ClassificationWhereUniqueInput = Prisma.AtLeast<{
   classificationDate?: Prisma.DateTimeFilter<"Classification"> | Date | string
   panelId?: Prisma.IntNullableFilter<"Classification"> | number | null
   rationale?: Prisma.StringNullableFilter<"Classification"> | string | null
+  missingDocuments?: Prisma.StringNullableListFilter<"Classification">
+  clarificationsNeeded?: Prisma.StringNullableListFilter<"Classification">
   createdAt?: Prisma.DateTimeFilter<"Classification"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Classification"> | Date | string
   classifiedById?: Prisma.IntNullableFilter<"Classification"> | number | null
@@ -305,6 +317,8 @@ export type ClassificationOrderByWithAggregationInput = {
   classificationDate?: Prisma.SortOrder
   panelId?: Prisma.SortOrderInput | Prisma.SortOrder
   rationale?: Prisma.SortOrderInput | Prisma.SortOrder
+  missingDocuments?: Prisma.SortOrder
+  clarificationsNeeded?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   classifiedById?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -325,6 +339,8 @@ export type ClassificationScalarWhereWithAggregatesInput = {
   classificationDate?: Prisma.DateTimeWithAggregatesFilter<"Classification"> | Date | string
   panelId?: Prisma.IntNullableWithAggregatesFilter<"Classification"> | number | null
   rationale?: Prisma.StringNullableWithAggregatesFilter<"Classification"> | string | null
+  missingDocuments?: Prisma.StringNullableListFilter<"Classification">
+  clarificationsNeeded?: Prisma.StringNullableListFilter<"Classification">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Classification"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Classification"> | Date | string
   classifiedById?: Prisma.IntNullableWithAggregatesFilter<"Classification"> | number | null
@@ -334,6 +350,8 @@ export type ClassificationCreateInput = {
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
   rationale?: string | null
+  missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   submission: Prisma.SubmissionCreateNestedOneWithoutClassificationInput
@@ -348,6 +366,8 @@ export type ClassificationUncheckedCreateInput = {
   classificationDate: Date | string
   panelId?: number | null
   rationale?: string | null
+  missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   classifiedById?: number | null
@@ -357,6 +377,8 @@ export type ClassificationUpdateInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submission?: Prisma.SubmissionUpdateOneRequiredWithoutClassificationNestedInput
@@ -371,6 +393,8 @@ export type ClassificationUncheckedUpdateInput = {
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   panelId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classifiedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -383,6 +407,8 @@ export type ClassificationCreateManyInput = {
   classificationDate: Date | string
   panelId?: number | null
   rationale?: string | null
+  missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   classifiedById?: number | null
@@ -392,6 +418,8 @@ export type ClassificationUpdateManyMutationInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -403,6 +431,8 @@ export type ClassificationUncheckedUpdateManyInput = {
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   panelId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classifiedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -430,6 +460,8 @@ export type ClassificationCountOrderByAggregateInput = {
   classificationDate?: Prisma.SortOrder
   panelId?: Prisma.SortOrder
   rationale?: Prisma.SortOrder
+  missingDocuments?: Prisma.SortOrder
+  clarificationsNeeded?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   classifiedById?: Prisma.SortOrder
@@ -589,14 +621,34 @@ export type ClassificationUncheckedUpdateOneWithoutSubmissionNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClassificationUpdateToOneWithWhereWithoutSubmissionInput, Prisma.ClassificationUpdateWithoutSubmissionInput>, Prisma.ClassificationUncheckedUpdateWithoutSubmissionInput>
 }
 
+export type ClassificationCreatemissingDocumentsInput = {
+  set: string[]
+}
+
+export type ClassificationCreateclarificationsNeededInput = {
+  set: string[]
+}
+
 export type EnumReviewTypeFieldUpdateOperationsInput = {
   set?: $Enums.ReviewType
+}
+
+export type ClassificationUpdatemissingDocumentsInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
+export type ClassificationUpdateclarificationsNeededInput = {
+  set?: string[]
+  push?: string | string[]
 }
 
 export type ClassificationCreateWithoutClassifiedByInput = {
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
   rationale?: string | null
+  missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   submission: Prisma.SubmissionCreateNestedOneWithoutClassificationInput
@@ -610,6 +662,8 @@ export type ClassificationUncheckedCreateWithoutClassifiedByInput = {
   classificationDate: Date | string
   panelId?: number | null
   rationale?: string | null
+  missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -650,6 +704,8 @@ export type ClassificationScalarWhereInput = {
   classificationDate?: Prisma.DateTimeFilter<"Classification"> | Date | string
   panelId?: Prisma.IntNullableFilter<"Classification"> | number | null
   rationale?: Prisma.StringNullableFilter<"Classification"> | string | null
+  missingDocuments?: Prisma.StringNullableListFilter<"Classification">
+  clarificationsNeeded?: Prisma.StringNullableListFilter<"Classification">
   createdAt?: Prisma.DateTimeFilter<"Classification"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Classification"> | Date | string
   classifiedById?: Prisma.IntNullableFilter<"Classification"> | number | null
@@ -659,6 +715,8 @@ export type ClassificationCreateWithoutPanelInput = {
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
   rationale?: string | null
+  missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   submission: Prisma.SubmissionCreateNestedOneWithoutClassificationInput
@@ -671,6 +729,8 @@ export type ClassificationUncheckedCreateWithoutPanelInput = {
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
   rationale?: string | null
+  missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   classifiedById?: number | null
@@ -706,6 +766,8 @@ export type ClassificationCreateWithoutSubmissionInput = {
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
   rationale?: string | null
+  missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   panel?: Prisma.PanelCreateNestedOneWithoutClassificationsInput
@@ -718,6 +780,8 @@ export type ClassificationUncheckedCreateWithoutSubmissionInput = {
   classificationDate: Date | string
   panelId?: number | null
   rationale?: string | null
+  missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   classifiedById?: number | null
@@ -743,6 +807,8 @@ export type ClassificationUpdateWithoutSubmissionInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   panel?: Prisma.PanelUpdateOneWithoutClassificationsNestedInput
@@ -755,6 +821,8 @@ export type ClassificationUncheckedUpdateWithoutSubmissionInput = {
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   panelId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classifiedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -767,6 +835,8 @@ export type ClassificationCreateManyClassifiedByInput = {
   classificationDate: Date | string
   panelId?: number | null
   rationale?: string | null
+  missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -775,6 +845,8 @@ export type ClassificationUpdateWithoutClassifiedByInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submission?: Prisma.SubmissionUpdateOneRequiredWithoutClassificationNestedInput
@@ -788,6 +860,8 @@ export type ClassificationUncheckedUpdateWithoutClassifiedByInput = {
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   panelId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -799,6 +873,8 @@ export type ClassificationUncheckedUpdateManyWithoutClassifiedByInput = {
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   panelId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -809,6 +885,8 @@ export type ClassificationCreateManyPanelInput = {
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
   rationale?: string | null
+  missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   classifiedById?: number | null
@@ -818,6 +896,8 @@ export type ClassificationUpdateWithoutPanelInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submission?: Prisma.SubmissionUpdateOneRequiredWithoutClassificationNestedInput
@@ -830,6 +910,8 @@ export type ClassificationUncheckedUpdateWithoutPanelInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classifiedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -841,6 +923,8 @@ export type ClassificationUncheckedUpdateManyWithoutPanelInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
+  clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classifiedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -855,6 +939,8 @@ export type ClassificationSelect<ExtArgs extends runtime.Types.Extensions.Intern
   classificationDate?: boolean
   panelId?: boolean
   rationale?: boolean
+  missingDocuments?: boolean
+  clarificationsNeeded?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   classifiedById?: boolean
@@ -870,6 +956,8 @@ export type ClassificationSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   classificationDate?: boolean
   panelId?: boolean
   rationale?: boolean
+  missingDocuments?: boolean
+  clarificationsNeeded?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   classifiedById?: boolean
@@ -885,6 +973,8 @@ export type ClassificationSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   classificationDate?: boolean
   panelId?: boolean
   rationale?: boolean
+  missingDocuments?: boolean
+  clarificationsNeeded?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   classifiedById?: boolean
@@ -900,12 +990,14 @@ export type ClassificationSelectScalar = {
   classificationDate?: boolean
   panelId?: boolean
   rationale?: boolean
+  missingDocuments?: boolean
+  clarificationsNeeded?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   classifiedById?: boolean
 }
 
-export type ClassificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "submissionId" | "reviewType" | "classificationDate" | "panelId" | "rationale" | "createdAt" | "updatedAt" | "classifiedById", ExtArgs["result"]["classification"]>
+export type ClassificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "submissionId" | "reviewType" | "classificationDate" | "panelId" | "rationale" | "missingDocuments" | "clarificationsNeeded" | "createdAt" | "updatedAt" | "classifiedById", ExtArgs["result"]["classification"]>
 export type ClassificationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   submission?: boolean | Prisma.SubmissionDefaultArgs<ExtArgs>
   panel?: boolean | Prisma.Classification$panelArgs<ExtArgs>
@@ -936,6 +1028,8 @@ export type $ClassificationPayload<ExtArgs extends runtime.Types.Extensions.Inte
     classificationDate: Date
     panelId: number | null
     rationale: string | null
+    missingDocuments: string[]
+    clarificationsNeeded: string[]
     createdAt: Date
     updatedAt: Date
     classifiedById: number | null
@@ -1371,6 +1465,8 @@ export interface ClassificationFieldRefs {
   readonly classificationDate: Prisma.FieldRef<"Classification", 'DateTime'>
   readonly panelId: Prisma.FieldRef<"Classification", 'Int'>
   readonly rationale: Prisma.FieldRef<"Classification", 'String'>
+  readonly missingDocuments: Prisma.FieldRef<"Classification", 'String[]'>
+  readonly clarificationsNeeded: Prisma.FieldRef<"Classification", 'String[]'>
   readonly createdAt: Prisma.FieldRef<"Classification", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Classification", 'DateTime'>
   readonly classifiedById: Prisma.FieldRef<"Classification", 'Int'>
