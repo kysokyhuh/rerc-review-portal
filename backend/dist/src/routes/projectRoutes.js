@@ -263,22 +263,25 @@ router.post("/projects/:projectId/submissions", async (req, res) => {
             });
         }
         const receivedAt = new Date(receivedDate);
-        // Compute next sequenceNumber for this project
-        const existingCount = await prismaClient_1.default.submission.count({
-            where: { projectId },
-        });
-        const sequenceNumber = existingCount + 1;
-        const submission = await prismaClient_1.default.submission.create({
-            data: {
-                projectId,
-                submissionType,
-                sequenceNumber,
-                receivedDate: receivedAt,
-                documentLink,
-                completenessStatus: completenessStatus || "COMPLETE",
-                completenessRemarks,
-                createdById: 1, // RA for now - later: logged-in user
-            },
+        const submission = await prismaClient_1.default.$transaction(async (tx) => {
+            const lastSubmission = await tx.submission.findFirst({
+                where: { projectId },
+                orderBy: { sequenceNumber: "desc" },
+                select: { sequenceNumber: true },
+            });
+            const sequenceNumber = (lastSubmission?.sequenceNumber ?? 0) + 1;
+            return tx.submission.create({
+                data: {
+                    projectId,
+                    submissionType,
+                    sequenceNumber,
+                    receivedDate: receivedAt,
+                    documentLink,
+                    completenessStatus: completenessStatus || "COMPLETE",
+                    completenessRemarks,
+                    createdById: 1, // RA for now - later: logged-in user
+                },
+            });
         });
         res.status(201).json(submission);
     }

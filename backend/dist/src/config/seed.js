@@ -292,6 +292,18 @@ async function main() {
     // --- Dashboard mock data (idempotent) ---
     const daysAgo = (days) => new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     const daysFromNow = (days) => new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    const workingDaysAgo = (days) => {
+        const date = new Date();
+        let remaining = days;
+        while (remaining > 0) {
+            date.setDate(date.getDate() - 1);
+            const day = date.getDay();
+            if (day !== 0 && day !== 6) {
+                remaining -= 1;
+            }
+        }
+        return date;
+    };
     const staffUser = await prismaClient_1.default.user.upsert({
         where: { email: "staff@rerc.demo" },
         update: { fullName: "Dashboard Staff", isCommonReviewer: false },
@@ -380,6 +392,41 @@ async function main() {
             reviewType: client_1.ReviewType.FULL_BOARD,
         },
     ];
+    const dueSoonProjects = [
+        {
+            projectCode: "DASH-2001",
+            title: "Due Soon Classification",
+            piName: "Ivy Mendoza",
+            piSurname: "Mendoza",
+            piAffiliation: "DLSU Manila",
+            keywords: ["classification"],
+            receivedDate: workingDaysAgo(3),
+            status: client_1.SubmissionStatus.RECEIVED,
+            reviewType: null,
+        },
+        {
+            projectCode: "DASH-2002",
+            title: "Due Soon Review",
+            piName: "Rafael Lim",
+            piSurname: "Lim",
+            piAffiliation: "DLSU Manila",
+            keywords: ["review"],
+            receivedDate: workingDaysAgo(9),
+            status: client_1.SubmissionStatus.UNDER_REVIEW,
+            reviewType: client_1.ReviewType.EXPEDITED,
+        },
+        {
+            projectCode: "DASH-2003",
+            title: "Due Soon Revision",
+            piName: "Chloe Tan",
+            piSurname: "Tan",
+            piAffiliation: "DLSU Laguna",
+            keywords: ["revision"],
+            receivedDate: workingDaysAgo(5),
+            status: client_1.SubmissionStatus.AWAITING_REVISIONS,
+            reviewType: client_1.ReviewType.FULL_BOARD,
+        },
+    ];
     const ensureStatusHistory = async (submissionId, entries) => {
         for (const entry of entries) {
             const exists = await prismaClient_1.default.submissionStatusHistory.findFirst({
@@ -402,7 +449,7 @@ async function main() {
             }
         }
     };
-    for (const spec of demoProjects) {
+    for (const spec of [...demoProjects, ...dueSoonProjects]) {
         const project = await prismaClient_1.default.project.upsert({
             where: { projectCode: spec.projectCode },
             update: {

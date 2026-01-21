@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defineExtension = exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.WorkflowEventScalarFieldEnum = exports.ConfigSLAScalarFieldEnum = exports.PanelMemberScalarFieldEnum = exports.ContractPeriodScalarFieldEnum = exports.LetterDraftScalarFieldEnum = exports.HolidayScalarFieldEnum = exports.SubmissionDocumentScalarFieldEnum = exports.ReviewScalarFieldEnum = exports.SubmissionStatusHistoryScalarFieldEnum = exports.ClassificationScalarFieldEnum = exports.SubmissionScalarFieldEnum = exports.ProjectChangeLogScalarFieldEnum = exports.ProjectMemberScalarFieldEnum = exports.ProjectProponentScalarFieldEnum = exports.ProponentScalarFieldEnum = exports.ProjectScalarFieldEnum = exports.CommitteeMemberScalarFieldEnum = exports.PanelScalarFieldEnum = exports.CommitteeScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.defineExtension = exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.WorkflowEventScalarFieldEnum = exports.ConfigSLAScalarFieldEnum = exports.PanelMemberScalarFieldEnum = exports.ContractPeriodScalarFieldEnum = exports.LetterDraftScalarFieldEnum = exports.HolidayScalarFieldEnum = exports.SubmissionDocumentScalarFieldEnum = exports.ReviewScalarFieldEnum = exports.SubmissionStatusHistoryScalarFieldEnum = exports.ClassificationScalarFieldEnum = exports.SubmissionChangeLogScalarFieldEnum = exports.SubmissionScalarFieldEnum = exports.ProjectChangeLogScalarFieldEnum = exports.ProjectMemberScalarFieldEnum = exports.ProjectProponentScalarFieldEnum = exports.ProponentScalarFieldEnum = exports.ProjectScalarFieldEnum = exports.CommitteeMemberScalarFieldEnum = exports.PanelScalarFieldEnum = exports.CommitteeScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 /**
  * Prisma Errors
@@ -113,6 +113,7 @@ exports.ModelName = {
     ProjectMember: 'ProjectMember',
     ProjectChangeLog: 'ProjectChangeLog',
     Submission: 'Submission',
+    SubmissionChangeLog: 'SubmissionChangeLog',
     Classification: 'Classification',
     SubmissionStatusHistory: 'SubmissionStatusHistory',
     Review: 'Review',
@@ -254,6 +255,16 @@ exports.SubmissionScalarFieldEnum = {
     updatedAt: 'updatedAt',
     createdById: 'createdById',
     staffInChargeId: 'staffInChargeId'
+};
+exports.SubmissionChangeLogScalarFieldEnum = {
+    id: 'id',
+    submissionId: 'submissionId',
+    fieldName: 'fieldName',
+    oldValue: 'oldValue',
+    newValue: 'newValue',
+    reason: 'reason',
+    changedById: 'changedById',
+    createdAt: 'createdAt'
 };
 exports.ClassificationScalarFieldEnum = {
     id: 'id',

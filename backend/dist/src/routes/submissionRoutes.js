@@ -74,7 +74,11 @@ router.get("/submissions/:id", async (req, res) => {
         const submission = await prismaClient_1.default.submission.findUnique({
             where: { id },
             include: {
-                project: true,
+                project: {
+                    include: {
+                        committee: true,
+                    },
+                },
                 classification: {
                     include: {
                         panel: true,
@@ -93,6 +97,18 @@ router.get("/submissions/:id", async (req, res) => {
                     },
                     orderBy: { effectiveDate: "asc" },
                 },
+                changeLogs: {
+                    include: {
+                        changedBy: true,
+                    },
+                    orderBy: { createdAt: "desc" },
+                },
+                projectChangeLogs: {
+                    include: {
+                        changedBy: true,
+                    },
+                    orderBy: { createdAt: "desc" },
+                },
             },
         });
         if (!submission) {
@@ -103,6 +119,279 @@ router.get("/submissions/:id", async (req, res) => {
     catch (error) {
         console.error("Error fetching submission:", error);
         res.status(500).json({ message: "Failed to fetch submission" });
+    }
+});
+// Update submission overview fields and log changes
+router.patch("/submissions/:id/overview", async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+        if (Number.isNaN(id)) {
+            return res.status(400).json({ message: "Invalid submission id" });
+        }
+        const { submissionType, receivedDate, status, finalDecision, finalDecisionDate, piName, committeeId, changeReason, } = req.body;
+        const allowedSubmissionTypes = [
+            "INITIAL",
+            "AMENDMENT",
+            "CONTINUING_REVIEW",
+            "FINAL_REPORT",
+            "WITHDRAWAL",
+            "SAFETY_REPORT",
+            "PROTOCOL_DEVIATION",
+        ];
+        if (submissionType &&
+            !allowedSubmissionTypes.includes(String(submissionType))) {
+            return res.status(400).json({
+                message: `Invalid submissionType. Allowed: ${allowedSubmissionTypes.join(", ")}`,
+            });
+        }
+        const allowedStatuses = [
+            "RECEIVED",
+            "UNDER_COMPLETENESS_CHECK",
+            "AWAITING_CLASSIFICATION",
+            "UNDER_CLASSIFICATION",
+            "CLASSIFIED",
+            "UNDER_REVIEW",
+            "AWAITING_REVISIONS",
+            "REVISION_SUBMITTED",
+            "CLOSED",
+            "WITHDRAWN",
+        ];
+        if (status && !allowedStatuses.includes(String(status))) {
+            return res.status(400).json({
+                message: `Invalid status. Allowed: ${allowedStatuses.join(", ")}`,
+            });
+        }
+        const submission = await prismaClient_1.default.submission.findUnique({
+            where: { id },
+            include: {
+                project: true,
+            },
+        });
+        if (!submission) {
+            return res.status(404).json({ message: "Submission not found" });
+        }
+        const changedById = 1; // TODO: replace with authenticated user later
+        const submissionUpdate = {};
+        const projectUpdate = {};
+        const changeLogs = [];
+        const projectChangeLogs = [];
+        if (submissionType &&
+            submissionType !== submission.submissionType) {
+            submissionUpdate.submissionType = submissionType;
+            changeLogs.push({
+                submissionId: submission.id,
+                fieldName: "submissionType",
+                oldValue: submission.submissionType,
+                newValue: submissionType,
+                reason: changeReason ?? null,
+                changedById,
+            });
+        }
+        if (receivedDate) {
+            const parsedReceived = new Date(receivedDate);
+            if (Number.isNaN(parsedReceived.getTime())) {
+                return res
+                    .status(400)
+                    .json({ message: "Invalid receivedDate" });
+            }
+            const oldValue = submission.receivedDate?.toISOString() ?? null;
+            const newValue = parsedReceived.toISOString();
+            if (oldValue !== newValue) {
+                submissionUpdate.receivedDate = parsedReceived;
+                changeLogs.push({
+                    submissionId: submission.id,
+                    fieldName: "receivedDate",
+                    oldValue,
+                    newValue,
+                    reason: changeReason ?? null,
+                    changedById,
+                });
+            }
+        }
+        if (finalDecision !== undefined &&
+            finalDecision !== submission.finalDecision) {
+            submissionUpdate.finalDecision = finalDecision;
+            changeLogs.push({
+                submissionId: submission.id,
+                fieldName: "finalDecision",
+                oldValue: submission.finalDecision ?? null,
+                newValue: finalDecision ?? null,
+                reason: changeReason ?? null,
+                changedById,
+            });
+        }
+        if (finalDecisionDate !== undefined) {
+            const parsedDecisionDate = finalDecisionDate === null ? null : new Date(finalDecisionDate);
+            if (finalDecisionDate !== null &&
+                Number.isNaN(parsedDecisionDate?.getTime())) {
+                return res
+                    .status(400)
+                    .json({ message: "Invalid finalDecisionDate" });
+            }
+            const oldValue = submission.finalDecisionDate
+                ? submission.finalDecisionDate.toISOString()
+                : null;
+            const newValue = parsedDecisionDate
+                ? parsedDecisionDate.toISOString()
+                : null;
+            if (oldValue !== newValue) {
+                submissionUpdate.finalDecisionDate = parsedDecisionDate;
+                changeLogs.push({
+                    submissionId: submission.id,
+                    fieldName: "finalDecisionDate",
+                    oldValue,
+                    newValue,
+                    reason: changeReason ?? null,
+                    changedById,
+                });
+            }
+        }
+        if (submission.project) {
+            if (piName && piName !== submission.project.piName) {
+                projectUpdate.piName = piName;
+                projectChangeLogs.push({
+                    projectId: submission.project.id,
+                    fieldName: "piName",
+                    oldValue: submission.project.piName,
+                    newValue: piName,
+                    reason: changeReason ?? null,
+                    sourceSubmissionId: submission.id,
+                    changedById,
+                });
+            }
+            if (committeeId) {
+                const parsedCommitteeId = Number(committeeId);
+                if (Number.isNaN(parsedCommitteeId)) {
+                    return res
+                        .status(400)
+                        .json({ message: "Invalid committeeId" });
+                }
+                const committeeExists = await prismaClient_1.default.committee.findUnique({
+                    where: { id: parsedCommitteeId },
+                    select: { id: true },
+                });
+                if (!committeeExists) {
+                    return res.status(400).json({ message: "committeeId does not exist" });
+                }
+                if (parsedCommitteeId !== submission.project.committeeId) {
+                    projectUpdate.committeeId = parsedCommitteeId;
+                    projectChangeLogs.push({
+                        projectId: submission.project.id,
+                        fieldName: "committeeId",
+                        oldValue: submission.project.committeeId
+                            ? String(submission.project.committeeId)
+                            : null,
+                        newValue: String(parsedCommitteeId),
+                        reason: changeReason ?? null,
+                        sourceSubmissionId: submission.id,
+                        changedById,
+                    });
+                }
+            }
+        }
+        else if (piName || committeeId) {
+            return res
+                .status(400)
+                .json({ message: "Submission is not linked to a project" });
+        }
+        const isValidStatus = (value) => Object.values(client_1.SubmissionStatus).includes(value);
+        const statusChanged = status && status !== submission.status && isValidStatus(status)
+            ? status
+            : null;
+        if (status && !statusChanged && status !== submission.status) {
+            return res.status(400).json({ message: "Invalid status value" });
+        }
+        if (statusChanged) {
+            submissionUpdate.status = statusChanged;
+        }
+        const hasUpdates = Object.keys(submissionUpdate).length > 0 ||
+            Object.keys(projectUpdate).length > 0 ||
+            statusChanged ||
+            changeLogs.length > 0 ||
+            projectChangeLogs.length > 0;
+        if (!hasUpdates) {
+            return res.status(400).json({ message: "No changes to update" });
+        }
+        const operations = [];
+        if (statusChanged) {
+            operations.push(prismaClient_1.default.submissionStatusHistory.create({
+                data: {
+                    submissionId: submission.id,
+                    oldStatus: submission.status,
+                    newStatus: statusChanged,
+                    reason: changeReason ?? null,
+                    changedById,
+                },
+            }));
+        }
+        if (Object.keys(submissionUpdate).length > 0) {
+            operations.push(prismaClient_1.default.submission.update({
+                where: { id: submission.id },
+                data: submissionUpdate,
+            }));
+        }
+        if (Object.keys(projectUpdate).length > 0 && submission.project) {
+            operations.push(prismaClient_1.default.project.update({
+                where: { id: submission.project.id },
+                data: projectUpdate,
+            }));
+        }
+        if (changeLogs.length > 0) {
+            operations.push(prismaClient_1.default.submissionChangeLog.createMany({
+                data: changeLogs,
+            }));
+        }
+        if (projectChangeLogs.length > 0) {
+            operations.push(prismaClient_1.default.projectChangeLog.createMany({
+                data: projectChangeLogs,
+            }));
+        }
+        await prismaClient_1.default.$transaction(operations);
+        const refreshed = await prismaClient_1.default.submission.findUnique({
+            where: { id: submission.id },
+            include: {
+                project: {
+                    include: {
+                        committee: true,
+                    },
+                },
+                classification: {
+                    include: {
+                        panel: true,
+                        classifiedBy: true,
+                    },
+                },
+                reviews: {
+                    include: {
+                        reviewer: true,
+                    },
+                    orderBy: { assignedAt: "asc" },
+                },
+                statusHistory: {
+                    include: {
+                        changedBy: true,
+                    },
+                    orderBy: { effectiveDate: "asc" },
+                },
+                changeLogs: {
+                    include: {
+                        changedBy: true,
+                    },
+                    orderBy: { createdAt: "desc" },
+                },
+                projectChangeLogs: {
+                    include: {
+                        changedBy: true,
+                    },
+                    orderBy: { createdAt: "desc" },
+                },
+            },
+        });
+        res.json(refreshed);
+    }
+    catch (error) {
+        console.error("Error updating submission overview:", error);
+        res.status(500).json({ message: "Failed to update submission" });
     }
 });
 // Change submission status and log history
@@ -339,6 +628,15 @@ router.get("/submissions/:id/sla-summary", async (req, res) => {
         }
         const committeeId = submission.project.committeeId;
         const reviewType = submission.classification.reviewType; // EXEMPT / EXPEDITED / FULL_BOARD
+        const statusHistoryAsc = submission.statusHistory;
+        const findLatestStatus = (predicate) => {
+            for (let i = statusHistoryAsc.length - 1; i >= 0; i -= 1) {
+                if (predicate(statusHistoryAsc[i])) {
+                    return statusHistoryAsc[i];
+                }
+            }
+            return undefined;
+        };
         const classificationSlaConfig = await prismaClient_1.default.configSLA.findFirst({
             where: {
                 committeeId,
@@ -347,7 +645,7 @@ router.get("/submissions/:id/sla-summary", async (req, res) => {
                 isActive: true,
             },
         });
-        const classificationStartHistory = submission.statusHistory.find((history) => history.newStatus === client_1.SubmissionStatus.UNDER_CLASSIFICATION);
+        const classificationStartHistory = findLatestStatus((history) => history.newStatus === client_1.SubmissionStatus.UNDER_CLASSIFICATION);
         const classificationStart = classificationStartHistory?.effectiveDate ?? submission.receivedDate;
         const classificationEnd = submission.classification.classificationDate ?? new Date();
         const classificationActual = (0, slaUtils_1.workingDaysBetween)(new Date(classificationStart), new Date(classificationEnd));
@@ -363,9 +661,9 @@ router.get("/submissions/:id/sla-summary", async (req, res) => {
                 isActive: true,
             },
         });
-        const reviewStartHistory = submission.statusHistory.find((history) => history.newStatus === client_1.SubmissionStatus.UNDER_REVIEW);
+        const reviewStartHistory = findLatestStatus((history) => history.newStatus === client_1.SubmissionStatus.UNDER_REVIEW);
         const reviewStart = reviewStartHistory?.effectiveDate ?? null;
-        const reviewEndHistory = submission.statusHistory.find((history) => {
+        const reviewEndHistory = findLatestStatus((history) => {
             const status = history.newStatus;
             if (!status) {
                 return false;
@@ -390,8 +688,8 @@ router.get("/submissions/:id/sla-summary", async (req, res) => {
                 isActive: true,
             },
         });
-        const revisionStartHistory = submission.statusHistory.find((history) => history.newStatus === client_1.SubmissionStatus.AWAITING_REVISIONS);
-        const revisionEndHistory = submission.statusHistory.find((history) => history.newStatus === client_1.SubmissionStatus.REVISION_SUBMITTED);
+        const revisionStartHistory = findLatestStatus((history) => history.newStatus === client_1.SubmissionStatus.AWAITING_REVISIONS);
+        const revisionEndHistory = findLatestStatus((history) => history.newStatus === client_1.SubmissionStatus.REVISION_SUBMITTED);
         const revisionStart = revisionStartHistory?.effectiveDate ?? null;
         const revisionEnd = revisionEndHistory?.effectiveDate ?? null;
         let revisionActual = null;
