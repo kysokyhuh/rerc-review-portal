@@ -31,11 +31,7 @@ export const SubmissionDetailPage: React.FC = () => {
     changeReason: "",
   });
 
-  if (!submissionId) {
-    return <div>Submission ID is required</div>;
-  }
-
-  const numericId = Number(submissionId);
+  const numericId = submissionId ? Number(submissionId) : NaN;
   const { submission, slaSummary, loading, error, setSubmission } =
     useSubmissionDetail(numericId);
 
@@ -108,8 +104,16 @@ export const SubmissionDetailPage: React.FC = () => {
     "INFO_ONLY",
   ];
 
-  const toInputDate = (value?: string | null) =>
-    value ? new Date(value).toISOString().slice(0, 10) : "";
+  const toInputDate = (value?: string | null) => {
+    if (!value) return "";
+    if (typeof value === "string") {
+      return value.slice(0, 10);
+    }
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+      return value.toISOString().slice(0, 10);
+    }
+    return "";
+  };
 
   const resetFormState = (source: SubmissionDetail) => {
     setFormState({
@@ -144,6 +148,10 @@ export const SubmissionDetailPage: React.FC = () => {
     if (!submission) return;
     resetFormState(submission);
   }, [submission]);
+
+  if (!submissionId || Number.isNaN(numericId)) {
+    return <div>Submission ID is required</div>;
+  }
 
   const changeHistory = useMemo(() => {
     if (!submission) return [];

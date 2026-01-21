@@ -1,12 +1,27 @@
 node_modules
 # Keep environment variables out of version control
 .env
+.env.*
+**/.env
+**/.env.*
+*.tsbuildinfo
 
+# Generated client artifacts
 /src/generated/prisma
+/backend/dist
+/frontend/dist
 
 # AI workflow noise / secrets
 ai/logs/
 ai/.env
+ai/.env.*
 ai/*.secret.*
 ai/*.key
 ai/*-private.*
+ai/**/.env
+ai/**/*.secret.*
+ai/**/*.key
+ai/**/*-private.*
+
+# OS / build artefacts
+.DS_Store

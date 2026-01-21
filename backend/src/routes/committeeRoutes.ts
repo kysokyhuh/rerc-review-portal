@@ -1,10 +1,21 @@
 /**
  * Committee and panel routes
  */
-import { Router } from "express";
+import { Router, type NextFunction, type Request, type Response } from "express";
 import prisma from "../config/prismaClient";
 
+const requireApiKey = (req: Request, res: Response, next: NextFunction) => {
+  const expected = process.env.API_KEY;
+  if (!expected) return next();
+  const provided = req.header("x-api-key");
+  if (provided !== expected) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  next();
+};
+
 const router = Router();
+router.use(requireApiKey);
 
 // List committees with panels and members (including user info)
 router.get("/committees", async (_req, res) => {
@@ -14,7 +25,14 @@ router.get("/committees", async (_req, res) => {
         panels: true,
         members: {
           include: {
-            user: true,
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                isActive: true,
+              },
+            },
           },
         },
       },
@@ -41,7 +59,14 @@ router.get("/panels/:id/members", async (req, res) => {
         committee: true,
         members: {
           include: {
-            user: true,
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                isActive: true,
+              },
+            },
           },
         },
       },
@@ -89,7 +114,14 @@ router.get("/committees/:code/panels", async (req, res) => {
           include: {
             members: {
               include: {
-                user: true,
+                user: {
+                  select: {
+                    id: true,
+                    fullName: true,
+                    email: true,
+                    isActive: true,
+                  },
+                },
               },
             },
           },

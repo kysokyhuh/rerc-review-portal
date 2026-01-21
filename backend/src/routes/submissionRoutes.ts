@@ -321,6 +321,13 @@ router.patch("/submissions/:id/overview", async (req, res) => {
             .status(400)
             .json({ message: "Invalid committeeId" });
         }
+        const committeeExists = await prisma.committee.findUnique({
+          where: { id: parsedCommitteeId },
+          select: { id: true },
+        });
+        if (!committeeExists) {
+          return res.status(400).json({ message: "committeeId does not exist" });
+        }
         if (parsedCommitteeId !== submission.project.committeeId) {
           projectUpdate.committeeId = parsedCommitteeId;
           projectChangeLogs.push({
@@ -729,6 +736,15 @@ router.get("/submissions/:id/sla-summary", async (req, res) => {
 
     const committeeId = submission.project.committeeId;
     const reviewType = submission.classification.reviewType; // EXEMPT / EXPEDITED / FULL_BOARD
+    const statusHistoryAsc = submission.statusHistory;
+    const findLatestStatus = (predicate: (entry: any) => boolean) => {
+      for (let i = statusHistoryAsc.length - 1; i >= 0; i -= 1) {
+        if (predicate(statusHistoryAsc[i])) {
+          return statusHistoryAsc[i];
+        }
+      }
+      return undefined;
+    };
 
     const classificationSlaConfig = await prisma.configSLA.findFirst({
       where: {
@@ -739,7 +755,7 @@ router.get("/submissions/:id/sla-summary", async (req, res) => {
       },
     });
 
-    const classificationStartHistory = submission.statusHistory.find(
+    const classificationStartHistory = findLatestStatus(
       (history: any) =>
         history.newStatus === SubmissionStatus.UNDER_CLASSIFICATION
     );
@@ -771,12 +787,12 @@ router.get("/submissions/:id/sla-summary", async (req, res) => {
       },
     });
 
-    const reviewStartHistory = submission.statusHistory.find(
+    const reviewStartHistory = findLatestStatus(
       (history: any) => history.newStatus === SubmissionStatus.UNDER_REVIEW
     );
     const reviewStart = reviewStartHistory?.effectiveDate ?? null;
 
-    const reviewEndHistory = submission.statusHistory.find((history: any) => {
+    const reviewEndHistory = findLatestStatus((history: any) => {
       const status = history.newStatus;
       if (!status) {
         return false;
@@ -809,11 +825,11 @@ router.get("/submissions/:id/sla-summary", async (req, res) => {
       },
     });
 
-    const revisionStartHistory = submission.statusHistory.find(
+    const revisionStartHistory = findLatestStatus(
       (history: any) =>
         history.newStatus === SubmissionStatus.AWAITING_REVISIONS
     );
-    const revisionEndHistory = submission.statusHistory.find(
+    const revisionEndHistory = findLatestStatus(
       (history: any) =>
         history.newStatus === SubmissionStatus.REVISION_SUBMITTED
     );
