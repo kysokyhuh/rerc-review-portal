@@ -137,9 +137,19 @@ const importLegacyCsv = async ({
   raUserId: number;
   panelId: number | null;
 }) => {
-  const csvPath = path.resolve(process.cwd(), CSV_FILENAME);
-  if (!fs.existsSync(csvPath)) {
-    console.log(`CSV file not found at ${csvPath}. Skipping legacy import.`);
+  const candidates = [
+    process.env.LEGACY_CSV_PATH
+      ? path.resolve(process.env.LEGACY_CSV_PATH)
+      : null,
+    path.resolve(process.cwd(), CSV_FILENAME),
+    path.resolve(process.cwd(), "..", CSV_FILENAME),
+  ].filter(Boolean) as string[];
+
+  const csvPath = candidates.find((candidate) => fs.existsSync(candidate));
+  if (!csvPath) {
+    console.log(
+      `CSV file not found. Checked: ${candidates.join(", ")}. Skipping legacy import.`
+    );
     return { importedCount: 0 };
   }
 

@@ -111,9 +111,16 @@ const mapProjectStatus = (status) => {
     return client_1.ProjectStatus.ACTIVE;
 };
 const importLegacyCsv = async ({ committeeId, raUserId, panelId, }) => {
-    const csvPath = path_1.default.resolve(process.cwd(), CSV_FILENAME);
-    if (!fs_1.default.existsSync(csvPath)) {
-        console.log(`CSV file not found at ${csvPath}. Skipping legacy import.`);
+    const candidates = [
+        process.env.LEGACY_CSV_PATH
+            ? path_1.default.resolve(process.env.LEGACY_CSV_PATH)
+            : null,
+        path_1.default.resolve(process.cwd(), CSV_FILENAME),
+        path_1.default.resolve(process.cwd(), "..", CSV_FILENAME),
+    ].filter(Boolean);
+    const csvPath = candidates.find((candidate) => fs_1.default.existsSync(candidate));
+    if (!csvPath) {
+        console.log(`CSV file not found. Checked: ${candidates.join(", ")}. Skipping legacy import.`);
         return { importedCount: 0 };
     }
     const raw = fs_1.default.readFileSync(csvPath, "utf-8");
