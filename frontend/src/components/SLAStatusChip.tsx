@@ -1,5 +1,5 @@
 import React from "react";
-import { SLAStatus } from "@/services/api";
+import type { SLAStatus } from "@/types";
 import { formatDateDisplay } from "@/utils/dateUtils";
 
 interface SLAStatusChipProps {

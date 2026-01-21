@@ -38,6 +38,12 @@ export type UserMinAggregateOutputType = {
   id: number | null
   email: string | null
   fullName: string | null
+  passwordHash: string | null
+  passwordResetToken: string | null
+  passwordResetExpiresAt: Date | null
+  lastLoginAt: Date | null
+  lastLoginIp: string | null
+  isCommonReviewer: boolean | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -47,6 +53,12 @@ export type UserMaxAggregateOutputType = {
   id: number | null
   email: string | null
   fullName: string | null
+  passwordHash: string | null
+  passwordResetToken: string | null
+  passwordResetExpiresAt: Date | null
+  lastLoginAt: Date | null
+  lastLoginIp: string | null
+  isCommonReviewer: boolean | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -56,6 +68,13 @@ export type UserCountAggregateOutputType = {
   id: number
   email: number
   fullName: number
+  passwordHash: number
+  passwordResetToken: number
+  passwordResetExpiresAt: number
+  lastLoginAt: number
+  lastLoginIp: number
+  isCommonReviewer: number
+  reviewerExpertise: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -75,6 +94,12 @@ export type UserMinAggregateInputType = {
   id?: true
   email?: true
   fullName?: true
+  passwordHash?: true
+  passwordResetToken?: true
+  passwordResetExpiresAt?: true
+  lastLoginAt?: true
+  lastLoginIp?: true
+  isCommonReviewer?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -84,6 +109,12 @@ export type UserMaxAggregateInputType = {
   id?: true
   email?: true
   fullName?: true
+  passwordHash?: true
+  passwordResetToken?: true
+  passwordResetExpiresAt?: true
+  lastLoginAt?: true
+  lastLoginIp?: true
+  isCommonReviewer?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -93,6 +124,13 @@ export type UserCountAggregateInputType = {
   id?: true
   email?: true
   fullName?: true
+  passwordHash?: true
+  passwordResetToken?: true
+  passwordResetExpiresAt?: true
+  lastLoginAt?: true
+  lastLoginIp?: true
+  isCommonReviewer?: true
+  reviewerExpertise?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -189,6 +227,13 @@ export type UserGroupByOutputType = {
   id: number
   email: string
   fullName: string
+  passwordHash: string | null
+  passwordResetToken: string | null
+  passwordResetExpiresAt: Date | null
+  lastLoginAt: Date | null
+  lastLoginIp: string | null
+  isCommonReviewer: boolean
+  reviewerExpertise: string[]
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -221,6 +266,13 @@ export type UserWhereInput = {
   id?: Prisma.IntFilter<"User"> | number
   email?: Prisma.StringFilter<"User"> | string
   fullName?: Prisma.StringFilter<"User"> | string
+  passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
+  passwordResetToken?: Prisma.StringNullableFilter<"User"> | string | null
+  passwordResetExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  lastLoginAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  lastLoginIp?: Prisma.StringNullableFilter<"User"> | string | null
+  isCommonReviewer?: Prisma.BoolFilter<"User"> | boolean
+  reviewerExpertise?: Prisma.StringNullableListFilter<"User">
   isActive?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -231,12 +283,24 @@ export type UserWhereInput = {
   reviewsAssigned?: Prisma.ReviewListRelationFilter
   statusChanges?: Prisma.SubmissionStatusHistoryListRelationFilter
   panelMemberships?: Prisma.PanelMemberListRelationFilter
+  assignedSubmissions?: Prisma.SubmissionListRelationFilter
+  projectChanges?: Prisma.ProjectChangeLogListRelationFilter
+  submissionChanges?: Prisma.SubmissionChangeLogListRelationFilter
+  letterDraftsGenerated?: Prisma.LetterDraftListRelationFilter
+  letterDraftsApproved?: Prisma.LetterDraftListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
+  passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  passwordResetToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  passwordResetExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastLoginIp?: Prisma.SortOrderInput | Prisma.SortOrder
+  isCommonReviewer?: Prisma.SortOrder
+  reviewerExpertise?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -247,6 +311,11 @@ export type UserOrderByWithRelationInput = {
   reviewsAssigned?: Prisma.ReviewOrderByRelationAggregateInput
   statusChanges?: Prisma.SubmissionStatusHistoryOrderByRelationAggregateInput
   panelMemberships?: Prisma.PanelMemberOrderByRelationAggregateInput
+  assignedSubmissions?: Prisma.SubmissionOrderByRelationAggregateInput
+  projectChanges?: Prisma.ProjectChangeLogOrderByRelationAggregateInput
+  submissionChanges?: Prisma.SubmissionChangeLogOrderByRelationAggregateInput
+  letterDraftsGenerated?: Prisma.LetterDraftOrderByRelationAggregateInput
+  letterDraftsApproved?: Prisma.LetterDraftOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -256,6 +325,13 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   fullName?: Prisma.StringFilter<"User"> | string
+  passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
+  passwordResetToken?: Prisma.StringNullableFilter<"User"> | string | null
+  passwordResetExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  lastLoginAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  lastLoginIp?: Prisma.StringNullableFilter<"User"> | string | null
+  isCommonReviewer?: Prisma.BoolFilter<"User"> | boolean
+  reviewerExpertise?: Prisma.StringNullableListFilter<"User">
   isActive?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -266,12 +342,24 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   reviewsAssigned?: Prisma.ReviewListRelationFilter
   statusChanges?: Prisma.SubmissionStatusHistoryListRelationFilter
   panelMemberships?: Prisma.PanelMemberListRelationFilter
+  assignedSubmissions?: Prisma.SubmissionListRelationFilter
+  projectChanges?: Prisma.ProjectChangeLogListRelationFilter
+  submissionChanges?: Prisma.SubmissionChangeLogListRelationFilter
+  letterDraftsGenerated?: Prisma.LetterDraftListRelationFilter
+  letterDraftsApproved?: Prisma.LetterDraftListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
+  passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  passwordResetToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  passwordResetExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastLoginIp?: Prisma.SortOrderInput | Prisma.SortOrder
+  isCommonReviewer?: Prisma.SortOrder
+  reviewerExpertise?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -289,6 +377,13 @@ export type UserScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"User"> | number
   email?: Prisma.StringWithAggregatesFilter<"User"> | string
   fullName?: Prisma.StringWithAggregatesFilter<"User"> | string
+  passwordHash?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  passwordResetToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  passwordResetExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  lastLoginAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  lastLoginIp?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  isCommonReviewer?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  reviewerExpertise?: Prisma.StringNullableListFilter<"User">
   isActive?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -297,6 +392,13 @@ export type UserScalarWhereWithAggregatesInput = {
 export type UserCreateInput = {
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -307,12 +409,24 @@ export type UserCreateInput = {
   reviewsAssigned?: Prisma.ReviewCreateNestedManyWithoutReviewerInput
   statusChanges?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutChangedByInput
   panelMemberships?: Prisma.PanelMemberCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftCreateNestedManyWithoutApprovedByInput
 }
 
 export type UserUncheckedCreateInput = {
   id?: number
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -323,11 +437,23 @@ export type UserUncheckedCreateInput = {
   reviewsAssigned?: Prisma.ReviewUncheckedCreateNestedManyWithoutReviewerInput
   statusChanges?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   panelMemberships?: Prisma.PanelMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutApprovedByInput
 }
 
 export type UserUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -338,12 +464,24 @@ export type UserUpdateInput = {
   reviewsAssigned?: Prisma.ReviewUpdateManyWithoutReviewerNestedInput
   statusChanges?: Prisma.SubmissionStatusHistoryUpdateManyWithoutChangedByNestedInput
   panelMemberships?: Prisma.PanelMemberUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUpdateManyWithoutApprovedByNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -354,12 +492,24 @@ export type UserUncheckedUpdateInput = {
   reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
   statusChanges?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedUpdateManyWithoutApprovedByNestedInput
 }
 
 export type UserCreateManyInput = {
   id?: number
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -368,6 +518,13 @@ export type UserCreateManyInput = {
 export type UserUpdateManyMutationInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -377,15 +534,37 @@ export type UserUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type StringNullableListFilter<$PrismaModel = never> = {
+  equals?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
+  has?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
+  hasEvery?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  hasSome?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
 }
 
 export type UserCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
+  passwordHash?: Prisma.SortOrder
+  passwordResetToken?: Prisma.SortOrder
+  passwordResetExpiresAt?: Prisma.SortOrder
+  lastLoginAt?: Prisma.SortOrder
+  lastLoginIp?: Prisma.SortOrder
+  isCommonReviewer?: Prisma.SortOrder
+  reviewerExpertise?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -399,6 +578,12 @@ export type UserMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
+  passwordHash?: Prisma.SortOrder
+  passwordResetToken?: Prisma.SortOrder
+  passwordResetExpiresAt?: Prisma.SortOrder
+  lastLoginAt?: Prisma.SortOrder
+  lastLoginIp?: Prisma.SortOrder
+  isCommonReviewer?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -408,6 +593,12 @@ export type UserMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
+  passwordHash?: Prisma.SortOrder
+  passwordResetToken?: Prisma.SortOrder
+  passwordResetExpiresAt?: Prisma.SortOrder
+  lastLoginAt?: Prisma.SortOrder
+  lastLoginIp?: Prisma.SortOrder
+  isCommonReviewer?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -427,12 +618,29 @@ export type UserNullableScalarRelationFilter = {
   isNot?: Prisma.UserWhereInput | null
 }
 
+export type UserCreatereviewerExpertiseInput = {
+  set: string[]
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
 
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
+}
+
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type UserUpdatereviewerExpertiseInput = {
+  set?: string[]
+  push?: string | string[]
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -477,9 +685,31 @@ export type UserUpdateOneWithoutProjectsCreatedNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProjectsCreatedInput, Prisma.UserUpdateWithoutProjectsCreatedInput>, Prisma.UserUncheckedUpdateWithoutProjectsCreatedInput>
 }
 
+export type UserCreateNestedOneWithoutProjectChangesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutProjectChangesInput, Prisma.UserUncheckedCreateWithoutProjectChangesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectChangesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutProjectChangesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutProjectChangesInput, Prisma.UserUncheckedCreateWithoutProjectChangesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectChangesInput
+  upsert?: Prisma.UserUpsertWithoutProjectChangesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProjectChangesInput, Prisma.UserUpdateWithoutProjectChangesInput>, Prisma.UserUncheckedUpdateWithoutProjectChangesInput>
+}
+
 export type UserCreateNestedOneWithoutSubmissionsCreatedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutSubmissionsCreatedInput, Prisma.UserUncheckedCreateWithoutSubmissionsCreatedInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutSubmissionsCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutAssignedSubmissionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAssignedSubmissionsInput, Prisma.UserUncheckedCreateWithoutAssignedSubmissionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAssignedSubmissionsInput
   connect?: Prisma.UserWhereUniqueInput
 }
 
@@ -491,6 +721,32 @@ export type UserUpdateOneWithoutSubmissionsCreatedNestedInput = {
   delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSubmissionsCreatedInput, Prisma.UserUpdateWithoutSubmissionsCreatedInput>, Prisma.UserUncheckedUpdateWithoutSubmissionsCreatedInput>
+}
+
+export type UserUpdateOneWithoutAssignedSubmissionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAssignedSubmissionsInput, Prisma.UserUncheckedCreateWithoutAssignedSubmissionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAssignedSubmissionsInput
+  upsert?: Prisma.UserUpsertWithoutAssignedSubmissionsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAssignedSubmissionsInput, Prisma.UserUpdateWithoutAssignedSubmissionsInput>, Prisma.UserUncheckedUpdateWithoutAssignedSubmissionsInput>
+}
+
+export type UserCreateNestedOneWithoutSubmissionChangesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSubmissionChangesInput, Prisma.UserUncheckedCreateWithoutSubmissionChangesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSubmissionChangesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutSubmissionChangesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSubmissionChangesInput, Prisma.UserUncheckedCreateWithoutSubmissionChangesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSubmissionChangesInput
+  upsert?: Prisma.UserUpsertWithoutSubmissionChangesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSubmissionChangesInput, Prisma.UserUpdateWithoutSubmissionChangesInput>, Prisma.UserUncheckedUpdateWithoutSubmissionChangesInput>
 }
 
 export type UserCreateNestedOneWithoutClassificationsMadeInput = {
@@ -539,6 +795,38 @@ export type UserUpdateOneRequiredWithoutReviewsAssignedNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReviewsAssignedInput, Prisma.UserUpdateWithoutReviewsAssignedInput>, Prisma.UserUncheckedUpdateWithoutReviewsAssignedInput>
 }
 
+export type UserCreateNestedOneWithoutLetterDraftsGeneratedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutLetterDraftsGeneratedInput, Prisma.UserUncheckedCreateWithoutLetterDraftsGeneratedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutLetterDraftsGeneratedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutLetterDraftsApprovedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutLetterDraftsApprovedInput, Prisma.UserUncheckedCreateWithoutLetterDraftsApprovedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutLetterDraftsApprovedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutLetterDraftsGeneratedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutLetterDraftsGeneratedInput, Prisma.UserUncheckedCreateWithoutLetterDraftsGeneratedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutLetterDraftsGeneratedInput
+  upsert?: Prisma.UserUpsertWithoutLetterDraftsGeneratedInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutLetterDraftsGeneratedInput, Prisma.UserUpdateWithoutLetterDraftsGeneratedInput>, Prisma.UserUncheckedUpdateWithoutLetterDraftsGeneratedInput>
+}
+
+export type UserUpdateOneWithoutLetterDraftsApprovedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutLetterDraftsApprovedInput, Prisma.UserUncheckedCreateWithoutLetterDraftsApprovedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutLetterDraftsApprovedInput
+  upsert?: Prisma.UserUpsertWithoutLetterDraftsApprovedInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutLetterDraftsApprovedInput, Prisma.UserUpdateWithoutLetterDraftsApprovedInput>, Prisma.UserUncheckedUpdateWithoutLetterDraftsApprovedInput>
+}
+
 export type UserCreateNestedOneWithoutPanelMembershipsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutPanelMembershipsInput, Prisma.UserUncheckedCreateWithoutPanelMembershipsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutPanelMembershipsInput
@@ -556,6 +844,13 @@ export type UserUpdateOneRequiredWithoutPanelMembershipsNestedInput = {
 export type UserCreateWithoutCommitteeMembershipsInput = {
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -565,12 +860,24 @@ export type UserCreateWithoutCommitteeMembershipsInput = {
   reviewsAssigned?: Prisma.ReviewCreateNestedManyWithoutReviewerInput
   statusChanges?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutChangedByInput
   panelMemberships?: Prisma.PanelMemberCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftCreateNestedManyWithoutApprovedByInput
 }
 
 export type UserUncheckedCreateWithoutCommitteeMembershipsInput = {
   id?: number
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -580,6 +887,11 @@ export type UserUncheckedCreateWithoutCommitteeMembershipsInput = {
   reviewsAssigned?: Prisma.ReviewUncheckedCreateNestedManyWithoutReviewerInput
   statusChanges?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   panelMemberships?: Prisma.PanelMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutApprovedByInput
 }
 
 export type UserCreateOrConnectWithoutCommitteeMembershipsInput = {
@@ -601,6 +913,13 @@ export type UserUpdateToOneWithWhereWithoutCommitteeMembershipsInput = {
 export type UserUpdateWithoutCommitteeMembershipsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -610,12 +929,24 @@ export type UserUpdateWithoutCommitteeMembershipsInput = {
   reviewsAssigned?: Prisma.ReviewUpdateManyWithoutReviewerNestedInput
   statusChanges?: Prisma.SubmissionStatusHistoryUpdateManyWithoutChangedByNestedInput
   panelMemberships?: Prisma.PanelMemberUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUpdateManyWithoutApprovedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCommitteeMembershipsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -625,11 +956,23 @@ export type UserUncheckedUpdateWithoutCommitteeMembershipsInput = {
   reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
   statusChanges?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedUpdateManyWithoutApprovedByNestedInput
 }
 
 export type UserCreateWithoutProjectsCreatedInput = {
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -639,12 +982,24 @@ export type UserCreateWithoutProjectsCreatedInput = {
   reviewsAssigned?: Prisma.ReviewCreateNestedManyWithoutReviewerInput
   statusChanges?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutChangedByInput
   panelMemberships?: Prisma.PanelMemberCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftCreateNestedManyWithoutApprovedByInput
 }
 
 export type UserUncheckedCreateWithoutProjectsCreatedInput = {
   id?: number
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -654,6 +1009,11 @@ export type UserUncheckedCreateWithoutProjectsCreatedInput = {
   reviewsAssigned?: Prisma.ReviewUncheckedCreateNestedManyWithoutReviewerInput
   statusChanges?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   panelMemberships?: Prisma.PanelMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutApprovedByInput
 }
 
 export type UserCreateOrConnectWithoutProjectsCreatedInput = {
@@ -675,6 +1035,13 @@ export type UserUpdateToOneWithWhereWithoutProjectsCreatedInput = {
 export type UserUpdateWithoutProjectsCreatedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -684,12 +1051,24 @@ export type UserUpdateWithoutProjectsCreatedInput = {
   reviewsAssigned?: Prisma.ReviewUpdateManyWithoutReviewerNestedInput
   statusChanges?: Prisma.SubmissionStatusHistoryUpdateManyWithoutChangedByNestedInput
   panelMemberships?: Prisma.PanelMemberUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUpdateManyWithoutApprovedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectsCreatedInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -699,11 +1078,145 @@ export type UserUncheckedUpdateWithoutProjectsCreatedInput = {
   reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
   statusChanges?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedUpdateManyWithoutApprovedByNestedInput
+}
+
+export type UserCreateWithoutProjectChangesInput = {
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
+  submissionsCreated?: Prisma.SubmissionCreateNestedManyWithoutCreatedByInput
+  classificationsMade?: Prisma.ClassificationCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionCreateNestedManyWithoutStaffInChargeInput
+  submissionChanges?: Prisma.SubmissionChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftCreateNestedManyWithoutApprovedByInput
+}
+
+export type UserUncheckedCreateWithoutProjectChangesInput = {
+  id?: number
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
+  submissionsCreated?: Prisma.SubmissionUncheckedCreateNestedManyWithoutCreatedByInput
+  classificationsMade?: Prisma.ClassificationUncheckedCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewUncheckedCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutApprovedByInput
+}
+
+export type UserCreateOrConnectWithoutProjectChangesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutProjectChangesInput, Prisma.UserUncheckedCreateWithoutProjectChangesInput>
+}
+
+export type UserUpsertWithoutProjectChangesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutProjectChangesInput, Prisma.UserUncheckedUpdateWithoutProjectChangesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutProjectChangesInput, Prisma.UserUncheckedCreateWithoutProjectChangesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutProjectChangesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutProjectChangesInput, Prisma.UserUncheckedUpdateWithoutProjectChangesInput>
+}
+
+export type UserUpdateWithoutProjectChangesInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUpdateManyWithoutCreatedByNestedInput
+  classificationsMade?: Prisma.ClassificationUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUpdateManyWithoutChangedByNestedInput
+  panelMemberships?: Prisma.PanelMemberUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUpdateManyWithoutStaffInChargeNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUpdateManyWithoutApprovedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutProjectChangesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  classificationsMade?: Prisma.ClassificationUncheckedUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedUpdateManyWithoutApprovedByNestedInput
 }
 
 export type UserCreateWithoutSubmissionsCreatedInput = {
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -713,12 +1226,24 @@ export type UserCreateWithoutSubmissionsCreatedInput = {
   reviewsAssigned?: Prisma.ReviewCreateNestedManyWithoutReviewerInput
   statusChanges?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutChangedByInput
   panelMemberships?: Prisma.PanelMemberCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftCreateNestedManyWithoutApprovedByInput
 }
 
 export type UserUncheckedCreateWithoutSubmissionsCreatedInput = {
   id?: number
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -728,11 +1253,74 @@ export type UserUncheckedCreateWithoutSubmissionsCreatedInput = {
   reviewsAssigned?: Prisma.ReviewUncheckedCreateNestedManyWithoutReviewerInput
   statusChanges?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   panelMemberships?: Prisma.PanelMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutApprovedByInput
 }
 
 export type UserCreateOrConnectWithoutSubmissionsCreatedInput = {
   where: Prisma.UserWhereUniqueInput
   create: Prisma.XOR<Prisma.UserCreateWithoutSubmissionsCreatedInput, Prisma.UserUncheckedCreateWithoutSubmissionsCreatedInput>
+}
+
+export type UserCreateWithoutAssignedSubmissionsInput = {
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
+  submissionsCreated?: Prisma.SubmissionCreateNestedManyWithoutCreatedByInput
+  classificationsMade?: Prisma.ClassificationCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberCreateNestedManyWithoutUserInput
+  projectChanges?: Prisma.ProjectChangeLogCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftCreateNestedManyWithoutApprovedByInput
+}
+
+export type UserUncheckedCreateWithoutAssignedSubmissionsInput = {
+  id?: number
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
+  submissionsCreated?: Prisma.SubmissionUncheckedCreateNestedManyWithoutCreatedByInput
+  classificationsMade?: Prisma.ClassificationUncheckedCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewUncheckedCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberUncheckedCreateNestedManyWithoutUserInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutApprovedByInput
+}
+
+export type UserCreateOrConnectWithoutAssignedSubmissionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAssignedSubmissionsInput, Prisma.UserUncheckedCreateWithoutAssignedSubmissionsInput>
 }
 
 export type UserUpsertWithoutSubmissionsCreatedInput = {
@@ -749,6 +1337,13 @@ export type UserUpdateToOneWithWhereWithoutSubmissionsCreatedInput = {
 export type UserUpdateWithoutSubmissionsCreatedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -758,12 +1353,24 @@ export type UserUpdateWithoutSubmissionsCreatedInput = {
   reviewsAssigned?: Prisma.ReviewUpdateManyWithoutReviewerNestedInput
   statusChanges?: Prisma.SubmissionStatusHistoryUpdateManyWithoutChangedByNestedInput
   panelMemberships?: Prisma.PanelMemberUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUpdateManyWithoutApprovedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubmissionsCreatedInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -773,11 +1380,209 @@ export type UserUncheckedUpdateWithoutSubmissionsCreatedInput = {
   reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
   statusChanges?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedUpdateManyWithoutApprovedByNestedInput
+}
+
+export type UserUpsertWithoutAssignedSubmissionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAssignedSubmissionsInput, Prisma.UserUncheckedUpdateWithoutAssignedSubmissionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAssignedSubmissionsInput, Prisma.UserUncheckedCreateWithoutAssignedSubmissionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAssignedSubmissionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAssignedSubmissionsInput, Prisma.UserUncheckedUpdateWithoutAssignedSubmissionsInput>
+}
+
+export type UserUpdateWithoutAssignedSubmissionsInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUpdateManyWithoutCreatedByNestedInput
+  classificationsMade?: Prisma.ClassificationUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUpdateManyWithoutChangedByNestedInput
+  panelMemberships?: Prisma.PanelMemberUpdateManyWithoutUserNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUpdateManyWithoutApprovedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAssignedSubmissionsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  classificationsMade?: Prisma.ClassificationUncheckedUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedUpdateManyWithoutApprovedByNestedInput
+}
+
+export type UserCreateWithoutSubmissionChangesInput = {
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
+  submissionsCreated?: Prisma.SubmissionCreateNestedManyWithoutCreatedByInput
+  classificationsMade?: Prisma.ClassificationCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftCreateNestedManyWithoutApprovedByInput
+}
+
+export type UserUncheckedCreateWithoutSubmissionChangesInput = {
+  id?: number
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
+  submissionsCreated?: Prisma.SubmissionUncheckedCreateNestedManyWithoutCreatedByInput
+  classificationsMade?: Prisma.ClassificationUncheckedCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewUncheckedCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutApprovedByInput
+}
+
+export type UserCreateOrConnectWithoutSubmissionChangesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSubmissionChangesInput, Prisma.UserUncheckedCreateWithoutSubmissionChangesInput>
+}
+
+export type UserUpsertWithoutSubmissionChangesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSubmissionChangesInput, Prisma.UserUncheckedUpdateWithoutSubmissionChangesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSubmissionChangesInput, Prisma.UserUncheckedCreateWithoutSubmissionChangesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSubmissionChangesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSubmissionChangesInput, Prisma.UserUncheckedUpdateWithoutSubmissionChangesInput>
+}
+
+export type UserUpdateWithoutSubmissionChangesInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUpdateManyWithoutCreatedByNestedInput
+  classificationsMade?: Prisma.ClassificationUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUpdateManyWithoutChangedByNestedInput
+  panelMemberships?: Prisma.PanelMemberUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUpdateManyWithoutApprovedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSubmissionChangesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  classificationsMade?: Prisma.ClassificationUncheckedUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedUpdateManyWithoutApprovedByNestedInput
 }
 
 export type UserCreateWithoutClassificationsMadeInput = {
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -787,12 +1592,24 @@ export type UserCreateWithoutClassificationsMadeInput = {
   reviewsAssigned?: Prisma.ReviewCreateNestedManyWithoutReviewerInput
   statusChanges?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutChangedByInput
   panelMemberships?: Prisma.PanelMemberCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftCreateNestedManyWithoutApprovedByInput
 }
 
 export type UserUncheckedCreateWithoutClassificationsMadeInput = {
   id?: number
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -802,6 +1619,11 @@ export type UserUncheckedCreateWithoutClassificationsMadeInput = {
   reviewsAssigned?: Prisma.ReviewUncheckedCreateNestedManyWithoutReviewerInput
   statusChanges?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   panelMemberships?: Prisma.PanelMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutApprovedByInput
 }
 
 export type UserCreateOrConnectWithoutClassificationsMadeInput = {
@@ -823,6 +1645,13 @@ export type UserUpdateToOneWithWhereWithoutClassificationsMadeInput = {
 export type UserUpdateWithoutClassificationsMadeInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -832,12 +1661,24 @@ export type UserUpdateWithoutClassificationsMadeInput = {
   reviewsAssigned?: Prisma.ReviewUpdateManyWithoutReviewerNestedInput
   statusChanges?: Prisma.SubmissionStatusHistoryUpdateManyWithoutChangedByNestedInput
   panelMemberships?: Prisma.PanelMemberUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUpdateManyWithoutApprovedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClassificationsMadeInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -847,11 +1688,23 @@ export type UserUncheckedUpdateWithoutClassificationsMadeInput = {
   reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
   statusChanges?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedUpdateManyWithoutApprovedByNestedInput
 }
 
 export type UserCreateWithoutStatusChangesInput = {
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -861,12 +1714,24 @@ export type UserCreateWithoutStatusChangesInput = {
   classificationsMade?: Prisma.ClassificationCreateNestedManyWithoutClassifiedByInput
   reviewsAssigned?: Prisma.ReviewCreateNestedManyWithoutReviewerInput
   panelMemberships?: Prisma.PanelMemberCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftCreateNestedManyWithoutApprovedByInput
 }
 
 export type UserUncheckedCreateWithoutStatusChangesInput = {
   id?: number
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -876,6 +1741,11 @@ export type UserUncheckedCreateWithoutStatusChangesInput = {
   classificationsMade?: Prisma.ClassificationUncheckedCreateNestedManyWithoutClassifiedByInput
   reviewsAssigned?: Prisma.ReviewUncheckedCreateNestedManyWithoutReviewerInput
   panelMemberships?: Prisma.PanelMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutApprovedByInput
 }
 
 export type UserCreateOrConnectWithoutStatusChangesInput = {
@@ -897,6 +1767,13 @@ export type UserUpdateToOneWithWhereWithoutStatusChangesInput = {
 export type UserUpdateWithoutStatusChangesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -906,12 +1783,24 @@ export type UserUpdateWithoutStatusChangesInput = {
   classificationsMade?: Prisma.ClassificationUpdateManyWithoutClassifiedByNestedInput
   reviewsAssigned?: Prisma.ReviewUpdateManyWithoutReviewerNestedInput
   panelMemberships?: Prisma.PanelMemberUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUpdateManyWithoutApprovedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutStatusChangesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -921,11 +1810,23 @@ export type UserUncheckedUpdateWithoutStatusChangesInput = {
   classificationsMade?: Prisma.ClassificationUncheckedUpdateManyWithoutClassifiedByNestedInput
   reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
   panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedUpdateManyWithoutApprovedByNestedInput
 }
 
 export type UserCreateWithoutReviewsAssignedInput = {
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -935,12 +1836,24 @@ export type UserCreateWithoutReviewsAssignedInput = {
   classificationsMade?: Prisma.ClassificationCreateNestedManyWithoutClassifiedByInput
   statusChanges?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutChangedByInput
   panelMemberships?: Prisma.PanelMemberCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftCreateNestedManyWithoutApprovedByInput
 }
 
 export type UserUncheckedCreateWithoutReviewsAssignedInput = {
   id?: number
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -950,6 +1863,11 @@ export type UserUncheckedCreateWithoutReviewsAssignedInput = {
   classificationsMade?: Prisma.ClassificationUncheckedCreateNestedManyWithoutClassifiedByInput
   statusChanges?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
   panelMemberships?: Prisma.PanelMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutApprovedByInput
 }
 
 export type UserCreateOrConnectWithoutReviewsAssignedInput = {
@@ -971,6 +1889,13 @@ export type UserUpdateToOneWithWhereWithoutReviewsAssignedInput = {
 export type UserUpdateWithoutReviewsAssignedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -980,12 +1905,24 @@ export type UserUpdateWithoutReviewsAssignedInput = {
   classificationsMade?: Prisma.ClassificationUpdateManyWithoutClassifiedByNestedInput
   statusChanges?: Prisma.SubmissionStatusHistoryUpdateManyWithoutChangedByNestedInput
   panelMemberships?: Prisma.PanelMemberUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUpdateManyWithoutApprovedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewsAssignedInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -995,11 +1932,23 @@ export type UserUncheckedUpdateWithoutReviewsAssignedInput = {
   classificationsMade?: Prisma.ClassificationUncheckedUpdateManyWithoutClassifiedByNestedInput
   statusChanges?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedUpdateManyWithoutApprovedByNestedInput
 }
 
-export type UserCreateWithoutPanelMembershipsInput = {
+export type UserCreateWithoutLetterDraftsGeneratedInput = {
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1009,12 +1958,24 @@ export type UserCreateWithoutPanelMembershipsInput = {
   classificationsMade?: Prisma.ClassificationCreateNestedManyWithoutClassifiedByInput
   reviewsAssigned?: Prisma.ReviewCreateNestedManyWithoutReviewerInput
   statusChanges?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsApproved?: Prisma.LetterDraftCreateNestedManyWithoutApprovedByInput
 }
 
-export type UserUncheckedCreateWithoutPanelMembershipsInput = {
+export type UserUncheckedCreateWithoutLetterDraftsGeneratedInput = {
   id?: number
   email: string
   fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1024,6 +1985,255 @@ export type UserUncheckedCreateWithoutPanelMembershipsInput = {
   classificationsMade?: Prisma.ClassificationUncheckedCreateNestedManyWithoutClassifiedByInput
   reviewsAssigned?: Prisma.ReviewUncheckedCreateNestedManyWithoutReviewerInput
   statusChanges?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutApprovedByInput
+}
+
+export type UserCreateOrConnectWithoutLetterDraftsGeneratedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutLetterDraftsGeneratedInput, Prisma.UserUncheckedCreateWithoutLetterDraftsGeneratedInput>
+}
+
+export type UserCreateWithoutLetterDraftsApprovedInput = {
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
+  submissionsCreated?: Prisma.SubmissionCreateNestedManyWithoutCreatedByInput
+  classificationsMade?: Prisma.ClassificationCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftCreateNestedManyWithoutGeneratedByInput
+}
+
+export type UserUncheckedCreateWithoutLetterDraftsApprovedInput = {
+  id?: number
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
+  submissionsCreated?: Prisma.SubmissionUncheckedCreateNestedManyWithoutCreatedByInput
+  classificationsMade?: Prisma.ClassificationUncheckedCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewUncheckedCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutGeneratedByInput
+}
+
+export type UserCreateOrConnectWithoutLetterDraftsApprovedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutLetterDraftsApprovedInput, Prisma.UserUncheckedCreateWithoutLetterDraftsApprovedInput>
+}
+
+export type UserUpsertWithoutLetterDraftsGeneratedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutLetterDraftsGeneratedInput, Prisma.UserUncheckedUpdateWithoutLetterDraftsGeneratedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutLetterDraftsGeneratedInput, Prisma.UserUncheckedCreateWithoutLetterDraftsGeneratedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutLetterDraftsGeneratedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutLetterDraftsGeneratedInput, Prisma.UserUncheckedUpdateWithoutLetterDraftsGeneratedInput>
+}
+
+export type UserUpdateWithoutLetterDraftsGeneratedInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUpdateManyWithoutCreatedByNestedInput
+  classificationsMade?: Prisma.ClassificationUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUpdateManyWithoutChangedByNestedInput
+  panelMemberships?: Prisma.PanelMemberUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUpdateManyWithoutApprovedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutLetterDraftsGeneratedInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  classificationsMade?: Prisma.ClassificationUncheckedUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedUpdateManyWithoutApprovedByNestedInput
+}
+
+export type UserUpsertWithoutLetterDraftsApprovedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutLetterDraftsApprovedInput, Prisma.UserUncheckedUpdateWithoutLetterDraftsApprovedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutLetterDraftsApprovedInput, Prisma.UserUncheckedCreateWithoutLetterDraftsApprovedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutLetterDraftsApprovedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutLetterDraftsApprovedInput, Prisma.UserUncheckedUpdateWithoutLetterDraftsApprovedInput>
+}
+
+export type UserUpdateWithoutLetterDraftsApprovedInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUpdateManyWithoutCreatedByNestedInput
+  classificationsMade?: Prisma.ClassificationUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUpdateManyWithoutChangedByNestedInput
+  panelMemberships?: Prisma.PanelMemberUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUpdateManyWithoutGeneratedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutLetterDraftsApprovedInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  classificationsMade?: Prisma.ClassificationUncheckedUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedUpdateManyWithoutGeneratedByNestedInput
+}
+
+export type UserCreateWithoutPanelMembershipsInput = {
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
+  submissionsCreated?: Prisma.SubmissionCreateNestedManyWithoutCreatedByInput
+  classificationsMade?: Prisma.ClassificationCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutChangedByInput
+  assignedSubmissions?: Prisma.SubmissionCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftCreateNestedManyWithoutApprovedByInput
+}
+
+export type UserUncheckedCreateWithoutPanelMembershipsInput = {
+  id?: number
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
+  submissionsCreated?: Prisma.SubmissionUncheckedCreateNestedManyWithoutCreatedByInput
+  classificationsMade?: Prisma.ClassificationUncheckedCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewUncheckedCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutApprovedByInput
 }
 
 export type UserCreateOrConnectWithoutPanelMembershipsInput = {
@@ -1045,6 +2255,13 @@ export type UserUpdateToOneWithWhereWithoutPanelMembershipsInput = {
 export type UserUpdateWithoutPanelMembershipsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1054,12 +2271,24 @@ export type UserUpdateWithoutPanelMembershipsInput = {
   classificationsMade?: Prisma.ClassificationUpdateManyWithoutClassifiedByNestedInput
   reviewsAssigned?: Prisma.ReviewUpdateManyWithoutReviewerNestedInput
   statusChanges?: Prisma.SubmissionStatusHistoryUpdateManyWithoutChangedByNestedInput
+  assignedSubmissions?: Prisma.SubmissionUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUpdateManyWithoutApprovedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPanelMembershipsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1069,6 +2298,11 @@ export type UserUncheckedUpdateWithoutPanelMembershipsInput = {
   classificationsMade?: Prisma.ClassificationUncheckedUpdateManyWithoutClassifiedByNestedInput
   reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
   statusChanges?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedUpdateManyWithoutApprovedByNestedInput
 }
 
 
@@ -1084,6 +2318,11 @@ export type UserCountOutputType = {
   reviewsAssigned: number
   statusChanges: number
   panelMemberships: number
+  assignedSubmissions: number
+  projectChanges: number
+  submissionChanges: number
+  letterDraftsGenerated: number
+  letterDraftsApproved: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1094,6 +2333,11 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   reviewsAssigned?: boolean | UserCountOutputTypeCountReviewsAssignedArgs
   statusChanges?: boolean | UserCountOutputTypeCountStatusChangesArgs
   panelMemberships?: boolean | UserCountOutputTypeCountPanelMembershipsArgs
+  assignedSubmissions?: boolean | UserCountOutputTypeCountAssignedSubmissionsArgs
+  projectChanges?: boolean | UserCountOutputTypeCountProjectChangesArgs
+  submissionChanges?: boolean | UserCountOutputTypeCountSubmissionChangesArgs
+  letterDraftsGenerated?: boolean | UserCountOutputTypeCountLetterDraftsGeneratedArgs
+  letterDraftsApproved?: boolean | UserCountOutputTypeCountLetterDraftsApprovedArgs
 }
 
 /**
@@ -1155,11 +2399,53 @@ export type UserCountOutputTypeCountPanelMembershipsArgs<ExtArgs extends runtime
   where?: Prisma.PanelMemberWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAssignedSubmissionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SubmissionWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountProjectChangesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProjectChangeLogWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSubmissionChangesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SubmissionChangeLogWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountLetterDraftsGeneratedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LetterDraftWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountLetterDraftsApprovedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LetterDraftWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   email?: boolean
   fullName?: boolean
+  passwordHash?: boolean
+  passwordResetToken?: boolean
+  passwordResetExpiresAt?: boolean
+  lastLoginAt?: boolean
+  lastLoginIp?: boolean
+  isCommonReviewer?: boolean
+  reviewerExpertise?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1170,6 +2456,11 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   reviewsAssigned?: boolean | Prisma.User$reviewsAssignedArgs<ExtArgs>
   statusChanges?: boolean | Prisma.User$statusChangesArgs<ExtArgs>
   panelMemberships?: boolean | Prisma.User$panelMembershipsArgs<ExtArgs>
+  assignedSubmissions?: boolean | Prisma.User$assignedSubmissionsArgs<ExtArgs>
+  projectChanges?: boolean | Prisma.User$projectChangesArgs<ExtArgs>
+  submissionChanges?: boolean | Prisma.User$submissionChangesArgs<ExtArgs>
+  letterDraftsGenerated?: boolean | Prisma.User$letterDraftsGeneratedArgs<ExtArgs>
+  letterDraftsApproved?: boolean | Prisma.User$letterDraftsApprovedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1177,6 +2468,13 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   email?: boolean
   fullName?: boolean
+  passwordHash?: boolean
+  passwordResetToken?: boolean
+  passwordResetExpiresAt?: boolean
+  lastLoginAt?: boolean
+  lastLoginIp?: boolean
+  isCommonReviewer?: boolean
+  reviewerExpertise?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1186,6 +2484,13 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   email?: boolean
   fullName?: boolean
+  passwordHash?: boolean
+  passwordResetToken?: boolean
+  passwordResetExpiresAt?: boolean
+  lastLoginAt?: boolean
+  lastLoginIp?: boolean
+  isCommonReviewer?: boolean
+  reviewerExpertise?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1195,12 +2500,19 @@ export type UserSelectScalar = {
   id?: boolean
   email?: boolean
   fullName?: boolean
+  passwordHash?: boolean
+  passwordResetToken?: boolean
+  passwordResetExpiresAt?: boolean
+  lastLoginAt?: boolean
+  lastLoginIp?: boolean
+  isCommonReviewer?: boolean
+  reviewerExpertise?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "fullName" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "fullName" | "passwordHash" | "passwordResetToken" | "passwordResetExpiresAt" | "lastLoginAt" | "lastLoginIp" | "isCommonReviewer" | "reviewerExpertise" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   committeeMemberships?: boolean | Prisma.User$committeeMembershipsArgs<ExtArgs>
   projectsCreated?: boolean | Prisma.User$projectsCreatedArgs<ExtArgs>
@@ -1209,6 +2521,11 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   reviewsAssigned?: boolean | Prisma.User$reviewsAssignedArgs<ExtArgs>
   statusChanges?: boolean | Prisma.User$statusChangesArgs<ExtArgs>
   panelMemberships?: boolean | Prisma.User$panelMembershipsArgs<ExtArgs>
+  assignedSubmissions?: boolean | Prisma.User$assignedSubmissionsArgs<ExtArgs>
+  projectChanges?: boolean | Prisma.User$projectChangesArgs<ExtArgs>
+  submissionChanges?: boolean | Prisma.User$submissionChangesArgs<ExtArgs>
+  letterDraftsGenerated?: boolean | Prisma.User$letterDraftsGeneratedArgs<ExtArgs>
+  letterDraftsApproved?: boolean | Prisma.User$letterDraftsApprovedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1224,11 +2541,23 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     reviewsAssigned: Prisma.$ReviewPayload<ExtArgs>[]
     statusChanges: Prisma.$SubmissionStatusHistoryPayload<ExtArgs>[]
     panelMemberships: Prisma.$PanelMemberPayload<ExtArgs>[]
+    assignedSubmissions: Prisma.$SubmissionPayload<ExtArgs>[]
+    projectChanges: Prisma.$ProjectChangeLogPayload<ExtArgs>[]
+    submissionChanges: Prisma.$SubmissionChangeLogPayload<ExtArgs>[]
+    letterDraftsGenerated: Prisma.$LetterDraftPayload<ExtArgs>[]
+    letterDraftsApproved: Prisma.$LetterDraftPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     email: string
     fullName: string
+    passwordHash: string | null
+    passwordResetToken: string | null
+    passwordResetExpiresAt: Date | null
+    lastLoginAt: Date | null
+    lastLoginIp: string | null
+    isCommonReviewer: boolean
+    reviewerExpertise: string[]
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -1633,6 +2962,11 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   reviewsAssigned<T extends Prisma.User$reviewsAssignedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewsAssignedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   statusChanges<T extends Prisma.User$statusChangesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$statusChangesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubmissionStatusHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   panelMemberships<T extends Prisma.User$panelMembershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$panelMembershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PanelMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  assignedSubmissions<T extends Prisma.User$assignedSubmissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$assignedSubmissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  projectChanges<T extends Prisma.User$projectChangesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectChangesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectChangeLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  submissionChanges<T extends Prisma.User$submissionChangesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$submissionChangesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubmissionChangeLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  letterDraftsGenerated<T extends Prisma.User$letterDraftsGeneratedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$letterDraftsGeneratedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LetterDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  letterDraftsApproved<T extends Prisma.User$letterDraftsApprovedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$letterDraftsApprovedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LetterDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1665,6 +2999,13 @@ export interface UserFieldRefs {
   readonly id: Prisma.FieldRef<"User", 'Int'>
   readonly email: Prisma.FieldRef<"User", 'String'>
   readonly fullName: Prisma.FieldRef<"User", 'String'>
+  readonly passwordHash: Prisma.FieldRef<"User", 'String'>
+  readonly passwordResetToken: Prisma.FieldRef<"User", 'String'>
+  readonly passwordResetExpiresAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly lastLoginAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly lastLoginIp: Prisma.FieldRef<"User", 'String'>
+  readonly isCommonReviewer: Prisma.FieldRef<"User", 'Boolean'>
+  readonly reviewerExpertise: Prisma.FieldRef<"User", 'String[]'>
   readonly isActive: Prisma.FieldRef<"User", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
@@ -2221,6 +3562,126 @@ export type User$panelMembershipsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.PanelMemberScalarFieldEnum | Prisma.PanelMemberScalarFieldEnum[]
+}
+
+/**
+ * User.assignedSubmissions
+ */
+export type User$assignedSubmissionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Submission
+   */
+  select?: Prisma.SubmissionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Submission
+   */
+  omit?: Prisma.SubmissionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SubmissionInclude<ExtArgs> | null
+  where?: Prisma.SubmissionWhereInput
+  orderBy?: Prisma.SubmissionOrderByWithRelationInput | Prisma.SubmissionOrderByWithRelationInput[]
+  cursor?: Prisma.SubmissionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SubmissionScalarFieldEnum | Prisma.SubmissionScalarFieldEnum[]
+}
+
+/**
+ * User.projectChanges
+ */
+export type User$projectChangesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProjectChangeLog
+   */
+  select?: Prisma.ProjectChangeLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProjectChangeLog
+   */
+  omit?: Prisma.ProjectChangeLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectChangeLogInclude<ExtArgs> | null
+  where?: Prisma.ProjectChangeLogWhereInput
+  orderBy?: Prisma.ProjectChangeLogOrderByWithRelationInput | Prisma.ProjectChangeLogOrderByWithRelationInput[]
+  cursor?: Prisma.ProjectChangeLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProjectChangeLogScalarFieldEnum | Prisma.ProjectChangeLogScalarFieldEnum[]
+}
+
+/**
+ * User.submissionChanges
+ */
+export type User$submissionChangesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SubmissionChangeLog
+   */
+  select?: Prisma.SubmissionChangeLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SubmissionChangeLog
+   */
+  omit?: Prisma.SubmissionChangeLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SubmissionChangeLogInclude<ExtArgs> | null
+  where?: Prisma.SubmissionChangeLogWhereInput
+  orderBy?: Prisma.SubmissionChangeLogOrderByWithRelationInput | Prisma.SubmissionChangeLogOrderByWithRelationInput[]
+  cursor?: Prisma.SubmissionChangeLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SubmissionChangeLogScalarFieldEnum | Prisma.SubmissionChangeLogScalarFieldEnum[]
+}
+
+/**
+ * User.letterDraftsGenerated
+ */
+export type User$letterDraftsGeneratedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LetterDraft
+   */
+  select?: Prisma.LetterDraftSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the LetterDraft
+   */
+  omit?: Prisma.LetterDraftOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LetterDraftInclude<ExtArgs> | null
+  where?: Prisma.LetterDraftWhereInput
+  orderBy?: Prisma.LetterDraftOrderByWithRelationInput | Prisma.LetterDraftOrderByWithRelationInput[]
+  cursor?: Prisma.LetterDraftWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.LetterDraftScalarFieldEnum | Prisma.LetterDraftScalarFieldEnum[]
+}
+
+/**
+ * User.letterDraftsApproved
+ */
+export type User$letterDraftsApprovedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LetterDraft
+   */
+  select?: Prisma.LetterDraftSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the LetterDraft
+   */
+  omit?: Prisma.LetterDraftOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LetterDraftInclude<ExtArgs> | null
+  where?: Prisma.LetterDraftWhereInput
+  orderBy?: Prisma.LetterDraftOrderByWithRelationInput | Prisma.LetterDraftOrderByWithRelationInput[]
+  cursor?: Prisma.LetterDraftWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.LetterDraftScalarFieldEnum | Prisma.LetterDraftScalarFieldEnum[]
 }
 
 /**

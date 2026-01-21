@@ -1,5 +1,37 @@
 import axios from "axios";
 
+// Re-export all types from the types module for backward compatibility
+export type {
+  QueueType,
+  SLAStatus,
+  StageFilter,
+  QueueCounts,
+  QueueItem,
+  DecoratedQueueItem,
+  AttentionMetrics,
+  DashboardActivityEntry,
+  OverdueReviewItem,
+  ProjectSearchResult,
+  LetterTemplateReadiness,
+  StatusHistoryEntry,
+  SubmissionDetail,
+  ProjectDetail,
+  SubmissionSlaSummary,
+  CommitteeSummary,
+} from "@/types";
+
+import type {
+  QueueItem,
+  QueueType,
+  ProjectDetail,
+  SubmissionDetail,
+  SubmissionSlaSummary,
+  DashboardActivityEntry,
+  OverdueReviewItem,
+  ProjectSearchResult,
+  CommitteeSummary,
+} from "@/types";
+
 // Minimal process typing so Vite builds without Node typings
 declare const process: { env?: Record<string, string | undefined> };
 
@@ -15,179 +47,6 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
-
-// Add auth token to requests if it exists
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("authToken");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-export type QueueType = "classification" | "review" | "revision";
-export type SLAStatus = "ON_TRACK" | "DUE_SOON" | "OVERDUE";
-export type StageFilter =
-  | "ALL"
-  | "RECEIVED"
-  | "COMPLETENESS"
-  | "CLASSIFICATION"
-  | "UNDER_REVIEW"
-  | "REVISIONS"
-  | "DUE_SOON"
-  | "OVERDUE"
-  | "CLOSED";
-
-export interface QueueCounts {
-  forClassification: number;
-  forReview: number;
-  awaitingRevisions: number;
-  completed: number;
-  dueSoon?: number;
-  overdue?: number;
-  missingLetterFields?: number;
-  classificationStuck?: number;
-}
-
-export interface QueueItem {
-  id: number;
-  projectId?: number;
-  projectCode: string;
-  projectTitle: string;
-  piName: string;
-  piAffiliation?: string | null;
-  piEmail?: string | null;
-  submissionType: string;
-  status: string;
-  receivedDate: string;
-  daysRemaining?: number;
-  reviewType?: string | null;
-  finalDecision?: string | null;
-  queue?: QueueType;
-}
-
-export interface DecoratedQueueItem extends QueueItem {
-  queue: QueueType;
-  slaStatus: SLAStatus;
-  workingDaysRemaining: number;
-  workingDaysElapsed: number;
-  slaDueDate: string;
-  targetWorkingDays: number;
-  startedAt: string;
-  missingFields: string[];
-  templateCode: string;
-  nextAction?: string;
-  lastAction?: string;
-  notes?: string;
-}
-
-export interface AttentionMetrics {
-  overdue: number;
-  dueSoon: number;
-  classificationWait: number;
-  missingLetterFields: number;
-}
-
-export interface LetterTemplateReadiness {
-  templateCode: string;
-  ready: number;
-  missingFields: number;
-  samples: Array<{
-    submissionId: number;
-    projectCode: string;
-    projectTitle: string;
-    fields: string[];
-  }>;
-}
-
-export interface StatusHistoryEntry {
-  id: number;
-  oldStatus: string | null;
-  newStatus: string;
-  effectiveDate: string;
-  reason: string | null;
-  changedBy: {
-    fullName: string;
-    email: string;
-  } | null;
-}
-
-export interface SubmissionDetail {
-  id: number;
-  submissionType: string;
-  status: string;
-  receivedDate: string;
-  finalDecision: string | null;
-  finalDecisionDate: string | null;
-  statusHistory: StatusHistoryEntry[];
-  classification?: {
-    reviewType: string | null;
-    classificationDate: string | null;
-    rationale?: string | null;
-  } | null;
-  project?: {
-    id: number;
-    projectCode: string;
-    title: string;
-    piName: string;
-    piAffiliation?: string | null;
-    committee?: {
-      id: number;
-      code: string;
-      name: string;
-    } | null;
-    approvalStartDate?: string | null;
-    approvalEndDate?: string | null;
-  } | null;
-}
-
-export interface ProjectDetail {
-  id: number;
-  projectCode: string;
-  title: string;
-  piName: string;
-  piAffiliation: string;
-  fundingType: string;
-  overallStatus: string;
-  approvalStartDate: string | null;
-  approvalEndDate: string | null;
-  committee: {
-    id: number;
-    name: string;
-    code: string;
-  };
-  submissions: SubmissionDetail[];
-}
-
-export interface SubmissionSlaSummary {
-  submissionId: number;
-  committeeCode: string;
-  reviewType: string | null;
-  classification: {
-    start: string;
-    end: string;
-    configuredWorkingDays: number | null;
-    actualWorkingDays: number | null;
-    withinSla: boolean | null;
-    description: string | null;
-  };
-  review: {
-    start: string | null;
-    end: string | null;
-    configuredWorkingDays: number | null;
-    actualWorkingDays: number | null;
-    withinSla: boolean | null;
-    description: string | null;
-  };
-  revisionResponse: {
-    start: string | null;
-    end: string | null;
-    configuredWorkingDays: number | null;
-    actualWorkingDays: number | null;
-    withinSla: boolean | null;
-    description: string | null;
-  };
-}
 
 /**
  * Fetch queues for a specific committee
@@ -206,6 +65,7 @@ export async function fetchDashboardQueues(committeeCode: string) {
       projectTitle: item.project?.title || "N/A",
       piName: item.project?.piName || "N/A",
       piAffiliation: item.project?.piAffiliation,
+      staffInChargeName: item.staffInCharge?.fullName ?? null,
       submissionType: item.submissionType,
       status: item.status,
       receivedDate: item.receivedDate,
@@ -229,6 +89,45 @@ export async function fetchDashboardQueues(committeeCode: string) {
   };
 }
 
+export async function fetchDashboardActivity(
+  committeeCode: string,
+  limit = 8
+) {
+  const response = await api.get(
+    `/dashboard/activity?committeeCode=${committeeCode}&limit=${limit}`
+  );
+  return response.data as {
+    committeeCode: string;
+    items: DashboardActivityEntry[];
+  };
+}
+
+export async function fetchDashboardOverdue(committeeCode: string) {
+  const response = await api.get(
+    `/dashboard/overdue?committeeCode=${committeeCode}`
+  );
+  return response.data as {
+    committeeCode: string;
+    overdueReviews: OverdueReviewItem[];
+    overdueEndorsements: OverdueReviewItem[];
+  };
+}
+
+export async function searchProjects(
+  query: string,
+  committeeCode?: string,
+  limit = 8
+) {
+  const params = new URLSearchParams();
+  params.set("q", query);
+  params.set("limit", String(limit));
+  if (committeeCode) {
+    params.set("committeeCode", committeeCode);
+  }
+  const response = await api.get(`/projects/search?${params.toString()}`);
+  return response.data as { items: ProjectSearchResult[] };
+}
+
 /**
  * Fetch project details with full submission history
  */
@@ -242,9 +141,34 @@ export async function fetchSubmissionDetail(submissionId: number) {
   return response.data as SubmissionDetail;
 }
 
+export async function updateSubmissionOverview(
+  submissionId: number,
+  payload: {
+    submissionType?: string;
+    receivedDate?: string;
+    status?: string;
+    finalDecision?: string | null;
+    finalDecisionDate?: string | null;
+    piName?: string;
+    committeeId?: number;
+    changeReason?: string;
+  }
+) {
+  const response = await api.patch(
+    `/submissions/${submissionId}/overview`,
+    payload
+  );
+  return response.data as SubmissionDetail;
+}
+
 export async function fetchSubmissionSlaSummary(submissionId: number) {
   const response = await api.get(`/submissions/${submissionId}/sla-summary`);
   return response.data as SubmissionSlaSummary;
+}
+
+export async function fetchCommittees() {
+  const response = await api.get("/committees");
+  return response.data as CommitteeSummary[];
 }
 
 /**

@@ -1,5 +1,5 @@
 import React from "react";
-import { LetterTemplateReadiness } from "@/services/api";
+import type { LetterTemplateReadiness } from "@/types";
 import { EmptyState } from "./EmptyState";
 
 interface LetterReadinessPanelProps {

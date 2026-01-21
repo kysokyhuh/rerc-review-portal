@@ -1,5 +1,5 @@
 import React from "react";
-import { QueueCounts } from "@/services/api";
+import type { QueueCounts } from "@/types";
 
 interface SummaryCardsProps {
   counts: QueueCounts | null;

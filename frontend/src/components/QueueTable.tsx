@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { DecoratedQueueItem } from "@/services/api";
+import type { DecoratedQueueItem } from "@/types";
 import { formatDateDisplay } from "@/utils/dateUtils";
 import { SLAStatusChip } from "./SLAStatusChip";
 import { EmptyState } from "./EmptyState";

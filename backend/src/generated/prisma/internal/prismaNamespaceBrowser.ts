@@ -56,10 +56,19 @@ export const ModelName = {
   Panel: 'Panel',
   CommitteeMember: 'CommitteeMember',
   Project: 'Project',
+  Proponent: 'Proponent',
+  ProjectProponent: 'ProjectProponent',
+  ProjectMember: 'ProjectMember',
+  ProjectChangeLog: 'ProjectChangeLog',
   Submission: 'Submission',
+  SubmissionChangeLog: 'SubmissionChangeLog',
   Classification: 'Classification',
   SubmissionStatusHistory: 'SubmissionStatusHistory',
   Review: 'Review',
+  SubmissionDocument: 'SubmissionDocument',
+  Holiday: 'Holiday',
+  LetterDraft: 'LetterDraft',
+  ContractPeriod: 'ContractPeriod',
   PanelMember: 'PanelMember',
   ConfigSLA: 'ConfigSLA',
   WorkflowEvent: 'WorkflowEvent'
@@ -85,6 +94,13 @@ export const UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
   fullName: 'fullName',
+  passwordHash: 'passwordHash',
+  passwordResetToken: 'passwordResetToken',
+  passwordResetExpiresAt: 'passwordResetExpiresAt',
+  lastLoginAt: 'lastLoginAt',
+  lastLoginIp: 'lastLoginIp',
+  isCommonReviewer: 'isCommonReviewer',
+  reviewerExpertise: 'reviewerExpertise',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -134,13 +150,17 @@ export const ProjectScalarFieldEnum = {
   projectCode: 'projectCode',
   title: 'title',
   piName: 'piName',
+  piSurname: 'piSurname',
   piAffiliation: 'piAffiliation',
   department: 'department',
   proponent: 'proponent',
+  keywords: 'keywords',
   researchTypePHREB: 'researchTypePHREB',
   researchTypePHREBOther: 'researchTypePHREBOther',
   fundingType: 'fundingType',
   initialSubmissionDate: 'initialSubmissionDate',
+  proposedStartDate: 'proposedStartDate',
+  proposedEndDate: 'proposedEndDate',
   committeeId: 'committeeId',
   overallStatus: 'overallStatus',
   approvalStartDate: 'approvalStartDate',
@@ -152,6 +172,59 @@ export const ProjectScalarFieldEnum = {
 } as const
 
 export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
+
+
+export const ProponentScalarFieldEnum = {
+  id: 'id',
+  printedName: 'printedName',
+  signature: 'signature',
+  email: 'email',
+  affiliation: 'affiliation',
+  phone: 'phone',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProponentScalarFieldEnum = (typeof ProponentScalarFieldEnum)[keyof typeof ProponentScalarFieldEnum]
+
+
+export const ProjectProponentScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  proponentId: 'proponentId',
+  role: 'role',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectProponentScalarFieldEnum = (typeof ProjectProponentScalarFieldEnum)[keyof typeof ProjectProponentScalarFieldEnum]
+
+
+export const ProjectMemberScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  fullName: 'fullName',
+  role: 'role',
+  email: 'email',
+  affiliation: 'affiliation',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectMemberScalarFieldEnum = (typeof ProjectMemberScalarFieldEnum)[keyof typeof ProjectMemberScalarFieldEnum]
+
+
+export const ProjectChangeLogScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  fieldName: 'fieldName',
+  oldValue: 'oldValue',
+  newValue: 'newValue',
+  reason: 'reason',
+  sourceSubmissionId: 'sourceSubmissionId',
+  changedById: 'changedById',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectChangeLogScalarFieldEnum = (typeof ProjectChangeLogScalarFieldEnum)[keyof typeof ProjectChangeLogScalarFieldEnum]
 
 
 export const SubmissionScalarFieldEnum = {
@@ -172,10 +245,25 @@ export const SubmissionScalarFieldEnum = {
   remarks: 'remarks',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  createdById: 'createdById'
+  createdById: 'createdById',
+  staffInChargeId: 'staffInChargeId'
 } as const
 
 export type SubmissionScalarFieldEnum = (typeof SubmissionScalarFieldEnum)[keyof typeof SubmissionScalarFieldEnum]
+
+
+export const SubmissionChangeLogScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  fieldName: 'fieldName',
+  oldValue: 'oldValue',
+  newValue: 'newValue',
+  reason: 'reason',
+  changedById: 'changedById',
+  createdAt: 'createdAt'
+} as const
+
+export type SubmissionChangeLogScalarFieldEnum = (typeof SubmissionChangeLogScalarFieldEnum)[keyof typeof SubmissionChangeLogScalarFieldEnum]
 
 
 export const ClassificationScalarFieldEnum = {
@@ -185,6 +273,8 @@ export const ClassificationScalarFieldEnum = {
   classificationDate: 'classificationDate',
   panelId: 'panelId',
   rationale: 'rationale',
+  missingDocuments: 'missingDocuments',
+  clarificationsNeeded: 'clarificationsNeeded',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   classifiedById: 'classifiedById'
@@ -215,7 +305,11 @@ export const ReviewScalarFieldEnum = {
   reviewerRole: 'reviewerRole',
   honorariumStatus: 'honorariumStatus',
   assignedAt: 'assignedAt',
+  receivedAt: 'receivedAt',
+  dueDate: 'dueDate',
   respondedAt: 'respondedAt',
+  endorsementStatus: 'endorsementStatus',
+  endorsementReceivedAt: 'endorsementReceivedAt',
   decision: 'decision',
   remarks: 'remarks',
   createdAt: 'createdAt',
@@ -223,6 +317,64 @@ export const ReviewScalarFieldEnum = {
 } as const
 
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
+
+
+export const SubmissionDocumentScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  type: 'type',
+  title: 'title',
+  status: 'status',
+  documentUrl: 'documentUrl',
+  notes: 'notes',
+  receivedAt: 'receivedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SubmissionDocumentScalarFieldEnum = (typeof SubmissionDocumentScalarFieldEnum)[keyof typeof SubmissionDocumentScalarFieldEnum]
+
+
+export const HolidayScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  name: 'name',
+  createdAt: 'createdAt'
+} as const
+
+export type HolidayScalarFieldEnum = (typeof HolidayScalarFieldEnum)[keyof typeof HolidayScalarFieldEnum]
+
+
+export const LetterDraftScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  templateCode: 'templateCode',
+  status: 'status',
+  content: 'content',
+  fileUrl: 'fileUrl',
+  notes: 'notes',
+  generatedById: 'generatedById',
+  approvedById: 'approvedById',
+  approvedAt: 'approvedAt',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LetterDraftScalarFieldEnum = (typeof LetterDraftScalarFieldEnum)[keyof typeof LetterDraftScalarFieldEnum]
+
+
+export const ContractPeriodScalarFieldEnum = {
+  id: 'id',
+  committeeId: 'committeeId',
+  name: 'name',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  isActive: 'isActive',
+  createdAt: 'createdAt'
+} as const
+
+export type ContractPeriodScalarFieldEnum = (typeof ContractPeriodScalarFieldEnum)[keyof typeof ContractPeriodScalarFieldEnum]
 
 
 export const PanelMemberScalarFieldEnum = {
@@ -274,6 +426,14 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: 'DbNull',
+  JsonNull: 'JsonNull'
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -288,4 +448,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: 'DbNull',
+  JsonNull: 'JsonNull',
+  AnyNull: 'AnyNull'
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

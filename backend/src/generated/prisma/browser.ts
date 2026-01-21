@@ -43,10 +43,35 @@ export type CommitteeMember = Prisma.CommitteeMemberModel
  */
 export type Project = Prisma.ProjectModel
 /**
+ * Model Proponent
+ * 
+ */
+export type Proponent = Prisma.ProponentModel
+/**
+ * Model ProjectProponent
+ * 
+ */
+export type ProjectProponent = Prisma.ProjectProponentModel
+/**
+ * Model ProjectMember
+ * 
+ */
+export type ProjectMember = Prisma.ProjectMemberModel
+/**
+ * Model ProjectChangeLog
+ * 
+ */
+export type ProjectChangeLog = Prisma.ProjectChangeLogModel
+/**
  * Model Submission
  * 
  */
 export type Submission = Prisma.SubmissionModel
+/**
+ * Model SubmissionChangeLog
+ * 
+ */
+export type SubmissionChangeLog = Prisma.SubmissionChangeLogModel
 /**
  * Model Classification
  * 
@@ -62,6 +87,26 @@ export type SubmissionStatusHistory = Prisma.SubmissionStatusHistoryModel
  * 
  */
 export type Review = Prisma.ReviewModel
+/**
+ * Model SubmissionDocument
+ * 
+ */
+export type SubmissionDocument = Prisma.SubmissionDocumentModel
+/**
+ * Model Holiday
+ * 
+ */
+export type Holiday = Prisma.HolidayModel
+/**
+ * Model LetterDraft
+ * 
+ */
+export type LetterDraft = Prisma.LetterDraftModel
+/**
+ * Model ContractPeriod
+ * 
+ */
+export type ContractPeriod = Prisma.ContractPeriodModel
 /**
  * Model PanelMember
  * 

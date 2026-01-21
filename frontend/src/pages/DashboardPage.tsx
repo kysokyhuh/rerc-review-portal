@@ -6,8 +6,7 @@ import { QueueTable } from "@/components/QueueTable";
 import { CommandBar } from "@/components/CommandBar";
 import { AttentionStrip } from "@/components/AttentionStrip";
 import { LetterReadinessPanel } from "@/components/LetterReadinessPanel";
-import { DecoratedQueueItem, StageFilter, QueueCounts } from "@/services/api";
-import "../styles/globals.css";
+import type { DecoratedQueueItem, StageFilter, QueueCounts } from "@/types";
 
 function matchesStage(item: DecoratedQueueItem, stage: StageFilter) {
   const status = item.status.toUpperCase();

@@ -1,5 +1,5 @@
 import React from "react";
-import { StageFilter } from "@/services/api";
+import type { StageFilter } from "@/types";
 import { formatTimeAgo } from "@/utils/dateUtils";
 
 interface CommandBarProps {

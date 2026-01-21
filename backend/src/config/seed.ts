@@ -1,6 +1,18 @@
 import "dotenv/config";
 import prisma from "./prismaClient";
-import { RoleType, ReviewType, SLAStage } from "../generated/prisma/client";
+import {
+  EndorsementStatus,
+  LetterDraftStatus,
+  ProjectMemberRole,
+  ReviewType,
+  ReviewerRoleType,
+  RoleType,
+  SLAStage,
+  SubmissionDocumentStatus,
+  SubmissionDocumentType,
+  SubmissionStatus,
+  SubmissionType,
+} from "../generated/prisma/client";
 
 async function main() {
   // 1) Ensure a Research Associate user exists
@@ -328,6 +340,436 @@ async function main() {
 
     console.log("Seeded demo projects/submissions for dashboard queues");
   }
+
+  // --- Dashboard mock data (idempotent) ---
+  const daysAgo = (days: number) =>
+    new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const daysFromNow = (days: number) =>
+    new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  const workingDaysAgo = (days: number) => {
+    const date = new Date();
+    let remaining = days;
+    while (remaining > 0) {
+      date.setDate(date.getDate() - 1);
+      const day = date.getDay();
+      if (day !== 0 && day !== 6) {
+        remaining -= 1;
+      }
+    }
+    return date;
+  };
+
+  const staffUser = await prisma.user.upsert({
+    where: { email: "staff@rerc.demo" },
+    update: { fullName: "Dashboard Staff", isCommonReviewer: false },
+    create: {
+      email: "staff@rerc.demo",
+      fullName: "Dashboard Staff",
+    },
+  });
+
+  const reviewerScientist = await prisma.user.upsert({
+    where: { email: "reviewer.scientist@rerc.demo" },
+    update: { fullName: "Dr. Mira Cruz", isCommonReviewer: true },
+    create: {
+      email: "reviewer.scientist@rerc.demo",
+      fullName: "Dr. Mira Cruz",
+      isCommonReviewer: true,
+      reviewerExpertise: ["biomedical", "clinical"],
+    },
+  });
+
+  const reviewerLay = await prisma.user.upsert({
+    where: { email: "reviewer.lay@rerc.demo" },
+    update: { fullName: "Josefina Reyes", isCommonReviewer: true },
+    create: {
+      email: "reviewer.lay@rerc.demo",
+      fullName: "Josefina Reyes",
+      isCommonReviewer: true,
+      reviewerExpertise: ["community", "qualitative"],
+    },
+  });
+
+  const reviewerConsultant = await prisma.user.upsert({
+    where: { email: "reviewer.consultant@rerc.demo" },
+    update: { fullName: "Dr. Paulo Santos", isCommonReviewer: true },
+    create: {
+      email: "reviewer.consultant@rerc.demo",
+      fullName: "Dr. Paulo Santos",
+      isCommonReviewer: true,
+      reviewerExpertise: ["statistics"],
+    },
+  });
+
+  const ensureProponent = async (printedName: string) => {
+    const existing = await prisma.proponent.findFirst({
+      where: { printedName },
+    });
+    if (existing) return existing;
+    return prisma.proponent.create({
+      data: {
+        printedName,
+        signature: `Signed by ${printedName}`,
+        email: `${printedName.split(" ")[0].toLowerCase()}@example.com`,
+        affiliation: "DLSU Manila",
+      },
+    });
+  };
+
+  const demoProjects = [
+    {
+      projectCode: "DASH-1001",
+      title: "Community Health Survey (Missing Affiliation)",
+      piName: "Maria Santos",
+      piSurname: "Santos",
+      piAffiliation: null,
+      keywords: ["survey", "ethics"],
+      receivedDate: daysAgo(14),
+      status: SubmissionStatus.RECEIVED,
+      reviewType: null,
+    },
+    {
+      projectCode: "DASH-1002",
+      title: "Mobile Health Intervention",
+      piName: "Luis Reyes",
+      piSurname: "Reyes",
+      piAffiliation: "DLSU Manila",
+      keywords: ["clinical", "mobile"],
+      receivedDate: daysAgo(30),
+      status: SubmissionStatus.UNDER_REVIEW,
+      reviewType: ReviewType.EXPEDITED,
+    },
+    {
+      projectCode: "DASH-1003",
+      title: "Urban Air Quality Monitoring",
+      piName: "Ana Cruz",
+      piSurname: "Cruz",
+      piAffiliation: "DLSU Laguna",
+      keywords: ["environment", "public-health"],
+      receivedDate: daysAgo(40),
+      status: SubmissionStatus.AWAITING_REVISIONS,
+      reviewType: ReviewType.FULL_BOARD,
+    },
+  ];
+
+  const dueSoonProjects = [
+    {
+      projectCode: "DASH-2001",
+      title: "Due Soon Classification",
+      piName: "Ivy Mendoza",
+      piSurname: "Mendoza",
+      piAffiliation: "DLSU Manila",
+      keywords: ["classification"],
+      receivedDate: workingDaysAgo(3),
+      status: SubmissionStatus.RECEIVED,
+      reviewType: null,
+    },
+    {
+      projectCode: "DASH-2002",
+      title: "Due Soon Review",
+      piName: "Rafael Lim",
+      piSurname: "Lim",
+      piAffiliation: "DLSU Manila",
+      keywords: ["review"],
+      receivedDate: workingDaysAgo(9),
+      status: SubmissionStatus.UNDER_REVIEW,
+      reviewType: ReviewType.EXPEDITED,
+    },
+    {
+      projectCode: "DASH-2003",
+      title: "Due Soon Revision",
+      piName: "Chloe Tan",
+      piSurname: "Tan",
+      piAffiliation: "DLSU Laguna",
+      keywords: ["revision"],
+      receivedDate: workingDaysAgo(5),
+      status: SubmissionStatus.AWAITING_REVISIONS,
+      reviewType: ReviewType.FULL_BOARD,
+    },
+  ];
+
+  const ensureStatusHistory = async (
+    submissionId: number,
+    entries: Array<{
+      oldStatus: SubmissionStatus | null;
+      newStatus: SubmissionStatus;
+      effectiveDate: Date;
+      reason?: string;
+    }>
+  ) => {
+    for (const entry of entries) {
+      const exists = await prisma.submissionStatusHistory.findFirst({
+        where: {
+          submissionId,
+          newStatus: entry.newStatus,
+        },
+      });
+      if (!exists) {
+        await prisma.submissionStatusHistory.create({
+          data: {
+            submissionId,
+            oldStatus: entry.oldStatus ?? undefined,
+            newStatus: entry.newStatus,
+            effectiveDate: entry.effectiveDate,
+            reason: entry.reason,
+            changedById: raUser.id,
+          },
+        });
+      }
+    }
+  };
+
+  for (const spec of [...demoProjects, ...dueSoonProjects]) {
+    const project = await prisma.project.upsert({
+      where: { projectCode: spec.projectCode },
+      update: {
+        title: spec.title,
+        piName: spec.piName,
+        piSurname: spec.piSurname,
+        piAffiliation: spec.piAffiliation,
+        keywords: spec.keywords,
+        proposedStartDate: daysFromNow(15),
+        proposedEndDate: daysFromNow(120),
+        committeeId: committee.id,
+        createdById: raUser.id,
+      },
+      create: {
+        projectCode: spec.projectCode,
+        title: spec.title,
+        piName: spec.piName,
+        piSurname: spec.piSurname,
+        piAffiliation: spec.piAffiliation,
+        keywords: spec.keywords,
+        fundingType: "INTERNAL",
+        overallStatus: "ACTIVE",
+        initialSubmissionDate: daysAgo(45),
+        proposedStartDate: daysFromNow(15),
+        proposedEndDate: daysFromNow(120),
+        committeeId: committee.id,
+        createdById: raUser.id,
+      },
+    });
+
+    const proponent = await ensureProponent(`${spec.piName} (Proponent)`);
+    const existingProponentLink = await prisma.projectProponent.findFirst({
+      where: { projectId: project.id, proponentId: proponent.id },
+    });
+    if (!existingProponentLink) {
+      await prisma.projectProponent.create({
+        data: {
+          projectId: project.id,
+          proponentId: proponent.id,
+          role: "Primary",
+        },
+      });
+    }
+
+    const existingMember = await prisma.projectMember.findFirst({
+      where: { projectId: project.id, fullName: spec.piName },
+    });
+    if (!existingMember) {
+      await prisma.projectMember.create({
+        data: {
+          projectId: project.id,
+          fullName: spec.piName,
+          role: ProjectMemberRole.PI,
+          email: `${spec.piSurname.toLowerCase()}@example.com`,
+          affiliation: spec.piAffiliation ?? "DLSU Manila",
+        },
+      });
+    }
+
+    const existingChange = await prisma.projectChangeLog.findFirst({
+      where: { projectId: project.id, fieldName: "title" },
+    });
+    if (!existingChange) {
+      await prisma.projectChangeLog.create({
+        data: {
+          projectId: project.id,
+          fieldName: "title",
+          oldValue: `${spec.title} (Draft)`,
+          newValue: spec.title,
+          reason: "Amendment update for demo",
+          changedById: raUser.id,
+        },
+      });
+    }
+
+    let submission = await prisma.submission.findFirst({
+      where: {
+        projectId: project.id,
+        submissionType: SubmissionType.INITIAL,
+        sequenceNumber: 1,
+      },
+    });
+
+    if (!submission) {
+      submission = await prisma.submission.create({
+        data: {
+          projectId: project.id,
+          submissionType: SubmissionType.INITIAL,
+          sequenceNumber: 1,
+          receivedDate: spec.receivedDate,
+          status: spec.status,
+          createdById: raUser.id,
+          staffInChargeId: staffUser.id,
+          revisionDueDate:
+            spec.status === SubmissionStatus.AWAITING_REVISIONS
+              ? daysFromNow(5)
+              : null,
+        },
+      });
+    } else {
+      await prisma.submission.update({
+        where: { id: submission.id },
+        data: {
+          receivedDate: spec.receivedDate,
+          status: spec.status,
+          staffInChargeId: staffUser.id,
+          revisionDueDate:
+            spec.status === SubmissionStatus.AWAITING_REVISIONS
+              ? daysFromNow(5)
+              : null,
+        },
+      });
+    }
+
+    if (spec.reviewType) {
+      const existingClassification = await prisma.classification.findUnique({
+        where: { submissionId: submission.id },
+      });
+      if (!existingClassification) {
+        await prisma.classification.create({
+          data: {
+            submissionId: submission.id,
+            reviewType: spec.reviewType,
+            classificationDate: daysAgo(25),
+            panelId: panel1.id,
+            classifiedById: raUser.id,
+            rationale: "Seeded demo classification",
+            missingDocuments: ["Updated protocol form"],
+            clarificationsNeeded: ["Clarify recruitment procedure"],
+          },
+        });
+      }
+    }
+
+    await ensureStatusHistory(submission.id, [
+      {
+        oldStatus: null,
+        newStatus: SubmissionStatus.RECEIVED,
+        effectiveDate: daysAgo(40),
+        reason: "Submission received",
+      },
+      {
+        oldStatus: SubmissionStatus.RECEIVED,
+        newStatus: spec.status,
+        effectiveDate: spec.receivedDate,
+        reason: "Moved to current stage",
+      },
+    ]);
+
+    const docExists = await prisma.submissionDocument.findFirst({
+      where: { submissionId: submission.id, type: SubmissionDocumentType.INFORMED_CONSENT },
+    });
+    if (!docExists) {
+      await prisma.submissionDocument.create({
+        data: {
+          submissionId: submission.id,
+          type: SubmissionDocumentType.INFORMED_CONSENT,
+          title: "Informed Consent Form",
+          status: SubmissionDocumentStatus.RECEIVED,
+          receivedAt: daysAgo(10),
+        },
+      });
+    }
+
+    const letterDraftExists = await prisma.letterDraft.findFirst({
+      where: { submissionId: submission.id, templateCode: "6B" },
+    });
+    if (!letterDraftExists) {
+      await prisma.letterDraft.create({
+        data: {
+          submissionId: submission.id,
+          templateCode: "6B",
+          status: LetterDraftStatus.DRAFT,
+          generatedById: raUser.id,
+          notes: "Seeded draft for demo",
+        },
+      });
+    }
+
+    if (spec.status === SubmissionStatus.UNDER_REVIEW) {
+      await prisma.review.upsert({
+        where: {
+          submissionId_reviewerId: {
+            submissionId: submission.id,
+            reviewerId: reviewerScientist.id,
+          },
+        },
+        update: {
+          reviewerRole: ReviewerRoleType.SCIENTIST,
+          assignedAt: daysAgo(12),
+          dueDate: daysAgo(7),
+          respondedAt: null,
+        },
+        create: {
+          submissionId: submission.id,
+          reviewerId: reviewerScientist.id,
+          reviewerRole: ReviewerRoleType.SCIENTIST,
+          assignedAt: daysAgo(12),
+          dueDate: daysAgo(7),
+        },
+      });
+
+      await prisma.review.upsert({
+        where: {
+          submissionId_reviewerId: {
+            submissionId: submission.id,
+            reviewerId: reviewerLay.id,
+          },
+        },
+        update: {
+          reviewerRole: ReviewerRoleType.LAY,
+          assignedAt: daysAgo(12),
+          dueDate: daysAgo(6),
+          respondedAt: null,
+        },
+        create: {
+          submissionId: submission.id,
+          reviewerId: reviewerLay.id,
+          reviewerRole: ReviewerRoleType.LAY,
+          assignedAt: daysAgo(12),
+          dueDate: daysAgo(6),
+        },
+      });
+
+      await prisma.review.upsert({
+        where: {
+          submissionId_reviewerId: {
+            submissionId: submission.id,
+            reviewerId: reviewerConsultant.id,
+          },
+        },
+        update: {
+          reviewerRole: ReviewerRoleType.INDEPENDENT_CONSULTANT,
+          assignedAt: daysAgo(10),
+          dueDate: daysAgo(5),
+          endorsementStatus: EndorsementStatus.PENDING,
+        },
+        create: {
+          submissionId: submission.id,
+          reviewerId: reviewerConsultant.id,
+          reviewerRole: ReviewerRoleType.INDEPENDENT_CONSULTANT,
+          assignedAt: daysAgo(10),
+          dueDate: daysAgo(5),
+          endorsementStatus: EndorsementStatus.PENDING,
+        },
+      });
+    }
+  }
+
+  console.log("Seeded dashboard mock data (projects, submissions, reviews)");
 }
 
 main()

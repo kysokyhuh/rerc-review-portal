@@ -31,6 +31,7 @@ export type SubmissionAvgAggregateOutputType = {
   projectId: number | null
   sequenceNumber: number | null
   createdById: number | null
+  staffInChargeId: number | null
 }
 
 export type SubmissionSumAggregateOutputType = {
@@ -38,6 +39,7 @@ export type SubmissionSumAggregateOutputType = {
   projectId: number | null
   sequenceNumber: number | null
   createdById: number | null
+  staffInChargeId: number | null
 }
 
 export type SubmissionMinAggregateOutputType = {
@@ -59,6 +61,7 @@ export type SubmissionMinAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   createdById: number | null
+  staffInChargeId: number | null
 }
 
 export type SubmissionMaxAggregateOutputType = {
@@ -80,6 +83,7 @@ export type SubmissionMaxAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   createdById: number | null
+  staffInChargeId: number | null
 }
 
 export type SubmissionCountAggregateOutputType = {
@@ -101,6 +105,7 @@ export type SubmissionCountAggregateOutputType = {
   createdAt: number
   updatedAt: number
   createdById: number
+  staffInChargeId: number
   _all: number
 }
 
@@ -110,6 +115,7 @@ export type SubmissionAvgAggregateInputType = {
   projectId?: true
   sequenceNumber?: true
   createdById?: true
+  staffInChargeId?: true
 }
 
 export type SubmissionSumAggregateInputType = {
@@ -117,6 +123,7 @@ export type SubmissionSumAggregateInputType = {
   projectId?: true
   sequenceNumber?: true
   createdById?: true
+  staffInChargeId?: true
 }
 
 export type SubmissionMinAggregateInputType = {
@@ -138,6 +145,7 @@ export type SubmissionMinAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   createdById?: true
+  staffInChargeId?: true
 }
 
 export type SubmissionMaxAggregateInputType = {
@@ -159,6 +167,7 @@ export type SubmissionMaxAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   createdById?: true
+  staffInChargeId?: true
 }
 
 export type SubmissionCountAggregateInputType = {
@@ -180,6 +189,7 @@ export type SubmissionCountAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   createdById?: true
+  staffInChargeId?: true
   _all?: true
 }
 
@@ -271,7 +281,7 @@ export type SubmissionGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
 
 export type SubmissionGroupByOutputType = {
   id: number
-  projectId: number
+  projectId: number | null
   submissionType: $Enums.SubmissionType
   sequenceNumber: number
   receivedDate: Date
@@ -288,6 +298,7 @@ export type SubmissionGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   createdById: number | null
+  staffInChargeId: number | null
   _count: SubmissionCountAggregateOutputType | null
   _avg: SubmissionAvgAggregateOutputType | null
   _sum: SubmissionSumAggregateOutputType | null
@@ -315,7 +326,7 @@ export type SubmissionWhereInput = {
   OR?: Prisma.SubmissionWhereInput[]
   NOT?: Prisma.SubmissionWhereInput | Prisma.SubmissionWhereInput[]
   id?: Prisma.IntFilter<"Submission"> | number
-  projectId?: Prisma.IntFilter<"Submission"> | number
+  projectId?: Prisma.IntNullableFilter<"Submission"> | number | null
   submissionType?: Prisma.EnumSubmissionTypeFilter<"Submission"> | $Enums.SubmissionType
   sequenceNumber?: Prisma.IntFilter<"Submission"> | number
   receivedDate?: Prisma.DateTimeFilter<"Submission"> | Date | string
@@ -332,17 +343,23 @@ export type SubmissionWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Submission"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Submission"> | Date | string
   createdById?: Prisma.IntNullableFilter<"Submission"> | number | null
-  project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
+  staffInChargeId?: Prisma.IntNullableFilter<"Submission"> | number | null
+  project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  staffInCharge?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   classification?: Prisma.XOR<Prisma.ClassificationNullableScalarRelationFilter, Prisma.ClassificationWhereInput> | null
   reviews?: Prisma.ReviewListRelationFilter
+  documents?: Prisma.SubmissionDocumentListRelationFilter
+  letterDrafts?: Prisma.LetterDraftListRelationFilter
   workflowEvents?: Prisma.WorkflowEventListRelationFilter
   statusHistory?: Prisma.SubmissionStatusHistoryListRelationFilter
+  projectChangeLogs?: Prisma.ProjectChangeLogListRelationFilter
+  changeLogs?: Prisma.SubmissionChangeLogListRelationFilter
 }
 
 export type SubmissionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  projectId?: Prisma.SortOrder
+  projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   submissionType?: Prisma.SortOrder
   sequenceNumber?: Prisma.SortOrder
   receivedDate?: Prisma.SortOrder
@@ -359,12 +376,18 @@ export type SubmissionOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrderInput | Prisma.SortOrder
+  staffInChargeId?: Prisma.SortOrderInput | Prisma.SortOrder
   project?: Prisma.ProjectOrderByWithRelationInput
   createdBy?: Prisma.UserOrderByWithRelationInput
+  staffInCharge?: Prisma.UserOrderByWithRelationInput
   classification?: Prisma.ClassificationOrderByWithRelationInput
   reviews?: Prisma.ReviewOrderByRelationAggregateInput
+  documents?: Prisma.SubmissionDocumentOrderByRelationAggregateInput
+  letterDrafts?: Prisma.LetterDraftOrderByRelationAggregateInput
   workflowEvents?: Prisma.WorkflowEventOrderByRelationAggregateInput
   statusHistory?: Prisma.SubmissionStatusHistoryOrderByRelationAggregateInput
+  projectChangeLogs?: Prisma.ProjectChangeLogOrderByRelationAggregateInput
+  changeLogs?: Prisma.SubmissionChangeLogOrderByRelationAggregateInput
 }
 
 export type SubmissionWhereUniqueInput = Prisma.AtLeast<{
@@ -372,7 +395,7 @@ export type SubmissionWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.SubmissionWhereInput | Prisma.SubmissionWhereInput[]
   OR?: Prisma.SubmissionWhereInput[]
   NOT?: Prisma.SubmissionWhereInput | Prisma.SubmissionWhereInput[]
-  projectId?: Prisma.IntFilter<"Submission"> | number
+  projectId?: Prisma.IntNullableFilter<"Submission"> | number | null
   submissionType?: Prisma.EnumSubmissionTypeFilter<"Submission"> | $Enums.SubmissionType
   sequenceNumber?: Prisma.IntFilter<"Submission"> | number
   receivedDate?: Prisma.DateTimeFilter<"Submission"> | Date | string
@@ -389,17 +412,23 @@ export type SubmissionWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Submission"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Submission"> | Date | string
   createdById?: Prisma.IntNullableFilter<"Submission"> | number | null
-  project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
+  staffInChargeId?: Prisma.IntNullableFilter<"Submission"> | number | null
+  project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  staffInCharge?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   classification?: Prisma.XOR<Prisma.ClassificationNullableScalarRelationFilter, Prisma.ClassificationWhereInput> | null
   reviews?: Prisma.ReviewListRelationFilter
+  documents?: Prisma.SubmissionDocumentListRelationFilter
+  letterDrafts?: Prisma.LetterDraftListRelationFilter
   workflowEvents?: Prisma.WorkflowEventListRelationFilter
   statusHistory?: Prisma.SubmissionStatusHistoryListRelationFilter
+  projectChangeLogs?: Prisma.ProjectChangeLogListRelationFilter
+  changeLogs?: Prisma.SubmissionChangeLogListRelationFilter
 }, "id">
 
 export type SubmissionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  projectId?: Prisma.SortOrder
+  projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   submissionType?: Prisma.SortOrder
   sequenceNumber?: Prisma.SortOrder
   receivedDate?: Prisma.SortOrder
@@ -416,6 +445,7 @@ export type SubmissionOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrderInput | Prisma.SortOrder
+  staffInChargeId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.SubmissionCountOrderByAggregateInput
   _avg?: Prisma.SubmissionAvgOrderByAggregateInput
   _max?: Prisma.SubmissionMaxOrderByAggregateInput
@@ -428,7 +458,7 @@ export type SubmissionScalarWhereWithAggregatesInput = {
   OR?: Prisma.SubmissionScalarWhereWithAggregatesInput[]
   NOT?: Prisma.SubmissionScalarWhereWithAggregatesInput | Prisma.SubmissionScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"Submission"> | number
-  projectId?: Prisma.IntWithAggregatesFilter<"Submission"> | number
+  projectId?: Prisma.IntNullableWithAggregatesFilter<"Submission"> | number | null
   submissionType?: Prisma.EnumSubmissionTypeWithAggregatesFilter<"Submission"> | $Enums.SubmissionType
   sequenceNumber?: Prisma.IntWithAggregatesFilter<"Submission"> | number
   receivedDate?: Prisma.DateTimeWithAggregatesFilter<"Submission"> | Date | string
@@ -445,6 +475,7 @@ export type SubmissionScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Submission"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Submission"> | Date | string
   createdById?: Prisma.IntNullableWithAggregatesFilter<"Submission"> | number | null
+  staffInChargeId?: Prisma.IntNullableWithAggregatesFilter<"Submission"> | number | null
 }
 
 export type SubmissionCreateInput = {
@@ -463,17 +494,22 @@ export type SubmissionCreateInput = {
   remarks?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  project: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
+  project?: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutSubmissionsCreatedInput
+  staffInCharge?: Prisma.UserCreateNestedOneWithoutAssignedSubmissionsInput
   classification?: Prisma.ClassificationCreateNestedOneWithoutSubmissionInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
 }
 
 export type SubmissionUncheckedCreateInput = {
   id?: number
-  projectId: number
+  projectId?: number | null
   submissionType: $Enums.SubmissionType
   sequenceNumber?: number
   receivedDate: Date | string
@@ -490,10 +526,15 @@ export type SubmissionUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
+  staffInChargeId?: number | null
   classification?: Prisma.ClassificationUncheckedCreateNestedOneWithoutSubmissionInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentUncheckedCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
 }
 
 export type SubmissionUpdateInput = {
@@ -512,17 +553,22 @@ export type SubmissionUpdateInput = {
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  project?: Prisma.ProjectUpdateOneRequiredWithoutSubmissionsNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutSubmissionsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutSubmissionsCreatedNestedInput
+  staffInCharge?: Prisma.UserUpdateOneWithoutAssignedSubmissionsNestedInput
   classification?: Prisma.ClassificationUpdateOneWithoutSubmissionNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  projectId?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
   receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -539,15 +585,20 @@ export type SubmissionUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  staffInChargeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   classification?: Prisma.ClassificationUncheckedUpdateOneWithoutSubmissionNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUncheckedUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionCreateManyInput = {
   id?: number
-  projectId: number
+  projectId?: number | null
   submissionType: $Enums.SubmissionType
   sequenceNumber?: number
   receivedDate: Date | string
@@ -564,6 +615,7 @@ export type SubmissionCreateManyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
+  staffInChargeId?: number | null
 }
 
 export type SubmissionUpdateManyMutationInput = {
@@ -586,7 +638,7 @@ export type SubmissionUpdateManyMutationInput = {
 
 export type SubmissionUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  projectId?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
   receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -603,6 +655,7 @@ export type SubmissionUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  staffInChargeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type SubmissionListRelationFilter = {
@@ -613,6 +666,11 @@ export type SubmissionListRelationFilter = {
 
 export type SubmissionOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type SubmissionNullableScalarRelationFilter = {
+  is?: Prisma.SubmissionWhereInput | null
+  isNot?: Prisma.SubmissionWhereInput | null
 }
 
 export type SubmissionCountOrderByAggregateInput = {
@@ -634,6 +692,7 @@ export type SubmissionCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+  staffInChargeId?: Prisma.SortOrder
 }
 
 export type SubmissionAvgOrderByAggregateInput = {
@@ -641,6 +700,7 @@ export type SubmissionAvgOrderByAggregateInput = {
   projectId?: Prisma.SortOrder
   sequenceNumber?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+  staffInChargeId?: Prisma.SortOrder
 }
 
 export type SubmissionMaxOrderByAggregateInput = {
@@ -662,6 +722,7 @@ export type SubmissionMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+  staffInChargeId?: Prisma.SortOrder
 }
 
 export type SubmissionMinOrderByAggregateInput = {
@@ -683,6 +744,7 @@ export type SubmissionMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+  staffInChargeId?: Prisma.SortOrder
 }
 
 export type SubmissionSumOrderByAggregateInput = {
@@ -690,6 +752,7 @@ export type SubmissionSumOrderByAggregateInput = {
   projectId?: Prisma.SortOrder
   sequenceNumber?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+  staffInChargeId?: Prisma.SortOrder
 }
 
 export type SubmissionScalarRelationFilter = {
@@ -704,10 +767,24 @@ export type SubmissionCreateNestedManyWithoutCreatedByInput = {
   connect?: Prisma.SubmissionWhereUniqueInput | Prisma.SubmissionWhereUniqueInput[]
 }
 
+export type SubmissionCreateNestedManyWithoutStaffInChargeInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutStaffInChargeInput, Prisma.SubmissionUncheckedCreateWithoutStaffInChargeInput> | Prisma.SubmissionCreateWithoutStaffInChargeInput[] | Prisma.SubmissionUncheckedCreateWithoutStaffInChargeInput[]
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutStaffInChargeInput | Prisma.SubmissionCreateOrConnectWithoutStaffInChargeInput[]
+  createMany?: Prisma.SubmissionCreateManyStaffInChargeInputEnvelope
+  connect?: Prisma.SubmissionWhereUniqueInput | Prisma.SubmissionWhereUniqueInput[]
+}
+
 export type SubmissionUncheckedCreateNestedManyWithoutCreatedByInput = {
   create?: Prisma.XOR<Prisma.SubmissionCreateWithoutCreatedByInput, Prisma.SubmissionUncheckedCreateWithoutCreatedByInput> | Prisma.SubmissionCreateWithoutCreatedByInput[] | Prisma.SubmissionUncheckedCreateWithoutCreatedByInput[]
   connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutCreatedByInput | Prisma.SubmissionCreateOrConnectWithoutCreatedByInput[]
   createMany?: Prisma.SubmissionCreateManyCreatedByInputEnvelope
+  connect?: Prisma.SubmissionWhereUniqueInput | Prisma.SubmissionWhereUniqueInput[]
+}
+
+export type SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutStaffInChargeInput, Prisma.SubmissionUncheckedCreateWithoutStaffInChargeInput> | Prisma.SubmissionCreateWithoutStaffInChargeInput[] | Prisma.SubmissionUncheckedCreateWithoutStaffInChargeInput[]
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutStaffInChargeInput | Prisma.SubmissionCreateOrConnectWithoutStaffInChargeInput[]
+  createMany?: Prisma.SubmissionCreateManyStaffInChargeInputEnvelope
   connect?: Prisma.SubmissionWhereUniqueInput | Prisma.SubmissionWhereUniqueInput[]
 }
 
@@ -725,6 +802,20 @@ export type SubmissionUpdateManyWithoutCreatedByNestedInput = {
   deleteMany?: Prisma.SubmissionScalarWhereInput | Prisma.SubmissionScalarWhereInput[]
 }
 
+export type SubmissionUpdateManyWithoutStaffInChargeNestedInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutStaffInChargeInput, Prisma.SubmissionUncheckedCreateWithoutStaffInChargeInput> | Prisma.SubmissionCreateWithoutStaffInChargeInput[] | Prisma.SubmissionUncheckedCreateWithoutStaffInChargeInput[]
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutStaffInChargeInput | Prisma.SubmissionCreateOrConnectWithoutStaffInChargeInput[]
+  upsert?: Prisma.SubmissionUpsertWithWhereUniqueWithoutStaffInChargeInput | Prisma.SubmissionUpsertWithWhereUniqueWithoutStaffInChargeInput[]
+  createMany?: Prisma.SubmissionCreateManyStaffInChargeInputEnvelope
+  set?: Prisma.SubmissionWhereUniqueInput | Prisma.SubmissionWhereUniqueInput[]
+  disconnect?: Prisma.SubmissionWhereUniqueInput | Prisma.SubmissionWhereUniqueInput[]
+  delete?: Prisma.SubmissionWhereUniqueInput | Prisma.SubmissionWhereUniqueInput[]
+  connect?: Prisma.SubmissionWhereUniqueInput | Prisma.SubmissionWhereUniqueInput[]
+  update?: Prisma.SubmissionUpdateWithWhereUniqueWithoutStaffInChargeInput | Prisma.SubmissionUpdateWithWhereUniqueWithoutStaffInChargeInput[]
+  updateMany?: Prisma.SubmissionUpdateManyWithWhereWithoutStaffInChargeInput | Prisma.SubmissionUpdateManyWithWhereWithoutStaffInChargeInput[]
+  deleteMany?: Prisma.SubmissionScalarWhereInput | Prisma.SubmissionScalarWhereInput[]
+}
+
 export type SubmissionUncheckedUpdateManyWithoutCreatedByNestedInput = {
   create?: Prisma.XOR<Prisma.SubmissionCreateWithoutCreatedByInput, Prisma.SubmissionUncheckedCreateWithoutCreatedByInput> | Prisma.SubmissionCreateWithoutCreatedByInput[] | Prisma.SubmissionUncheckedCreateWithoutCreatedByInput[]
   connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutCreatedByInput | Prisma.SubmissionCreateOrConnectWithoutCreatedByInput[]
@@ -736,6 +827,20 @@ export type SubmissionUncheckedUpdateManyWithoutCreatedByNestedInput = {
   connect?: Prisma.SubmissionWhereUniqueInput | Prisma.SubmissionWhereUniqueInput[]
   update?: Prisma.SubmissionUpdateWithWhereUniqueWithoutCreatedByInput | Prisma.SubmissionUpdateWithWhereUniqueWithoutCreatedByInput[]
   updateMany?: Prisma.SubmissionUpdateManyWithWhereWithoutCreatedByInput | Prisma.SubmissionUpdateManyWithWhereWithoutCreatedByInput[]
+  deleteMany?: Prisma.SubmissionScalarWhereInput | Prisma.SubmissionScalarWhereInput[]
+}
+
+export type SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutStaffInChargeInput, Prisma.SubmissionUncheckedCreateWithoutStaffInChargeInput> | Prisma.SubmissionCreateWithoutStaffInChargeInput[] | Prisma.SubmissionUncheckedCreateWithoutStaffInChargeInput[]
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutStaffInChargeInput | Prisma.SubmissionCreateOrConnectWithoutStaffInChargeInput[]
+  upsert?: Prisma.SubmissionUpsertWithWhereUniqueWithoutStaffInChargeInput | Prisma.SubmissionUpsertWithWhereUniqueWithoutStaffInChargeInput[]
+  createMany?: Prisma.SubmissionCreateManyStaffInChargeInputEnvelope
+  set?: Prisma.SubmissionWhereUniqueInput | Prisma.SubmissionWhereUniqueInput[]
+  disconnect?: Prisma.SubmissionWhereUniqueInput | Prisma.SubmissionWhereUniqueInput[]
+  delete?: Prisma.SubmissionWhereUniqueInput | Prisma.SubmissionWhereUniqueInput[]
+  connect?: Prisma.SubmissionWhereUniqueInput | Prisma.SubmissionWhereUniqueInput[]
+  update?: Prisma.SubmissionUpdateWithWhereUniqueWithoutStaffInChargeInput | Prisma.SubmissionUpdateWithWhereUniqueWithoutStaffInChargeInput[]
+  updateMany?: Prisma.SubmissionUpdateManyWithWhereWithoutStaffInChargeInput | Prisma.SubmissionUpdateManyWithWhereWithoutStaffInChargeInput[]
   deleteMany?: Prisma.SubmissionScalarWhereInput | Prisma.SubmissionScalarWhereInput[]
 }
 
@@ -781,6 +886,22 @@ export type SubmissionUncheckedUpdateManyWithoutProjectNestedInput = {
   deleteMany?: Prisma.SubmissionScalarWhereInput | Prisma.SubmissionScalarWhereInput[]
 }
 
+export type SubmissionCreateNestedOneWithoutProjectChangeLogsInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutProjectChangeLogsInput, Prisma.SubmissionUncheckedCreateWithoutProjectChangeLogsInput>
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutProjectChangeLogsInput
+  connect?: Prisma.SubmissionWhereUniqueInput
+}
+
+export type SubmissionUpdateOneWithoutProjectChangeLogsNestedInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutProjectChangeLogsInput, Prisma.SubmissionUncheckedCreateWithoutProjectChangeLogsInput>
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutProjectChangeLogsInput
+  upsert?: Prisma.SubmissionUpsertWithoutProjectChangeLogsInput
+  disconnect?: Prisma.SubmissionWhereInput | boolean
+  delete?: Prisma.SubmissionWhereInput | boolean
+  connect?: Prisma.SubmissionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SubmissionUpdateToOneWithWhereWithoutProjectChangeLogsInput, Prisma.SubmissionUpdateWithoutProjectChangeLogsInput>, Prisma.SubmissionUncheckedUpdateWithoutProjectChangeLogsInput>
+}
+
 export type EnumSubmissionTypeFieldUpdateOperationsInput = {
   set?: $Enums.SubmissionType
 }
@@ -795,6 +916,20 @@ export type EnumSubmissionStatusFieldUpdateOperationsInput = {
 
 export type NullableEnumReviewDecisionFieldUpdateOperationsInput = {
   set?: $Enums.ReviewDecision | null
+}
+
+export type SubmissionCreateNestedOneWithoutChangeLogsInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutChangeLogsInput, Prisma.SubmissionUncheckedCreateWithoutChangeLogsInput>
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutChangeLogsInput
+  connect?: Prisma.SubmissionWhereUniqueInput
+}
+
+export type SubmissionUpdateOneRequiredWithoutChangeLogsNestedInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutChangeLogsInput, Prisma.SubmissionUncheckedCreateWithoutChangeLogsInput>
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutChangeLogsInput
+  upsert?: Prisma.SubmissionUpsertWithoutChangeLogsInput
+  connect?: Prisma.SubmissionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SubmissionUpdateToOneWithWhereWithoutChangeLogsInput, Prisma.SubmissionUpdateWithoutChangeLogsInput>, Prisma.SubmissionUncheckedUpdateWithoutChangeLogsInput>
 }
 
 export type SubmissionCreateNestedOneWithoutClassificationInput = {
@@ -839,6 +974,34 @@ export type SubmissionUpdateOneRequiredWithoutReviewsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SubmissionUpdateToOneWithWhereWithoutReviewsInput, Prisma.SubmissionUpdateWithoutReviewsInput>, Prisma.SubmissionUncheckedUpdateWithoutReviewsInput>
 }
 
+export type SubmissionCreateNestedOneWithoutDocumentsInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutDocumentsInput, Prisma.SubmissionUncheckedCreateWithoutDocumentsInput>
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutDocumentsInput
+  connect?: Prisma.SubmissionWhereUniqueInput
+}
+
+export type SubmissionUpdateOneRequiredWithoutDocumentsNestedInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutDocumentsInput, Prisma.SubmissionUncheckedCreateWithoutDocumentsInput>
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutDocumentsInput
+  upsert?: Prisma.SubmissionUpsertWithoutDocumentsInput
+  connect?: Prisma.SubmissionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SubmissionUpdateToOneWithWhereWithoutDocumentsInput, Prisma.SubmissionUpdateWithoutDocumentsInput>, Prisma.SubmissionUncheckedUpdateWithoutDocumentsInput>
+}
+
+export type SubmissionCreateNestedOneWithoutLetterDraftsInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutLetterDraftsInput, Prisma.SubmissionUncheckedCreateWithoutLetterDraftsInput>
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutLetterDraftsInput
+  connect?: Prisma.SubmissionWhereUniqueInput
+}
+
+export type SubmissionUpdateOneRequiredWithoutLetterDraftsNestedInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutLetterDraftsInput, Prisma.SubmissionUncheckedCreateWithoutLetterDraftsInput>
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutLetterDraftsInput
+  upsert?: Prisma.SubmissionUpsertWithoutLetterDraftsInput
+  connect?: Prisma.SubmissionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SubmissionUpdateToOneWithWhereWithoutLetterDraftsInput, Prisma.SubmissionUpdateWithoutLetterDraftsInput>, Prisma.SubmissionUncheckedUpdateWithoutLetterDraftsInput>
+}
+
 export type SubmissionCreateNestedOneWithoutWorkflowEventsInput = {
   create?: Prisma.XOR<Prisma.SubmissionCreateWithoutWorkflowEventsInput, Prisma.SubmissionUncheckedCreateWithoutWorkflowEventsInput>
   connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutWorkflowEventsInput
@@ -869,16 +1032,21 @@ export type SubmissionCreateWithoutCreatedByInput = {
   remarks?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  project: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
+  project?: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
+  staffInCharge?: Prisma.UserCreateNestedOneWithoutAssignedSubmissionsInput
   classification?: Prisma.ClassificationCreateNestedOneWithoutSubmissionInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
 }
 
 export type SubmissionUncheckedCreateWithoutCreatedByInput = {
   id?: number
-  projectId: number
+  projectId?: number | null
   submissionType: $Enums.SubmissionType
   sequenceNumber?: number
   receivedDate: Date | string
@@ -894,10 +1062,15 @@ export type SubmissionUncheckedCreateWithoutCreatedByInput = {
   remarks?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  staffInChargeId?: number | null
   classification?: Prisma.ClassificationUncheckedCreateNestedOneWithoutSubmissionInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentUncheckedCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
 }
 
 export type SubmissionCreateOrConnectWithoutCreatedByInput = {
@@ -907,6 +1080,73 @@ export type SubmissionCreateOrConnectWithoutCreatedByInput = {
 
 export type SubmissionCreateManyCreatedByInputEnvelope = {
   data: Prisma.SubmissionCreateManyCreatedByInput | Prisma.SubmissionCreateManyCreatedByInput[]
+  skipDuplicates?: boolean
+}
+
+export type SubmissionCreateWithoutStaffInChargeInput = {
+  submissionType: $Enums.SubmissionType
+  sequenceNumber?: number
+  receivedDate: Date | string
+  documentLink?: string | null
+  completenessStatus?: $Enums.CompletenessStatus
+  completenessRemarks?: string | null
+  status?: $Enums.SubmissionStatus
+  revisionDueDate?: Date | string | null
+  continuingReviewDueDate?: Date | string | null
+  finalReportDueDate?: Date | string | null
+  finalDecision?: $Enums.ReviewDecision | null
+  finalDecisionDate?: Date | string | null
+  remarks?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project?: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutSubmissionsCreatedInput
+  classification?: Prisma.ClassificationCreateNestedOneWithoutSubmissionInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
+  workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
+  statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
+}
+
+export type SubmissionUncheckedCreateWithoutStaffInChargeInput = {
+  id?: number
+  projectId?: number | null
+  submissionType: $Enums.SubmissionType
+  sequenceNumber?: number
+  receivedDate: Date | string
+  documentLink?: string | null
+  completenessStatus?: $Enums.CompletenessStatus
+  completenessRemarks?: string | null
+  status?: $Enums.SubmissionStatus
+  revisionDueDate?: Date | string | null
+  continuingReviewDueDate?: Date | string | null
+  finalReportDueDate?: Date | string | null
+  finalDecision?: $Enums.ReviewDecision | null
+  finalDecisionDate?: Date | string | null
+  remarks?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: number | null
+  classification?: Prisma.ClassificationUncheckedCreateNestedOneWithoutSubmissionInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentUncheckedCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
+  workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
+}
+
+export type SubmissionCreateOrConnectWithoutStaffInChargeInput = {
+  where: Prisma.SubmissionWhereUniqueInput
+  create: Prisma.XOR<Prisma.SubmissionCreateWithoutStaffInChargeInput, Prisma.SubmissionUncheckedCreateWithoutStaffInChargeInput>
+}
+
+export type SubmissionCreateManyStaffInChargeInputEnvelope = {
+  data: Prisma.SubmissionCreateManyStaffInChargeInput | Prisma.SubmissionCreateManyStaffInChargeInput[]
   skipDuplicates?: boolean
 }
 
@@ -931,7 +1171,7 @@ export type SubmissionScalarWhereInput = {
   OR?: Prisma.SubmissionScalarWhereInput[]
   NOT?: Prisma.SubmissionScalarWhereInput | Prisma.SubmissionScalarWhereInput[]
   id?: Prisma.IntFilter<"Submission"> | number
-  projectId?: Prisma.IntFilter<"Submission"> | number
+  projectId?: Prisma.IntNullableFilter<"Submission"> | number | null
   submissionType?: Prisma.EnumSubmissionTypeFilter<"Submission"> | $Enums.SubmissionType
   sequenceNumber?: Prisma.IntFilter<"Submission"> | number
   receivedDate?: Prisma.DateTimeFilter<"Submission"> | Date | string
@@ -948,6 +1188,23 @@ export type SubmissionScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Submission"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Submission"> | Date | string
   createdById?: Prisma.IntNullableFilter<"Submission"> | number | null
+  staffInChargeId?: Prisma.IntNullableFilter<"Submission"> | number | null
+}
+
+export type SubmissionUpsertWithWhereUniqueWithoutStaffInChargeInput = {
+  where: Prisma.SubmissionWhereUniqueInput
+  update: Prisma.XOR<Prisma.SubmissionUpdateWithoutStaffInChargeInput, Prisma.SubmissionUncheckedUpdateWithoutStaffInChargeInput>
+  create: Prisma.XOR<Prisma.SubmissionCreateWithoutStaffInChargeInput, Prisma.SubmissionUncheckedCreateWithoutStaffInChargeInput>
+}
+
+export type SubmissionUpdateWithWhereUniqueWithoutStaffInChargeInput = {
+  where: Prisma.SubmissionWhereUniqueInput
+  data: Prisma.XOR<Prisma.SubmissionUpdateWithoutStaffInChargeInput, Prisma.SubmissionUncheckedUpdateWithoutStaffInChargeInput>
+}
+
+export type SubmissionUpdateManyWithWhereWithoutStaffInChargeInput = {
+  where: Prisma.SubmissionScalarWhereInput
+  data: Prisma.XOR<Prisma.SubmissionUpdateManyMutationInput, Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeInput>
 }
 
 export type SubmissionCreateWithoutProjectInput = {
@@ -967,10 +1224,15 @@ export type SubmissionCreateWithoutProjectInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   createdBy?: Prisma.UserCreateNestedOneWithoutSubmissionsCreatedInput
+  staffInCharge?: Prisma.UserCreateNestedOneWithoutAssignedSubmissionsInput
   classification?: Prisma.ClassificationCreateNestedOneWithoutSubmissionInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
 }
 
 export type SubmissionUncheckedCreateWithoutProjectInput = {
@@ -991,10 +1253,15 @@ export type SubmissionUncheckedCreateWithoutProjectInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
+  staffInChargeId?: number | null
   classification?: Prisma.ClassificationUncheckedCreateNestedOneWithoutSubmissionInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentUncheckedCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
 }
 
 export type SubmissionCreateOrConnectWithoutProjectInput = {
@@ -1023,7 +1290,7 @@ export type SubmissionUpdateManyWithWhereWithoutProjectInput = {
   data: Prisma.XOR<Prisma.SubmissionUpdateManyMutationInput, Prisma.SubmissionUncheckedUpdateManyWithoutProjectInput>
 }
 
-export type SubmissionCreateWithoutClassificationInput = {
+export type SubmissionCreateWithoutProjectChangeLogsInput = {
   submissionType: $Enums.SubmissionType
   sequenceNumber?: number
   receivedDate: Date | string
@@ -1039,16 +1306,21 @@ export type SubmissionCreateWithoutClassificationInput = {
   remarks?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  project: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
+  project?: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutSubmissionsCreatedInput
+  staffInCharge?: Prisma.UserCreateNestedOneWithoutAssignedSubmissionsInput
+  classification?: Prisma.ClassificationCreateNestedOneWithoutSubmissionInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
 }
 
-export type SubmissionUncheckedCreateWithoutClassificationInput = {
+export type SubmissionUncheckedCreateWithoutProjectChangeLogsInput = {
   id?: number
-  projectId: number
+  projectId?: number | null
   submissionType: $Enums.SubmissionType
   sequenceNumber?: number
   receivedDate: Date | string
@@ -1065,9 +1337,274 @@ export type SubmissionUncheckedCreateWithoutClassificationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
+  staffInChargeId?: number | null
+  classification?: Prisma.ClassificationUncheckedCreateNestedOneWithoutSubmissionInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentUncheckedCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
+}
+
+export type SubmissionCreateOrConnectWithoutProjectChangeLogsInput = {
+  where: Prisma.SubmissionWhereUniqueInput
+  create: Prisma.XOR<Prisma.SubmissionCreateWithoutProjectChangeLogsInput, Prisma.SubmissionUncheckedCreateWithoutProjectChangeLogsInput>
+}
+
+export type SubmissionUpsertWithoutProjectChangeLogsInput = {
+  update: Prisma.XOR<Prisma.SubmissionUpdateWithoutProjectChangeLogsInput, Prisma.SubmissionUncheckedUpdateWithoutProjectChangeLogsInput>
+  create: Prisma.XOR<Prisma.SubmissionCreateWithoutProjectChangeLogsInput, Prisma.SubmissionUncheckedCreateWithoutProjectChangeLogsInput>
+  where?: Prisma.SubmissionWhereInput
+}
+
+export type SubmissionUpdateToOneWithWhereWithoutProjectChangeLogsInput = {
+  where?: Prisma.SubmissionWhereInput
+  data: Prisma.XOR<Prisma.SubmissionUpdateWithoutProjectChangeLogsInput, Prisma.SubmissionUncheckedUpdateWithoutProjectChangeLogsInput>
+}
+
+export type SubmissionUpdateWithoutProjectChangeLogsInput = {
+  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
+  completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
+  revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
+  finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ProjectUpdateOneWithoutSubmissionsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutSubmissionsCreatedNestedInput
+  staffInCharge?: Prisma.UserUpdateOneWithoutAssignedSubmissionsNestedInput
+  classification?: Prisma.ClassificationUpdateOneWithoutSubmissionNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
+  workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
+}
+
+export type SubmissionUncheckedUpdateWithoutProjectChangeLogsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
+  completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
+  revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
+  finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  staffInChargeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classification?: Prisma.ClassificationUncheckedUpdateOneWithoutSubmissionNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUncheckedUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
+  workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
+}
+
+export type SubmissionCreateWithoutChangeLogsInput = {
+  submissionType: $Enums.SubmissionType
+  sequenceNumber?: number
+  receivedDate: Date | string
+  documentLink?: string | null
+  completenessStatus?: $Enums.CompletenessStatus
+  completenessRemarks?: string | null
+  status?: $Enums.SubmissionStatus
+  revisionDueDate?: Date | string | null
+  continuingReviewDueDate?: Date | string | null
+  finalReportDueDate?: Date | string | null
+  finalDecision?: $Enums.ReviewDecision | null
+  finalDecisionDate?: Date | string | null
+  remarks?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project?: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutSubmissionsCreatedInput
+  staffInCharge?: Prisma.UserCreateNestedOneWithoutAssignedSubmissionsInput
+  classification?: Prisma.ClassificationCreateNestedOneWithoutSubmissionInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
+  workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
+  statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
+}
+
+export type SubmissionUncheckedCreateWithoutChangeLogsInput = {
+  id?: number
+  projectId?: number | null
+  submissionType: $Enums.SubmissionType
+  sequenceNumber?: number
+  receivedDate: Date | string
+  documentLink?: string | null
+  completenessStatus?: $Enums.CompletenessStatus
+  completenessRemarks?: string | null
+  status?: $Enums.SubmissionStatus
+  revisionDueDate?: Date | string | null
+  continuingReviewDueDate?: Date | string | null
+  finalReportDueDate?: Date | string | null
+  finalDecision?: $Enums.ReviewDecision | null
+  finalDecisionDate?: Date | string | null
+  remarks?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: number | null
+  staffInChargeId?: number | null
+  classification?: Prisma.ClassificationUncheckedCreateNestedOneWithoutSubmissionInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentUncheckedCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
+  workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
+}
+
+export type SubmissionCreateOrConnectWithoutChangeLogsInput = {
+  where: Prisma.SubmissionWhereUniqueInput
+  create: Prisma.XOR<Prisma.SubmissionCreateWithoutChangeLogsInput, Prisma.SubmissionUncheckedCreateWithoutChangeLogsInput>
+}
+
+export type SubmissionUpsertWithoutChangeLogsInput = {
+  update: Prisma.XOR<Prisma.SubmissionUpdateWithoutChangeLogsInput, Prisma.SubmissionUncheckedUpdateWithoutChangeLogsInput>
+  create: Prisma.XOR<Prisma.SubmissionCreateWithoutChangeLogsInput, Prisma.SubmissionUncheckedCreateWithoutChangeLogsInput>
+  where?: Prisma.SubmissionWhereInput
+}
+
+export type SubmissionUpdateToOneWithWhereWithoutChangeLogsInput = {
+  where?: Prisma.SubmissionWhereInput
+  data: Prisma.XOR<Prisma.SubmissionUpdateWithoutChangeLogsInput, Prisma.SubmissionUncheckedUpdateWithoutChangeLogsInput>
+}
+
+export type SubmissionUpdateWithoutChangeLogsInput = {
+  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
+  completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
+  revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
+  finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ProjectUpdateOneWithoutSubmissionsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutSubmissionsCreatedNestedInput
+  staffInCharge?: Prisma.UserUpdateOneWithoutAssignedSubmissionsNestedInput
+  classification?: Prisma.ClassificationUpdateOneWithoutSubmissionNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
+  workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
+}
+
+export type SubmissionUncheckedUpdateWithoutChangeLogsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
+  completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
+  revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
+  finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  staffInChargeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classification?: Prisma.ClassificationUncheckedUpdateOneWithoutSubmissionNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUncheckedUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
+  workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
+}
+
+export type SubmissionCreateWithoutClassificationInput = {
+  submissionType: $Enums.SubmissionType
+  sequenceNumber?: number
+  receivedDate: Date | string
+  documentLink?: string | null
+  completenessStatus?: $Enums.CompletenessStatus
+  completenessRemarks?: string | null
+  status?: $Enums.SubmissionStatus
+  revisionDueDate?: Date | string | null
+  continuingReviewDueDate?: Date | string | null
+  finalReportDueDate?: Date | string | null
+  finalDecision?: $Enums.ReviewDecision | null
+  finalDecisionDate?: Date | string | null
+  remarks?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project?: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutSubmissionsCreatedInput
+  staffInCharge?: Prisma.UserCreateNestedOneWithoutAssignedSubmissionsInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
+  workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
+  statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
+}
+
+export type SubmissionUncheckedCreateWithoutClassificationInput = {
+  id?: number
+  projectId?: number | null
+  submissionType: $Enums.SubmissionType
+  sequenceNumber?: number
+  receivedDate: Date | string
+  documentLink?: string | null
+  completenessStatus?: $Enums.CompletenessStatus
+  completenessRemarks?: string | null
+  status?: $Enums.SubmissionStatus
+  revisionDueDate?: Date | string | null
+  continuingReviewDueDate?: Date | string | null
+  finalReportDueDate?: Date | string | null
+  finalDecision?: $Enums.ReviewDecision | null
+  finalDecisionDate?: Date | string | null
+  remarks?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: number | null
+  staffInChargeId?: number | null
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentUncheckedCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
+  workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
 }
 
 export type SubmissionCreateOrConnectWithoutClassificationInput = {
@@ -1102,16 +1639,21 @@ export type SubmissionUpdateWithoutClassificationInput = {
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  project?: Prisma.ProjectUpdateOneRequiredWithoutSubmissionsNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutSubmissionsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutSubmissionsCreatedNestedInput
+  staffInCharge?: Prisma.UserUpdateOneWithoutAssignedSubmissionsNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionUncheckedUpdateWithoutClassificationInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  projectId?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
   receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1128,9 +1670,14 @@ export type SubmissionUncheckedUpdateWithoutClassificationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  staffInChargeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUncheckedUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionCreateWithoutStatusHistoryInput = {
@@ -1149,16 +1696,21 @@ export type SubmissionCreateWithoutStatusHistoryInput = {
   remarks?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  project: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
+  project?: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutSubmissionsCreatedInput
+  staffInCharge?: Prisma.UserCreateNestedOneWithoutAssignedSubmissionsInput
   classification?: Prisma.ClassificationCreateNestedOneWithoutSubmissionInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
 }
 
 export type SubmissionUncheckedCreateWithoutStatusHistoryInput = {
   id?: number
-  projectId: number
+  projectId?: number | null
   submissionType: $Enums.SubmissionType
   sequenceNumber?: number
   receivedDate: Date | string
@@ -1175,9 +1727,14 @@ export type SubmissionUncheckedCreateWithoutStatusHistoryInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
+  staffInChargeId?: number | null
   classification?: Prisma.ClassificationUncheckedCreateNestedOneWithoutSubmissionInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentUncheckedCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
 }
 
 export type SubmissionCreateOrConnectWithoutStatusHistoryInput = {
@@ -1212,16 +1769,21 @@ export type SubmissionUpdateWithoutStatusHistoryInput = {
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  project?: Prisma.ProjectUpdateOneRequiredWithoutSubmissionsNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutSubmissionsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutSubmissionsCreatedNestedInput
+  staffInCharge?: Prisma.UserUpdateOneWithoutAssignedSubmissionsNestedInput
   classification?: Prisma.ClassificationUpdateOneWithoutSubmissionNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionUncheckedUpdateWithoutStatusHistoryInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  projectId?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
   receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1238,9 +1800,14 @@ export type SubmissionUncheckedUpdateWithoutStatusHistoryInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  staffInChargeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   classification?: Prisma.ClassificationUncheckedUpdateOneWithoutSubmissionNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUncheckedUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionCreateWithoutReviewsInput = {
@@ -1259,16 +1826,21 @@ export type SubmissionCreateWithoutReviewsInput = {
   remarks?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  project: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
+  project?: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutSubmissionsCreatedInput
+  staffInCharge?: Prisma.UserCreateNestedOneWithoutAssignedSubmissionsInput
   classification?: Prisma.ClassificationCreateNestedOneWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
 }
 
 export type SubmissionUncheckedCreateWithoutReviewsInput = {
   id?: number
-  projectId: number
+  projectId?: number | null
   submissionType: $Enums.SubmissionType
   sequenceNumber?: number
   receivedDate: Date | string
@@ -1285,9 +1857,14 @@ export type SubmissionUncheckedCreateWithoutReviewsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
+  staffInChargeId?: number | null
   classification?: Prisma.ClassificationUncheckedCreateNestedOneWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentUncheckedCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
 }
 
 export type SubmissionCreateOrConnectWithoutReviewsInput = {
@@ -1322,16 +1899,21 @@ export type SubmissionUpdateWithoutReviewsInput = {
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  project?: Prisma.ProjectUpdateOneRequiredWithoutSubmissionsNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutSubmissionsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutSubmissionsCreatedNestedInput
+  staffInCharge?: Prisma.UserUpdateOneWithoutAssignedSubmissionsNestedInput
   classification?: Prisma.ClassificationUpdateOneWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionUncheckedUpdateWithoutReviewsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  projectId?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
   receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1348,9 +1930,274 @@ export type SubmissionUncheckedUpdateWithoutReviewsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  staffInChargeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   classification?: Prisma.ClassificationUncheckedUpdateOneWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUncheckedUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
+}
+
+export type SubmissionCreateWithoutDocumentsInput = {
+  submissionType: $Enums.SubmissionType
+  sequenceNumber?: number
+  receivedDate: Date | string
+  documentLink?: string | null
+  completenessStatus?: $Enums.CompletenessStatus
+  completenessRemarks?: string | null
+  status?: $Enums.SubmissionStatus
+  revisionDueDate?: Date | string | null
+  continuingReviewDueDate?: Date | string | null
+  finalReportDueDate?: Date | string | null
+  finalDecision?: $Enums.ReviewDecision | null
+  finalDecisionDate?: Date | string | null
+  remarks?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project?: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutSubmissionsCreatedInput
+  staffInCharge?: Prisma.UserCreateNestedOneWithoutAssignedSubmissionsInput
+  classification?: Prisma.ClassificationCreateNestedOneWithoutSubmissionInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
+  workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
+  statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
+}
+
+export type SubmissionUncheckedCreateWithoutDocumentsInput = {
+  id?: number
+  projectId?: number | null
+  submissionType: $Enums.SubmissionType
+  sequenceNumber?: number
+  receivedDate: Date | string
+  documentLink?: string | null
+  completenessStatus?: $Enums.CompletenessStatus
+  completenessRemarks?: string | null
+  status?: $Enums.SubmissionStatus
+  revisionDueDate?: Date | string | null
+  continuingReviewDueDate?: Date | string | null
+  finalReportDueDate?: Date | string | null
+  finalDecision?: $Enums.ReviewDecision | null
+  finalDecisionDate?: Date | string | null
+  remarks?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: number | null
+  staffInChargeId?: number | null
+  classification?: Prisma.ClassificationUncheckedCreateNestedOneWithoutSubmissionInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
+  workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
+}
+
+export type SubmissionCreateOrConnectWithoutDocumentsInput = {
+  where: Prisma.SubmissionWhereUniqueInput
+  create: Prisma.XOR<Prisma.SubmissionCreateWithoutDocumentsInput, Prisma.SubmissionUncheckedCreateWithoutDocumentsInput>
+}
+
+export type SubmissionUpsertWithoutDocumentsInput = {
+  update: Prisma.XOR<Prisma.SubmissionUpdateWithoutDocumentsInput, Prisma.SubmissionUncheckedUpdateWithoutDocumentsInput>
+  create: Prisma.XOR<Prisma.SubmissionCreateWithoutDocumentsInput, Prisma.SubmissionUncheckedCreateWithoutDocumentsInput>
+  where?: Prisma.SubmissionWhereInput
+}
+
+export type SubmissionUpdateToOneWithWhereWithoutDocumentsInput = {
+  where?: Prisma.SubmissionWhereInput
+  data: Prisma.XOR<Prisma.SubmissionUpdateWithoutDocumentsInput, Prisma.SubmissionUncheckedUpdateWithoutDocumentsInput>
+}
+
+export type SubmissionUpdateWithoutDocumentsInput = {
+  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
+  completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
+  revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
+  finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ProjectUpdateOneWithoutSubmissionsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutSubmissionsCreatedNestedInput
+  staffInCharge?: Prisma.UserUpdateOneWithoutAssignedSubmissionsNestedInput
+  classification?: Prisma.ClassificationUpdateOneWithoutSubmissionNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
+  workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
+}
+
+export type SubmissionUncheckedUpdateWithoutDocumentsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
+  completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
+  revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
+  finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  staffInChargeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classification?: Prisma.ClassificationUncheckedUpdateOneWithoutSubmissionNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
+  workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
+}
+
+export type SubmissionCreateWithoutLetterDraftsInput = {
+  submissionType: $Enums.SubmissionType
+  sequenceNumber?: number
+  receivedDate: Date | string
+  documentLink?: string | null
+  completenessStatus?: $Enums.CompletenessStatus
+  completenessRemarks?: string | null
+  status?: $Enums.SubmissionStatus
+  revisionDueDate?: Date | string | null
+  continuingReviewDueDate?: Date | string | null
+  finalReportDueDate?: Date | string | null
+  finalDecision?: $Enums.ReviewDecision | null
+  finalDecisionDate?: Date | string | null
+  remarks?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project?: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutSubmissionsCreatedInput
+  staffInCharge?: Prisma.UserCreateNestedOneWithoutAssignedSubmissionsInput
+  classification?: Prisma.ClassificationCreateNestedOneWithoutSubmissionInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentCreateNestedManyWithoutSubmissionInput
+  workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
+  statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
+}
+
+export type SubmissionUncheckedCreateWithoutLetterDraftsInput = {
+  id?: number
+  projectId?: number | null
+  submissionType: $Enums.SubmissionType
+  sequenceNumber?: number
+  receivedDate: Date | string
+  documentLink?: string | null
+  completenessStatus?: $Enums.CompletenessStatus
+  completenessRemarks?: string | null
+  status?: $Enums.SubmissionStatus
+  revisionDueDate?: Date | string | null
+  continuingReviewDueDate?: Date | string | null
+  finalReportDueDate?: Date | string | null
+  finalDecision?: $Enums.ReviewDecision | null
+  finalDecisionDate?: Date | string | null
+  remarks?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: number | null
+  staffInChargeId?: number | null
+  classification?: Prisma.ClassificationUncheckedCreateNestedOneWithoutSubmissionInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentUncheckedCreateNestedManyWithoutSubmissionInput
+  workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
+}
+
+export type SubmissionCreateOrConnectWithoutLetterDraftsInput = {
+  where: Prisma.SubmissionWhereUniqueInput
+  create: Prisma.XOR<Prisma.SubmissionCreateWithoutLetterDraftsInput, Prisma.SubmissionUncheckedCreateWithoutLetterDraftsInput>
+}
+
+export type SubmissionUpsertWithoutLetterDraftsInput = {
+  update: Prisma.XOR<Prisma.SubmissionUpdateWithoutLetterDraftsInput, Prisma.SubmissionUncheckedUpdateWithoutLetterDraftsInput>
+  create: Prisma.XOR<Prisma.SubmissionCreateWithoutLetterDraftsInput, Prisma.SubmissionUncheckedCreateWithoutLetterDraftsInput>
+  where?: Prisma.SubmissionWhereInput
+}
+
+export type SubmissionUpdateToOneWithWhereWithoutLetterDraftsInput = {
+  where?: Prisma.SubmissionWhereInput
+  data: Prisma.XOR<Prisma.SubmissionUpdateWithoutLetterDraftsInput, Prisma.SubmissionUncheckedUpdateWithoutLetterDraftsInput>
+}
+
+export type SubmissionUpdateWithoutLetterDraftsInput = {
+  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
+  completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
+  revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
+  finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ProjectUpdateOneWithoutSubmissionsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutSubmissionsCreatedNestedInput
+  staffInCharge?: Prisma.UserUpdateOneWithoutAssignedSubmissionsNestedInput
+  classification?: Prisma.ClassificationUpdateOneWithoutSubmissionNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUpdateManyWithoutSubmissionNestedInput
+  workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
+}
+
+export type SubmissionUncheckedUpdateWithoutLetterDraftsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
+  completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
+  revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
+  finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  staffInChargeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classification?: Prisma.ClassificationUncheckedUpdateOneWithoutSubmissionNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUncheckedUpdateManyWithoutSubmissionNestedInput
+  workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionCreateWithoutWorkflowEventsInput = {
@@ -1369,16 +2216,21 @@ export type SubmissionCreateWithoutWorkflowEventsInput = {
   remarks?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  project: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
+  project?: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
   createdBy?: Prisma.UserCreateNestedOneWithoutSubmissionsCreatedInput
+  staffInCharge?: Prisma.UserCreateNestedOneWithoutAssignedSubmissionsInput
   classification?: Prisma.ClassificationCreateNestedOneWithoutSubmissionInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
 }
 
 export type SubmissionUncheckedCreateWithoutWorkflowEventsInput = {
   id?: number
-  projectId: number
+  projectId?: number | null
   submissionType: $Enums.SubmissionType
   sequenceNumber?: number
   receivedDate: Date | string
@@ -1395,9 +2247,14 @@ export type SubmissionUncheckedCreateWithoutWorkflowEventsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
+  staffInChargeId?: number | null
   classification?: Prisma.ClassificationUncheckedCreateNestedOneWithoutSubmissionInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentUncheckedCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
 }
 
 export type SubmissionCreateOrConnectWithoutWorkflowEventsInput = {
@@ -1432,16 +2289,21 @@ export type SubmissionUpdateWithoutWorkflowEventsInput = {
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  project?: Prisma.ProjectUpdateOneRequiredWithoutSubmissionsNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutSubmissionsNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutSubmissionsCreatedNestedInput
+  staffInCharge?: Prisma.UserUpdateOneWithoutAssignedSubmissionsNestedInput
   classification?: Prisma.ClassificationUpdateOneWithoutSubmissionNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionUncheckedUpdateWithoutWorkflowEventsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  projectId?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
   receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1458,14 +2320,19 @@ export type SubmissionUncheckedUpdateWithoutWorkflowEventsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  staffInChargeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   classification?: Prisma.ClassificationUncheckedUpdateOneWithoutSubmissionNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUncheckedUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionCreateManyCreatedByInput = {
   id?: number
-  projectId: number
+  projectId?: number | null
   submissionType: $Enums.SubmissionType
   sequenceNumber?: number
   receivedDate: Date | string
@@ -1481,6 +2348,28 @@ export type SubmissionCreateManyCreatedByInput = {
   remarks?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  staffInChargeId?: number | null
+}
+
+export type SubmissionCreateManyStaffInChargeInput = {
+  id?: number
+  projectId?: number | null
+  submissionType: $Enums.SubmissionType
+  sequenceNumber?: number
+  receivedDate: Date | string
+  documentLink?: string | null
+  completenessStatus?: $Enums.CompletenessStatus
+  completenessRemarks?: string | null
+  status?: $Enums.SubmissionStatus
+  revisionDueDate?: Date | string | null
+  continuingReviewDueDate?: Date | string | null
+  finalReportDueDate?: Date | string | null
+  finalDecision?: $Enums.ReviewDecision | null
+  finalDecisionDate?: Date | string | null
+  remarks?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: number | null
 }
 
 export type SubmissionUpdateWithoutCreatedByInput = {
@@ -1499,16 +2388,21 @@ export type SubmissionUpdateWithoutCreatedByInput = {
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  project?: Prisma.ProjectUpdateOneRequiredWithoutSubmissionsNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutSubmissionsNestedInput
+  staffInCharge?: Prisma.UserUpdateOneWithoutAssignedSubmissionsNestedInput
   classification?: Prisma.ClassificationUpdateOneWithoutSubmissionNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionUncheckedUpdateWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  projectId?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
   receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1524,15 +2418,20 @@ export type SubmissionUncheckedUpdateWithoutCreatedByInput = {
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  staffInChargeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   classification?: Prisma.ClassificationUncheckedUpdateOneWithoutSubmissionNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUncheckedUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionUncheckedUpdateManyWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  projectId?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
   receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1548,6 +2447,85 @@ export type SubmissionUncheckedUpdateManyWithoutCreatedByInput = {
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  staffInChargeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type SubmissionUpdateWithoutStaffInChargeInput = {
+  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
+  completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
+  revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
+  finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ProjectUpdateOneWithoutSubmissionsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutSubmissionsCreatedNestedInput
+  classification?: Prisma.ClassificationUpdateOneWithoutSubmissionNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
+  workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
+}
+
+export type SubmissionUncheckedUpdateWithoutStaffInChargeInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
+  completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
+  revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
+  finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classification?: Prisma.ClassificationUncheckedUpdateOneWithoutSubmissionNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUncheckedUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
+  workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
+}
+
+export type SubmissionUncheckedUpdateManyWithoutStaffInChargeInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
+  completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
+  revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
+  finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type SubmissionCreateManyProjectInput = {
@@ -1568,6 +2546,7 @@ export type SubmissionCreateManyProjectInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
+  staffInChargeId?: number | null
 }
 
 export type SubmissionUpdateWithoutProjectInput = {
@@ -1587,10 +2566,15 @@ export type SubmissionUpdateWithoutProjectInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdBy?: Prisma.UserUpdateOneWithoutSubmissionsCreatedNestedInput
+  staffInCharge?: Prisma.UserUpdateOneWithoutAssignedSubmissionsNestedInput
   classification?: Prisma.ClassificationUpdateOneWithoutSubmissionNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionUncheckedUpdateWithoutProjectInput = {
@@ -1611,10 +2595,15 @@ export type SubmissionUncheckedUpdateWithoutProjectInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  staffInChargeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   classification?: Prisma.ClassificationUncheckedUpdateOneWithoutSubmissionNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUncheckedUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionUncheckedUpdateManyWithoutProjectInput = {
@@ -1635,6 +2624,7 @@ export type SubmissionUncheckedUpdateManyWithoutProjectInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  staffInChargeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 
@@ -1644,14 +2634,22 @@ export type SubmissionUncheckedUpdateManyWithoutProjectInput = {
 
 export type SubmissionCountOutputType = {
   reviews: number
+  documents: number
+  letterDrafts: number
   workflowEvents: number
   statusHistory: number
+  projectChangeLogs: number
+  changeLogs: number
 }
 
 export type SubmissionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   reviews?: boolean | SubmissionCountOutputTypeCountReviewsArgs
+  documents?: boolean | SubmissionCountOutputTypeCountDocumentsArgs
+  letterDrafts?: boolean | SubmissionCountOutputTypeCountLetterDraftsArgs
   workflowEvents?: boolean | SubmissionCountOutputTypeCountWorkflowEventsArgs
   statusHistory?: boolean | SubmissionCountOutputTypeCountStatusHistoryArgs
+  projectChangeLogs?: boolean | SubmissionCountOutputTypeCountProjectChangeLogsArgs
+  changeLogs?: boolean | SubmissionCountOutputTypeCountChangeLogsArgs
 }
 
 /**
@@ -1674,6 +2672,20 @@ export type SubmissionCountOutputTypeCountReviewsArgs<ExtArgs extends runtime.Ty
 /**
  * SubmissionCountOutputType without action
  */
+export type SubmissionCountOutputTypeCountDocumentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SubmissionDocumentWhereInput
+}
+
+/**
+ * SubmissionCountOutputType without action
+ */
+export type SubmissionCountOutputTypeCountLetterDraftsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LetterDraftWhereInput
+}
+
+/**
+ * SubmissionCountOutputType without action
+ */
 export type SubmissionCountOutputTypeCountWorkflowEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.WorkflowEventWhereInput
 }
@@ -1683,6 +2695,20 @@ export type SubmissionCountOutputTypeCountWorkflowEventsArgs<ExtArgs extends run
  */
 export type SubmissionCountOutputTypeCountStatusHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.SubmissionStatusHistoryWhereInput
+}
+
+/**
+ * SubmissionCountOutputType without action
+ */
+export type SubmissionCountOutputTypeCountProjectChangeLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProjectChangeLogWhereInput
+}
+
+/**
+ * SubmissionCountOutputType without action
+ */
+export type SubmissionCountOutputTypeCountChangeLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SubmissionChangeLogWhereInput
 }
 
 
@@ -1705,12 +2731,18 @@ export type SubmissionSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   createdAt?: boolean
   updatedAt?: boolean
   createdById?: boolean
-  project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
+  staffInChargeId?: boolean
+  project?: boolean | Prisma.Submission$projectArgs<ExtArgs>
   createdBy?: boolean | Prisma.Submission$createdByArgs<ExtArgs>
+  staffInCharge?: boolean | Prisma.Submission$staffInChargeArgs<ExtArgs>
   classification?: boolean | Prisma.Submission$classificationArgs<ExtArgs>
   reviews?: boolean | Prisma.Submission$reviewsArgs<ExtArgs>
+  documents?: boolean | Prisma.Submission$documentsArgs<ExtArgs>
+  letterDrafts?: boolean | Prisma.Submission$letterDraftsArgs<ExtArgs>
   workflowEvents?: boolean | Prisma.Submission$workflowEventsArgs<ExtArgs>
   statusHistory?: boolean | Prisma.Submission$statusHistoryArgs<ExtArgs>
+  projectChangeLogs?: boolean | Prisma.Submission$projectChangeLogsArgs<ExtArgs>
+  changeLogs?: boolean | Prisma.Submission$changeLogsArgs<ExtArgs>
   _count?: boolean | Prisma.SubmissionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["submission"]>
 
@@ -1733,8 +2765,10 @@ export type SubmissionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   createdAt?: boolean
   updatedAt?: boolean
   createdById?: boolean
-  project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
+  staffInChargeId?: boolean
+  project?: boolean | Prisma.Submission$projectArgs<ExtArgs>
   createdBy?: boolean | Prisma.Submission$createdByArgs<ExtArgs>
+  staffInCharge?: boolean | Prisma.Submission$staffInChargeArgs<ExtArgs>
 }, ExtArgs["result"]["submission"]>
 
 export type SubmissionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1756,8 +2790,10 @@ export type SubmissionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   createdAt?: boolean
   updatedAt?: boolean
   createdById?: boolean
-  project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
+  staffInChargeId?: boolean
+  project?: boolean | Prisma.Submission$projectArgs<ExtArgs>
   createdBy?: boolean | Prisma.Submission$createdByArgs<ExtArgs>
+  staffInCharge?: boolean | Prisma.Submission$staffInChargeArgs<ExtArgs>
 }, ExtArgs["result"]["submission"]>
 
 export type SubmissionSelectScalar = {
@@ -1779,40 +2815,53 @@ export type SubmissionSelectScalar = {
   createdAt?: boolean
   updatedAt?: boolean
   createdById?: boolean
+  staffInChargeId?: boolean
 }
 
-export type SubmissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "submissionType" | "sequenceNumber" | "receivedDate" | "documentLink" | "completenessStatus" | "completenessRemarks" | "status" | "revisionDueDate" | "continuingReviewDueDate" | "finalReportDueDate" | "finalDecision" | "finalDecisionDate" | "remarks" | "createdAt" | "updatedAt" | "createdById", ExtArgs["result"]["submission"]>
+export type SubmissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "submissionType" | "sequenceNumber" | "receivedDate" | "documentLink" | "completenessStatus" | "completenessRemarks" | "status" | "revisionDueDate" | "continuingReviewDueDate" | "finalReportDueDate" | "finalDecision" | "finalDecisionDate" | "remarks" | "createdAt" | "updatedAt" | "createdById" | "staffInChargeId", ExtArgs["result"]["submission"]>
 export type SubmissionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
+  project?: boolean | Prisma.Submission$projectArgs<ExtArgs>
   createdBy?: boolean | Prisma.Submission$createdByArgs<ExtArgs>
+  staffInCharge?: boolean | Prisma.Submission$staffInChargeArgs<ExtArgs>
   classification?: boolean | Prisma.Submission$classificationArgs<ExtArgs>
   reviews?: boolean | Prisma.Submission$reviewsArgs<ExtArgs>
+  documents?: boolean | Prisma.Submission$documentsArgs<ExtArgs>
+  letterDrafts?: boolean | Prisma.Submission$letterDraftsArgs<ExtArgs>
   workflowEvents?: boolean | Prisma.Submission$workflowEventsArgs<ExtArgs>
   statusHistory?: boolean | Prisma.Submission$statusHistoryArgs<ExtArgs>
+  projectChangeLogs?: boolean | Prisma.Submission$projectChangeLogsArgs<ExtArgs>
+  changeLogs?: boolean | Prisma.Submission$changeLogsArgs<ExtArgs>
   _count?: boolean | Prisma.SubmissionCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SubmissionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
+  project?: boolean | Prisma.Submission$projectArgs<ExtArgs>
   createdBy?: boolean | Prisma.Submission$createdByArgs<ExtArgs>
+  staffInCharge?: boolean | Prisma.Submission$staffInChargeArgs<ExtArgs>
 }
 export type SubmissionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
+  project?: boolean | Prisma.Submission$projectArgs<ExtArgs>
   createdBy?: boolean | Prisma.Submission$createdByArgs<ExtArgs>
+  staffInCharge?: boolean | Prisma.Submission$staffInChargeArgs<ExtArgs>
 }
 
 export type $SubmissionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Submission"
   objects: {
-    project: Prisma.$ProjectPayload<ExtArgs>
+    project: Prisma.$ProjectPayload<ExtArgs> | null
     createdBy: Prisma.$UserPayload<ExtArgs> | null
+    staffInCharge: Prisma.$UserPayload<ExtArgs> | null
     classification: Prisma.$ClassificationPayload<ExtArgs> | null
     reviews: Prisma.$ReviewPayload<ExtArgs>[]
+    documents: Prisma.$SubmissionDocumentPayload<ExtArgs>[]
+    letterDrafts: Prisma.$LetterDraftPayload<ExtArgs>[]
     workflowEvents: Prisma.$WorkflowEventPayload<ExtArgs>[]
     statusHistory: Prisma.$SubmissionStatusHistoryPayload<ExtArgs>[]
+    projectChangeLogs: Prisma.$ProjectChangeLogPayload<ExtArgs>[]
+    changeLogs: Prisma.$SubmissionChangeLogPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
-    projectId: number
+    projectId: number | null
     submissionType: $Enums.SubmissionType
     sequenceNumber: number
     receivedDate: Date
@@ -1829,6 +2878,7 @@ export type $SubmissionPayload<ExtArgs extends runtime.Types.Extensions.Internal
     createdAt: Date
     updatedAt: Date
     createdById: number | null
+    staffInChargeId: number | null
   }, ExtArgs["result"]["submission"]>
   composites: {}
 }
@@ -2223,12 +3273,17 @@ readonly fields: SubmissionFieldRefs;
  */
 export interface Prisma__SubmissionClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  project<T extends Prisma.ProjectDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectDefaultArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  project<T extends Prisma.Submission$projectArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$projectArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   createdBy<T extends Prisma.Submission$createdByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$createdByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  staffInCharge<T extends Prisma.Submission$staffInChargeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$staffInChargeArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   classification<T extends Prisma.Submission$classificationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$classificationArgs<ExtArgs>>): Prisma.Prisma__ClassificationClient<runtime.Types.Result.GetResult<Prisma.$ClassificationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   reviews<T extends Prisma.Submission$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  documents<T extends Prisma.Submission$documentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubmissionDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  letterDrafts<T extends Prisma.Submission$letterDraftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$letterDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LetterDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   workflowEvents<T extends Prisma.Submission$workflowEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$workflowEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkflowEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   statusHistory<T extends Prisma.Submission$statusHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$statusHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubmissionStatusHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  projectChangeLogs<T extends Prisma.Submission$projectChangeLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$projectChangeLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectChangeLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  changeLogs<T extends Prisma.Submission$changeLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$changeLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubmissionChangeLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2276,6 +3331,7 @@ export interface SubmissionFieldRefs {
   readonly createdAt: Prisma.FieldRef<"Submission", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Submission", 'DateTime'>
   readonly createdById: Prisma.FieldRef<"Submission", 'Int'>
+  readonly staffInChargeId: Prisma.FieldRef<"Submission", 'Int'>
 }
     
 
@@ -2672,9 +3728,47 @@ export type SubmissionDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.In
 }
 
 /**
+ * Submission.project
+ */
+export type Submission$projectArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Project
+   */
+  select?: Prisma.ProjectSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Project
+   */
+  omit?: Prisma.ProjectOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectInclude<ExtArgs> | null
+  where?: Prisma.ProjectWhereInput
+}
+
+/**
  * Submission.createdBy
  */
 export type Submission$createdByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
+}
+
+/**
+ * Submission.staffInCharge
+ */
+export type Submission$staffInChargeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the User
    */
@@ -2734,6 +3828,54 @@ export type Submission$reviewsArgs<ExtArgs extends runtime.Types.Extensions.Inte
 }
 
 /**
+ * Submission.documents
+ */
+export type Submission$documentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SubmissionDocument
+   */
+  select?: Prisma.SubmissionDocumentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SubmissionDocument
+   */
+  omit?: Prisma.SubmissionDocumentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SubmissionDocumentInclude<ExtArgs> | null
+  where?: Prisma.SubmissionDocumentWhereInput
+  orderBy?: Prisma.SubmissionDocumentOrderByWithRelationInput | Prisma.SubmissionDocumentOrderByWithRelationInput[]
+  cursor?: Prisma.SubmissionDocumentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SubmissionDocumentScalarFieldEnum | Prisma.SubmissionDocumentScalarFieldEnum[]
+}
+
+/**
+ * Submission.letterDrafts
+ */
+export type Submission$letterDraftsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LetterDraft
+   */
+  select?: Prisma.LetterDraftSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the LetterDraft
+   */
+  omit?: Prisma.LetterDraftOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LetterDraftInclude<ExtArgs> | null
+  where?: Prisma.LetterDraftWhereInput
+  orderBy?: Prisma.LetterDraftOrderByWithRelationInput | Prisma.LetterDraftOrderByWithRelationInput[]
+  cursor?: Prisma.LetterDraftWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.LetterDraftScalarFieldEnum | Prisma.LetterDraftScalarFieldEnum[]
+}
+
+/**
  * Submission.workflowEvents
  */
 export type Submission$workflowEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2779,6 +3921,54 @@ export type Submission$statusHistoryArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.SubmissionStatusHistoryScalarFieldEnum | Prisma.SubmissionStatusHistoryScalarFieldEnum[]
+}
+
+/**
+ * Submission.projectChangeLogs
+ */
+export type Submission$projectChangeLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProjectChangeLog
+   */
+  select?: Prisma.ProjectChangeLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProjectChangeLog
+   */
+  omit?: Prisma.ProjectChangeLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectChangeLogInclude<ExtArgs> | null
+  where?: Prisma.ProjectChangeLogWhereInput
+  orderBy?: Prisma.ProjectChangeLogOrderByWithRelationInput | Prisma.ProjectChangeLogOrderByWithRelationInput[]
+  cursor?: Prisma.ProjectChangeLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProjectChangeLogScalarFieldEnum | Prisma.ProjectChangeLogScalarFieldEnum[]
+}
+
+/**
+ * Submission.changeLogs
+ */
+export type Submission$changeLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SubmissionChangeLog
+   */
+  select?: Prisma.SubmissionChangeLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SubmissionChangeLog
+   */
+  omit?: Prisma.SubmissionChangeLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SubmissionChangeLogInclude<ExtArgs> | null
+  where?: Prisma.SubmissionChangeLogWhereInput
+  orderBy?: Prisma.SubmissionChangeLogOrderByWithRelationInput | Prisma.SubmissionChangeLogOrderByWithRelationInput[]
+  cursor?: Prisma.SubmissionChangeLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SubmissionChangeLogScalarFieldEnum | Prisma.SubmissionChangeLogScalarFieldEnum[]
 }
 
 /**

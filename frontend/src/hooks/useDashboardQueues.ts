@@ -1,126 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
+import type {
   AttentionMetrics,
   DecoratedQueueItem,
   LetterTemplateReadiness,
   QueueCounts,
-  QueueItem,
-  QueueType,
-  SLAStatus,
-  fetchDashboardQueues,
-} from "@/services/api";
-import { addWorkingDays, workingDaysBetween } from "@/utils/dateUtils";
-
-const SLA_TARGETS: Record<QueueType, number> = {
-  classification: 5,
-  review: 12,
-  revision: 7,
-};
-const DUE_SOON_THRESHOLD = 3;
-const CLASSIFICATION_WAIT_THRESHOLD = 3;
-
-function deriveTemplateCode(submissionType?: string): string {
-  if (!submissionType) return "6B";
-  const normalized = submissionType.toUpperCase();
-  if (normalized.includes("AMEND")) return "8B";
-  if (normalized.includes("REVISION")) return "9B";
-  if (normalized.includes("CONT") || normalized.includes("PROGRESS"))
-    return "20B";
-  return "6B";
-}
-
-function findMissingFields(item: QueueItem): string[] {
-  const missing: string[] = [];
-  if (!item.projectCode) missing.push("project_code");
-  if (!item.projectTitle) missing.push("project_title");
-  if (!item.piName) missing.push("pi_name");
-  if (!item.piAffiliation) missing.push("pi_affiliation");
-  if (!item.submissionType) missing.push("submission_type");
-  return missing;
-}
-
-function decorateQueueItem(
-  item: QueueItem,
-  queue: QueueType,
-  now: Date
-): DecoratedQueueItem {
-  const startDate = new Date(item.receivedDate);
-  const targetWorkingDays = SLA_TARGETS[queue];
-  const elapsedWorkingDays = workingDaysBetween(startDate, now);
-  const workingDaysRemaining = targetWorkingDays - elapsedWorkingDays;
-  const dueDate = addWorkingDays(startDate, targetWorkingDays);
-
-  let slaStatus: SLAStatus = "ON_TRACK";
-  if (workingDaysRemaining <= DUE_SOON_THRESHOLD) {
-    slaStatus = "DUE_SOON";
-  }
-  if (workingDaysRemaining < 0) {
-    slaStatus = "OVERDUE";
-  }
-
-  const missingFields = findMissingFields(item);
-
-  return {
-    ...item,
-    queue,
-    targetWorkingDays,
-    workingDaysElapsed: elapsedWorkingDays,
-    workingDaysRemaining,
-    slaDueDate: dueDate.toISOString(),
-    startedAt: startDate.toISOString(),
-    slaStatus,
-    missingFields,
-    templateCode: deriveTemplateCode(item.submissionType),
-    lastAction: item.status,
-    nextAction:
-      queue === "classification"
-        ? "Classify"
-        : queue === "review"
-          ? "Assign reviewers"
-          : "Follow up for revisions",
-    notes:
-      queue === "revision"
-        ? "Remind PI of revision deadline"
-        : "Ensure letter fields are complete",
-  };
-}
-
-function buildLetterReadiness(
-  items: DecoratedQueueItem[]
-): LetterTemplateReadiness[] {
-  const grouped = new Map<
-    string,
-    { ready: number; missingFields: number; samples: LetterTemplateReadiness["samples"] }
-  >();
-
-  items.forEach((item) => {
-    const templateCode = item.templateCode;
-    if (!grouped.has(templateCode)) {
-      grouped.set(templateCode, { ready: 0, missingFields: 0, samples: [] });
-    }
-    const entry = grouped.get(templateCode)!;
-    if (item.missingFields.length > 0) {
-      entry.missingFields += 1;
-      if (entry.samples.length < 3) {
-        entry.samples.push({
-          submissionId: item.id,
-          projectCode: item.projectCode,
-          projectTitle: item.projectTitle,
-          fields: item.missingFields,
-        });
-      }
-    } else {
-      entry.ready += 1;
-    }
-  });
-
-  return Array.from(grouped.entries()).map(([templateCode, value]) => ({
-    templateCode,
-    ready: value.ready,
-    missingFields: value.missingFields,
-    samples: value.samples,
-  }));
-}
+} from "@/types";
+import { fetchDashboardQueues } from "@/services/api";
+import { buildLetterReadiness, decorateQueueItem } from "@/utils/slaUtils";
+import {
+  AUTO_REFRESH_INTERVAL_MS,
+  CLASSIFICATION_WAIT_THRESHOLD,
+  DUE_SOON_THRESHOLD,
+} from "@/constants";
 
 export function useDashboardQueues(committeeCode: string) {
   const [counts, setCounts] = useState<QueueCounts | null>(null);
@@ -168,7 +59,9 @@ export function useDashboardQueues(committeeCode: string) {
         (item) => item.slaStatus === "OVERDUE"
       ).length;
       const dueSoon = allItems.filter(
-        (item) => item.slaStatus === "DUE_SOON"
+        (item) =>
+          item.workingDaysRemaining <= DUE_SOON_THRESHOLD &&
+          item.workingDaysRemaining >= 0
       ).length;
       const classificationWait = decoratedClassification.filter(
         (item) => item.workingDaysElapsed > CLASSIFICATION_WAIT_THRESHOLD
@@ -205,7 +98,7 @@ export function useDashboardQueues(committeeCode: string) {
 
   useEffect(() => {
     loadQueues();
-    const interval = setInterval(loadQueues, 90000); // Refresh every 90s per UX objective
+    const interval = setInterval(loadQueues, AUTO_REFRESH_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [loadQueues]);
 
