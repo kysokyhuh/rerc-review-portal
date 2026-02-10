@@ -3,7 +3,11 @@ import type { DashboardActivityEntry } from "@/types";
 import { fetchDashboardActivity } from "@/services/api";
 import { AUTO_REFRESH_INTERVAL_MS } from "@/constants";
 
-export function useDashboardActivity(committeeCode: string, limit = 8) {
+export function useDashboardActivity(
+  committeeCode: string,
+  limit = 8,
+  filters?: Record<string, string>
+) {
   const [activity, setActivity] = useState<DashboardActivityEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -11,7 +15,7 @@ export function useDashboardActivity(committeeCode: string, limit = 8) {
   const loadActivity = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await fetchDashboardActivity(committeeCode, limit);
+      const data = await fetchDashboardActivity(committeeCode, limit, filters);
       setActivity(data.items ?? []);
       setError(null);
     } catch (err) {
@@ -19,7 +23,7 @@ export function useDashboardActivity(committeeCode: string, limit = 8) {
     } finally {
       setLoading(false);
     }
-  }, [committeeCode, limit]);
+  }, [committeeCode, limit, filters ? JSON.stringify(filters) : ""]);
 
   useEffect(() => {
     loadActivity();

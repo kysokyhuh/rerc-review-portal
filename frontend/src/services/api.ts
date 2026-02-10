@@ -62,10 +62,17 @@ const api = axios.create({
 /**
  * Fetch queues for a specific committee
  */
-export async function fetchDashboardQueues(committeeCode: string) {
-  const response = await api.get(
-    `/dashboard/queues?committeeCode=${committeeCode}`
-  );
+export async function fetchDashboardQueues(
+  committeeCode: string,
+  filters?: Record<string, string>
+) {
+  const params = new URLSearchParams({ committeeCode });
+  if (filters) {
+    for (const [key, value] of Object.entries(filters)) {
+      if (value) params.set(key, value);
+    }
+  }
+  const response = await api.get(`/dashboard/queues?${params.toString()}`);
 
   const data = response.data;
   const transformQueue = (items: any[], queue: QueueType): QueueItem[] => {
@@ -102,21 +109,36 @@ export async function fetchDashboardQueues(committeeCode: string) {
 
 export async function fetchDashboardActivity(
   committeeCode: string,
-  limit = 8
+  limit = 8,
+  filters?: Record<string, string>
 ) {
-  const response = await api.get(
-    `/dashboard/activity?committeeCode=${committeeCode}&limit=${limit}`
-  );
+  const params = new URLSearchParams({
+    committeeCode,
+    limit: String(limit),
+  });
+  if (filters) {
+    for (const [key, value] of Object.entries(filters)) {
+      if (value) params.set(key, value);
+    }
+  }
+  const response = await api.get(`/dashboard/activity?${params.toString()}`);
   return response.data as {
     committeeCode: string;
     items: DashboardActivityEntry[];
   };
 }
 
-export async function fetchDashboardOverdue(committeeCode: string) {
-  const response = await api.get(
-    `/dashboard/overdue?committeeCode=${committeeCode}`
-  );
+export async function fetchDashboardOverdue(
+  committeeCode: string,
+  filters?: Record<string, string>
+) {
+  const params = new URLSearchParams({ committeeCode });
+  if (filters) {
+    for (const [key, value] of Object.entries(filters)) {
+      if (value) params.set(key, value);
+    }
+  }
+  const response = await api.get(`/dashboard/overdue?${params.toString()}`);
   return response.data as {
     committeeCode: string;
     overdueReviews: OverdueReviewItem[];

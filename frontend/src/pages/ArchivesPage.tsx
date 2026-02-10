@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchArchivedProjects, type ArchivedProject } from "@/services/api";
 import { Breadcrumbs } from "@/components";
+import { BRAND } from "@/config/branding";
 import "../styles/archives.css";
 
 /**
@@ -80,7 +81,7 @@ export default function ArchivesPage() {
       setLoading(true);
       setError(null);
       const response = await fetchArchivedProjects({
-        committeeCode: "RERC-HUMAN",
+        committeeCode: BRAND.defaultCommitteeCode,
         limit,
         offset,
         search: debouncedSearch || undefined,

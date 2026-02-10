@@ -1,5 +1,5 @@
 /**
- * Shared type definitions for the RERC Review Portal frontend
+ * Shared type definitions for the URERD Review Portal frontend
  */
 
 // Queue and SLA types
@@ -84,6 +84,8 @@ export interface DecoratedQueueItem extends QueueItem {
   nextAction?: string;
   lastAction?: string;
   notes?: string;
+  overdueOwner?: "PANEL" | "RESEARCHER";
+  overdueReason?: string;
 }
 
 // Letter templates
@@ -110,6 +112,8 @@ export interface OverdueReviewItem {
   dueDate: string;
   daysOverdue: number;
   endorsementStatus?: string;
+  overdueOwner?: "PANEL" | "RESEARCHER";
+  overdueReason?: string;
 }
 
 export interface ProjectSearchResult {

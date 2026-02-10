@@ -11,6 +11,7 @@ import type {
 } from "@/types";
 import { addWorkingDays, workingDaysBetween } from "./dateUtils";
 import { DUE_SOON_THRESHOLD, SLA_TARGETS } from "@/constants";
+import { classifyOverdue } from "./overdueClassifier";
 
 /**
  * Derives the letter template code based on submission type
@@ -62,6 +63,12 @@ export function decorateQueueItem(
 
   const missingFields = findMissingFields(item);
 
+  // Classify overdue/due-soon owner
+  const overdueClassification =
+    slaStatus === "OVERDUE" || slaStatus === "DUE_SOON"
+      ? classifyOverdue(item.status)
+      : undefined;
+
   return {
     ...item,
     queue,
@@ -74,6 +81,8 @@ export function decorateQueueItem(
     missingFields,
     templateCode: deriveTemplateCode(item.submissionType),
     lastAction: item.status,
+    overdueOwner: overdueClassification?.overdueOwner,
+    overdueReason: overdueClassification?.overdueReason,
     nextAction:
       queue === "classification"
         ? "Classify"

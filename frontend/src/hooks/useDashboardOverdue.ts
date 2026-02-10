@@ -3,7 +3,10 @@ import type { OverdueReviewItem } from "@/types";
 import { fetchDashboardOverdue } from "@/services/api";
 import { AUTO_REFRESH_INTERVAL_MS } from "@/constants";
 
-export function useDashboardOverdue(committeeCode: string) {
+export function useDashboardOverdue(
+  committeeCode: string,
+  filters?: Record<string, string>
+) {
   const [overdueReviews, setOverdueReviews] = useState<OverdueReviewItem[]>([]);
   const [overdueEndorsements, setOverdueEndorsements] = useState<
     OverdueReviewItem[]
@@ -14,7 +17,7 @@ export function useDashboardOverdue(committeeCode: string) {
   const loadOverdue = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await fetchDashboardOverdue(committeeCode);
+      const data = await fetchDashboardOverdue(committeeCode, filters);
       setOverdueReviews(data.overdueReviews ?? []);
       setOverdueEndorsements(data.overdueEndorsements ?? []);
       setError(null);
@@ -23,7 +26,7 @@ export function useDashboardOverdue(committeeCode: string) {
     } finally {
       setLoading(false);
     }
-  }, [committeeCode]);
+  }, [committeeCode, filters ? JSON.stringify(filters) : ""]);
 
   useEffect(() => {
     loadOverdue();
