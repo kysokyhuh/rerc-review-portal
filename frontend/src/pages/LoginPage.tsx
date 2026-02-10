@@ -1,5 +1,6 @@
 import { useState, useEffect, FormEvent, KeyboardEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { BRAND } from '@/config/branding';
 import '../styles/login.css';
 
 // Email validation regex
@@ -82,7 +83,7 @@ export default function LoginPage() {
     emailTouched && (!emailValid || emailDomainValid === false);
   const emailErrorText = !emailValid
     ? "Enter a valid email address."
-    : "Please use your assigned RERC email address.";
+    : `Please use your assigned ${BRAND.name} email address.`;
   const showPasswordError = passwordTouched && password.length === 0;
   const canSubmit =
     !loading &&
@@ -198,9 +199,9 @@ export default function LoginPage() {
       <div className="login-shell">
         <section className="login-intro">
           <div className="login-kicker">
-            <span className="login-dot"></span> Research Ethics Review Committee
+            <span className="login-dot"></span> {BRAND.fullName}
           </div>
-          <h1>RERC Portal</h1>
+          <h1>{BRAND.name} Portal</h1>
           <p>
             Secure access for designated reviewers and staff.
           </p>
@@ -209,8 +210,8 @@ export default function LoginPage() {
         <aside className={`login-card ${shake ? 'shake' : ''}`} role="region" aria-label="Sign in">
           <div className="login-cardHeader">
             <p className="login-greeting">{greeting}.</p>
-            <h2>Sign in to RERC Portal</h2>
-            <p>Enter your RERC email and password.</p>
+            <h2>Sign in to {BRAND.name} Portal</h2>
+            <p>Enter your {BRAND.name} email and password.</p>
           </div>
 
           <form id="login-form" onSubmit={handleSubmit} noValidate>
@@ -260,7 +261,7 @@ export default function LoginPage() {
                 )}
               </div>
               <p id="email-help" className="login-help">
-                Use your assigned RERC email (e.g., @dlsu.edu.ph).
+                Use your assigned {BRAND.name} email (e.g., @dlsu.edu.ph).
               </p>
               {showEmailError && (
                 <p id="email-error" className="login-field-error" role="alert">
@@ -369,12 +370,12 @@ export default function LoginPage() {
             <div className="login-divider" role="separator" aria-hidden="true"></div>
             <div className="login-footnote">
               Authorized users only. Activity may be monitored for compliance and security.
-              If you believe you should have access, contact the RERC Secretariat.
+              If you believe you should have access, contact the {BRAND.name} Secretariat.
             </div>
           </form>
           <div className="login-support">
-            <a href="mailto:rerc.secretariat@dlsu.edu.ph" className="login-support-link">
-              Need help? Contact the RERC admin team
+            <a href={`mailto:${BRAND.supportEmail}`} className="login-support-link">
+              Need help? Contact the {BRAND.name} admin team
             </a>
           </div>
         </aside>
@@ -390,8 +391,8 @@ export default function LoginPage() {
           <span className="login-footer-version">v1.0.0</span>
         </div>
         <div className="login-footer-right">
-          <a href="mailto:rerc.secretariat@dlsu.edu.ph" className="login-footer-link">
-            Contact RERC admin
+          <a href={`mailto:${BRAND.supportEmail}`} className="login-footer-link">
+            Contact {BRAND.name} admin
           </a>
         </div>
       </footer>

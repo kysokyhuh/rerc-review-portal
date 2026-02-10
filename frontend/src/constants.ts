@@ -1,5 +1,5 @@
 /**
- * Application-wide constants for the RERC Review Portal
+ * Application-wide constants for the URERD Review Portal
  */
 
 import type { QueueType } from "@/types";

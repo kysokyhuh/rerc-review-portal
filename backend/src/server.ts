@@ -1,5 +1,5 @@
 /**
- * RERC Review Portal - Express Server
+ * URERD Review Portal - Express Server
  *
  * Main entry point that starts the HTTP listener.
  */

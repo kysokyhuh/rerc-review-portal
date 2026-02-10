@@ -4,6 +4,11 @@ import { useDashboardQueues } from "@/hooks/useDashboardQueues";
 import { useDashboardActivity } from "@/hooks/useDashboardActivity";
 import { useDashboardOverdue } from "@/hooks/useDashboardOverdue";
 import {
+  DashboardFilters,
+  type DashboardFilterValues,
+  filtersToParams,
+} from "@/components/DashboardFilters";
+import {
   fetchSubmissionDetail,
   fetchSubmissionSlaSummary,
   searchProjects,
@@ -14,6 +19,7 @@ import type {
   SubmissionSlaSummary,
 } from "@/types";
 import { DUE_SOON_THRESHOLD } from "@/constants";
+import { BRAND } from "@/config/branding";
 import "../styles/dashboard.css";
 
 // Get greeting based on time of day
@@ -140,9 +146,20 @@ export const DashboardPage: React.FC = () => {
   const [activityFilter, setActivityFilter] = useState<
     "all" | "classification" | "review" | "revision"
   >("all");
+  const [dashboardFilters, setDashboardFilters] = useState<Record<string, string>>({});
   const tableRef = useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const fromLogin = Boolean((location.state as { fromLogin?: boolean } | null)?.fromLogin);
+
+  // Callback from DashboardFilters component — converts FilterValues to a plain
+  // Record<string,string> suitable for passing into API hooks.
+  const handleDashboardFilterChange = useCallback(
+    (values: DashboardFilterValues) => {
+      const params = filtersToParams(values);
+      setDashboardFilters(params);
+    },
+    []
+  );
 
   const {
     counts,
@@ -156,14 +173,14 @@ export const DashboardPage: React.FC = () => {
     refresh,
     loading,
     error,
-  } = useDashboardQueues("RERC-HUMAN");
+  } = useDashboardQueues(BRAND.defaultCommitteeCode, dashboardFilters);
 
   const {
     activity,
     loading: activityLoading,
     error: activityError,
     refresh: refreshActivity,
-  } = useDashboardActivity("RERC-HUMAN");
+  } = useDashboardActivity(BRAND.defaultCommitteeCode, 8, dashboardFilters);
 
   const {
     overdueReviews,
@@ -171,7 +188,7 @@ export const DashboardPage: React.FC = () => {
     loading: overdueLoading,
     error: overdueError,
     refresh: refreshOverdue,
-  } = useDashboardOverdue("RERC-HUMAN");
+  } = useDashboardOverdue(BRAND.defaultCommitteeCode, dashboardFilters);
 
   const handleRefresh = () => {
     refresh();
@@ -614,7 +631,7 @@ export const DashboardPage: React.FC = () => {
     const timeout = setTimeout(async () => {
       try {
         setSearchLoading(true);
-        const data = await searchProjects(query, "RERC-HUMAN", 6);
+        const data = await searchProjects(query, BRAND.defaultCommitteeCode, 6);
         setSearchResults(data.items ?? []);
         setSearchOpen(true);
         setSearchError(null);
@@ -782,7 +799,7 @@ export const DashboardPage: React.FC = () => {
             <div className="sidebar-logo">
               <div className="sidebar-logo-icon">R</div>
               <div>
-                <h1>RERC Portal</h1>
+                <h1>{BRAND.name} Portal</h1>
                 <span>Research Ethics</span>
               </div>
             </div>
@@ -909,7 +926,7 @@ export const DashboardPage: React.FC = () => {
               <div className="sidebar-avatar">RA</div>
               <div className="sidebar-user-info">
                 <div className="sidebar-user-name">Research Associate</div>
-                <div className="sidebar-user-role">RERC-HUMAN</div>
+                <div className="sidebar-user-role">{BRAND.defaultCommitteeCode}</div>
               </div>
             </div>
           </div>
@@ -1258,6 +1275,7 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               {/* Filter Bar */}
+              <DashboardFilters onChange={handleDashboardFilterChange} />
               <div className="filter-bar">
                 <div className="filter-row">
                   <div className="filter-group">
@@ -1777,6 +1795,16 @@ export const DashboardPage: React.FC = () => {
                             <div className="overdue-main">
                               <div className="overdue-title">
                                 {item.projectCode} • {item.piName}
+                                {item.overdueOwner && (
+                                  <span
+                                    className={`overdue-owner-badge ${item.overdueOwner === "RESEARCHER" ? "researcher" : "panel"}`}
+                                    title={item.overdueReason}
+                                  >
+                                    {item.overdueOwner === "RESEARCHER"
+                                      ? "Researcher overdue"
+                                      : "Panel overdue"}
+                                  </span>
+                                )}
                               </div>
                               <div className="overdue-meta">
                                 Due {formatShortDate(item.slaDueDate)} •{" "}
@@ -1806,6 +1834,16 @@ export const DashboardPage: React.FC = () => {
                             <div className="overdue-main">
                               <div className="overdue-title">
                                 {item.projectCode} • {item.piName}
+                                {item.overdueOwner && (
+                                  <span
+                                    className={`overdue-owner-badge ${item.overdueOwner === "RESEARCHER" ? "researcher" : "panel"}`}
+                                    title={item.overdueReason}
+                                  >
+                                    {item.overdueOwner === "RESEARCHER"
+                                      ? "Researcher pending"
+                                      : "Panel pending"}
+                                  </span>
+                                )}
                               </div>
                               <div className="overdue-meta">
                                 Due {formatShortDate(item.slaDueDate)} •{" "}
@@ -1835,6 +1873,16 @@ export const DashboardPage: React.FC = () => {
                             <div className="overdue-main">
                               <div className="overdue-title">
                                 {review.projectCode} • {review.reviewerName}
+                                {review.overdueOwner && (
+                                  <span
+                                    className={`overdue-owner-badge ${review.overdueOwner === "RESEARCHER" ? "researcher" : "panel"}`}
+                                    title={review.overdueReason}
+                                  >
+                                    {review.overdueOwner === "RESEARCHER"
+                                      ? "Researcher overdue"
+                                      : "Panel overdue"}
+                                  </span>
+                                )}
                               </div>
                               <div className="overdue-meta">
                                 Due {formatShortDate(review.dueDate)} •{" "}
@@ -1863,6 +1911,16 @@ export const DashboardPage: React.FC = () => {
                           <div className="overdue-main">
                             <div className="overdue-title">
                               {review.projectCode} • {review.reviewerName}
+                              {review.overdueOwner && (
+                                <span
+                                  className={`overdue-owner-badge ${review.overdueOwner === "RESEARCHER" ? "researcher" : "panel"}`}
+                                  title={review.overdueReason}
+                                >
+                                  {review.overdueOwner === "RESEARCHER"
+                                    ? "Researcher overdue"
+                                    : "Panel overdue"}
+                                </span>
+                              )}
                             </div>
                             <div className="overdue-meta">
                               Due {formatShortDate(review.dueDate)} •{" "}

@@ -1,5 +1,5 @@
 /**
- * RERC Review Portal - Express App
+ * URERD Review Portal - Express App
  *
  * Configures middleware and mounts route modules.
  */

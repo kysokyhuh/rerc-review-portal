@@ -1222,6 +1222,30 @@
   text-decoration: underline;
 }
 
+/* Overdue owner badges */
+.overdue-owner-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+}
+
+.overdue-owner-badge.panel {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.overdue-owner-badge.researcher {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
 /* Status Badge */
 .status-badge {
   display: inline-flex;
@@ -1540,6 +1564,124 @@ button.quick-action:disabled {
 .letter-action-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ── Dashboard Filters (collapsible advanced filter bar) ── */
+.dashboard-filters {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-elevated);
+}
+
+.dashboard-filters-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  transition: color var(--motion-base) ease;
+}
+
+.dashboard-filters-toggle:hover {
+  color: var(--ink);
+}
+
+.dashboard-filters-chevron {
+  font-size: 11px;
+  transition: transform 0.2s ease;
+}
+
+.dashboard-filters-chevron.open {
+  transform: rotate(180deg);
+}
+
+.dashboard-filters-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.dashboard-filters-body {
+  padding: 0 20px 16px;
+}
+
+.dashboard-filters-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.dashboard-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+  flex: 1;
+  max-width: 220px;
+}
+
+.dashboard-filter-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.dashboard-filter-field select,
+.dashboard-filter-field input {
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color var(--motion-base) ease;
+}
+
+.dashboard-filter-field select:focus,
+.dashboard-filter-field input:focus {
+  border-color: var(--primary);
+}
+
+.dashboard-filters-actions {
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 1px;
+}
+
+.dashboard-filters-clear {
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--motion-base) ease, border-color var(--motion-base) ease;
+}
+
+.dashboard-filters-clear:hover {
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 /* Filter Tabs */

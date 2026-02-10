@@ -3,12 +3,13 @@
  */
 import { Router } from "express";
 import prisma from "../config/prismaClient";
+import { BRAND } from "../config/branding";
 
 const router = Router();
 
 // Root route – just to check server status
 router.get("/", (_req, res) => {
-  res.json({ status: "ok", message: "RERC API skeleton running" });
+  res.json({ status: "ok", message: `${BRAND.name} API running` });
 });
 
 // DB health route – checks Prisma/Postgres connection

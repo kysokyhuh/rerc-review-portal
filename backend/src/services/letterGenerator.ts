@@ -1,5 +1,6 @@
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import prisma from "../config/prismaClient";
+import { BRAND } from "../config/branding";
 
 async function fetchSubmission(submissionId: number) {
   return prisma.submission.findUnique({
@@ -144,7 +145,7 @@ export async function buildInitialApprovalLetter(submissionId: number) {
           }),
           new Paragraph(""),
           new Paragraph(
-            `Dear ${project.piName}, the RERC has approved protocol ${project.projectCode} - "${project.title}".`
+            `Dear ${project.piName}, the ${BRAND.name} has approved protocol ${project.projectCode} - "${project.title}".`
           ),
           new Paragraph(
             `Review Type: ${classification?.reviewType ?? "TBD"}; Decision: ${

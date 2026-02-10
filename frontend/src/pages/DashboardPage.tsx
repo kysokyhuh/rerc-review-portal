@@ -7,6 +7,7 @@ import { CommandBar } from "@/components/CommandBar";
 import { AttentionStrip } from "@/components/AttentionStrip";
 import { LetterReadinessPanel } from "@/components/LetterReadinessPanel";
 import { DecoratedQueueItem, StageFilter, QueueCounts } from "@/services/api";
+import { BRAND } from "@/config/branding";
 import "../styles/globals.css";
 
 function matchesStage(item: DecoratedQueueItem, stage: StageFilter) {
@@ -71,7 +72,7 @@ function buildStageCounts(
 }
 
 export const DashboardPage: React.FC = () => {
-  const [committeeCode] = useState("RERC-HUMAN");
+  const [committeeCode] = useState(BRAND.defaultCommitteeCode);
   const [searchParams, setSearchParams] = useSearchParams();
   const stageFilter =
     (searchParams.get("stage") as StageFilter | null) ?? "ALL";

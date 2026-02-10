@@ -13,7 +13,10 @@ import {
   DUE_SOON_THRESHOLD,
 } from "@/constants";
 
-export function useDashboardQueues(committeeCode: string) {
+export function useDashboardQueues(
+  committeeCode: string,
+  filters?: Record<string, string>
+) {
   const [counts, setCounts] = useState<QueueCounts | null>(null);
   const [classificationQueue, setClassificationQueue] = useState<
     DecoratedQueueItem[]
@@ -36,7 +39,7 @@ export function useDashboardQueues(committeeCode: string) {
   const loadQueues = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await fetchDashboardQueues(committeeCode);
+      const data = await fetchDashboardQueues(committeeCode, filters);
       const now = new Date();
 
       const decoratedClassification = data.classificationQueue.map((item) =>
@@ -94,7 +97,7 @@ export function useDashboardQueues(committeeCode: string) {
     } finally {
       setLoading(false);
     }
-  }, [committeeCode]);
+  }, [committeeCode, filters ? JSON.stringify(filters) : ""]);
 
   useEffect(() => {
     loadQueues();

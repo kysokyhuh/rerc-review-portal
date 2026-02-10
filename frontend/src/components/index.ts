@@ -5,6 +5,8 @@ export type { BreadcrumbItem } from "./Breadcrumbs";
 export { CommandBar } from "./CommandBar";
 export { EmptyState } from "./EmptyState";
 export { CsvDropzone } from "./CsvDropzone";
+export { DashboardFilters } from "./DashboardFilters";
+export type { DashboardFilterValues } from "./DashboardFilters";
 export { ImportStepper } from "./ImportStepper";
 export { ImportSummary } from "./ImportSummary";
 export { LetterReadinessPanel } from "./LetterReadinessPanel";
