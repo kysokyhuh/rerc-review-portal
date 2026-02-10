@@ -350,7 +350,7 @@ router.get("/mail-merge/initial-ack/:submissionId/csv", async (req, res) => {
         ];
         const parser = new json2csv_1.Parser({ fields });
         const csv = parser.parse([data]);
-        const safeProjectCode = project.projectCode.replace(/[^A-Za-z0-9_-]/g, "_");
+        const safeProjectCode = (project.projectCode ?? "project").replace(/[^A-Za-z0-9_-]/g, "_");
         const filename = `initial_ack_${safeProjectCode}.csv`;
         res.setHeader("Content-Type", "text/csv; charset=utf-8");
         res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);

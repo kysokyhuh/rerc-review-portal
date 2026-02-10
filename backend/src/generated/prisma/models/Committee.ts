@@ -229,6 +229,7 @@ export type CommitteeWhereInput = {
   members?: Prisma.CommitteeMemberListRelationFilter
   configSlas?: Prisma.ConfigSLAListRelationFilter
   contractPeriods?: Prisma.ContractPeriodListRelationFilter
+  classificationDecisions?: Prisma.ClassificationDecisionListRelationFilter
 }
 
 export type CommitteeOrderByWithRelationInput = {
@@ -243,6 +244,7 @@ export type CommitteeOrderByWithRelationInput = {
   members?: Prisma.CommitteeMemberOrderByRelationAggregateInput
   configSlas?: Prisma.ConfigSLAOrderByRelationAggregateInput
   contractPeriods?: Prisma.ContractPeriodOrderByRelationAggregateInput
+  classificationDecisions?: Prisma.ClassificationDecisionOrderByRelationAggregateInput
 }
 
 export type CommitteeWhereUniqueInput = Prisma.AtLeast<{
@@ -260,6 +262,7 @@ export type CommitteeWhereUniqueInput = Prisma.AtLeast<{
   members?: Prisma.CommitteeMemberListRelationFilter
   configSlas?: Prisma.ConfigSLAListRelationFilter
   contractPeriods?: Prisma.ContractPeriodListRelationFilter
+  classificationDecisions?: Prisma.ClassificationDecisionListRelationFilter
 }, "id" | "code">
 
 export type CommitteeOrderByWithAggregationInput = {
@@ -299,6 +302,7 @@ export type CommitteeCreateInput = {
   members?: Prisma.CommitteeMemberCreateNestedManyWithoutCommitteeInput
   configSlas?: Prisma.ConfigSLACreateNestedManyWithoutCommitteeInput
   contractPeriods?: Prisma.ContractPeriodCreateNestedManyWithoutCommitteeInput
+  classificationDecisions?: Prisma.ClassificationDecisionCreateNestedManyWithoutCommitteeInput
 }
 
 export type CommitteeUncheckedCreateInput = {
@@ -313,6 +317,7 @@ export type CommitteeUncheckedCreateInput = {
   members?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutCommitteeInput
   configSlas?: Prisma.ConfigSLAUncheckedCreateNestedManyWithoutCommitteeInput
   contractPeriods?: Prisma.ContractPeriodUncheckedCreateNestedManyWithoutCommitteeInput
+  classificationDecisions?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutCommitteeInput
 }
 
 export type CommitteeUpdateInput = {
@@ -326,6 +331,7 @@ export type CommitteeUpdateInput = {
   members?: Prisma.CommitteeMemberUpdateManyWithoutCommitteeNestedInput
   configSlas?: Prisma.ConfigSLAUpdateManyWithoutCommitteeNestedInput
   contractPeriods?: Prisma.ContractPeriodUpdateManyWithoutCommitteeNestedInput
+  classificationDecisions?: Prisma.ClassificationDecisionUpdateManyWithoutCommitteeNestedInput
 }
 
 export type CommitteeUncheckedUpdateInput = {
@@ -340,6 +346,7 @@ export type CommitteeUncheckedUpdateInput = {
   members?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutCommitteeNestedInput
   configSlas?: Prisma.ConfigSLAUncheckedUpdateManyWithoutCommitteeNestedInput
   contractPeriods?: Prisma.ContractPeriodUncheckedUpdateManyWithoutCommitteeNestedInput
+  classificationDecisions?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutCommitteeNestedInput
 }
 
 export type CommitteeCreateManyInput = {
@@ -455,6 +462,20 @@ export type CommitteeUpdateOneRequiredWithoutProjectsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CommitteeUpdateToOneWithWhereWithoutProjectsInput, Prisma.CommitteeUpdateWithoutProjectsInput>, Prisma.CommitteeUncheckedUpdateWithoutProjectsInput>
 }
 
+export type CommitteeCreateNestedOneWithoutClassificationDecisionsInput = {
+  create?: Prisma.XOR<Prisma.CommitteeCreateWithoutClassificationDecisionsInput, Prisma.CommitteeUncheckedCreateWithoutClassificationDecisionsInput>
+  connectOrCreate?: Prisma.CommitteeCreateOrConnectWithoutClassificationDecisionsInput
+  connect?: Prisma.CommitteeWhereUniqueInput
+}
+
+export type CommitteeUpdateOneRequiredWithoutClassificationDecisionsNestedInput = {
+  create?: Prisma.XOR<Prisma.CommitteeCreateWithoutClassificationDecisionsInput, Prisma.CommitteeUncheckedCreateWithoutClassificationDecisionsInput>
+  connectOrCreate?: Prisma.CommitteeCreateOrConnectWithoutClassificationDecisionsInput
+  upsert?: Prisma.CommitteeUpsertWithoutClassificationDecisionsInput
+  connect?: Prisma.CommitteeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CommitteeUpdateToOneWithWhereWithoutClassificationDecisionsInput, Prisma.CommitteeUpdateWithoutClassificationDecisionsInput>, Prisma.CommitteeUncheckedUpdateWithoutClassificationDecisionsInput>
+}
+
 export type CommitteeCreateNestedOneWithoutContractPeriodsInput = {
   create?: Prisma.XOR<Prisma.CommitteeCreateWithoutContractPeriodsInput, Prisma.CommitteeUncheckedCreateWithoutContractPeriodsInput>
   connectOrCreate?: Prisma.CommitteeCreateOrConnectWithoutContractPeriodsInput
@@ -495,6 +516,7 @@ export type CommitteeCreateWithoutPanelsInput = {
   members?: Prisma.CommitteeMemberCreateNestedManyWithoutCommitteeInput
   configSlas?: Prisma.ConfigSLACreateNestedManyWithoutCommitteeInput
   contractPeriods?: Prisma.ContractPeriodCreateNestedManyWithoutCommitteeInput
+  classificationDecisions?: Prisma.ClassificationDecisionCreateNestedManyWithoutCommitteeInput
 }
 
 export type CommitteeUncheckedCreateWithoutPanelsInput = {
@@ -508,6 +530,7 @@ export type CommitteeUncheckedCreateWithoutPanelsInput = {
   members?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutCommitteeInput
   configSlas?: Prisma.ConfigSLAUncheckedCreateNestedManyWithoutCommitteeInput
   contractPeriods?: Prisma.ContractPeriodUncheckedCreateNestedManyWithoutCommitteeInput
+  classificationDecisions?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutCommitteeInput
 }
 
 export type CommitteeCreateOrConnectWithoutPanelsInput = {
@@ -536,6 +559,7 @@ export type CommitteeUpdateWithoutPanelsInput = {
   members?: Prisma.CommitteeMemberUpdateManyWithoutCommitteeNestedInput
   configSlas?: Prisma.ConfigSLAUpdateManyWithoutCommitteeNestedInput
   contractPeriods?: Prisma.ContractPeriodUpdateManyWithoutCommitteeNestedInput
+  classificationDecisions?: Prisma.ClassificationDecisionUpdateManyWithoutCommitteeNestedInput
 }
 
 export type CommitteeUncheckedUpdateWithoutPanelsInput = {
@@ -549,6 +573,7 @@ export type CommitteeUncheckedUpdateWithoutPanelsInput = {
   members?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutCommitteeNestedInput
   configSlas?: Prisma.ConfigSLAUncheckedUpdateManyWithoutCommitteeNestedInput
   contractPeriods?: Prisma.ContractPeriodUncheckedUpdateManyWithoutCommitteeNestedInput
+  classificationDecisions?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutCommitteeNestedInput
 }
 
 export type CommitteeCreateWithoutMembersInput = {
@@ -561,6 +586,7 @@ export type CommitteeCreateWithoutMembersInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutCommitteeInput
   configSlas?: Prisma.ConfigSLACreateNestedManyWithoutCommitteeInput
   contractPeriods?: Prisma.ContractPeriodCreateNestedManyWithoutCommitteeInput
+  classificationDecisions?: Prisma.ClassificationDecisionCreateNestedManyWithoutCommitteeInput
 }
 
 export type CommitteeUncheckedCreateWithoutMembersInput = {
@@ -574,6 +600,7 @@ export type CommitteeUncheckedCreateWithoutMembersInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCommitteeInput
   configSlas?: Prisma.ConfigSLAUncheckedCreateNestedManyWithoutCommitteeInput
   contractPeriods?: Prisma.ContractPeriodUncheckedCreateNestedManyWithoutCommitteeInput
+  classificationDecisions?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutCommitteeInput
 }
 
 export type CommitteeCreateOrConnectWithoutMembersInput = {
@@ -602,6 +629,7 @@ export type CommitteeUpdateWithoutMembersInput = {
   projects?: Prisma.ProjectUpdateManyWithoutCommitteeNestedInput
   configSlas?: Prisma.ConfigSLAUpdateManyWithoutCommitteeNestedInput
   contractPeriods?: Prisma.ContractPeriodUpdateManyWithoutCommitteeNestedInput
+  classificationDecisions?: Prisma.ClassificationDecisionUpdateManyWithoutCommitteeNestedInput
 }
 
 export type CommitteeUncheckedUpdateWithoutMembersInput = {
@@ -615,6 +643,7 @@ export type CommitteeUncheckedUpdateWithoutMembersInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCommitteeNestedInput
   configSlas?: Prisma.ConfigSLAUncheckedUpdateManyWithoutCommitteeNestedInput
   contractPeriods?: Prisma.ContractPeriodUncheckedUpdateManyWithoutCommitteeNestedInput
+  classificationDecisions?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutCommitteeNestedInput
 }
 
 export type CommitteeCreateWithoutProjectsInput = {
@@ -627,6 +656,7 @@ export type CommitteeCreateWithoutProjectsInput = {
   members?: Prisma.CommitteeMemberCreateNestedManyWithoutCommitteeInput
   configSlas?: Prisma.ConfigSLACreateNestedManyWithoutCommitteeInput
   contractPeriods?: Prisma.ContractPeriodCreateNestedManyWithoutCommitteeInput
+  classificationDecisions?: Prisma.ClassificationDecisionCreateNestedManyWithoutCommitteeInput
 }
 
 export type CommitteeUncheckedCreateWithoutProjectsInput = {
@@ -640,6 +670,7 @@ export type CommitteeUncheckedCreateWithoutProjectsInput = {
   members?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutCommitteeInput
   configSlas?: Prisma.ConfigSLAUncheckedCreateNestedManyWithoutCommitteeInput
   contractPeriods?: Prisma.ContractPeriodUncheckedCreateNestedManyWithoutCommitteeInput
+  classificationDecisions?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutCommitteeInput
 }
 
 export type CommitteeCreateOrConnectWithoutProjectsInput = {
@@ -668,6 +699,7 @@ export type CommitteeUpdateWithoutProjectsInput = {
   members?: Prisma.CommitteeMemberUpdateManyWithoutCommitteeNestedInput
   configSlas?: Prisma.ConfigSLAUpdateManyWithoutCommitteeNestedInput
   contractPeriods?: Prisma.ContractPeriodUpdateManyWithoutCommitteeNestedInput
+  classificationDecisions?: Prisma.ClassificationDecisionUpdateManyWithoutCommitteeNestedInput
 }
 
 export type CommitteeUncheckedUpdateWithoutProjectsInput = {
@@ -678,6 +710,77 @@ export type CommitteeUncheckedUpdateWithoutProjectsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   panels?: Prisma.PanelUncheckedUpdateManyWithoutCommitteeNestedInput
+  members?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutCommitteeNestedInput
+  configSlas?: Prisma.ConfigSLAUncheckedUpdateManyWithoutCommitteeNestedInput
+  contractPeriods?: Prisma.ContractPeriodUncheckedUpdateManyWithoutCommitteeNestedInput
+  classificationDecisions?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutCommitteeNestedInput
+}
+
+export type CommitteeCreateWithoutClassificationDecisionsInput = {
+  name: string
+  code: string
+  description?: string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  panels?: Prisma.PanelCreateNestedManyWithoutCommitteeInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutCommitteeInput
+  members?: Prisma.CommitteeMemberCreateNestedManyWithoutCommitteeInput
+  configSlas?: Prisma.ConfigSLACreateNestedManyWithoutCommitteeInput
+  contractPeriods?: Prisma.ContractPeriodCreateNestedManyWithoutCommitteeInput
+}
+
+export type CommitteeUncheckedCreateWithoutClassificationDecisionsInput = {
+  id?: number
+  name: string
+  code: string
+  description?: string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  panels?: Prisma.PanelUncheckedCreateNestedManyWithoutCommitteeInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCommitteeInput
+  members?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutCommitteeInput
+  configSlas?: Prisma.ConfigSLAUncheckedCreateNestedManyWithoutCommitteeInput
+  contractPeriods?: Prisma.ContractPeriodUncheckedCreateNestedManyWithoutCommitteeInput
+}
+
+export type CommitteeCreateOrConnectWithoutClassificationDecisionsInput = {
+  where: Prisma.CommitteeWhereUniqueInput
+  create: Prisma.XOR<Prisma.CommitteeCreateWithoutClassificationDecisionsInput, Prisma.CommitteeUncheckedCreateWithoutClassificationDecisionsInput>
+}
+
+export type CommitteeUpsertWithoutClassificationDecisionsInput = {
+  update: Prisma.XOR<Prisma.CommitteeUpdateWithoutClassificationDecisionsInput, Prisma.CommitteeUncheckedUpdateWithoutClassificationDecisionsInput>
+  create: Prisma.XOR<Prisma.CommitteeCreateWithoutClassificationDecisionsInput, Prisma.CommitteeUncheckedCreateWithoutClassificationDecisionsInput>
+  where?: Prisma.CommitteeWhereInput
+}
+
+export type CommitteeUpdateToOneWithWhereWithoutClassificationDecisionsInput = {
+  where?: Prisma.CommitteeWhereInput
+  data: Prisma.XOR<Prisma.CommitteeUpdateWithoutClassificationDecisionsInput, Prisma.CommitteeUncheckedUpdateWithoutClassificationDecisionsInput>
+}
+
+export type CommitteeUpdateWithoutClassificationDecisionsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  panels?: Prisma.PanelUpdateManyWithoutCommitteeNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutCommitteeNestedInput
+  members?: Prisma.CommitteeMemberUpdateManyWithoutCommitteeNestedInput
+  configSlas?: Prisma.ConfigSLAUpdateManyWithoutCommitteeNestedInput
+  contractPeriods?: Prisma.ContractPeriodUpdateManyWithoutCommitteeNestedInput
+}
+
+export type CommitteeUncheckedUpdateWithoutClassificationDecisionsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  panels?: Prisma.PanelUncheckedUpdateManyWithoutCommitteeNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutCommitteeNestedInput
   members?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutCommitteeNestedInput
   configSlas?: Prisma.ConfigSLAUncheckedUpdateManyWithoutCommitteeNestedInput
   contractPeriods?: Prisma.ContractPeriodUncheckedUpdateManyWithoutCommitteeNestedInput
@@ -693,6 +796,7 @@ export type CommitteeCreateWithoutContractPeriodsInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutCommitteeInput
   members?: Prisma.CommitteeMemberCreateNestedManyWithoutCommitteeInput
   configSlas?: Prisma.ConfigSLACreateNestedManyWithoutCommitteeInput
+  classificationDecisions?: Prisma.ClassificationDecisionCreateNestedManyWithoutCommitteeInput
 }
 
 export type CommitteeUncheckedCreateWithoutContractPeriodsInput = {
@@ -706,6 +810,7 @@ export type CommitteeUncheckedCreateWithoutContractPeriodsInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCommitteeInput
   members?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutCommitteeInput
   configSlas?: Prisma.ConfigSLAUncheckedCreateNestedManyWithoutCommitteeInput
+  classificationDecisions?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutCommitteeInput
 }
 
 export type CommitteeCreateOrConnectWithoutContractPeriodsInput = {
@@ -734,6 +839,7 @@ export type CommitteeUpdateWithoutContractPeriodsInput = {
   projects?: Prisma.ProjectUpdateManyWithoutCommitteeNestedInput
   members?: Prisma.CommitteeMemberUpdateManyWithoutCommitteeNestedInput
   configSlas?: Prisma.ConfigSLAUpdateManyWithoutCommitteeNestedInput
+  classificationDecisions?: Prisma.ClassificationDecisionUpdateManyWithoutCommitteeNestedInput
 }
 
 export type CommitteeUncheckedUpdateWithoutContractPeriodsInput = {
@@ -747,6 +853,7 @@ export type CommitteeUncheckedUpdateWithoutContractPeriodsInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCommitteeNestedInput
   members?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutCommitteeNestedInput
   configSlas?: Prisma.ConfigSLAUncheckedUpdateManyWithoutCommitteeNestedInput
+  classificationDecisions?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutCommitteeNestedInput
 }
 
 export type CommitteeCreateWithoutConfigSlasInput = {
@@ -759,6 +866,7 @@ export type CommitteeCreateWithoutConfigSlasInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutCommitteeInput
   members?: Prisma.CommitteeMemberCreateNestedManyWithoutCommitteeInput
   contractPeriods?: Prisma.ContractPeriodCreateNestedManyWithoutCommitteeInput
+  classificationDecisions?: Prisma.ClassificationDecisionCreateNestedManyWithoutCommitteeInput
 }
 
 export type CommitteeUncheckedCreateWithoutConfigSlasInput = {
@@ -772,6 +880,7 @@ export type CommitteeUncheckedCreateWithoutConfigSlasInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCommitteeInput
   members?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutCommitteeInput
   contractPeriods?: Prisma.ContractPeriodUncheckedCreateNestedManyWithoutCommitteeInput
+  classificationDecisions?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutCommitteeInput
 }
 
 export type CommitteeCreateOrConnectWithoutConfigSlasInput = {
@@ -800,6 +909,7 @@ export type CommitteeUpdateWithoutConfigSlasInput = {
   projects?: Prisma.ProjectUpdateManyWithoutCommitteeNestedInput
   members?: Prisma.CommitteeMemberUpdateManyWithoutCommitteeNestedInput
   contractPeriods?: Prisma.ContractPeriodUpdateManyWithoutCommitteeNestedInput
+  classificationDecisions?: Prisma.ClassificationDecisionUpdateManyWithoutCommitteeNestedInput
 }
 
 export type CommitteeUncheckedUpdateWithoutConfigSlasInput = {
@@ -813,6 +923,7 @@ export type CommitteeUncheckedUpdateWithoutConfigSlasInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCommitteeNestedInput
   members?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutCommitteeNestedInput
   contractPeriods?: Prisma.ContractPeriodUncheckedUpdateManyWithoutCommitteeNestedInput
+  classificationDecisions?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutCommitteeNestedInput
 }
 
 
@@ -826,6 +937,7 @@ export type CommitteeCountOutputType = {
   members: number
   configSlas: number
   contractPeriods: number
+  classificationDecisions: number
 }
 
 export type CommitteeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -834,6 +946,7 @@ export type CommitteeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensi
   members?: boolean | CommitteeCountOutputTypeCountMembersArgs
   configSlas?: boolean | CommitteeCountOutputTypeCountConfigSlasArgs
   contractPeriods?: boolean | CommitteeCountOutputTypeCountContractPeriodsArgs
+  classificationDecisions?: boolean | CommitteeCountOutputTypeCountClassificationDecisionsArgs
 }
 
 /**
@@ -881,6 +994,13 @@ export type CommitteeCountOutputTypeCountContractPeriodsArgs<ExtArgs extends run
   where?: Prisma.ContractPeriodWhereInput
 }
 
+/**
+ * CommitteeCountOutputType without action
+ */
+export type CommitteeCountOutputTypeCountClassificationDecisionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClassificationDecisionWhereInput
+}
+
 
 export type CommitteeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -894,6 +1014,7 @@ export type CommitteeSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   members?: boolean | Prisma.Committee$membersArgs<ExtArgs>
   configSlas?: boolean | Prisma.Committee$configSlasArgs<ExtArgs>
   contractPeriods?: boolean | Prisma.Committee$contractPeriodsArgs<ExtArgs>
+  classificationDecisions?: boolean | Prisma.Committee$classificationDecisionsArgs<ExtArgs>
   _count?: boolean | Prisma.CommitteeCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["committee"]>
 
@@ -931,6 +1052,7 @@ export type CommitteeInclude<ExtArgs extends runtime.Types.Extensions.InternalAr
   members?: boolean | Prisma.Committee$membersArgs<ExtArgs>
   configSlas?: boolean | Prisma.Committee$configSlasArgs<ExtArgs>
   contractPeriods?: boolean | Prisma.Committee$contractPeriodsArgs<ExtArgs>
+  classificationDecisions?: boolean | Prisma.Committee$classificationDecisionsArgs<ExtArgs>
   _count?: boolean | Prisma.CommitteeCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CommitteeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -944,6 +1066,7 @@ export type $CommitteePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     members: Prisma.$CommitteeMemberPayload<ExtArgs>[]
     configSlas: Prisma.$ConfigSLAPayload<ExtArgs>[]
     contractPeriods: Prisma.$ContractPeriodPayload<ExtArgs>[]
+    classificationDecisions: Prisma.$ClassificationDecisionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1351,6 +1474,7 @@ export interface Prisma__CommitteeClient<T, Null = never, ExtArgs extends runtim
   members<T extends Prisma.Committee$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Committee$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CommitteeMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   configSlas<T extends Prisma.Committee$configSlasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Committee$configSlasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConfigSLAPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   contractPeriods<T extends Prisma.Committee$contractPeriodsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Committee$contractPeriodsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContractPeriodPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  classificationDecisions<T extends Prisma.Committee$classificationDecisionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Committee$classificationDecisionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassificationDecisionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1891,6 +2015,30 @@ export type Committee$contractPeriodsArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.ContractPeriodScalarFieldEnum | Prisma.ContractPeriodScalarFieldEnum[]
+}
+
+/**
+ * Committee.classificationDecisions
+ */
+export type Committee$classificationDecisionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClassificationDecision
+   */
+  select?: Prisma.ClassificationDecisionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClassificationDecision
+   */
+  omit?: Prisma.ClassificationDecisionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClassificationDecisionInclude<ExtArgs> | null
+  where?: Prisma.ClassificationDecisionWhereInput
+  orderBy?: Prisma.ClassificationDecisionOrderByWithRelationInput | Prisma.ClassificationDecisionOrderByWithRelationInput[]
+  cursor?: Prisma.ClassificationDecisionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClassificationDecisionScalarFieldEnum | Prisma.ClassificationDecisionScalarFieldEnum[]
 }
 
 /**

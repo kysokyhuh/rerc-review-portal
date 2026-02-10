@@ -30,6 +30,7 @@ enum FundingType {
 
 enum SubmissionType {
   INITIAL
+  RESUBMISSION
   AMENDMENT
   CONTINUING_REVIEW
   FINAL_REPORT
@@ -158,15 +159,39 @@ enum LetterDraftStatus {
 }
 
 enum WorkflowEventType {
+  APPLICATION_SUBMITTED
+  PANEL_ASSIGNED
+  REVIEWERS_ASSIGNED
   CLASSIFICATION_DONE
   DOCUMENTS_TO_REVIEWER
   ASSESSMENT_FORMS_COMPLETED
+  REVIEW_SUBMITTED
   FULL_REVIEW_MEETING
   REVIEW_RESULTS_FINALIZED
   RESULTS_COMMUNICATED
   RESUBMISSION_RECEIVED
   RESUBMISSION_REVIEWED
   RESUBMISSION_FINALIZED
+  DECISION_ISSUED
+  CONTINUING_REVIEW_DUE
+  FINAL_REPORT_DUE
+}
+
+enum ClassificationType {
+  EXEMPT
+  EXPEDITED
+  FULL_BOARD
+}
+
+enum ReviewerRoundRole {
+  SCIENTIFIC
+  LAY
+}
+
+enum DecisionStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
 }
 
 // --- MODELS ---
@@ -187,18 +212,22 @@ model User {
   updatedAt              DateTime  @updatedAt
 
   // relations
-  committeeMemberships  CommitteeMember[]
-  projectsCreated       Project[]                 @relation("ProjectsCreated")
-  submissionsCreated    Submission[]              @relation("SubmissionsCreated")
-  classificationsMade   Classification[]          @relation("ClassificationsClassified")
-  reviewsAssigned       Review[]                  @relation("UserReviews")
-  statusChanges         SubmissionStatusHistory[] @relation("SubmissionStatusChanges")
-  panelMemberships      PanelMember[]
-  assignedSubmissions   Submission[]              @relation("SubmissionStaff")
-  projectChanges        ProjectChangeLog[]        @relation("ProjectChangeLogChangedBy")
-  submissionChanges     SubmissionChangeLog[]     @relation("SubmissionChangeLogChangedBy")
-  letterDraftsGenerated LetterDraft[]             @relation("LetterDraftGeneratedBy")
-  letterDraftsApproved  LetterDraft[]             @relation("LetterDraftApprovedBy")
+  committeeMemberships            CommitteeMember[]
+  projectsCreated                 Project[]                 @relation("ProjectsCreated")
+  submissionsCreated              Submission[]              @relation("SubmissionsCreated")
+  classificationsMade             Classification[]          @relation("ClassificationsClassified")
+  reviewsAssigned                 Review[]                  @relation("UserReviews")
+  statusChanges                   SubmissionStatusHistory[] @relation("SubmissionStatusChanges")
+  panelMemberships                PanelMember[]
+  assignedSubmissions             Submission[]              @relation("SubmissionStaff")
+  projectChanges                  ProjectChangeLog[]        @relation("ProjectChangeLogChangedBy")
+  submissionChanges               SubmissionChangeLog[]     @relation("SubmissionChangeLogChangedBy")
+  letterDraftsGenerated           LetterDraft[]             @relation("LetterDraftGeneratedBy")
+  letterDraftsApproved            LetterDraft[]             @relation("LetterDraftApprovedBy")
+  projectSnapshotsChanged         ProjectSnapshot[]         @relation("ProjectSnapshotChangedBy")
+  classificationDecisionsRecorded ClassificationDecision[]  @relation("ClassificationDecisionRecordedBy")
+  reviewAssignments               ReviewAssignment[]        @relation("AssignmentReviewer")
+  projectStatusHistories          ProjectStatusHistory[]
 }
 
 model Committee {
@@ -209,11 +238,12 @@ model Committee {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
 
-  panels          Panel[]
-  projects        Project[]
-  members         CommitteeMember[]
-  configSlas      ConfigSLA[]
-  contractPeriods ContractPeriod[]
+  panels                  Panel[]
+  projects                Project[]
+  members                 CommitteeMember[]
+  configSlas              ConfigSLA[]
+  contractPeriods         ContractPeriod[]
+  classificationDecisions ClassificationDecision[]
 }
 
 model Panel {
@@ -230,22 +260,23 @@ model Panel {
 }
 
 model CommitteeMember {
-  id          Int       @id @default(autoincrement())
-  committee   Committee @relation(fields: [committeeId], references: [id])
-  committeeId Int
-  user        User      @relation(fields: [userId], references: [id])
-  userId      Int
-  role        RoleType
-  isPrimary   Boolean   @default(false) // e.g. primary chair / primary RA
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
+  id                  Int                  @id @default(autoincrement())
+  committee           Committee            @relation(fields: [committeeId], references: [id])
+  committeeId         Int
+  user                User                 @relation(fields: [userId], references: [id])
+  userId              Int
+  role                RoleType
+  isPrimary           Boolean              @default(false) // e.g. primary chair / primary RA
+  isActive            Boolean              @default(true)
+  createdAt           DateTime             @default(now())
+  classificationVotes ClassificationVote[]
 
   @@unique([committeeId, userId, role])
 }
 
 model Project {
   id                     Int                @id @default(autoincrement())
-  projectCode            String             @unique // e.g. "2025-350"
+  projectCode            String?            @unique // e.g. "2025-350"
   title                  String
   piName                 String
   piSurname              String?
@@ -269,12 +300,14 @@ model Project {
   updatedAt              DateTime           @updatedAt
 
   // relations
-  submissions Submission[]
-  proponents  ProjectProponent[]
-  members     ProjectMember[]
-  changeLog   ProjectChangeLog[]
-  createdBy   User?              @relation("ProjectsCreated", fields: [createdById], references: [id])
-  createdById Int?
+  snapshots     ProjectSnapshot[]
+  statusHistory ProjectStatusHistory[]
+  submissions   Submission[]
+  proponents    ProjectProponent[]
+  members       ProjectMember[]
+  changeLog     ProjectChangeLog[]
+  createdBy     User?                  @relation("ProjectsCreated", fields: [createdById], references: [id])
+  createdById   Int?
 }
 
 model Proponent {
@@ -330,6 +363,32 @@ model ProjectChangeLog {
   @@index([projectId])
 }
 
+model ProjectSnapshot {
+  id                     Int                @id @default(autoincrement())
+  project                Project            @relation(fields: [projectId], references: [id])
+  projectId              Int
+  projectCode            String?
+  title                  String
+  piName                 String
+  piSurname              String?
+  piAffiliation          String?
+  department             String?
+  proponent              String?
+  fundingType            FundingType
+  researchTypePHREB      ResearchTypePHREB?
+  researchTypePHREBOther String?
+  initialSubmissionDate  DateTime?
+  proposedStartDate      DateTime?
+  proposedEndDate        DateTime?
+  effectiveFrom          DateTime           @default(now())
+  effectiveTo            DateTime?
+  reason                 String?
+  changedBy              User?              @relation("ProjectSnapshotChangedBy", fields: [changedById], references: [id])
+  changedById            Int?
+
+  @@index([projectId])
+}
+
 model Submission {
   id                      Int                @id @default(autoincrement())
   project                 Project?           @relation(fields: [projectId], references: [id])
@@ -355,15 +414,20 @@ model Submission {
   staffInCharge   User? @relation("SubmissionStaff", fields: [staffInChargeId], references: [id])
   staffInChargeId Int?
 
-  classification    Classification?
-  reviews           Review[]
-  documents         SubmissionDocument[]
-  letterDrafts      LetterDraft[]
-  workflowEvents    WorkflowEvent[]
-  statusHistory     SubmissionStatusHistory[]
-  projectChangeLogs ProjectChangeLog[]
-  changeLogs        SubmissionChangeLog[]
+  classification         Classification?
+  classificationDecision ClassificationDecision?
+  reviews                Review[]
+  reviewAssignments      ReviewAssignment[]
+  decision               SubmissionDecision?
+  documents              SubmissionDocument[]
+  letterDrafts           LetterDraft[]
+  workflowEvents         WorkflowEvent[]
+  statusHistory          SubmissionStatusHistory[]
+  projectChangeLogs      ProjectChangeLog[]
+  changeLogs             SubmissionChangeLog[]
+  classificationVotes    ClassificationVote[]
 
+  @@unique([projectId, sequenceNumber])
   @@index([projectId, submissionType])
 }
 
@@ -400,6 +464,37 @@ model Classification {
   classifiedById Int?
 }
 
+model ClassificationDecision {
+  id             Int                @id @default(autoincrement())
+  submission     Submission         @relation(fields: [submissionId], references: [id])
+  submissionId   Int                @unique
+  committee      Committee          @relation(fields: [committeeId], references: [id])
+  committeeId    Int
+  classification ClassificationType
+  decidedAt      DateTime           @default(now())
+  recordedBy     User?              @relation("ClassificationDecisionRecordedBy", fields: [recordedById], references: [id])
+  recordedById   Int?
+  notes          String?
+
+  votes ClassificationVote[]
+}
+
+model ClassificationVote {
+  id                       Int                     @id @default(autoincrement())
+  submission               Submission              @relation(fields: [submissionId], references: [id])
+  submissionId             Int
+  committeeMember          CommitteeMember         @relation(fields: [committeeMemberId], references: [id])
+  committeeMemberId        Int
+  classification           ClassificationType
+  votedAt                  DateTime                @default(now())
+  remarks                  String?
+  classificationDecision   ClassificationDecision? @relation(fields: [classificationDecisionId], references: [id])
+  classificationDecisionId Int?
+
+  @@unique([submissionId, committeeMemberId])
+  @@index([committeeMemberId])
+}
+
 model SubmissionStatusHistory {
   id            Int               @id @default(autoincrement())
   submission    Submission        @relation(fields: [submissionId], references: [id])
@@ -411,6 +506,21 @@ model SubmissionStatusHistory {
   changedBy     User?             @relation("SubmissionStatusChanges", fields: [changedById], references: [id])
   changedById   Int?
   createdAt     DateTime          @default(now())
+}
+
+model ProjectStatusHistory {
+  id            Int            @id @default(autoincrement())
+  project       Project        @relation(fields: [projectId], references: [id])
+  projectId     Int
+  oldStatus     ProjectStatus?
+  newStatus     ProjectStatus
+  effectiveDate DateTime       @default(now())
+  reason        String?
+  changedBy     User?          @relation(fields: [changedById], references: [id])
+  changedById   Int?
+  createdAt     DateTime       @default(now())
+
+  @@index([projectId])
 }
 
 model Review {
@@ -441,6 +551,29 @@ model Review {
   @@index([submissionId])
 }
 
+model ReviewAssignment {
+  id                Int                @id @default(autoincrement())
+  submission        Submission         @relation(fields: [submissionId], references: [id])
+  submissionId      Int
+  roundSequence     Int                @default(1)
+  reviewer          User               @relation("AssignmentReviewer", fields: [reviewerId], references: [id])
+  reviewerId        Int
+  reviewerRole      ReviewerRoundRole
+  assignedAt        DateTime           @default(now())
+  dueDate           DateTime?
+  receivedAt        DateTime?
+  submittedAt       DateTime?
+  decision          ReviewDecision?
+  endorsementStatus EndorsementStatus?
+  remarks           String?
+  isActive          Boolean            @default(true)
+  endedAt           DateTime?
+
+  @@unique([submissionId, roundSequence, reviewerRole])
+  @@index([submissionId, roundSequence])
+  @@index([reviewerId])
+}
+
 model SubmissionDocument {
   id           Int                      @id @default(autoincrement())
   submission   Submission               @relation(fields: [submissionId], references: [id])
@@ -455,6 +588,18 @@ model SubmissionDocument {
   updatedAt    DateTime                 @updatedAt
 
   @@index([submissionId, type])
+}
+
+model SubmissionDecision {
+  id           Int            @id @default(autoincrement())
+  submission   Submission     @relation(fields: [submissionId], references: [id])
+  submissionId Int            @unique
+  decision     ReviewDecision
+  decidedAt    DateTime       @default(now())
+  validFrom    DateTime?
+  validTo      DateTime?
+  status       DecisionStatus @default(ACTIVE)
+  notes        String?
 }
 
 model Holiday {

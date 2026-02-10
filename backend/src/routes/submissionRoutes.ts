@@ -198,7 +198,7 @@ router.patch("/submissions/:id/overview", async (req, res) => {
       return res.status(404).json({ message: "Submission not found" });
     }
 
-    const changedById = 1; // TODO: replace with authenticated user later
+    const changedById = req.user?.id;
     const submissionUpdate: Record<string, any> = {};
     const projectUpdate: Record<string, any> = {};
     const changeLogs: Array<{
@@ -508,7 +508,7 @@ router.patch("/submissions/:id/status", async (req, res) => {
       return res.status(404).json({ message: "Submission not found" });
     }
 
-    const changedById = 1; // TODO: replace with authenticated user later
+    const changedById = req.user?.id;
 
     const [history, updated] = await prisma.$transaction([
       prisma.submissionStatusHistory.create({

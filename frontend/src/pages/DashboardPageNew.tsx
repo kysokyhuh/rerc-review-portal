@@ -864,6 +864,13 @@ export const DashboardPage: React.FC = () => {
 
             <div className="nav-section">
               <div className="nav-section-title">Tools</div>
+              <button className="nav-item" onClick={() => navigate("/projects/new")}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+                New Protocol
+              </button>
               <button className="nav-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
@@ -871,11 +878,28 @@ export const DashboardPage: React.FC = () => {
                 </svg>
                 Letter Generator
               </button>
+              <button className="nav-item" onClick={() => navigate("/imports/projects")}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 3v12"/>
+                  <path d="M7 8l5-5 5 5"/>
+                  <path d="M5 21h14a2 2 0 002-2v-5"/>
+                  <path d="M3 14v5a2 2 0 002 2"/>
+                </svg>
+                Import CSV
+              </button>
               <button className="nav-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
                 </svg>
                 Reports
+              </button>
+              <button className="nav-item" onClick={() => navigate("/archives")}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 8v13H3V8"/>
+                  <path d="M1 3h22v5H1z"/>
+                  <path d="M10 12h4"/>
+                </svg>
+                Archives
               </button>
             </div>
           </nav>

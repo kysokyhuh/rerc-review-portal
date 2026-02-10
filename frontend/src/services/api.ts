@@ -18,6 +18,12 @@ export type {
   ProjectDetail,
   SubmissionSlaSummary,
   CommitteeSummary,
+  ImportResult,
+  ProjectImportPreview,
+  CreateProjectPayload,
+  CreateProjectResponse,
+  ArchivedProject,
+  ArchivedProjectsResponse,
 } from "@/types";
 
 import type {
@@ -30,6 +36,11 @@ import type {
   OverdueReviewItem,
   ProjectSearchResult,
   CommitteeSummary,
+  ImportResult,
+  ProjectImportPreview,
+  CreateProjectPayload,
+  CreateProjectResponse,
+  ArchivedProjectsResponse,
 } from "@/types";
 
 // Minimal process typing so Vite builds without Node typings
@@ -195,6 +206,80 @@ export async function exportInitialApprovalDocx(submissionId: number) {
     }
   );
   return response.data;
+}
+
+export async function fetchProjectImportTemplate() {
+  const response = await api.get("/api/imports/projects/template", {
+    responseType: "blob",
+  });
+  return response.data as Blob;
+}
+
+export async function importProjectsCsv(file: File) {
+  return commitProjectsCsvImport(file, {
+    projectCode: "projectCode",
+    title: "title",
+    piName: "piName",
+    fundingType: "fundingType",
+    committeeCode: "committeeCode",
+    submissionType: "submissionType",
+    receivedDate: "receivedDate",
+  });
+}
+
+export async function previewProjectsCsv(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await api.post("/imports/projects/preview", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data as ProjectImportPreview;
+}
+
+export async function commitProjectsCsvImport(
+  file: File,
+  mapping: Record<string, string | null>
+) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("mapping", JSON.stringify(mapping));
+  const response = await api.post("/imports/projects/commit", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data as ImportResult;
+}
+
+export async function createProjectWithInitialSubmission(
+  payload: CreateProjectPayload
+) {
+  const response = await api.post("/projects", payload);
+  return response.data as CreateProjectResponse;
+}
+
+/**
+ * Fetch archived projects (CLOSED or WITHDRAWN status)
+ * These are historical protocols that don't appear in active dashboard queues.
+ */
+export async function fetchArchivedProjects(params?: {
+  committeeCode?: string;
+  limit?: number;
+  offset?: number;
+  search?: string;
+}) {
+  const searchParams = new URLSearchParams();
+  if (params?.committeeCode) searchParams.set("committeeCode", params.committeeCode);
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+  if (params?.offset) searchParams.set("offset", String(params.offset));
+  if (params?.search) searchParams.set("search", params.search);
+  
+  const query = searchParams.toString();
+  const url = `/projects/archived${query ? `?${query}` : ""}`;
+  const response = await api.get(url);
+  return response.data as ArchivedProjectsResponse;
 }
 
 export default api;

@@ -1,72 +1,11 @@
 /**
  * RERC Review Portal - Express Server
- * 
- * Main entry point that configures middleware and mounts route modules.
+ *
+ * Main entry point that starts the HTTP listener.
  */
-import express from "express";
-import cors from "cors";
-import path from "path";
 import "dotenv/config";
-
-// Import route modules
-import {
-  healthRoutes,
-  committeeRoutes,
-  dashboardRoutes,
-  projectRoutes,
-  submissionRoutes,
-  mailMergeRoutes,
-} from "./routes";
-
-const app = express();
+import app from "./app";
 const PORT = process.env.PORT || 3000;
-const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
-// =============================================================================
-// Middleware
-// =============================================================================
-
-// Enable CORS for React frontend
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-  })
-);
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "../public")));
-
-// =============================================================================
-// Routes
-// =============================================================================
-
-// Health & status routes (/, /health)
-app.use(healthRoutes);
-
-// Committee & panel routes (/committees, /panels)
-app.use(committeeRoutes);
-
-// Dashboard routes (/dashboard/queues, /ra/dashboard, /ra/submissions/:id)
-app.use(dashboardRoutes);
-
-// Project routes (/projects, /projects/:id, /projects/:id/full, /projects/:projectId/submissions)
-app.use(projectRoutes);
-
-// Submission & review routes (/submissions/*, /reviews/*)
-app.use(submissionRoutes);
-
-// Mail merge & letter routes (/mail-merge/*, /letters/*)
-app.use(mailMergeRoutes);
-
 // =============================================================================
 // Start Server
 // =============================================================================

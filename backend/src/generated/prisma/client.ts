@@ -83,6 +83,11 @@ export type ProjectMember = Prisma.ProjectMemberModel
  */
 export type ProjectChangeLog = Prisma.ProjectChangeLogModel
 /**
+ * Model ProjectSnapshot
+ * 
+ */
+export type ProjectSnapshot = Prisma.ProjectSnapshotModel
+/**
  * Model Submission
  * 
  */
@@ -98,6 +103,11 @@ export type SubmissionChangeLog = Prisma.SubmissionChangeLogModel
  */
 export type Classification = Prisma.ClassificationModel
 /**
+ * Model ClassificationDecision
+ * 
+ */
+export type ClassificationDecision = Prisma.ClassificationDecisionModel
+/**
  * Model SubmissionStatusHistory
  * 
  */
@@ -108,10 +118,20 @@ export type SubmissionStatusHistory = Prisma.SubmissionStatusHistoryModel
  */
 export type Review = Prisma.ReviewModel
 /**
+ * Model ReviewAssignment
+ * 
+ */
+export type ReviewAssignment = Prisma.ReviewAssignmentModel
+/**
  * Model SubmissionDocument
  * 
  */
 export type SubmissionDocument = Prisma.SubmissionDocumentModel
+/**
+ * Model SubmissionDecision
+ * 
+ */
+export type SubmissionDecision = Prisma.SubmissionDecisionModel
 /**
  * Model Holiday
  * 

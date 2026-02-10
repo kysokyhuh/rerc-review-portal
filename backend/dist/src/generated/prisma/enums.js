@@ -9,7 +9,7 @@
 * 🟢 You can import this file directly.
 */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WorkflowEventType = exports.LetterDraftStatus = exports.SubmissionDocumentStatus = exports.SubmissionDocumentType = exports.ProjectMemberRole = exports.EndorsementStatus = exports.HonorariumStatus = exports.ReviewerRoleType = exports.ResearchTypePHREB = exports.PanelMemberRole = exports.SLAStage = exports.SubmissionStatus = exports.ReviewDecision = exports.ReviewType = exports.CompletenessStatus = exports.ProjectStatus = exports.SubmissionType = exports.FundingType = exports.RoleType = void 0;
+exports.DecisionStatus = exports.ReviewerRoundRole = exports.ClassificationType = exports.WorkflowEventType = exports.LetterDraftStatus = exports.SubmissionDocumentStatus = exports.SubmissionDocumentType = exports.ProjectMemberRole = exports.EndorsementStatus = exports.HonorariumStatus = exports.ReviewerRoleType = exports.ResearchTypePHREB = exports.PanelMemberRole = exports.SLAStage = exports.SubmissionStatus = exports.ReviewDecision = exports.ReviewType = exports.CompletenessStatus = exports.ProjectStatus = exports.SubmissionType = exports.FundingType = exports.RoleType = void 0;
 exports.RoleType = {
     CHAIR: 'CHAIR',
     MEMBER: 'MEMBER',
@@ -147,4 +147,18 @@ exports.WorkflowEventType = {
     RESUBMISSION_RECEIVED: 'RESUBMISSION_RECEIVED',
     RESUBMISSION_REVIEWED: 'RESUBMISSION_REVIEWED',
     RESUBMISSION_FINALIZED: 'RESUBMISSION_FINALIZED'
+};
+exports.ClassificationType = {
+    EXEMPT: 'EXEMPT',
+    EXPEDITED: 'EXPEDITED',
+    FULL_BOARD: 'FULL_BOARD'
+};
+exports.ReviewerRoundRole = {
+    SCIENTIFIC: 'SCIENTIFIC',
+    LAY: 'LAY'
+};
+exports.DecisionStatus = {
+    ACTIVE: 'ACTIVE',
+    EXPIRED: 'EXPIRED',
+    REVOKED: 'REVOKED'
 };

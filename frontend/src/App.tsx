@@ -9,6 +9,9 @@ import {
 import { DashboardPage } from "@/pages/DashboardPageNew";
 import { ProjectDetailPage } from "@/pages/ProjectDetailPage";
 import { SubmissionDetailPage } from "@/pages/SubmissionDetailPage";
+import ImportProjectsPage from "@/pages/ImportProjectsPage";
+import NewProtocolPage from "@/pages/NewProtocolPage";
+import ArchivesPage from "@/pages/ArchivesPage";
 import LoginPage from "@/pages/LoginPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 
@@ -43,6 +46,9 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/projects/new" element={<NewProtocolPage />} />
+          <Route path="/imports/projects" element={<ImportProjectsPage />} />
+          <Route path="/archives" element={<ArchivesPage />} />
           <Route
             path="/projects/:projectId"
             element={<ProjectDetailPage />}
