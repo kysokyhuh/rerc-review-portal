@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.WorkflowEventScalarFieldEnum = exports.ConfigSLAScalarFieldEnum = exports.PanelMemberScalarFieldEnum = exports.ContractPeriodScalarFieldEnum = exports.LetterDraftScalarFieldEnum = exports.HolidayScalarFieldEnum = exports.SubmissionDocumentScalarFieldEnum = exports.ReviewScalarFieldEnum = exports.SubmissionStatusHistoryScalarFieldEnum = exports.ClassificationScalarFieldEnum = exports.SubmissionChangeLogScalarFieldEnum = exports.SubmissionScalarFieldEnum = exports.ProjectChangeLogScalarFieldEnum = exports.ProjectMemberScalarFieldEnum = exports.ProjectProponentScalarFieldEnum = exports.ProponentScalarFieldEnum = exports.ProjectScalarFieldEnum = exports.CommitteeMemberScalarFieldEnum = exports.PanelScalarFieldEnum = exports.CommitteeScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.WorkflowEventScalarFieldEnum = exports.ConfigSLAScalarFieldEnum = exports.PanelMemberScalarFieldEnum = exports.ContractPeriodScalarFieldEnum = exports.LetterDraftScalarFieldEnum = exports.HolidayScalarFieldEnum = exports.SubmissionDecisionScalarFieldEnum = exports.SubmissionDocumentScalarFieldEnum = exports.ReviewAssignmentScalarFieldEnum = exports.ReviewScalarFieldEnum = exports.SubmissionStatusHistoryScalarFieldEnum = exports.ClassificationDecisionScalarFieldEnum = exports.ClassificationScalarFieldEnum = exports.SubmissionChangeLogScalarFieldEnum = exports.SubmissionScalarFieldEnum = exports.ProjectSnapshotScalarFieldEnum = exports.ProjectChangeLogScalarFieldEnum = exports.ProjectMemberScalarFieldEnum = exports.ProjectProponentScalarFieldEnum = exports.ProponentScalarFieldEnum = exports.ProjectScalarFieldEnum = exports.CommitteeMemberScalarFieldEnum = exports.PanelScalarFieldEnum = exports.CommitteeScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -84,12 +84,16 @@ exports.ModelName = {
     ProjectProponent: 'ProjectProponent',
     ProjectMember: 'ProjectMember',
     ProjectChangeLog: 'ProjectChangeLog',
+    ProjectSnapshot: 'ProjectSnapshot',
     Submission: 'Submission',
     SubmissionChangeLog: 'SubmissionChangeLog',
     Classification: 'Classification',
+    ClassificationDecision: 'ClassificationDecision',
     SubmissionStatusHistory: 'SubmissionStatusHistory',
     Review: 'Review',
+    ReviewAssignment: 'ReviewAssignment',
     SubmissionDocument: 'SubmissionDocument',
+    SubmissionDecision: 'SubmissionDecision',
     Holiday: 'Holiday',
     LetterDraft: 'LetterDraft',
     ContractPeriod: 'ContractPeriod',
@@ -207,6 +211,27 @@ exports.ProjectChangeLogScalarFieldEnum = {
     changedById: 'changedById',
     createdAt: 'createdAt'
 };
+exports.ProjectSnapshotScalarFieldEnum = {
+    id: 'id',
+    projectId: 'projectId',
+    projectCode: 'projectCode',
+    title: 'title',
+    piName: 'piName',
+    piSurname: 'piSurname',
+    piAffiliation: 'piAffiliation',
+    department: 'department',
+    proponent: 'proponent',
+    fundingType: 'fundingType',
+    researchTypePHREB: 'researchTypePHREB',
+    researchTypePHREBOther: 'researchTypePHREBOther',
+    initialSubmissionDate: 'initialSubmissionDate',
+    proposedStartDate: 'proposedStartDate',
+    proposedEndDate: 'proposedEndDate',
+    effectiveFrom: 'effectiveFrom',
+    effectiveTo: 'effectiveTo',
+    reason: 'reason',
+    changedById: 'changedById'
+};
 exports.SubmissionScalarFieldEnum = {
     id: 'id',
     projectId: 'projectId',
@@ -251,6 +276,15 @@ exports.ClassificationScalarFieldEnum = {
     updatedAt: 'updatedAt',
     classifiedById: 'classifiedById'
 };
+exports.ClassificationDecisionScalarFieldEnum = {
+    id: 'id',
+    submissionId: 'submissionId',
+    committeeId: 'committeeId',
+    classification: 'classification',
+    decidedAt: 'decidedAt',
+    recordedById: 'recordedById',
+    notes: 'notes'
+};
 exports.SubmissionStatusHistoryScalarFieldEnum = {
     id: 'id',
     submissionId: 'submissionId',
@@ -279,6 +313,22 @@ exports.ReviewScalarFieldEnum = {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };
+exports.ReviewAssignmentScalarFieldEnum = {
+    id: 'id',
+    submissionId: 'submissionId',
+    roundSequence: 'roundSequence',
+    reviewerId: 'reviewerId',
+    reviewerRole: 'reviewerRole',
+    assignedAt: 'assignedAt',
+    dueDate: 'dueDate',
+    receivedAt: 'receivedAt',
+    submittedAt: 'submittedAt',
+    decision: 'decision',
+    endorsementStatus: 'endorsementStatus',
+    remarks: 'remarks',
+    isActive: 'isActive',
+    endedAt: 'endedAt'
+};
 exports.SubmissionDocumentScalarFieldEnum = {
     id: 'id',
     submissionId: 'submissionId',
@@ -290,6 +340,16 @@ exports.SubmissionDocumentScalarFieldEnum = {
     receivedAt: 'receivedAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
+};
+exports.SubmissionDecisionScalarFieldEnum = {
+    id: 'id',
+    submissionId: 'submissionId',
+    decision: 'decision',
+    decidedAt: 'decidedAt',
+    validFrom: 'validFrom',
+    validTo: 'validTo',
+    status: 'status',
+    notes: 'notes'
 };
 exports.HolidayScalarFieldEnum = {
     id: 'id',

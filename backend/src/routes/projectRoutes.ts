@@ -3,78 +3,82 @@
  */
 import { Router } from "express";
 import prisma from "../config/prismaClient";
+import { RoleType } from "../generated/prisma/client";
+import { requireRoles } from "../middleware/auth";
+import {
+  createProjectWithInitialSubmission,
+  DuplicateProjectCodeError,
+  ProjectCreateValidationError,
+} from "../services/projects/createProjectWithInitialSubmission";
 
 const router = Router();
 
-// Create a new project (RA / Chair encoding a protocol)
-router.post("/projects", async (req, res) => {
+// Create project + initial submission via individual entry form
+router.post(
+  "/projects",
+  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  async (req, res) => {
   try {
     const {
       projectCode,
       title,
       piName,
-      piAffiliation,
       fundingType,
-      committeeId,
-      initialSubmissionDate,
+      committeeCode,
+      submissionType,
+      receivedDate,
+      notes,
     } = req.body;
 
-    // Basic required field checks
-    if (!projectCode || !title || !piName || !fundingType || !committeeId) {
-      return res.status(400).json({
-        message:
-          "projectCode, title, piName, fundingType, and committeeId are required",
-      });
-    }
-
-    // Very light fundingType validation – ties to Prisma enum FundingType
-    const allowedFundingTypes = [
-      "INTERNAL",
-      "EXTERNAL",
-      "SELF_FUNDED",
-      "NO_FUNDING",
-    ];
-    if (!allowedFundingTypes.includes(fundingType)) {
-      return res.status(400).json({
-        message: `Invalid fundingType. Allowed: ${allowedFundingTypes.join(
-          ", "
-        )}`,
-      });
-    }
-
-    // Parse date if provided
-    const initialDate = initialSubmissionDate
-      ? new Date(initialSubmissionDate)
-      : null;
-
-    const project = await prisma.project.create({
-      data: {
+    const created = await createProjectWithInitialSubmission(
+      {
         projectCode,
         title,
         piName,
-        piAffiliation,
-        fundingType, // Prisma will enforce the enum
-        committeeId,
-        initialSubmissionDate: initialDate,
-        // TODO: replace with real logged-in user later
-        createdById: 1, // RA user from seed
+        committeeCode,
+        submissionType,
+        receivedDate,
+        fundingType,
+        notes,
       },
-    });
+      req.user?.id
+    );
 
-    res.status(201).json(project);
+    return res.status(201).json(created);
   } catch (error: any) {
-    console.error("Error creating project:", error);
-
-    // Unique constraint on projectCode
-    if (error.code === "P2002") {
-      return res.status(409).json({
-        message: "Project code already exists",
+    if (error instanceof ProjectCreateValidationError) {
+      return res.status(400).json({
+        message: "Validation failed.",
+        errors: error.errors,
       });
     }
 
-    res.status(500).json({ message: "Failed to create project" });
+    if (error instanceof DuplicateProjectCodeError) {
+      return res.status(409).json({
+        message: "Project code already exists.",
+        projectId: error.projectId,
+      });
+    }
+
+    if (error?.code === "P2002") {
+      const normalizedCode = String(req.body?.projectCode ?? "").trim().toUpperCase();
+      const existingProject = normalizedCode
+        ? await prisma.project.findFirst({
+            where: { projectCode: normalizedCode },
+            select: { id: true },
+          })
+        : null;
+      return res.status(409).json({
+        message: "Project code already exists.",
+        projectId: existingProject?.id,
+      });
+    }
+
+    console.error("Error creating project:", error);
+    return res.status(500).json({ message: "Failed to create project" });
   }
-});
+}
+);
 
 // List all projects (with basic metadata)
 router.get("/projects", async (_req, res) => {
@@ -167,6 +171,131 @@ router.get("/projects/search", async (req, res) => {
   } catch (error) {
     console.error("Error searching projects:", error);
     res.status(500).json({ message: "Failed to search projects" });
+  }
+});
+
+/**
+ * GET /projects/archived
+ * 
+ * Fetch archived projects - those with latest submission in CLOSED or WITHDRAWN status.
+ * These are terminal states that don't appear in the active dashboard queues.
+ * 
+ * Query params:
+ *   - committeeCode (optional): filter by committee
+ *   - limit (optional): max results, default 100
+ *   - offset (optional): pagination offset, default 0
+ *   - search (optional): search by projectCode, title, or piName
+ * 
+ * WHY CSV IMPORTS DON'T SHOW IN DASHBOARD:
+ * The dashboard queues only display submissions with active workflow statuses:
+ *   - RECEIVED, UNDER_CLASSIFICATION (Classification queue)
+ *   - UNDER_REVIEW (Review queue)
+ *   - AWAITING_REVISIONS (Revision queue)
+ * 
+ * CSV imports typically set submissions to CLOSED (for approved protocols) or
+ * WITHDRAWN (for withdrawn ones) because the imported data represents historical
+ * completed protocols. These terminal statuses are intentionally excluded from
+ * active queues since they require no further action.
+ * 
+ * To view imported historical data, use this /projects/archived endpoint or
+ * the Archives page in the frontend.
+ */
+router.get("/projects/archived", async (req, res) => {
+  try {
+    const committeeCode = req.query.committeeCode
+      ? String(req.query.committeeCode)
+      : null;
+    const rawLimit = Number(req.query.limit || 100);
+    const limit = Number.isFinite(rawLimit)
+      ? Math.min(Math.max(rawLimit, 1), 500)
+      : 100;
+    const offset = Number(req.query.offset || 0);
+    const search = req.query.search ? String(req.query.search).trim() : null;
+
+    // Find projects where the latest submission has a terminal status
+    const terminalStatuses = ["CLOSED", "WITHDRAWN"];
+
+    // Build the where clause
+    const whereClause: any = {
+      submissions: {
+        some: {
+          status: { in: terminalStatuses },
+        },
+      },
+    };
+
+    if (committeeCode) {
+      whereClause.committee = { code: committeeCode };
+    }
+
+    if (search) {
+      whereClause.OR = [
+        { projectCode: { contains: search, mode: "insensitive" } },
+        { title: { contains: search, mode: "insensitive" } },
+        { piName: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    // Get projects with their latest submission
+    const projects = await prisma.project.findMany({
+      where: whereClause,
+      include: {
+        submissions: {
+          orderBy: { sequenceNumber: "desc" },
+          take: 1,
+          include: {
+            classification: {
+              select: { reviewType: true },
+            },
+          },
+        },
+        committee: {
+          select: { code: true, name: true },
+        },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: limit,
+      skip: offset,
+    });
+
+    // Filter to only include projects where *latest* submission is terminal
+    // (not just any submission)
+    const archivedProjects = projects.filter((project) => {
+      const latestSubmission = project.submissions[0];
+      return latestSubmission && terminalStatuses.includes(latestSubmission.status);
+    });
+
+    // Get total count for pagination
+    const totalCount = await prisma.project.count({
+      where: whereClause,
+    });
+
+    // Format the response with lightweight payload
+    const items = archivedProjects.map((project) => {
+      const latestSubmission = project.submissions[0];
+      return {
+        projectId: project.id,
+        projectCode: project.projectCode,
+        title: project.title,
+        piName: project.piName,
+        latestSubmissionId: latestSubmission?.id ?? null,
+        latestSubmissionStatus: latestSubmission?.status ?? null,
+        receivedDate: latestSubmission?.receivedDate ?? project.initialSubmissionDate,
+        reviewType: latestSubmission?.classification?.reviewType ?? null,
+        committeeCode: project.committee?.code ?? null,
+        overallStatus: project.overallStatus,
+      };
+    });
+
+    res.json({
+      items,
+      total: totalCount,
+      limit,
+      offset,
+    });
+  } catch (error) {
+    console.error("Error fetching archived projects:", error);
+    res.status(500).json({ message: "Failed to fetch archived projects" });
   }
 });
 
@@ -321,7 +450,7 @@ router.post("/projects/:projectId/submissions", async (req, res) => {
           documentLink,
           completenessStatus: completenessStatus || "COMPLETE",
           completenessRemarks,
-          createdById: 1, // RA for now - later: logged-in user
+          createdById: req.user?.id,
         },
       });
     });

@@ -152,6 +152,44 @@ export interface CommitteeSummary {
   name: string;
 }
 
+export interface ImportRowError {
+  row: number;
+  field: string;
+  message: string;
+}
+
+export interface ImportResult {
+  entity?: string;
+  receivedRows: number;
+  insertedRows: number;
+  failedRows: number;
+  errors: ImportRowError[];
+}
+
+export interface ProjectImportPreview {
+  detectedHeaders: string[];
+  previewRows: Record<string, string>[];
+  suggestedMapping: Record<string, string | null>;
+  missingRequiredFields: string[];
+  warnings: string[];
+}
+
+export interface CreateProjectPayload {
+  projectCode: string;
+  title: string;
+  piName: string;
+  committeeCode: string;
+  submissionType: string;
+  receivedDate: string;
+  fundingType?: string;
+  notes?: string;
+}
+
+export interface CreateProjectResponse {
+  projectId: number;
+  submissionId: number;
+}
+
 // Submission details
 export interface SubmissionDetail {
   id: number;
@@ -232,4 +270,25 @@ export interface SubmissionSlaSummary {
     withinSla: boolean | null;
     description: string | null;
   };
+}
+
+// Archived projects (terminal states: CLOSED, WITHDRAWN)
+export interface ArchivedProject {
+  projectId: number;
+  projectCode: string;
+  title: string;
+  piName: string;
+  latestSubmissionId: number | null;
+  latestSubmissionStatus: string | null;
+  receivedDate: string | null;
+  reviewType: string | null;
+  committeeCode: string | null;
+  overallStatus: string | null;
+}
+
+export interface ArchivedProjectsResponse {
+  items: ArchivedProject[];
+  total: number;
+  limit: number;
+  offset: number;
 }

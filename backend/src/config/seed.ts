@@ -4,6 +4,8 @@ import path from "path";
 import { parse } from "csv-parse/sync";
 import prisma from "./prismaClient";
 import {
+  ClassificationType,
+  DecisionStatus,
   EndorsementStatus,
   FundingType,
   LetterDraftStatus,
@@ -13,6 +15,7 @@ import {
   ReviewDecision,
   ReviewType,
   ReviewerRoleType,
+  ReviewerRoundRole,
   RoleType,
   SLAStage,
   SubmissionDocumentStatus,
@@ -120,6 +123,33 @@ const mapSubmissionStatus = (
     return SubmissionStatus.CLASSIFIED;
   }
   return SubmissionStatus.RECEIVED;
+};
+
+const mapClassificationLabel = (
+  value: string | null | undefined
+): ClassificationType | null => {
+  const normalized = safeTrim(value).toUpperCase();
+  if (normalized === "EXEMPT" || normalized === "EXEMPTED") {
+    return ClassificationType.EXEMPT;
+  }
+  if (normalized === "EXPEDITED") {
+    return ClassificationType.EXPEDITED;
+  }
+  if (normalized === "FULL" || normalized === "FULL_BOARD" || normalized === "FULL BOARD") {
+    return ClassificationType.FULL_BOARD;
+  }
+  return null;
+};
+
+const columnExists = async (tableName: string, columnName: string) => {
+  const rows = await prisma.$queryRaw<Array<{ exists: boolean }>>`
+    SELECT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = ${tableName}
+        AND column_name = ${columnName}
+    ) AS exists
+  `;
+  return rows.length > 0 && rows[0].exists === true;
 };
 
 const mapProjectStatus = (status: SubmissionStatus) => {
@@ -315,6 +345,233 @@ const importLegacyCsv = async ({
 
   console.log(`Imported ${importedCount} CSV submissions.`);
   return { importedCount };
+};
+
+const backfillProjectSnapshots = async () => {
+  const projects = await prisma.project.findMany({
+    select: {
+      id: true,
+      projectCode: true,
+      title: true,
+      piName: true,
+      piSurname: true,
+      piAffiliation: true,
+      department: true,
+      proponent: true,
+      fundingType: true,
+      researchTypePHREB: true,
+      researchTypePHREBOther: true,
+      initialSubmissionDate: true,
+      proposedStartDate: true,
+      proposedEndDate: true,
+    },
+  });
+
+  for (const project of projects) {
+    const existing = await prisma.projectSnapshot.findFirst({
+      where: { projectId: project.id },
+    });
+    if (existing) continue;
+    await prisma.projectSnapshot.create({
+      data: {
+        projectId: project.id,
+        projectCode: project.projectCode,
+        title: project.title,
+        piName: project.piName,
+        piSurname: project.piSurname,
+        piAffiliation: project.piAffiliation,
+        department: project.department,
+        proponent: project.proponent,
+        fundingType: project.fundingType,
+        researchTypePHREB: project.researchTypePHREB,
+        researchTypePHREBOther: project.researchTypePHREBOther,
+        initialSubmissionDate: project.initialSubmissionDate,
+        proposedStartDate: project.proposedStartDate,
+        proposedEndDate: project.proposedEndDate,
+        effectiveFrom: new Date(),
+        reason: "initial snapshot",
+      },
+    });
+  }
+};
+
+const backfillClassificationDecisions = async () => {
+  const hasLegacyColumn = await columnExists("Classification", "classification");
+
+  if (hasLegacyColumn) {
+    const rows = await prisma.$queryRaw<
+      Array<{
+        submissionId: number;
+        classification: string | null;
+        classificationDate: Date | null;
+        rationale: string | null;
+        committeeId: number | null;
+      }>
+    >`SELECT c."submissionId",
+             c."classification",
+             c."classificationDate",
+             c."rationale",
+             p."committeeId"
+        FROM "Classification" c
+        JOIN "Submission" s ON s.id = c."submissionId"
+        LEFT JOIN "Project" p ON p.id = s."projectId"`;
+
+    for (const row of rows) {
+      if (!row.submissionId || !row.committeeId) continue;
+      const classification = mapClassificationLabel(row.classification);
+      if (!classification) continue;
+      await prisma.classificationDecision.upsert({
+        where: { submissionId: row.submissionId },
+        update: {
+          committeeId: row.committeeId,
+          classification,
+          decidedAt: row.classificationDate ?? new Date(),
+          notes: row.rationale ?? undefined,
+        },
+        create: {
+          submissionId: row.submissionId,
+          committeeId: row.committeeId,
+          classification,
+          decidedAt: row.classificationDate ?? new Date(),
+          notes: row.rationale ?? undefined,
+        },
+      });
+    }
+    return;
+  }
+
+  const classifications = await prisma.classification.findMany({
+    include: {
+      submission: {
+        include: {
+          project: {
+            select: { committeeId: true },
+          },
+        },
+      },
+    },
+  });
+
+  for (const c of classifications) {
+    const committeeId = c.submission.project?.committeeId;
+    if (!committeeId) continue;
+    const classification = mapClassificationLabel(c.reviewType);
+    if (!classification) continue;
+    await prisma.classificationDecision.upsert({
+      where: { submissionId: c.submissionId },
+      update: {
+        committeeId,
+        classification,
+        decidedAt: c.classificationDate ?? new Date(),
+        notes: c.rationale ?? undefined,
+      },
+      create: {
+        submissionId: c.submissionId,
+        committeeId,
+        classification,
+        decidedAt: c.classificationDate ?? new Date(),
+        notes: c.rationale ?? undefined,
+      },
+    });
+  }
+};
+
+const backfillReviewAssignments = async () => {
+  const reviews = await prisma.review.findMany({
+    include: {
+      submission: {
+        select: { sequenceNumber: true },
+      },
+    },
+  });
+
+  for (const review of reviews) {
+    let reviewerRole: ReviewerRoundRole | null = null;
+    if (review.reviewerRole === ReviewerRoleType.SCIENTIST) {
+      reviewerRole = ReviewerRoundRole.SCIENTIFIC;
+    } else if (review.reviewerRole === ReviewerRoleType.LAY) {
+      reviewerRole = ReviewerRoundRole.LAY;
+    } else if (review.reviewerRole === ReviewerRoleType.INDEPENDENT_CONSULTANT) {
+      reviewerRole = ReviewerRoundRole.SCIENTIFIC;
+    }
+    if (!reviewerRole) continue;
+
+    await prisma.reviewAssignment.updateMany({
+      where: {
+        submissionId: review.submissionId,
+        roundSequence: review.submission.sequenceNumber,
+        reviewerRole,
+        isActive: true,
+      },
+      data: {
+        isActive: false,
+        endedAt: new Date(),
+      },
+    });
+
+    await prisma.reviewAssignment.create({
+      data: {
+        submissionId: review.submissionId,
+        roundSequence: review.submission.sequenceNumber,
+        reviewerId: review.reviewerId,
+        reviewerRole,
+        assignedAt: review.assignedAt ?? new Date(),
+        dueDate: review.dueDate ?? undefined,
+        receivedAt: review.receivedAt ?? undefined,
+        submittedAt: review.respondedAt ?? undefined,
+        decision: review.decision ?? undefined,
+        endorsementStatus: review.endorsementStatus ?? undefined,
+        remarks: review.remarks ?? undefined,
+      },
+    });
+  }
+};
+
+const backfillSubmissionDecisions = async () => {
+  const submissions = await prisma.submission.findMany({
+    where: { finalDecision: { not: null } },
+    select: {
+      id: true,
+      finalDecision: true,
+      finalDecisionDate: true,
+      receivedDate: true,
+    },
+  });
+
+  for (const s of submissions) {
+    if (!s.finalDecision) continue;
+    const decidedAt = s.finalDecisionDate ?? s.receivedDate;
+    const validTo = s.finalDecisionDate
+      ? new Date(new Date(s.finalDecisionDate).getTime() + 365 * 24 * 60 * 60 * 1000)
+      : null;
+    const status =
+      validTo && validTo < new Date() ? DecisionStatus.EXPIRED : DecisionStatus.ACTIVE;
+
+    await prisma.submissionDecision.upsert({
+      where: { submissionId: s.id },
+      update: {
+        decision: s.finalDecision,
+        decidedAt,
+        validFrom: s.finalDecisionDate ?? undefined,
+        validTo: validTo ?? undefined,
+        status,
+      },
+      create: {
+        submissionId: s.id,
+        decision: s.finalDecision,
+        decidedAt,
+        validFrom: s.finalDecisionDate ?? undefined,
+        validTo: validTo ?? undefined,
+        status,
+      },
+    });
+  }
+};
+
+const ensureReviewAssignmentActiveIndex = async () => {
+  await prisma.$executeRawUnsafe(
+    'CREATE UNIQUE INDEX IF NOT EXISTS review_assignment_active_unique ON "ReviewAssignment"("submissionId","roundSequence","reviewerRole") WHERE "isActive" = TRUE;'
+  );
 };
 
 async function main() {
@@ -1083,6 +1340,14 @@ async function main() {
 
   console.log("Seeded dashboard mock data (projects, submissions, reviews)");
   }
+
+  await backfillProjectSnapshots();
+  await backfillClassificationDecisions();
+  await ensureReviewAssignmentActiveIndex();
+  await backfillReviewAssignments();
+  await backfillSubmissionDecisions();
+
+  console.log("Backfill to snapshots/decisions/assignments completed");
 }
 
 main()

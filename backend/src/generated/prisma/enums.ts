@@ -221,3 +221,29 @@ export const WorkflowEventType = {
 } as const
 
 export type WorkflowEventType = (typeof WorkflowEventType)[keyof typeof WorkflowEventType]
+
+
+export const ClassificationType = {
+  EXEMPT: 'EXEMPT',
+  EXPEDITED: 'EXPEDITED',
+  FULL_BOARD: 'FULL_BOARD'
+} as const
+
+export type ClassificationType = (typeof ClassificationType)[keyof typeof ClassificationType]
+
+
+export const ReviewerRoundRole = {
+  SCIENTIFIC: 'SCIENTIFIC',
+  LAY: 'LAY'
+} as const
+
+export type ReviewerRoundRole = (typeof ReviewerRoundRole)[keyof typeof ReviewerRoundRole]
+
+
+export const DecisionStatus = {
+  ACTIVE: 'ACTIVE',
+  EXPIRED: 'EXPIRED',
+  REVOKED: 'REVOKED'
+} as const
+
+export type DecisionStatus = (typeof DecisionStatus)[keyof typeof DecisionStatus]

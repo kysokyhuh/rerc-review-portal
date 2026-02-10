@@ -60,12 +60,16 @@ export const ModelName = {
   ProjectProponent: 'ProjectProponent',
   ProjectMember: 'ProjectMember',
   ProjectChangeLog: 'ProjectChangeLog',
+  ProjectSnapshot: 'ProjectSnapshot',
   Submission: 'Submission',
   SubmissionChangeLog: 'SubmissionChangeLog',
   Classification: 'Classification',
+  ClassificationDecision: 'ClassificationDecision',
   SubmissionStatusHistory: 'SubmissionStatusHistory',
   Review: 'Review',
+  ReviewAssignment: 'ReviewAssignment',
   SubmissionDocument: 'SubmissionDocument',
+  SubmissionDecision: 'SubmissionDecision',
   Holiday: 'Holiday',
   LetterDraft: 'LetterDraft',
   ContractPeriod: 'ContractPeriod',
@@ -227,6 +231,31 @@ export const ProjectChangeLogScalarFieldEnum = {
 export type ProjectChangeLogScalarFieldEnum = (typeof ProjectChangeLogScalarFieldEnum)[keyof typeof ProjectChangeLogScalarFieldEnum]
 
 
+export const ProjectSnapshotScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  projectCode: 'projectCode',
+  title: 'title',
+  piName: 'piName',
+  piSurname: 'piSurname',
+  piAffiliation: 'piAffiliation',
+  department: 'department',
+  proponent: 'proponent',
+  fundingType: 'fundingType',
+  researchTypePHREB: 'researchTypePHREB',
+  researchTypePHREBOther: 'researchTypePHREBOther',
+  initialSubmissionDate: 'initialSubmissionDate',
+  proposedStartDate: 'proposedStartDate',
+  proposedEndDate: 'proposedEndDate',
+  effectiveFrom: 'effectiveFrom',
+  effectiveTo: 'effectiveTo',
+  reason: 'reason',
+  changedById: 'changedById'
+} as const
+
+export type ProjectSnapshotScalarFieldEnum = (typeof ProjectSnapshotScalarFieldEnum)[keyof typeof ProjectSnapshotScalarFieldEnum]
+
+
 export const SubmissionScalarFieldEnum = {
   id: 'id',
   projectId: 'projectId',
@@ -283,6 +312,19 @@ export const ClassificationScalarFieldEnum = {
 export type ClassificationScalarFieldEnum = (typeof ClassificationScalarFieldEnum)[keyof typeof ClassificationScalarFieldEnum]
 
 
+export const ClassificationDecisionScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  committeeId: 'committeeId',
+  classification: 'classification',
+  decidedAt: 'decidedAt',
+  recordedById: 'recordedById',
+  notes: 'notes'
+} as const
+
+export type ClassificationDecisionScalarFieldEnum = (typeof ClassificationDecisionScalarFieldEnum)[keyof typeof ClassificationDecisionScalarFieldEnum]
+
+
 export const SubmissionStatusHistoryScalarFieldEnum = {
   id: 'id',
   submissionId: 'submissionId',
@@ -319,6 +361,26 @@ export const ReviewScalarFieldEnum = {
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
 
 
+export const ReviewAssignmentScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  roundSequence: 'roundSequence',
+  reviewerId: 'reviewerId',
+  reviewerRole: 'reviewerRole',
+  assignedAt: 'assignedAt',
+  dueDate: 'dueDate',
+  receivedAt: 'receivedAt',
+  submittedAt: 'submittedAt',
+  decision: 'decision',
+  endorsementStatus: 'endorsementStatus',
+  remarks: 'remarks',
+  isActive: 'isActive',
+  endedAt: 'endedAt'
+} as const
+
+export type ReviewAssignmentScalarFieldEnum = (typeof ReviewAssignmentScalarFieldEnum)[keyof typeof ReviewAssignmentScalarFieldEnum]
+
+
 export const SubmissionDocumentScalarFieldEnum = {
   id: 'id',
   submissionId: 'submissionId',
@@ -333,6 +395,20 @@ export const SubmissionDocumentScalarFieldEnum = {
 } as const
 
 export type SubmissionDocumentScalarFieldEnum = (typeof SubmissionDocumentScalarFieldEnum)[keyof typeof SubmissionDocumentScalarFieldEnum]
+
+
+export const SubmissionDecisionScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  decision: 'decision',
+  decidedAt: 'decidedAt',
+  validFrom: 'validFrom',
+  validTo: 'validTo',
+  status: 'status',
+  notes: 'notes'
+} as const
+
+export type SubmissionDecisionScalarFieldEnum = (typeof SubmissionDecisionScalarFieldEnum)[keyof typeof SubmissionDecisionScalarFieldEnum]
 
 
 export const HolidayScalarFieldEnum = {

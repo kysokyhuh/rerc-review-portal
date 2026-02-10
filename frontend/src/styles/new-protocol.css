@@ -1,0 +1,124 @@
+.new-protocol-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.new-protocol-card {
+  background: var(--surface);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+}
+
+.new-protocol-section h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  color: var(--neutral-900);
+}
+
+.new-protocol-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.new-protocol-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--neutral-700);
+}
+
+.new-protocol-grid input,
+.new-protocol-grid select,
+.new-protocol-grid textarea {
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--neutral-800);
+  font: inherit;
+  padding: 10px;
+}
+
+.new-protocol-grid input:focus-visible,
+.new-protocol-grid select:focus-visible,
+.new-protocol-grid textarea:focus-visible {
+  outline: 2px solid var(--primary-green);
+  outline-offset: 1px;
+}
+
+.notes-field {
+  grid-column: 1 / -1;
+}
+
+.new-protocol-optional {
+  margin-top: 16px;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  background: var(--surface-muted);
+}
+
+.new-protocol-optional summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--neutral-800);
+  margin-bottom: 10px;
+}
+
+.new-protocol-alert {
+  margin-top: 12px;
+  border: 1px solid rgba(176, 42, 28, 0.25);
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+  color: var(--danger-red);
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.field-error {
+  color: var(--danger-red);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.new-protocol-actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.new-protocol-success {
+  border: 1px solid rgba(45, 106, 79, 0.35);
+  border-radius: var(--radius-md);
+  background: var(--primary-green-soft);
+  padding: 16px;
+}
+
+.new-protocol-success h2 {
+  margin: 0 0 8px;
+  color: var(--primary-green);
+}
+
+.new-protocol-success p {
+  margin: 0;
+  color: var(--neutral-700);
+}
+
+.new-protocol-success-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+}
+
+@media (max-width: 860px) {
+  .new-protocol-grid {
+    grid-template-columns: 1fr;
+  }
+}
