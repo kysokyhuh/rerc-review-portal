@@ -33,6 +33,7 @@ export type FundingType = (typeof FundingType)[keyof typeof FundingType]
 
 export const SubmissionType = {
   INITIAL: 'INITIAL',
+  RESUBMISSION: 'RESUBMISSION',
   AMENDMENT: 'AMENDMENT',
   CONTINUING_REVIEW: 'CONTINUING_REVIEW',
   FINAL_REPORT: 'FINAL_REPORT',
@@ -209,15 +210,22 @@ export type LetterDraftStatus = (typeof LetterDraftStatus)[keyof typeof LetterDr
 
 
 export const WorkflowEventType = {
+  APPLICATION_SUBMITTED: 'APPLICATION_SUBMITTED',
+  PANEL_ASSIGNED: 'PANEL_ASSIGNED',
+  REVIEWERS_ASSIGNED: 'REVIEWERS_ASSIGNED',
   CLASSIFICATION_DONE: 'CLASSIFICATION_DONE',
   DOCUMENTS_TO_REVIEWER: 'DOCUMENTS_TO_REVIEWER',
   ASSESSMENT_FORMS_COMPLETED: 'ASSESSMENT_FORMS_COMPLETED',
+  REVIEW_SUBMITTED: 'REVIEW_SUBMITTED',
   FULL_REVIEW_MEETING: 'FULL_REVIEW_MEETING',
   REVIEW_RESULTS_FINALIZED: 'REVIEW_RESULTS_FINALIZED',
   RESULTS_COMMUNICATED: 'RESULTS_COMMUNICATED',
   RESUBMISSION_RECEIVED: 'RESUBMISSION_RECEIVED',
   RESUBMISSION_REVIEWED: 'RESUBMISSION_REVIEWED',
-  RESUBMISSION_FINALIZED: 'RESUBMISSION_FINALIZED'
+  RESUBMISSION_FINALIZED: 'RESUBMISSION_FINALIZED',
+  DECISION_ISSUED: 'DECISION_ISSUED',
+  CONTINUING_REVIEW_DUE: 'CONTINUING_REVIEW_DUE',
+  FINAL_REPORT_DUE: 'FINAL_REPORT_DUE'
 } as const
 
 export type WorkflowEventType = (typeof WorkflowEventType)[keyof typeof WorkflowEventType]
@@ -247,3 +255,13 @@ export const DecisionStatus = {
 } as const
 
 export type DecisionStatus = (typeof DecisionStatus)[keyof typeof DecisionStatus]
+
+
+export const ProponentCategory = {
+  UNDERGRAD: 'UNDERGRAD',
+  GRAD: 'GRAD',
+  FACULTY: 'FACULTY',
+  OTHER: 'OTHER'
+} as const
+
+export type ProponentCategory = (typeof ProponentCategory)[keyof typeof ProponentCategory]

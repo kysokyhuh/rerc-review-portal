@@ -1,5 +1,9 @@
 import prisma from "../../config/prismaClient";
-import { FundingType, SubmissionType } from "../../generated/prisma/client";
+import {
+  FundingType,
+  ProponentCategory,
+  SubmissionType,
+} from "../../generated/prisma/client";
 import { parseReceivedDate } from "../imports/projectCsvImport";
 
 export interface ProjectCreateFieldError {
@@ -36,6 +40,8 @@ export interface CreateProjectWithInitialSubmissionInput {
   fundingType?: string | null;
   notes?: string | null;
   piAffiliation?: string | null;
+  collegeOrUnit?: string | null;
+  proponentCategory?: string | null;
   department?: string | null;
   proponent?: string | null;
 }
@@ -62,6 +68,20 @@ const parseSubmissionType = (value: string): SubmissionType => {
   }
   throw new ProjectCreateValidationError([
     { field: "submissionType", message: "Invalid submissionType." },
+  ]);
+};
+
+const parseProponentCategory = (
+  value?: string | null
+): ProponentCategory | null => {
+  const raw = normalizeString(value);
+  if (!raw) return null;
+  const normalized = raw.toUpperCase().replace(/\s+/g, "_");
+  if (normalized in ProponentCategory) {
+    return ProponentCategory[normalized as keyof typeof ProponentCategory];
+  }
+  throw new ProjectCreateValidationError([
+    { field: "proponentCategory", message: "Invalid proponentCategory." },
   ]);
 };
 
@@ -137,6 +157,9 @@ export async function createProjectWithInitialSubmission(
 
   const notes = normalizeString(input.notes || "") || null;
   const piAffiliation = normalizeString(input.piAffiliation || "") || null;
+  const collegeOrUnit =
+    normalizeString(input.collegeOrUnit || "") || piAffiliation || null;
+  const proponentCategory = parseProponentCategory(input.proponentCategory);
   const department = normalizeString(input.department || "") || null;
   const proponent = normalizeString(input.proponent || "") || null;
 
@@ -147,6 +170,8 @@ export async function createProjectWithInitialSubmission(
         title,
         piName,
         piAffiliation,
+        collegeOrUnit,
+        proponentCategory,
         department,
         proponent,
         fundingType,

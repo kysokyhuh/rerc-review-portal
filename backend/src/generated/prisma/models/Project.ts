@@ -45,6 +45,8 @@ export type ProjectMinAggregateOutputType = {
   piName: string | null
   piSurname: string | null
   piAffiliation: string | null
+  collegeOrUnit: string | null
+  proponentCategory: $Enums.ProponentCategory | null
   department: string | null
   proponent: string | null
   researchTypePHREB: $Enums.ResearchTypePHREB | null
@@ -70,6 +72,8 @@ export type ProjectMaxAggregateOutputType = {
   piName: string | null
   piSurname: string | null
   piAffiliation: string | null
+  collegeOrUnit: string | null
+  proponentCategory: $Enums.ProponentCategory | null
   department: string | null
   proponent: string | null
   researchTypePHREB: $Enums.ResearchTypePHREB | null
@@ -95,6 +99,8 @@ export type ProjectCountAggregateOutputType = {
   piName: number
   piSurname: number
   piAffiliation: number
+  collegeOrUnit: number
+  proponentCategory: number
   department: number
   proponent: number
   keywords: number
@@ -135,6 +141,8 @@ export type ProjectMinAggregateInputType = {
   piName?: true
   piSurname?: true
   piAffiliation?: true
+  collegeOrUnit?: true
+  proponentCategory?: true
   department?: true
   proponent?: true
   researchTypePHREB?: true
@@ -160,6 +168,8 @@ export type ProjectMaxAggregateInputType = {
   piName?: true
   piSurname?: true
   piAffiliation?: true
+  collegeOrUnit?: true
+  proponentCategory?: true
   department?: true
   proponent?: true
   researchTypePHREB?: true
@@ -185,6 +195,8 @@ export type ProjectCountAggregateInputType = {
   piName?: true
   piSurname?: true
   piAffiliation?: true
+  collegeOrUnit?: true
+  proponentCategory?: true
   department?: true
   proponent?: true
   keywords?: true
@@ -298,6 +310,8 @@ export type ProjectGroupByOutputType = {
   piName: string
   piSurname: string | null
   piAffiliation: string | null
+  collegeOrUnit: string | null
+  proponentCategory: $Enums.ProponentCategory | null
   department: string | null
   proponent: string | null
   keywords: string[]
@@ -347,6 +361,8 @@ export type ProjectWhereInput = {
   piName?: Prisma.StringFilter<"Project"> | string
   piSurname?: Prisma.StringNullableFilter<"Project"> | string | null
   piAffiliation?: Prisma.StringNullableFilter<"Project"> | string | null
+  collegeOrUnit?: Prisma.StringNullableFilter<"Project"> | string | null
+  proponentCategory?: Prisma.EnumProponentCategoryNullableFilter<"Project"> | $Enums.ProponentCategory | null
   department?: Prisma.StringNullableFilter<"Project"> | string | null
   proponent?: Prisma.StringNullableFilter<"Project"> | string | null
   keywords?: Prisma.StringNullableListFilter<"Project">
@@ -366,6 +382,7 @@ export type ProjectWhereInput = {
   createdById?: Prisma.IntNullableFilter<"Project"> | number | null
   committee?: Prisma.XOR<Prisma.CommitteeScalarRelationFilter, Prisma.CommitteeWhereInput>
   snapshots?: Prisma.ProjectSnapshotListRelationFilter
+  statusHistory?: Prisma.ProjectStatusHistoryListRelationFilter
   submissions?: Prisma.SubmissionListRelationFilter
   proponents?: Prisma.ProjectProponentListRelationFilter
   members?: Prisma.ProjectMemberListRelationFilter
@@ -380,6 +397,8 @@ export type ProjectOrderByWithRelationInput = {
   piName?: Prisma.SortOrder
   piSurname?: Prisma.SortOrderInput | Prisma.SortOrder
   piAffiliation?: Prisma.SortOrderInput | Prisma.SortOrder
+  collegeOrUnit?: Prisma.SortOrderInput | Prisma.SortOrder
+  proponentCategory?: Prisma.SortOrderInput | Prisma.SortOrder
   department?: Prisma.SortOrderInput | Prisma.SortOrder
   proponent?: Prisma.SortOrderInput | Prisma.SortOrder
   keywords?: Prisma.SortOrder
@@ -399,6 +418,7 @@ export type ProjectOrderByWithRelationInput = {
   createdById?: Prisma.SortOrderInput | Prisma.SortOrder
   committee?: Prisma.CommitteeOrderByWithRelationInput
   snapshots?: Prisma.ProjectSnapshotOrderByRelationAggregateInput
+  statusHistory?: Prisma.ProjectStatusHistoryOrderByRelationAggregateInput
   submissions?: Prisma.SubmissionOrderByRelationAggregateInput
   proponents?: Prisma.ProjectProponentOrderByRelationAggregateInput
   members?: Prisma.ProjectMemberOrderByRelationAggregateInput
@@ -416,6 +436,8 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   piName?: Prisma.StringFilter<"Project"> | string
   piSurname?: Prisma.StringNullableFilter<"Project"> | string | null
   piAffiliation?: Prisma.StringNullableFilter<"Project"> | string | null
+  collegeOrUnit?: Prisma.StringNullableFilter<"Project"> | string | null
+  proponentCategory?: Prisma.EnumProponentCategoryNullableFilter<"Project"> | $Enums.ProponentCategory | null
   department?: Prisma.StringNullableFilter<"Project"> | string | null
   proponent?: Prisma.StringNullableFilter<"Project"> | string | null
   keywords?: Prisma.StringNullableListFilter<"Project">
@@ -435,6 +457,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   createdById?: Prisma.IntNullableFilter<"Project"> | number | null
   committee?: Prisma.XOR<Prisma.CommitteeScalarRelationFilter, Prisma.CommitteeWhereInput>
   snapshots?: Prisma.ProjectSnapshotListRelationFilter
+  statusHistory?: Prisma.ProjectStatusHistoryListRelationFilter
   submissions?: Prisma.SubmissionListRelationFilter
   proponents?: Prisma.ProjectProponentListRelationFilter
   members?: Prisma.ProjectMemberListRelationFilter
@@ -449,6 +472,8 @@ export type ProjectOrderByWithAggregationInput = {
   piName?: Prisma.SortOrder
   piSurname?: Prisma.SortOrderInput | Prisma.SortOrder
   piAffiliation?: Prisma.SortOrderInput | Prisma.SortOrder
+  collegeOrUnit?: Prisma.SortOrderInput | Prisma.SortOrder
+  proponentCategory?: Prisma.SortOrderInput | Prisma.SortOrder
   department?: Prisma.SortOrderInput | Prisma.SortOrder
   proponent?: Prisma.SortOrderInput | Prisma.SortOrder
   keywords?: Prisma.SortOrder
@@ -483,6 +508,8 @@ export type ProjectScalarWhereWithAggregatesInput = {
   piName?: Prisma.StringWithAggregatesFilter<"Project"> | string
   piSurname?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   piAffiliation?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
+  collegeOrUnit?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
+  proponentCategory?: Prisma.EnumProponentCategoryNullableWithAggregatesFilter<"Project"> | $Enums.ProponentCategory | null
   department?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   proponent?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   keywords?: Prisma.StringNullableListFilter<"Project">
@@ -508,6 +535,8 @@ export type ProjectCreateInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -525,6 +554,7 @@ export type ProjectCreateInput = {
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
@@ -539,6 +569,8 @@ export type ProjectUncheckedCreateInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -557,6 +589,7 @@ export type ProjectUncheckedCreateInput = {
   updatedAt?: Date | string
   createdById?: number | null
   snapshots?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
@@ -569,6 +602,8 @@ export type ProjectUpdateInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -586,6 +621,7 @@ export type ProjectUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
@@ -600,6 +636,8 @@ export type ProjectUncheckedUpdateInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -618,6 +656,7 @@ export type ProjectUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   snapshots?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
@@ -631,6 +670,8 @@ export type ProjectCreateManyInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -656,6 +697,8 @@ export type ProjectUpdateManyMutationInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -680,6 +723,8 @@ export type ProjectUncheckedUpdateManyInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -716,6 +761,8 @@ export type ProjectCountOrderByAggregateInput = {
   piName?: Prisma.SortOrder
   piSurname?: Prisma.SortOrder
   piAffiliation?: Prisma.SortOrder
+  collegeOrUnit?: Prisma.SortOrder
+  proponentCategory?: Prisma.SortOrder
   department?: Prisma.SortOrder
   proponent?: Prisma.SortOrder
   keywords?: Prisma.SortOrder
@@ -748,6 +795,8 @@ export type ProjectMaxOrderByAggregateInput = {
   piName?: Prisma.SortOrder
   piSurname?: Prisma.SortOrder
   piAffiliation?: Prisma.SortOrder
+  collegeOrUnit?: Prisma.SortOrder
+  proponentCategory?: Prisma.SortOrder
   department?: Prisma.SortOrder
   proponent?: Prisma.SortOrder
   researchTypePHREB?: Prisma.SortOrder
@@ -773,6 +822,8 @@ export type ProjectMinOrderByAggregateInput = {
   piName?: Prisma.SortOrder
   piSurname?: Prisma.SortOrder
   piAffiliation?: Prisma.SortOrder
+  collegeOrUnit?: Prisma.SortOrder
+  proponentCategory?: Prisma.SortOrder
   department?: Prisma.SortOrder
   proponent?: Prisma.SortOrder
   researchTypePHREB?: Prisma.SortOrder
@@ -895,6 +946,10 @@ export type ProjectCreatekeywordsInput = {
   set: string[]
 }
 
+export type NullableEnumProponentCategoryFieldUpdateOperationsInput = {
+  set?: $Enums.ProponentCategory | null
+}
+
 export type ProjectUpdatekeywordsInput = {
   set?: string[]
   push?: string | string[]
@@ -992,12 +1047,28 @@ export type ProjectUpdateOneWithoutSubmissionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutSubmissionsInput, Prisma.ProjectUpdateWithoutSubmissionsInput>, Prisma.ProjectUncheckedUpdateWithoutSubmissionsInput>
 }
 
+export type ProjectCreateNestedOneWithoutStatusHistoryInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutStatusHistoryInput, Prisma.ProjectUncheckedCreateWithoutStatusHistoryInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutStatusHistoryInput
+  connect?: Prisma.ProjectWhereUniqueInput
+}
+
+export type ProjectUpdateOneRequiredWithoutStatusHistoryNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutStatusHistoryInput, Prisma.ProjectUncheckedCreateWithoutStatusHistoryInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutStatusHistoryInput
+  upsert?: Prisma.ProjectUpsertWithoutStatusHistoryInput
+  connect?: Prisma.ProjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutStatusHistoryInput, Prisma.ProjectUpdateWithoutStatusHistoryInput>, Prisma.ProjectUncheckedUpdateWithoutStatusHistoryInput>
+}
+
 export type ProjectCreateWithoutCreatedByInput = {
   projectCode?: string | null
   title: string
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -1015,6 +1086,7 @@ export type ProjectCreateWithoutCreatedByInput = {
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
@@ -1028,6 +1100,8 @@ export type ProjectUncheckedCreateWithoutCreatedByInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -1045,6 +1119,7 @@ export type ProjectUncheckedCreateWithoutCreatedByInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   snapshots?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
@@ -1087,6 +1162,8 @@ export type ProjectScalarWhereInput = {
   piName?: Prisma.StringFilter<"Project"> | string
   piSurname?: Prisma.StringNullableFilter<"Project"> | string | null
   piAffiliation?: Prisma.StringNullableFilter<"Project"> | string | null
+  collegeOrUnit?: Prisma.StringNullableFilter<"Project"> | string | null
+  proponentCategory?: Prisma.EnumProponentCategoryNullableFilter<"Project"> | $Enums.ProponentCategory | null
   department?: Prisma.StringNullableFilter<"Project"> | string | null
   proponent?: Prisma.StringNullableFilter<"Project"> | string | null
   keywords?: Prisma.StringNullableListFilter<"Project">
@@ -1112,6 +1189,8 @@ export type ProjectCreateWithoutCommitteeInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -1128,6 +1207,7 @@ export type ProjectCreateWithoutCommitteeInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
@@ -1142,6 +1222,8 @@ export type ProjectUncheckedCreateWithoutCommitteeInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -1159,6 +1241,7 @@ export type ProjectUncheckedCreateWithoutCommitteeInput = {
   updatedAt?: Date | string
   createdById?: number | null
   snapshots?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
@@ -1197,6 +1280,8 @@ export type ProjectCreateWithoutProponentsInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -1214,6 +1299,7 @@ export type ProjectCreateWithoutProponentsInput = {
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
@@ -1227,6 +1313,8 @@ export type ProjectUncheckedCreateWithoutProponentsInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -1245,6 +1333,7 @@ export type ProjectUncheckedCreateWithoutProponentsInput = {
   updatedAt?: Date | string
   createdById?: number | null
   snapshots?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
@@ -1272,6 +1361,8 @@ export type ProjectUpdateWithoutProponentsInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -1289,6 +1380,7 @@ export type ProjectUpdateWithoutProponentsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
@@ -1302,6 +1394,8 @@ export type ProjectUncheckedUpdateWithoutProponentsInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -1320,6 +1414,7 @@ export type ProjectUncheckedUpdateWithoutProponentsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   snapshots?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
@@ -1331,6 +1426,8 @@ export type ProjectCreateWithoutMembersInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -1348,6 +1445,7 @@ export type ProjectCreateWithoutMembersInput = {
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
@@ -1361,6 +1459,8 @@ export type ProjectUncheckedCreateWithoutMembersInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -1379,6 +1479,7 @@ export type ProjectUncheckedCreateWithoutMembersInput = {
   updatedAt?: Date | string
   createdById?: number | null
   snapshots?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
@@ -1406,6 +1507,8 @@ export type ProjectUpdateWithoutMembersInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -1423,6 +1526,7 @@ export type ProjectUpdateWithoutMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
@@ -1436,6 +1540,8 @@ export type ProjectUncheckedUpdateWithoutMembersInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -1454,6 +1560,7 @@ export type ProjectUncheckedUpdateWithoutMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   snapshots?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
@@ -1465,6 +1572,8 @@ export type ProjectCreateWithoutChangeLogInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -1482,6 +1591,7 @@ export type ProjectCreateWithoutChangeLogInput = {
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
@@ -1495,6 +1605,8 @@ export type ProjectUncheckedCreateWithoutChangeLogInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -1513,6 +1625,7 @@ export type ProjectUncheckedCreateWithoutChangeLogInput = {
   updatedAt?: Date | string
   createdById?: number | null
   snapshots?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
@@ -1540,6 +1653,8 @@ export type ProjectUpdateWithoutChangeLogInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -1557,6 +1672,7 @@ export type ProjectUpdateWithoutChangeLogInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
@@ -1570,6 +1686,8 @@ export type ProjectUncheckedUpdateWithoutChangeLogInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -1588,6 +1706,7 @@ export type ProjectUncheckedUpdateWithoutChangeLogInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   snapshots?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
@@ -1599,6 +1718,8 @@ export type ProjectCreateWithoutSnapshotsInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -1615,6 +1736,7 @@ export type ProjectCreateWithoutSnapshotsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
@@ -1629,6 +1751,8 @@ export type ProjectUncheckedCreateWithoutSnapshotsInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -1646,6 +1770,7 @@ export type ProjectUncheckedCreateWithoutSnapshotsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
@@ -1674,6 +1799,8 @@ export type ProjectUpdateWithoutSnapshotsInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -1690,6 +1817,7 @@ export type ProjectUpdateWithoutSnapshotsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
@@ -1704,6 +1832,8 @@ export type ProjectUncheckedUpdateWithoutSnapshotsInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -1721,6 +1851,7 @@ export type ProjectUncheckedUpdateWithoutSnapshotsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
@@ -1733,6 +1864,8 @@ export type ProjectCreateWithoutSubmissionsInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -1750,6 +1883,7 @@ export type ProjectCreateWithoutSubmissionsInput = {
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
@@ -1763,6 +1897,8 @@ export type ProjectUncheckedCreateWithoutSubmissionsInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -1781,6 +1917,7 @@ export type ProjectUncheckedCreateWithoutSubmissionsInput = {
   updatedAt?: Date | string
   createdById?: number | null
   snapshots?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
@@ -1808,6 +1945,8 @@ export type ProjectUpdateWithoutSubmissionsInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -1825,6 +1964,7 @@ export type ProjectUpdateWithoutSubmissionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
@@ -1838,6 +1978,8 @@ export type ProjectUncheckedUpdateWithoutSubmissionsInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -1856,6 +1998,153 @@ export type ProjectUncheckedUpdateWithoutSubmissionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   snapshots?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutProjectNestedInput
+  proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
+  members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
+  changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
+}
+
+export type ProjectCreateWithoutStatusHistoryInput = {
+  projectCode?: string | null
+  title: string
+  piName: string
+  piSurname?: string | null
+  piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
+  department?: string | null
+  proponent?: string | null
+  keywords?: Prisma.ProjectCreatekeywordsInput | string[]
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
+  fundingType: $Enums.FundingType
+  initialSubmissionDate?: Date | string | null
+  proposedStartDate?: Date | string | null
+  proposedEndDate?: Date | string | null
+  overallStatus?: $Enums.ProjectStatus
+  approvalStartDate?: Date | string | null
+  approvalEndDate?: Date | string | null
+  isArchived?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
+  submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
+  proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
+  members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
+  changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
+}
+
+export type ProjectUncheckedCreateWithoutStatusHistoryInput = {
+  id?: number
+  projectCode?: string | null
+  title: string
+  piName: string
+  piSurname?: string | null
+  piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
+  department?: string | null
+  proponent?: string | null
+  keywords?: Prisma.ProjectCreatekeywordsInput | string[]
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
+  fundingType: $Enums.FundingType
+  initialSubmissionDate?: Date | string | null
+  proposedStartDate?: Date | string | null
+  proposedEndDate?: Date | string | null
+  committeeId: number
+  overallStatus?: $Enums.ProjectStatus
+  approvalStartDate?: Date | string | null
+  approvalEndDate?: Date | string | null
+  isArchived?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: number | null
+  snapshots?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutProjectInput
+  submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
+  proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
+  members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
+  changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectCreateOrConnectWithoutStatusHistoryInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutStatusHistoryInput, Prisma.ProjectUncheckedCreateWithoutStatusHistoryInput>
+}
+
+export type ProjectUpsertWithoutStatusHistoryInput = {
+  update: Prisma.XOR<Prisma.ProjectUpdateWithoutStatusHistoryInput, Prisma.ProjectUncheckedUpdateWithoutStatusHistoryInput>
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutStatusHistoryInput, Prisma.ProjectUncheckedCreateWithoutStatusHistoryInput>
+  where?: Prisma.ProjectWhereInput
+}
+
+export type ProjectUpdateToOneWithWhereWithoutStatusHistoryInput = {
+  where?: Prisma.ProjectWhereInput
+  data: Prisma.XOR<Prisma.ProjectUpdateWithoutStatusHistoryInput, Prisma.ProjectUncheckedUpdateWithoutStatusHistoryInput>
+}
+
+export type ProjectUpdateWithoutStatusHistoryInput = {
+  projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
+  submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
+  proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
+  members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
+  changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
+}
+
+export type ProjectUncheckedUpdateWithoutStatusHistoryInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  snapshots?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutProjectNestedInput
+  submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
@@ -1868,6 +2157,8 @@ export type ProjectCreateManyCreatedByInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -1892,6 +2183,8 @@ export type ProjectUpdateWithoutCreatedByInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -1909,6 +2202,7 @@ export type ProjectUpdateWithoutCreatedByInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
@@ -1922,6 +2216,8 @@ export type ProjectUncheckedUpdateWithoutCreatedByInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -1939,6 +2235,7 @@ export type ProjectUncheckedUpdateWithoutCreatedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   snapshots?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
@@ -1952,6 +2249,8 @@ export type ProjectUncheckedUpdateManyWithoutCreatedByInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -1977,6 +2276,8 @@ export type ProjectCreateManyCommitteeInput = {
   piName: string
   piSurname?: string | null
   piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
   department?: string | null
   proponent?: string | null
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
@@ -2001,6 +2302,8 @@ export type ProjectUpdateWithoutCommitteeInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -2017,6 +2320,7 @@ export type ProjectUpdateWithoutCommitteeInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
@@ -2031,6 +2335,8 @@ export type ProjectUncheckedUpdateWithoutCommitteeInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -2048,6 +2354,7 @@ export type ProjectUncheckedUpdateWithoutCommitteeInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   snapshots?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
@@ -2061,6 +2368,8 @@ export type ProjectUncheckedUpdateManyWithoutCommitteeInput = {
   piName?: Prisma.StringFieldUpdateOperationsInput | string
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
   department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
@@ -2086,6 +2395,7 @@ export type ProjectUncheckedUpdateManyWithoutCommitteeInput = {
 
 export type ProjectCountOutputType = {
   snapshots: number
+  statusHistory: number
   submissions: number
   proponents: number
   members: number
@@ -2094,6 +2404,7 @@ export type ProjectCountOutputType = {
 
 export type ProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   snapshots?: boolean | ProjectCountOutputTypeCountSnapshotsArgs
+  statusHistory?: boolean | ProjectCountOutputTypeCountStatusHistoryArgs
   submissions?: boolean | ProjectCountOutputTypeCountSubmissionsArgs
   proponents?: boolean | ProjectCountOutputTypeCountProponentsArgs
   members?: boolean | ProjectCountOutputTypeCountMembersArgs
@@ -2115,6 +2426,13 @@ export type ProjectCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exte
  */
 export type ProjectCountOutputTypeCountSnapshotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ProjectSnapshotWhereInput
+}
+
+/**
+ * ProjectCountOutputType without action
+ */
+export type ProjectCountOutputTypeCountStatusHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProjectStatusHistoryWhereInput
 }
 
 /**
@@ -2153,6 +2471,8 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   piName?: boolean
   piSurname?: boolean
   piAffiliation?: boolean
+  collegeOrUnit?: boolean
+  proponentCategory?: boolean
   department?: boolean
   proponent?: boolean
   keywords?: boolean
@@ -2172,6 +2492,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   createdById?: boolean
   committee?: boolean | Prisma.CommitteeDefaultArgs<ExtArgs>
   snapshots?: boolean | Prisma.Project$snapshotsArgs<ExtArgs>
+  statusHistory?: boolean | Prisma.Project$statusHistoryArgs<ExtArgs>
   submissions?: boolean | Prisma.Project$submissionsArgs<ExtArgs>
   proponents?: boolean | Prisma.Project$proponentsArgs<ExtArgs>
   members?: boolean | Prisma.Project$membersArgs<ExtArgs>
@@ -2187,6 +2508,8 @@ export type ProjectSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   piName?: boolean
   piSurname?: boolean
   piAffiliation?: boolean
+  collegeOrUnit?: boolean
+  proponentCategory?: boolean
   department?: boolean
   proponent?: boolean
   keywords?: boolean
@@ -2215,6 +2538,8 @@ export type ProjectSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   piName?: boolean
   piSurname?: boolean
   piAffiliation?: boolean
+  collegeOrUnit?: boolean
+  proponentCategory?: boolean
   department?: boolean
   proponent?: boolean
   keywords?: boolean
@@ -2243,6 +2568,8 @@ export type ProjectSelectScalar = {
   piName?: boolean
   piSurname?: boolean
   piAffiliation?: boolean
+  collegeOrUnit?: boolean
+  proponentCategory?: boolean
   department?: boolean
   proponent?: boolean
   keywords?: boolean
@@ -2262,10 +2589,11 @@ export type ProjectSelectScalar = {
   createdById?: boolean
 }
 
-export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectCode" | "title" | "piName" | "piSurname" | "piAffiliation" | "department" | "proponent" | "keywords" | "researchTypePHREB" | "researchTypePHREBOther" | "fundingType" | "initialSubmissionDate" | "proposedStartDate" | "proposedEndDate" | "committeeId" | "overallStatus" | "approvalStartDate" | "approvalEndDate" | "isArchived" | "createdAt" | "updatedAt" | "createdById", ExtArgs["result"]["project"]>
+export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectCode" | "title" | "piName" | "piSurname" | "piAffiliation" | "collegeOrUnit" | "proponentCategory" | "department" | "proponent" | "keywords" | "researchTypePHREB" | "researchTypePHREBOther" | "fundingType" | "initialSubmissionDate" | "proposedStartDate" | "proposedEndDate" | "committeeId" | "overallStatus" | "approvalStartDate" | "approvalEndDate" | "isArchived" | "createdAt" | "updatedAt" | "createdById", ExtArgs["result"]["project"]>
 export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   committee?: boolean | Prisma.CommitteeDefaultArgs<ExtArgs>
   snapshots?: boolean | Prisma.Project$snapshotsArgs<ExtArgs>
+  statusHistory?: boolean | Prisma.Project$statusHistoryArgs<ExtArgs>
   submissions?: boolean | Prisma.Project$submissionsArgs<ExtArgs>
   proponents?: boolean | Prisma.Project$proponentsArgs<ExtArgs>
   members?: boolean | Prisma.Project$membersArgs<ExtArgs>
@@ -2287,6 +2615,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     committee: Prisma.$CommitteePayload<ExtArgs>
     snapshots: Prisma.$ProjectSnapshotPayload<ExtArgs>[]
+    statusHistory: Prisma.$ProjectStatusHistoryPayload<ExtArgs>[]
     submissions: Prisma.$SubmissionPayload<ExtArgs>[]
     proponents: Prisma.$ProjectProponentPayload<ExtArgs>[]
     members: Prisma.$ProjectMemberPayload<ExtArgs>[]
@@ -2300,6 +2629,8 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     piName: string
     piSurname: string | null
     piAffiliation: string | null
+    collegeOrUnit: string | null
+    proponentCategory: $Enums.ProponentCategory | null
     department: string | null
     proponent: string | null
     keywords: string[]
@@ -2713,6 +3044,7 @@ export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   committee<T extends Prisma.CommitteeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CommitteeDefaultArgs<ExtArgs>>): Prisma.Prisma__CommitteeClient<runtime.Types.Result.GetResult<Prisma.$CommitteePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   snapshots<T extends Prisma.Project$snapshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$snapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectSnapshotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  statusHistory<T extends Prisma.Project$statusHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$statusHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectStatusHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   submissions<T extends Prisma.Project$submissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$submissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   proponents<T extends Prisma.Project$proponentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$proponentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectProponentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   members<T extends Prisma.Project$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2753,6 +3085,8 @@ export interface ProjectFieldRefs {
   readonly piName: Prisma.FieldRef<"Project", 'String'>
   readonly piSurname: Prisma.FieldRef<"Project", 'String'>
   readonly piAffiliation: Prisma.FieldRef<"Project", 'String'>
+  readonly collegeOrUnit: Prisma.FieldRef<"Project", 'String'>
+  readonly proponentCategory: Prisma.FieldRef<"Project", 'ProponentCategory'>
   readonly department: Prisma.FieldRef<"Project", 'String'>
   readonly proponent: Prisma.FieldRef<"Project", 'String'>
   readonly keywords: Prisma.FieldRef<"Project", 'String[]'>
@@ -3187,6 +3521,30 @@ export type Project$snapshotsArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.ProjectSnapshotScalarFieldEnum | Prisma.ProjectSnapshotScalarFieldEnum[]
+}
+
+/**
+ * Project.statusHistory
+ */
+export type Project$statusHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProjectStatusHistory
+   */
+  select?: Prisma.ProjectStatusHistorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProjectStatusHistory
+   */
+  omit?: Prisma.ProjectStatusHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectStatusHistoryInclude<ExtArgs> | null
+  where?: Prisma.ProjectStatusHistoryWhereInput
+  orderBy?: Prisma.ProjectStatusHistoryOrderByWithRelationInput | Prisma.ProjectStatusHistoryOrderByWithRelationInput[]
+  cursor?: Prisma.ProjectStatusHistoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProjectStatusHistoryScalarFieldEnum | Prisma.ProjectStatusHistoryScalarFieldEnum[]
 }
 
 /**

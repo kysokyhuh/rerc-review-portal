@@ -1,6 +1,6 @@
 # RERC Review Portal — Project Context Pack
 
-**Generated:** February 10, 2026  
+**Generated:** February 11, 2026  
 **Repository:** `rerc-review-portal`  
 **Version:** 0.1.0
 
@@ -61,7 +61,7 @@ rerc-review-portal/
 │   ├── prisma.config.ts               # Prisma configuration
 │   ├── prisma/
 │   │   ├── schema.prisma              # Database schema (687 lines)
-│   │   └── migrations/                # 12 migration folders
+│   │   └── migrations/                # 13 migration folders
 │   └── src/
 │       ├── server.ts                  # Express entry point
 │       ├── config/
@@ -410,6 +410,13 @@ npm run dev
 - `DISAPPROVED`
 - `INFO_ONLY`
 
+**Newly added enum groups in latest schema migration**:
+- `EndorsementStatus` — Tracks endorsement workflow per review assignment
+- `ProjectMemberRole` — Standardized roles for listed project members
+- `SubmissionDocumentType` / `SubmissionDocumentStatus` — Required document tracking
+- `LetterDraftStatus` — Draft lifecycle for generated letters
+- `ClassificationType` / `ReviewerRoundRole` / `DecisionStatus` — Expanded governance and reviewer-round semantics
+
 ### Critical Invariants (Code-Implied)
 
 1. **Unique project codes**: `projectCode` has unique constraint, enforced by Prisma
@@ -433,6 +440,7 @@ npm run dev
 | `20251215021511_init`                       | Re-initialization                      |
 | `20251215025323_init`                       | Additional init                        |
 | `20260114130242_add_csv_fields`             | Fields for CSV import compatibility    |
+| `20260210082226_update_schema`              | Major schema expansion (audit logs, review rounds, documents, decisions, status history, proponents) |
 
 ### Seed Script Notes
 
@@ -801,6 +809,37 @@ cd backend && npm test
 | `backend/src/routes/projectRoutes.ts` | Added `/projects/archived` and `/projects/with-submission` |
 | `backend/src/services/imports/projectCsvImport.ts` | New CSV import service |
 | `backend/src/services/projects/createProjectWithInitialSubmission.ts` | New project creation service |
+
+---
+
+### February 11, 2026
+
+#### Data Model Expansion (Documented Late)
+- Added migration: `backend/prisma/migrations/20260210082226_update_schema`
+- Expanded workflow support with new models for:
+- `ClassificationVote`
+- `ProjectStatusHistory`
+- `ReviewAssignment`
+- `SubmissionDecision`
+- `SubmissionDocument`
+- Added project governance/history models:
+- `ProjectMember`
+- `ProjectChangeLog`
+- `ProjectSnapshot`
+- `SubmissionChangeLog`
+- Added proponent linkage models:
+- `Proponent`
+- `ProjectProponent`
+
+#### Prisma Client Regeneration
+- Generated Prisma client files under `backend/src/generated/prisma/` were updated to reflect the new schema.
+- New generated model files include:
+- `backend/src/generated/prisma/models/ClassificationVote.ts`
+- `backend/src/generated/prisma/models/ProjectStatusHistory.ts`
+
+#### Dependency/Lockfile Updates
+- `backend/package-lock.json` updated with backend schema/client-related dependency state.
+- `frontend/package-lock.json` updated as part of local dependency synchronization.
 
 ---
 

@@ -16,6 +16,8 @@ type FormState = {
   submissionType: string;
   receivedDate: string;
   fundingType: string;
+  collegeOrUnit: string;
+  proponentCategory: string;
   notes: string;
 };
 
@@ -29,6 +31,8 @@ const INITIAL_FORM: FormState = {
   submissionType: "INITIAL",
   receivedDate: "",
   fundingType: "",
+  collegeOrUnit: "",
+  proponentCategory: "",
   notes: "",
 };
 
@@ -44,6 +48,7 @@ const SUBMISSION_TYPES = [
 ];
 
 const FUNDING_TYPES = ["INTERNAL", "EXTERNAL", "SELF_FUNDED", "NO_FUNDING"];
+const PROPONENT_CATEGORIES = ["UNDERGRAD", "GRAD", "FACULTY", "OTHER"];
 
 const getTodayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -128,6 +133,13 @@ export default function NewProtocolPage() {
         submissionType: form.submissionType,
         receivedDate: form.receivedDate,
         fundingType: form.fundingType || undefined,
+        collegeOrUnit: form.collegeOrUnit || undefined,
+        proponentCategory: (form.proponentCategory || undefined) as
+          | "UNDERGRAD"
+          | "GRAD"
+          | "FACULTY"
+          | "OTHER"
+          | undefined,
         notes: form.notes || undefined,
       });
       setCreated(response);
@@ -297,6 +309,35 @@ export default function NewProtocolPage() {
                     ))}
                   </select>
                   {errors.fundingType && <small className="field-error">{errors.fundingType}</small>}
+                </label>
+
+                <label>
+                  College / Service Unit
+                  <input
+                    type="text"
+                    value={form.collegeOrUnit}
+                    onChange={(event) => setField("collegeOrUnit", event.target.value)}
+                    placeholder="e.g. College of Science"
+                  />
+                  {errors.collegeOrUnit && <small className="field-error">{errors.collegeOrUnit}</small>}
+                </label>
+
+                <label>
+                  Proponent Category
+                  <select
+                    value={form.proponentCategory}
+                    onChange={(event) => setField("proponentCategory", event.target.value)}
+                  >
+                    <option value="">Unknown</option>
+                    {PROPONENT_CATEGORIES.map((type) => (
+                      <option key={type} value={type}>
+                        {formatLabel(type)}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.proponentCategory && (
+                    <small className="field-error">{errors.proponentCategory}</small>
+                  )}
                 </label>
 
                 <label className="notes-field">

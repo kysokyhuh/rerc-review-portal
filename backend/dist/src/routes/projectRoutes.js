@@ -15,7 +15,7 @@ const router = (0, express_1.Router)();
 // Create project + initial submission via individual entry form
 router.post("/projects", (0, auth_1.requireRoles)([client_1.RoleType.ADMIN, client_1.RoleType.CHAIR, client_1.RoleType.RESEARCH_ASSOCIATE]), async (req, res) => {
     try {
-        const { projectCode, title, piName, fundingType, committeeCode, submissionType, receivedDate, notes, } = req.body;
+        const { projectCode, title, piName, fundingType, committeeCode, submissionType, receivedDate, notes, collegeOrUnit, proponentCategory, } = req.body;
         const created = await (0, createProjectWithInitialSubmission_1.createProjectWithInitialSubmission)({
             projectCode,
             title,
@@ -25,6 +25,8 @@ router.post("/projects", (0, auth_1.requireRoles)([client_1.RoleType.ADMIN, clie
             receivedDate,
             fundingType,
             notes,
+            collegeOrUnit,
+            proponentCategory,
         }, req.user?.id);
         return res.status(201).json(created);
     }

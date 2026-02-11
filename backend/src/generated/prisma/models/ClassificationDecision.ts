@@ -247,6 +247,7 @@ export type ClassificationDecisionWhereInput = {
   submission?: Prisma.XOR<Prisma.SubmissionScalarRelationFilter, Prisma.SubmissionWhereInput>
   committee?: Prisma.XOR<Prisma.CommitteeScalarRelationFilter, Prisma.CommitteeWhereInput>
   recordedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  votes?: Prisma.ClassificationVoteListRelationFilter
 }
 
 export type ClassificationDecisionOrderByWithRelationInput = {
@@ -260,6 +261,7 @@ export type ClassificationDecisionOrderByWithRelationInput = {
   submission?: Prisma.SubmissionOrderByWithRelationInput
   committee?: Prisma.CommitteeOrderByWithRelationInput
   recordedBy?: Prisma.UserOrderByWithRelationInput
+  votes?: Prisma.ClassificationVoteOrderByRelationAggregateInput
 }
 
 export type ClassificationDecisionWhereUniqueInput = Prisma.AtLeast<{
@@ -276,6 +278,7 @@ export type ClassificationDecisionWhereUniqueInput = Prisma.AtLeast<{
   submission?: Prisma.XOR<Prisma.SubmissionScalarRelationFilter, Prisma.SubmissionWhereInput>
   committee?: Prisma.XOR<Prisma.CommitteeScalarRelationFilter, Prisma.CommitteeWhereInput>
   recordedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  votes?: Prisma.ClassificationVoteListRelationFilter
 }, "id" | "submissionId">
 
 export type ClassificationDecisionOrderByWithAggregationInput = {
@@ -313,6 +316,7 @@ export type ClassificationDecisionCreateInput = {
   submission: Prisma.SubmissionCreateNestedOneWithoutClassificationDecisionInput
   committee: Prisma.CommitteeCreateNestedOneWithoutClassificationDecisionsInput
   recordedBy?: Prisma.UserCreateNestedOneWithoutClassificationDecisionsRecordedInput
+  votes?: Prisma.ClassificationVoteCreateNestedManyWithoutClassificationDecisionInput
 }
 
 export type ClassificationDecisionUncheckedCreateInput = {
@@ -323,6 +327,7 @@ export type ClassificationDecisionUncheckedCreateInput = {
   decidedAt?: Date | string
   recordedById?: number | null
   notes?: string | null
+  votes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutClassificationDecisionInput
 }
 
 export type ClassificationDecisionUpdateInput = {
@@ -332,6 +337,7 @@ export type ClassificationDecisionUpdateInput = {
   submission?: Prisma.SubmissionUpdateOneRequiredWithoutClassificationDecisionNestedInput
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutClassificationDecisionsNestedInput
   recordedBy?: Prisma.UserUpdateOneWithoutClassificationDecisionsRecordedNestedInput
+  votes?: Prisma.ClassificationVoteUpdateManyWithoutClassificationDecisionNestedInput
 }
 
 export type ClassificationDecisionUncheckedUpdateInput = {
@@ -342,6 +348,7 @@ export type ClassificationDecisionUncheckedUpdateInput = {
   decidedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recordedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  votes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutClassificationDecisionNestedInput
 }
 
 export type ClassificationDecisionCreateManyInput = {
@@ -549,12 +556,29 @@ export type EnumClassificationTypeFieldUpdateOperationsInput = {
   set?: $Enums.ClassificationType
 }
 
+export type ClassificationDecisionCreateNestedOneWithoutVotesInput = {
+  create?: Prisma.XOR<Prisma.ClassificationDecisionCreateWithoutVotesInput, Prisma.ClassificationDecisionUncheckedCreateWithoutVotesInput>
+  connectOrCreate?: Prisma.ClassificationDecisionCreateOrConnectWithoutVotesInput
+  connect?: Prisma.ClassificationDecisionWhereUniqueInput
+}
+
+export type ClassificationDecisionUpdateOneWithoutVotesNestedInput = {
+  create?: Prisma.XOR<Prisma.ClassificationDecisionCreateWithoutVotesInput, Prisma.ClassificationDecisionUncheckedCreateWithoutVotesInput>
+  connectOrCreate?: Prisma.ClassificationDecisionCreateOrConnectWithoutVotesInput
+  upsert?: Prisma.ClassificationDecisionUpsertWithoutVotesInput
+  disconnect?: Prisma.ClassificationDecisionWhereInput | boolean
+  delete?: Prisma.ClassificationDecisionWhereInput | boolean
+  connect?: Prisma.ClassificationDecisionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClassificationDecisionUpdateToOneWithWhereWithoutVotesInput, Prisma.ClassificationDecisionUpdateWithoutVotesInput>, Prisma.ClassificationDecisionUncheckedUpdateWithoutVotesInput>
+}
+
 export type ClassificationDecisionCreateWithoutRecordedByInput = {
   classification: $Enums.ClassificationType
   decidedAt?: Date | string
   notes?: string | null
   submission: Prisma.SubmissionCreateNestedOneWithoutClassificationDecisionInput
   committee: Prisma.CommitteeCreateNestedOneWithoutClassificationDecisionsInput
+  votes?: Prisma.ClassificationVoteCreateNestedManyWithoutClassificationDecisionInput
 }
 
 export type ClassificationDecisionUncheckedCreateWithoutRecordedByInput = {
@@ -564,6 +588,7 @@ export type ClassificationDecisionUncheckedCreateWithoutRecordedByInput = {
   classification: $Enums.ClassificationType
   decidedAt?: Date | string
   notes?: string | null
+  votes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutClassificationDecisionInput
 }
 
 export type ClassificationDecisionCreateOrConnectWithoutRecordedByInput = {
@@ -611,6 +636,7 @@ export type ClassificationDecisionCreateWithoutCommitteeInput = {
   notes?: string | null
   submission: Prisma.SubmissionCreateNestedOneWithoutClassificationDecisionInput
   recordedBy?: Prisma.UserCreateNestedOneWithoutClassificationDecisionsRecordedInput
+  votes?: Prisma.ClassificationVoteCreateNestedManyWithoutClassificationDecisionInput
 }
 
 export type ClassificationDecisionUncheckedCreateWithoutCommitteeInput = {
@@ -620,6 +646,7 @@ export type ClassificationDecisionUncheckedCreateWithoutCommitteeInput = {
   decidedAt?: Date | string
   recordedById?: number | null
   notes?: string | null
+  votes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutClassificationDecisionInput
 }
 
 export type ClassificationDecisionCreateOrConnectWithoutCommitteeInput = {
@@ -654,6 +681,7 @@ export type ClassificationDecisionCreateWithoutSubmissionInput = {
   notes?: string | null
   committee: Prisma.CommitteeCreateNestedOneWithoutClassificationDecisionsInput
   recordedBy?: Prisma.UserCreateNestedOneWithoutClassificationDecisionsRecordedInput
+  votes?: Prisma.ClassificationVoteCreateNestedManyWithoutClassificationDecisionInput
 }
 
 export type ClassificationDecisionUncheckedCreateWithoutSubmissionInput = {
@@ -663,6 +691,7 @@ export type ClassificationDecisionUncheckedCreateWithoutSubmissionInput = {
   decidedAt?: Date | string
   recordedById?: number | null
   notes?: string | null
+  votes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutClassificationDecisionInput
 }
 
 export type ClassificationDecisionCreateOrConnectWithoutSubmissionInput = {
@@ -687,10 +716,66 @@ export type ClassificationDecisionUpdateWithoutSubmissionInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutClassificationDecisionsNestedInput
   recordedBy?: Prisma.UserUpdateOneWithoutClassificationDecisionsRecordedNestedInput
+  votes?: Prisma.ClassificationVoteUpdateManyWithoutClassificationDecisionNestedInput
 }
 
 export type ClassificationDecisionUncheckedUpdateWithoutSubmissionInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  classification?: Prisma.EnumClassificationTypeFieldUpdateOperationsInput | $Enums.ClassificationType
+  decidedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  recordedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  votes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutClassificationDecisionNestedInput
+}
+
+export type ClassificationDecisionCreateWithoutVotesInput = {
+  classification: $Enums.ClassificationType
+  decidedAt?: Date | string
+  notes?: string | null
+  submission: Prisma.SubmissionCreateNestedOneWithoutClassificationDecisionInput
+  committee: Prisma.CommitteeCreateNestedOneWithoutClassificationDecisionsInput
+  recordedBy?: Prisma.UserCreateNestedOneWithoutClassificationDecisionsRecordedInput
+}
+
+export type ClassificationDecisionUncheckedCreateWithoutVotesInput = {
+  id?: number
+  submissionId: number
+  committeeId: number
+  classification: $Enums.ClassificationType
+  decidedAt?: Date | string
+  recordedById?: number | null
+  notes?: string | null
+}
+
+export type ClassificationDecisionCreateOrConnectWithoutVotesInput = {
+  where: Prisma.ClassificationDecisionWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClassificationDecisionCreateWithoutVotesInput, Prisma.ClassificationDecisionUncheckedCreateWithoutVotesInput>
+}
+
+export type ClassificationDecisionUpsertWithoutVotesInput = {
+  update: Prisma.XOR<Prisma.ClassificationDecisionUpdateWithoutVotesInput, Prisma.ClassificationDecisionUncheckedUpdateWithoutVotesInput>
+  create: Prisma.XOR<Prisma.ClassificationDecisionCreateWithoutVotesInput, Prisma.ClassificationDecisionUncheckedCreateWithoutVotesInput>
+  where?: Prisma.ClassificationDecisionWhereInput
+}
+
+export type ClassificationDecisionUpdateToOneWithWhereWithoutVotesInput = {
+  where?: Prisma.ClassificationDecisionWhereInput
+  data: Prisma.XOR<Prisma.ClassificationDecisionUpdateWithoutVotesInput, Prisma.ClassificationDecisionUncheckedUpdateWithoutVotesInput>
+}
+
+export type ClassificationDecisionUpdateWithoutVotesInput = {
+  classification?: Prisma.EnumClassificationTypeFieldUpdateOperationsInput | $Enums.ClassificationType
+  decidedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submission?: Prisma.SubmissionUpdateOneRequiredWithoutClassificationDecisionNestedInput
+  committee?: Prisma.CommitteeUpdateOneRequiredWithoutClassificationDecisionsNestedInput
+  recordedBy?: Prisma.UserUpdateOneWithoutClassificationDecisionsRecordedNestedInput
+}
+
+export type ClassificationDecisionUncheckedUpdateWithoutVotesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  submissionId?: Prisma.IntFieldUpdateOperationsInput | number
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
   classification?: Prisma.EnumClassificationTypeFieldUpdateOperationsInput | $Enums.ClassificationType
   decidedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -713,6 +798,7 @@ export type ClassificationDecisionUpdateWithoutRecordedByInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submission?: Prisma.SubmissionUpdateOneRequiredWithoutClassificationDecisionNestedInput
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutClassificationDecisionsNestedInput
+  votes?: Prisma.ClassificationVoteUpdateManyWithoutClassificationDecisionNestedInput
 }
 
 export type ClassificationDecisionUncheckedUpdateWithoutRecordedByInput = {
@@ -722,6 +808,7 @@ export type ClassificationDecisionUncheckedUpdateWithoutRecordedByInput = {
   classification?: Prisma.EnumClassificationTypeFieldUpdateOperationsInput | $Enums.ClassificationType
   decidedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  votes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutClassificationDecisionNestedInput
 }
 
 export type ClassificationDecisionUncheckedUpdateManyWithoutRecordedByInput = {
@@ -748,6 +835,7 @@ export type ClassificationDecisionUpdateWithoutCommitteeInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submission?: Prisma.SubmissionUpdateOneRequiredWithoutClassificationDecisionNestedInput
   recordedBy?: Prisma.UserUpdateOneWithoutClassificationDecisionsRecordedNestedInput
+  votes?: Prisma.ClassificationVoteUpdateManyWithoutClassificationDecisionNestedInput
 }
 
 export type ClassificationDecisionUncheckedUpdateWithoutCommitteeInput = {
@@ -757,6 +845,7 @@ export type ClassificationDecisionUncheckedUpdateWithoutCommitteeInput = {
   decidedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recordedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  votes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutClassificationDecisionNestedInput
 }
 
 export type ClassificationDecisionUncheckedUpdateManyWithoutCommitteeInput = {
@@ -768,6 +857,35 @@ export type ClassificationDecisionUncheckedUpdateManyWithoutCommitteeInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
+
+/**
+ * Count Type ClassificationDecisionCountOutputType
+ */
+
+export type ClassificationDecisionCountOutputType = {
+  votes: number
+}
+
+export type ClassificationDecisionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  votes?: boolean | ClassificationDecisionCountOutputTypeCountVotesArgs
+}
+
+/**
+ * ClassificationDecisionCountOutputType without action
+ */
+export type ClassificationDecisionCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClassificationDecisionCountOutputType
+   */
+  select?: Prisma.ClassificationDecisionCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ClassificationDecisionCountOutputType without action
+ */
+export type ClassificationDecisionCountOutputTypeCountVotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClassificationVoteWhereInput
+}
 
 
 export type ClassificationDecisionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -781,6 +899,8 @@ export type ClassificationDecisionSelect<ExtArgs extends runtime.Types.Extension
   submission?: boolean | Prisma.SubmissionDefaultArgs<ExtArgs>
   committee?: boolean | Prisma.CommitteeDefaultArgs<ExtArgs>
   recordedBy?: boolean | Prisma.ClassificationDecision$recordedByArgs<ExtArgs>
+  votes?: boolean | Prisma.ClassificationDecision$votesArgs<ExtArgs>
+  _count?: boolean | Prisma.ClassificationDecisionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["classificationDecision"]>
 
 export type ClassificationDecisionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -824,6 +944,8 @@ export type ClassificationDecisionInclude<ExtArgs extends runtime.Types.Extensio
   submission?: boolean | Prisma.SubmissionDefaultArgs<ExtArgs>
   committee?: boolean | Prisma.CommitteeDefaultArgs<ExtArgs>
   recordedBy?: boolean | Prisma.ClassificationDecision$recordedByArgs<ExtArgs>
+  votes?: boolean | Prisma.ClassificationDecision$votesArgs<ExtArgs>
+  _count?: boolean | Prisma.ClassificationDecisionCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClassificationDecisionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   submission?: boolean | Prisma.SubmissionDefaultArgs<ExtArgs>
@@ -842,6 +964,7 @@ export type $ClassificationDecisionPayload<ExtArgs extends runtime.Types.Extensi
     submission: Prisma.$SubmissionPayload<ExtArgs>
     committee: Prisma.$CommitteePayload<ExtArgs>
     recordedBy: Prisma.$UserPayload<ExtArgs> | null
+    votes: Prisma.$ClassificationVotePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1248,6 +1371,7 @@ export interface Prisma__ClassificationDecisionClient<T, Null = never, ExtArgs e
   submission<T extends Prisma.SubmissionDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SubmissionDefaultArgs<ExtArgs>>): Prisma.Prisma__SubmissionClient<runtime.Types.Result.GetResult<Prisma.$SubmissionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   committee<T extends Prisma.CommitteeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CommitteeDefaultArgs<ExtArgs>>): Prisma.Prisma__CommitteeClient<runtime.Types.Result.GetResult<Prisma.$CommitteePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   recordedBy<T extends Prisma.ClassificationDecision$recordedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassificationDecision$recordedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  votes<T extends Prisma.ClassificationDecision$votesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassificationDecision$votesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassificationVotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1696,6 +1820,30 @@ export type ClassificationDecision$recordedByArgs<ExtArgs extends runtime.Types.
    */
   include?: Prisma.UserInclude<ExtArgs> | null
   where?: Prisma.UserWhereInput
+}
+
+/**
+ * ClassificationDecision.votes
+ */
+export type ClassificationDecision$votesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClassificationVote
+   */
+  select?: Prisma.ClassificationVoteSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClassificationVote
+   */
+  omit?: Prisma.ClassificationVoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClassificationVoteInclude<ExtArgs> | null
+  where?: Prisma.ClassificationVoteWhereInput
+  orderBy?: Prisma.ClassificationVoteOrderByWithRelationInput | Prisma.ClassificationVoteOrderByWithRelationInput[]
+  cursor?: Prisma.ClassificationVoteWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClassificationVoteScalarFieldEnum | Prisma.ClassificationVoteScalarFieldEnum[]
 }
 
 /**

@@ -1,6 +1,7 @@
 import { parse } from "csv-parse/sync";
 import {
   FundingType,
+  ProponentCategory,
   ResearchTypePHREB,
   SubmissionType,
 } from "../../generated/prisma/client";
@@ -10,6 +11,8 @@ export const PROJECT_IMPORT_HEADERS = [
   "title",
   "piName",
   "piAffiliation",
+  "collegeOrUnit",
+  "proponentCategory",
   "department",
   "proponent",
   "fundingType",
@@ -105,6 +108,8 @@ export interface ValidatedProjectRow {
   title: string;
   piName: string;
   piAffiliation: string | null;
+  collegeOrUnit: string | null;
+  proponentCategory: ProponentCategory | null;
   department: string | null;
   proponent: string | null;
   fundingType: FundingType;
@@ -195,6 +200,15 @@ const parseResearchType = (value: string): ResearchTypePHREB | null => {
   if (!normalized) return null;
   if (normalized in ResearchTypePHREB) {
     return ResearchTypePHREB[normalized as keyof typeof ResearchTypePHREB];
+  }
+  return null;
+};
+
+const parseProponentCategory = (value: string): ProponentCategory | null => {
+  const normalized = value.trim().toUpperCase().replace(/\s+/g, "_");
+  if (!normalized) return null;
+  if (normalized in ProponentCategory) {
+    return ProponentCategory[normalized as keyof typeof ProponentCategory];
   }
   return null;
 };
@@ -490,6 +504,15 @@ export const validateMappedProjectRows = ({
     }
 
     const researchTypeOther = normalizeValue(row.raw.researchTypePHREBOther) || null;
+    const proponentCategoryRaw = normalizeValue(row.raw.proponentCategory);
+    const proponentCategory = parseProponentCategory(proponentCategoryRaw);
+    if (proponentCategoryRaw && !proponentCategory) {
+      rowErrors.push({
+        row: row.rowNumber,
+        field: "proponentCategory",
+        message: "Invalid proponentCategory.",
+      });
+    }
     if (researchType === ResearchTypePHREB.OTHER && !researchTypeOther) {
       rowErrors.push({
         row: row.rowNumber,
@@ -509,6 +532,11 @@ export const validateMappedProjectRows = ({
       title,
       piName,
       piAffiliation: normalizeValue(row.raw.piAffiliation) || null,
+      collegeOrUnit:
+        normalizeValue(row.raw.collegeOrUnit) ||
+        normalizeValue(row.raw.piAffiliation) ||
+        null,
+      proponentCategory: proponentCategory ?? null,
       department: normalizeValue(row.raw.department) || null,
       proponent: normalizeValue(row.raw.proponent) || null,
       fundingType: fundingType!,
