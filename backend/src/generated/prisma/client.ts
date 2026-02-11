@@ -63,6 +63,11 @@ export type CommitteeMember = Prisma.CommitteeMemberModel
  */
 export type Project = Prisma.ProjectModel
 /**
+ * Model AcademicTerm
+ * 
+ */
+export type AcademicTerm = Prisma.AcademicTermModel
+/**
  * Model Proponent
  * 
  */
@@ -108,10 +113,20 @@ export type Classification = Prisma.ClassificationModel
  */
 export type ClassificationDecision = Prisma.ClassificationDecisionModel
 /**
+ * Model ClassificationVote
+ * 
+ */
+export type ClassificationVote = Prisma.ClassificationVoteModel
+/**
  * Model SubmissionStatusHistory
  * 
  */
 export type SubmissionStatusHistory = Prisma.SubmissionStatusHistoryModel
+/**
+ * Model ProjectStatusHistory
+ * 
+ */
+export type ProjectStatusHistory = Prisma.ProjectStatusHistoryModel
 /**
  * Model Review
  * 

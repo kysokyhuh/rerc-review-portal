@@ -8,10 +8,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 const express_1 = require("express");
 const prismaClient_1 = __importDefault(require("../config/prismaClient"));
+const branding_1 = require("../config/branding");
 const router = (0, express_1.Router)();
 // Root route – just to check server status
 router.get("/", (_req, res) => {
-    res.json({ status: "ok", message: "RERC API skeleton running" });
+    res.json({ status: "ok", message: `${branding_1.BRAND.name} API running` });
 });
 // DB health route – checks Prisma/Postgres connection
 router.get("/health", async (_req, res) => {

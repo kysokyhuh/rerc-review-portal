@@ -12,6 +12,8 @@ import { SubmissionDetailPage } from "@/pages/SubmissionDetailPage";
 import ImportProjectsPage from "@/pages/ImportProjectsPage";
 import NewProtocolPage from "@/pages/NewProtocolPage";
 import ArchivesPage from "@/pages/ArchivesPage";
+import ReportsPage from "@/pages/ReportsPage";
+import QueuePage from "@/pages/QueuePage";
 import LoginPage from "@/pages/LoginPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 
@@ -19,10 +21,11 @@ import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const isAuthPage = location.pathname === "/login" || location.pathname === "/forgot-password";
-  const isDashboard = location.pathname === "/dashboard";
+  const isDashboardShell =
+    location.pathname === "/dashboard" || location.pathname.startsWith("/queues/");
 
   // Don't show nav/footer on auth pages or new dashboard (has its own layout)
-  if (isAuthPage || isDashboard) {
+  if (isAuthPage || isDashboardShell) {
     return <>{children}</>;
   }
 
@@ -46,8 +49,10 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/queues/:queueKey" element={<QueuePage />} />
           <Route path="/projects/new" element={<NewProtocolPage />} />
           <Route path="/imports/projects" element={<ImportProjectsPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
           <Route path="/archives" element={<ArchivesPage />} />
           <Route
             path="/projects/:projectId"

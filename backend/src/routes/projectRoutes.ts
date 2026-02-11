@@ -28,6 +28,8 @@ router.post(
       submissionType,
       receivedDate,
       notes,
+      collegeOrUnit,
+      proponentCategory,
     } = req.body;
 
     const created = await createProjectWithInitialSubmission(
@@ -40,6 +42,8 @@ router.post(
         receivedDate,
         fundingType,
         notes,
+        collegeOrUnit,
+        proponentCategory,
       },
       req.user?.id
     );

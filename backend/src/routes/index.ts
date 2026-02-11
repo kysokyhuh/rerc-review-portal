@@ -6,3 +6,4 @@ export { default as projectRoutes } from "./projectRoutes";
 export { default as submissionRoutes } from "./submissionRoutes";
 export { default as mailMergeRoutes } from "./mailMergeRoutes";
 export { default as importRoutes } from "./importRoutes";
+export { default as reportRoutes } from "./reportRoutes";

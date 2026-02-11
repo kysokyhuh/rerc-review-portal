@@ -241,6 +241,7 @@ const importLegacyCsv = async ({
         title,
         piName,
         piAffiliation: college,
+        collegeOrUnit: college,
         department,
         proponent,
         fundingType,
@@ -257,6 +258,7 @@ const importLegacyCsv = async ({
         title,
         piName,
         piAffiliation: college,
+        collegeOrUnit: college,
         department,
         proponent,
         fundingType,
@@ -574,6 +576,63 @@ const ensureReviewAssignmentActiveIndex = async () => {
   );
 };
 
+const seedAcademicTerms = async () => {
+  const now = new Date();
+  const currentYear = now.getUTCFullYear();
+  // AY starts in September (Term 1), so Jan-Aug belongs to previous AY start year.
+  const startYear = now.getUTCMonth() >= 8 ? currentYear : currentYear - 1;
+  const firstStartYear = startYear - 10;
+  const terms: Array<{
+    academicYear: string;
+    term: number;
+    startDate: Date;
+    endDate: Date;
+  }> = [];
+
+  for (let ayStartYear = firstStartYear; ayStartYear <= startYear; ayStartYear += 1) {
+    const ayLabel = `${ayStartYear}-${ayStartYear + 1}`;
+    terms.push(
+      {
+        academicYear: ayLabel,
+        term: 1,
+        startDate: new Date(Date.UTC(ayStartYear, 8, 1)), // Sep 1
+        endDate: new Date(Date.UTC(ayStartYear, 11, 31)), // Dec 31
+      },
+      {
+        academicYear: ayLabel,
+        term: 2,
+        startDate: new Date(Date.UTC(ayStartYear + 1, 0, 1)), // Jan 1
+        endDate: new Date(Date.UTC(ayStartYear + 1, 3, 30)), // Apr 30
+      },
+      {
+        academicYear: ayLabel,
+        term: 3,
+        startDate: new Date(Date.UTC(ayStartYear + 1, 4, 1)), // May 1
+        endDate: new Date(Date.UTC(ayStartYear + 1, 7, 31)), // Aug 31
+      }
+    );
+  }
+
+  for (const term of terms) {
+    await prisma.academicTerm.upsert({
+      where: {
+        academicYear_term: {
+          academicYear: term.academicYear,
+          term: term.term,
+        },
+      },
+      update: {
+        startDate: term.startDate,
+        endDate: term.endDate,
+      },
+      create: term,
+    });
+  }
+  console.log(
+    `Seeded academic terms for AY ${firstStartYear}-${firstStartYear + 1} through ${startYear}-${startYear + 1}`
+  );
+};
+
 async function main() {
   // 1) Ensure a Research Associate user exists
   const raUser = await prisma.user.upsert({
@@ -595,6 +654,8 @@ async function main() {
       description: "Main human participants research ethics committee",
     },
   });
+
+  await seedAcademicTerms();
 
   // 3) Ensure Panel 1 exists under that committee
   let panel1 = await prisma.panel.findFirst({
@@ -872,6 +933,7 @@ async function main() {
           title: spec.title,
           piName: spec.piName,
           piAffiliation: "DLSU Manila",
+          collegeOrUnit: "DLSU Manila",
           fundingType: "INTERNAL",
           overallStatus: "ACTIVE",
           initialSubmissionDate: daysAgo(10),
@@ -1096,6 +1158,7 @@ async function main() {
         piName: spec.piName,
         piSurname: spec.piSurname,
         piAffiliation: spec.piAffiliation,
+        collegeOrUnit: spec.piAffiliation,
         keywords: spec.keywords,
         proposedStartDate: daysFromNow(15),
         proposedEndDate: daysFromNow(120),
@@ -1108,6 +1171,7 @@ async function main() {
         piName: spec.piName,
         piSurname: spec.piSurname,
         piAffiliation: spec.piAffiliation,
+        collegeOrUnit: spec.piAffiliation,
         keywords: spec.keywords,
         fundingType: "INTERNAL",
         overallStatus: "ACTIVE",

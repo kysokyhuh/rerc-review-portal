@@ -24,6 +24,8 @@ export type {
   CreateProjectResponse,
   ArchivedProject,
   ArchivedProjectsResponse,
+  ReportsAcademicYearOption,
+  ReportsSummaryResponse,
 } from "@/types";
 
 import type {
@@ -41,6 +43,8 @@ import type {
   CreateProjectPayload,
   CreateProjectResponse,
   ArchivedProjectsResponse,
+  ReportsAcademicYearOption,
+  ReportsSummaryResponse,
 } from "@/types";
 
 // Minimal process typing so Vite builds without Node typings
@@ -302,6 +306,29 @@ export async function fetchArchivedProjects(params?: {
   const url = `/projects/archived${query ? `?${query}` : ""}`;
   const response = await api.get(url);
   return response.data as ArchivedProjectsResponse;
+}
+
+export async function fetchReportAcademicYears() {
+  const response = await api.get("/reports/academic-years");
+  return response.data as { items: ReportsAcademicYearOption[] };
+}
+
+export async function fetchAcademicYearSummary(params: {
+  academicYear: string;
+  term: number | "ALL";
+  committeeCode?: string;
+}) {
+  const searchParams = new URLSearchParams({
+    academicYear: params.academicYear,
+    term: String(params.term),
+  });
+  if (params.committeeCode) {
+    searchParams.set("committeeCode", params.committeeCode);
+  }
+  const response = await api.get(
+    `/reports/academic-year-summary?${searchParams.toString()}`
+  );
+  return response.data as ReportsSummaryResponse;
 }
 
 export default api;

@@ -144,6 +144,8 @@ router.post(
                 title: row.title,
                 piName: row.piName,
                 piAffiliation: row.piAffiliation,
+                collegeOrUnit: row.collegeOrUnit,
+                proponentCategory: row.proponentCategory,
                 department: row.department,
                 proponent: row.proponent,
                 fundingType: row.fundingType,

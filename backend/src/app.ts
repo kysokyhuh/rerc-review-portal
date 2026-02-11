@@ -17,6 +17,7 @@ import {
   submissionRoutes,
   mailMergeRoutes,
   importRoutes,
+  reportRoutes,
 } from "./routes";
 import { authenticateUser } from "./middleware/auth";
 
@@ -74,5 +75,8 @@ app.use(mailMergeRoutes);
 
 // Import routes (/api/imports/*)
 app.use(importRoutes);
+
+// Reports routes (/reports/*)
+app.use(reportRoutes);
 
 export default app;

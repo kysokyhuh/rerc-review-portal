@@ -194,6 +194,13 @@ enum DecisionStatus {
   REVOKED
 }
 
+enum ProponentCategory {
+  UNDERGRAD
+  GRAD
+  FACULTY
+  OTHER
+}
+
 // --- MODELS ---
 
 model User {
@@ -281,6 +288,8 @@ model Project {
   piName                 String
   piSurname              String?
   piAffiliation          String? // College
+  collegeOrUnit          String? // reporting dimension for college/service unit
+  proponentCategory      ProponentCategory?
   department             String? // Department
   proponent              String? // Proponent (if different from PI)
   keywords               String[]           @default([])
@@ -308,6 +317,19 @@ model Project {
   changeLog     ProjectChangeLog[]
   createdBy     User?                  @relation("ProjectsCreated", fields: [createdById], references: [id])
   createdById   Int?
+}
+
+model AcademicTerm {
+  id           Int      @id @default(autoincrement())
+  academicYear String // e.g. "2025-2026"
+  term         Int // e.g. 1,2,3
+  startDate    DateTime
+  endDate      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([academicYear, term])
+  @@index([academicYear])
 }
 
 model Proponent {

@@ -187,6 +187,8 @@ export interface CreateProjectPayload {
   receivedDate: string;
   fundingType?: string;
   notes?: string;
+  collegeOrUnit?: string;
+  proponentCategory?: "UNDERGRAD" | "GRAD" | "FACULTY" | "OTHER";
 }
 
 export interface CreateProjectResponse {
@@ -295,4 +297,67 @@ export interface ArchivedProjectsResponse {
   total: number;
   limit: number;
   offset: number;
+}
+
+export interface ReportsAcademicYearOption {
+  academicYear: string;
+  terms: number[];
+}
+
+export interface ReportsSummaryResponse {
+  academicYear: string;
+  term: "ALL" | number;
+  committeeCode: string | null;
+  dateRange: {
+    startDate: string;
+    endDate: string;
+  };
+  totals: {
+    received: number;
+    withdrawn: number;
+    exempted: number;
+    expedited: number;
+    fullReview: number;
+  };
+  termVolume: Array<{
+    term: number;
+    received: number;
+  }>;
+  academicYearVolume?: Array<{
+    academicYear: string;
+    received: number;
+  }>;
+  breakdownByCollegeOrUnit: Array<{
+    collegeOrUnit: string;
+    received: number;
+    withdrawn: number;
+    exempted: number;
+    expedited: number;
+    fullReview: number;
+    byProponentType: {
+      undergrad: number;
+      grad: number;
+      faculty: number;
+      other: number;
+      unknown: number;
+    };
+    byProponentTypeAndReviewType: {
+      undergrad: { exempted: number; expedited: number; fullReview: number };
+      grad: { exempted: number; expedited: number; fullReview: number };
+      faculty: { exempted: number; expedited: number; fullReview: number };
+      other: { exempted: number; expedited: number; fullReview: number };
+      unknown: { exempted: number; expedited: number; fullReview: number };
+    };
+  }>;
+  averages: {
+    avgDaysToResults: {
+      expedited: number | null;
+      fullReview: number | null;
+    };
+    avgDaysToResubmit: number | null;
+    avgDaysToClearance: {
+      expedited: number | null;
+      fullReview: number | null;
+    };
+  };
 }

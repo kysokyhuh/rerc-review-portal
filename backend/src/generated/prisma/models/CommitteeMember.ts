@@ -242,6 +242,7 @@ export type CommitteeMemberWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"CommitteeMember"> | Date | string
   committee?: Prisma.XOR<Prisma.CommitteeScalarRelationFilter, Prisma.CommitteeWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  classificationVotes?: Prisma.ClassificationVoteListRelationFilter
 }
 
 export type CommitteeMemberOrderByWithRelationInput = {
@@ -254,6 +255,7 @@ export type CommitteeMemberOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   committee?: Prisma.CommitteeOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
+  classificationVotes?: Prisma.ClassificationVoteOrderByRelationAggregateInput
 }
 
 export type CommitteeMemberWhereUniqueInput = Prisma.AtLeast<{
@@ -270,6 +272,7 @@ export type CommitteeMemberWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"CommitteeMember"> | Date | string
   committee?: Prisma.XOR<Prisma.CommitteeScalarRelationFilter, Prisma.CommitteeWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  classificationVotes?: Prisma.ClassificationVoteListRelationFilter
 }, "id" | "committeeId_userId_role">
 
 export type CommitteeMemberOrderByWithAggregationInput = {
@@ -307,6 +310,7 @@ export type CommitteeMemberCreateInput = {
   createdAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutMembersInput
   user: Prisma.UserCreateNestedOneWithoutCommitteeMembershipsInput
+  classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutCommitteeMemberInput
 }
 
 export type CommitteeMemberUncheckedCreateInput = {
@@ -317,6 +321,7 @@ export type CommitteeMemberUncheckedCreateInput = {
   isPrimary?: boolean
   isActive?: boolean
   createdAt?: Date | string
+  classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutCommitteeMemberInput
 }
 
 export type CommitteeMemberUpdateInput = {
@@ -326,6 +331,7 @@ export type CommitteeMemberUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutMembersNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutCommitteeMembershipsNestedInput
+  classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutCommitteeMemberNestedInput
 }
 
 export type CommitteeMemberUncheckedUpdateInput = {
@@ -336,6 +342,7 @@ export type CommitteeMemberUncheckedUpdateInput = {
   isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutCommitteeMemberNestedInput
 }
 
 export type CommitteeMemberCreateManyInput = {
@@ -421,6 +428,11 @@ export type CommitteeMemberSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   committeeId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+}
+
+export type CommitteeMemberScalarRelationFilter = {
+  is?: Prisma.CommitteeMemberWhereInput
+  isNot?: Prisma.CommitteeMemberWhereInput
 }
 
 export type CommitteeMemberCreateNestedManyWithoutUserInput = {
@@ -511,12 +523,27 @@ export type EnumRoleTypeFieldUpdateOperationsInput = {
   set?: $Enums.RoleType
 }
 
+export type CommitteeMemberCreateNestedOneWithoutClassificationVotesInput = {
+  create?: Prisma.XOR<Prisma.CommitteeMemberCreateWithoutClassificationVotesInput, Prisma.CommitteeMemberUncheckedCreateWithoutClassificationVotesInput>
+  connectOrCreate?: Prisma.CommitteeMemberCreateOrConnectWithoutClassificationVotesInput
+  connect?: Prisma.CommitteeMemberWhereUniqueInput
+}
+
+export type CommitteeMemberUpdateOneRequiredWithoutClassificationVotesNestedInput = {
+  create?: Prisma.XOR<Prisma.CommitteeMemberCreateWithoutClassificationVotesInput, Prisma.CommitteeMemberUncheckedCreateWithoutClassificationVotesInput>
+  connectOrCreate?: Prisma.CommitteeMemberCreateOrConnectWithoutClassificationVotesInput
+  upsert?: Prisma.CommitteeMemberUpsertWithoutClassificationVotesInput
+  connect?: Prisma.CommitteeMemberWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CommitteeMemberUpdateToOneWithWhereWithoutClassificationVotesInput, Prisma.CommitteeMemberUpdateWithoutClassificationVotesInput>, Prisma.CommitteeMemberUncheckedUpdateWithoutClassificationVotesInput>
+}
+
 export type CommitteeMemberCreateWithoutUserInput = {
   role: $Enums.RoleType
   isPrimary?: boolean
   isActive?: boolean
   createdAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutMembersInput
+  classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutCommitteeMemberInput
 }
 
 export type CommitteeMemberUncheckedCreateWithoutUserInput = {
@@ -526,6 +553,7 @@ export type CommitteeMemberUncheckedCreateWithoutUserInput = {
   isPrimary?: boolean
   isActive?: boolean
   createdAt?: Date | string
+  classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutCommitteeMemberInput
 }
 
 export type CommitteeMemberCreateOrConnectWithoutUserInput = {
@@ -573,6 +601,7 @@ export type CommitteeMemberCreateWithoutCommitteeInput = {
   isActive?: boolean
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutCommitteeMembershipsInput
+  classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutCommitteeMemberInput
 }
 
 export type CommitteeMemberUncheckedCreateWithoutCommitteeInput = {
@@ -582,6 +611,7 @@ export type CommitteeMemberUncheckedCreateWithoutCommitteeInput = {
   isPrimary?: boolean
   isActive?: boolean
   createdAt?: Date | string
+  classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutCommitteeMemberInput
 }
 
 export type CommitteeMemberCreateOrConnectWithoutCommitteeInput = {
@@ -610,6 +640,60 @@ export type CommitteeMemberUpdateManyWithWhereWithoutCommitteeInput = {
   data: Prisma.XOR<Prisma.CommitteeMemberUpdateManyMutationInput, Prisma.CommitteeMemberUncheckedUpdateManyWithoutCommitteeInput>
 }
 
+export type CommitteeMemberCreateWithoutClassificationVotesInput = {
+  role: $Enums.RoleType
+  isPrimary?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  committee: Prisma.CommitteeCreateNestedOneWithoutMembersInput
+  user: Prisma.UserCreateNestedOneWithoutCommitteeMembershipsInput
+}
+
+export type CommitteeMemberUncheckedCreateWithoutClassificationVotesInput = {
+  id?: number
+  committeeId: number
+  userId: number
+  role: $Enums.RoleType
+  isPrimary?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+}
+
+export type CommitteeMemberCreateOrConnectWithoutClassificationVotesInput = {
+  where: Prisma.CommitteeMemberWhereUniqueInput
+  create: Prisma.XOR<Prisma.CommitteeMemberCreateWithoutClassificationVotesInput, Prisma.CommitteeMemberUncheckedCreateWithoutClassificationVotesInput>
+}
+
+export type CommitteeMemberUpsertWithoutClassificationVotesInput = {
+  update: Prisma.XOR<Prisma.CommitteeMemberUpdateWithoutClassificationVotesInput, Prisma.CommitteeMemberUncheckedUpdateWithoutClassificationVotesInput>
+  create: Prisma.XOR<Prisma.CommitteeMemberCreateWithoutClassificationVotesInput, Prisma.CommitteeMemberUncheckedCreateWithoutClassificationVotesInput>
+  where?: Prisma.CommitteeMemberWhereInput
+}
+
+export type CommitteeMemberUpdateToOneWithWhereWithoutClassificationVotesInput = {
+  where?: Prisma.CommitteeMemberWhereInput
+  data: Prisma.XOR<Prisma.CommitteeMemberUpdateWithoutClassificationVotesInput, Prisma.CommitteeMemberUncheckedUpdateWithoutClassificationVotesInput>
+}
+
+export type CommitteeMemberUpdateWithoutClassificationVotesInput = {
+  role?: Prisma.EnumRoleTypeFieldUpdateOperationsInput | $Enums.RoleType
+  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committee?: Prisma.CommitteeUpdateOneRequiredWithoutMembersNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutCommitteeMembershipsNestedInput
+}
+
+export type CommitteeMemberUncheckedUpdateWithoutClassificationVotesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  role?: Prisma.EnumRoleTypeFieldUpdateOperationsInput | $Enums.RoleType
+  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type CommitteeMemberCreateManyUserInput = {
   id?: number
   committeeId: number
@@ -625,6 +709,7 @@ export type CommitteeMemberUpdateWithoutUserInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutMembersNestedInput
+  classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutCommitteeMemberNestedInput
 }
 
 export type CommitteeMemberUncheckedUpdateWithoutUserInput = {
@@ -634,6 +719,7 @@ export type CommitteeMemberUncheckedUpdateWithoutUserInput = {
   isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutCommitteeMemberNestedInput
 }
 
 export type CommitteeMemberUncheckedUpdateManyWithoutUserInput = {
@@ -660,6 +746,7 @@ export type CommitteeMemberUpdateWithoutCommitteeInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutCommitteeMembershipsNestedInput
+  classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutCommitteeMemberNestedInput
 }
 
 export type CommitteeMemberUncheckedUpdateWithoutCommitteeInput = {
@@ -669,6 +756,7 @@ export type CommitteeMemberUncheckedUpdateWithoutCommitteeInput = {
   isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutCommitteeMemberNestedInput
 }
 
 export type CommitteeMemberUncheckedUpdateManyWithoutCommitteeInput = {
@@ -681,6 +769,35 @@ export type CommitteeMemberUncheckedUpdateManyWithoutCommitteeInput = {
 }
 
 
+/**
+ * Count Type CommitteeMemberCountOutputType
+ */
+
+export type CommitteeMemberCountOutputType = {
+  classificationVotes: number
+}
+
+export type CommitteeMemberCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  classificationVotes?: boolean | CommitteeMemberCountOutputTypeCountClassificationVotesArgs
+}
+
+/**
+ * CommitteeMemberCountOutputType without action
+ */
+export type CommitteeMemberCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CommitteeMemberCountOutputType
+   */
+  select?: Prisma.CommitteeMemberCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * CommitteeMemberCountOutputType without action
+ */
+export type CommitteeMemberCountOutputTypeCountClassificationVotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClassificationVoteWhereInput
+}
+
 
 export type CommitteeMemberSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -692,6 +809,8 @@ export type CommitteeMemberSelect<ExtArgs extends runtime.Types.Extensions.Inter
   createdAt?: boolean
   committee?: boolean | Prisma.CommitteeDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  classificationVotes?: boolean | Prisma.CommitteeMember$classificationVotesArgs<ExtArgs>
+  _count?: boolean | Prisma.CommitteeMemberCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["committeeMember"]>
 
 export type CommitteeMemberSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -732,6 +851,8 @@ export type CommitteeMemberOmit<ExtArgs extends runtime.Types.Extensions.Interna
 export type CommitteeMemberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   committee?: boolean | Prisma.CommitteeDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  classificationVotes?: boolean | Prisma.CommitteeMember$classificationVotesArgs<ExtArgs>
+  _count?: boolean | Prisma.CommitteeMemberCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CommitteeMemberIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   committee?: boolean | Prisma.CommitteeDefaultArgs<ExtArgs>
@@ -747,6 +868,7 @@ export type $CommitteeMemberPayload<ExtArgs extends runtime.Types.Extensions.Int
   objects: {
     committee: Prisma.$CommitteePayload<ExtArgs>
     user: Prisma.$UserPayload<ExtArgs>
+    classificationVotes: Prisma.$ClassificationVotePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1152,6 +1274,7 @@ export interface Prisma__CommitteeMemberClient<T, Null = never, ExtArgs extends 
   readonly [Symbol.toStringTag]: "PrismaPromise"
   committee<T extends Prisma.CommitteeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CommitteeDefaultArgs<ExtArgs>>): Prisma.Prisma__CommitteeClient<runtime.Types.Result.GetResult<Prisma.$CommitteePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  classificationVotes<T extends Prisma.CommitteeMember$classificationVotesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CommitteeMember$classificationVotesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassificationVotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1581,6 +1704,30 @@ export type CommitteeMemberDeleteManyArgs<ExtArgs extends runtime.Types.Extensio
    * Limit how many CommitteeMembers to delete.
    */
   limit?: number
+}
+
+/**
+ * CommitteeMember.classificationVotes
+ */
+export type CommitteeMember$classificationVotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClassificationVote
+   */
+  select?: Prisma.ClassificationVoteSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClassificationVote
+   */
+  omit?: Prisma.ClassificationVoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClassificationVoteInclude<ExtArgs> | null
+  where?: Prisma.ClassificationVoteWhereInput
+  orderBy?: Prisma.ClassificationVoteOrderByWithRelationInput | Prisma.ClassificationVoteOrderByWithRelationInput[]
+  cursor?: Prisma.ClassificationVoteWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClassificationVoteScalarFieldEnum | Prisma.ClassificationVoteScalarFieldEnum[]
 }
 
 /**

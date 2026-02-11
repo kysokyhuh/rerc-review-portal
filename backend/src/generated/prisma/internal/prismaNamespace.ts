@@ -389,6 +389,7 @@ export const ModelName = {
   Panel: 'Panel',
   CommitteeMember: 'CommitteeMember',
   Project: 'Project',
+  AcademicTerm: 'AcademicTerm',
   Proponent: 'Proponent',
   ProjectProponent: 'ProjectProponent',
   ProjectMember: 'ProjectMember',
@@ -398,7 +399,9 @@ export const ModelName = {
   SubmissionChangeLog: 'SubmissionChangeLog',
   Classification: 'Classification',
   ClassificationDecision: 'ClassificationDecision',
+  ClassificationVote: 'ClassificationVote',
   SubmissionStatusHistory: 'SubmissionStatusHistory',
+  ProjectStatusHistory: 'ProjectStatusHistory',
   Review: 'Review',
   ReviewAssignment: 'ReviewAssignment',
   SubmissionDocument: 'SubmissionDocument',
@@ -424,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "committee" | "panel" | "committeeMember" | "project" | "proponent" | "projectProponent" | "projectMember" | "projectChangeLog" | "projectSnapshot" | "submission" | "submissionChangeLog" | "classification" | "classificationDecision" | "submissionStatusHistory" | "review" | "reviewAssignment" | "submissionDocument" | "submissionDecision" | "holiday" | "letterDraft" | "contractPeriod" | "panelMember" | "configSLA" | "workflowEvent"
+    modelProps: "user" | "committee" | "panel" | "committeeMember" | "project" | "academicTerm" | "proponent" | "projectProponent" | "projectMember" | "projectChangeLog" | "projectSnapshot" | "submission" | "submissionChangeLog" | "classification" | "classificationDecision" | "classificationVote" | "submissionStatusHistory" | "projectStatusHistory" | "review" | "reviewAssignment" | "submissionDocument" | "submissionDecision" | "holiday" | "letterDraft" | "contractPeriod" | "panelMember" | "configSLA" | "workflowEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -795,6 +798,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ProjectCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProjectCountAggregateOutputType> | number
+        }
+      }
+    }
+    AcademicTerm: {
+      payload: Prisma.$AcademicTermPayload<ExtArgs>
+      fields: Prisma.AcademicTermFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AcademicTermFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AcademicTermPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AcademicTermFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AcademicTermPayload>
+        }
+        findFirst: {
+          args: Prisma.AcademicTermFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AcademicTermPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AcademicTermFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AcademicTermPayload>
+        }
+        findMany: {
+          args: Prisma.AcademicTermFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AcademicTermPayload>[]
+        }
+        create: {
+          args: Prisma.AcademicTermCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AcademicTermPayload>
+        }
+        createMany: {
+          args: Prisma.AcademicTermCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AcademicTermCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AcademicTermPayload>[]
+        }
+        delete: {
+          args: Prisma.AcademicTermDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AcademicTermPayload>
+        }
+        update: {
+          args: Prisma.AcademicTermUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AcademicTermPayload>
+        }
+        deleteMany: {
+          args: Prisma.AcademicTermDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AcademicTermUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AcademicTermUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AcademicTermPayload>[]
+        }
+        upsert: {
+          args: Prisma.AcademicTermUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AcademicTermPayload>
+        }
+        aggregate: {
+          args: Prisma.AcademicTermAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAcademicTerm>
+        }
+        groupBy: {
+          args: Prisma.AcademicTermGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AcademicTermGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AcademicTermCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AcademicTermCountAggregateOutputType> | number
         }
       }
     }
@@ -1464,6 +1541,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ClassificationVote: {
+      payload: Prisma.$ClassificationVotePayload<ExtArgs>
+      fields: Prisma.ClassificationVoteFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ClassificationVoteFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassificationVotePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ClassificationVoteFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassificationVotePayload>
+        }
+        findFirst: {
+          args: Prisma.ClassificationVoteFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassificationVotePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ClassificationVoteFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassificationVotePayload>
+        }
+        findMany: {
+          args: Prisma.ClassificationVoteFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassificationVotePayload>[]
+        }
+        create: {
+          args: Prisma.ClassificationVoteCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassificationVotePayload>
+        }
+        createMany: {
+          args: Prisma.ClassificationVoteCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ClassificationVoteCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassificationVotePayload>[]
+        }
+        delete: {
+          args: Prisma.ClassificationVoteDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassificationVotePayload>
+        }
+        update: {
+          args: Prisma.ClassificationVoteUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassificationVotePayload>
+        }
+        deleteMany: {
+          args: Prisma.ClassificationVoteDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ClassificationVoteUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ClassificationVoteUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassificationVotePayload>[]
+        }
+        upsert: {
+          args: Prisma.ClassificationVoteUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassificationVotePayload>
+        }
+        aggregate: {
+          args: Prisma.ClassificationVoteAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClassificationVote>
+        }
+        groupBy: {
+          args: Prisma.ClassificationVoteGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClassificationVoteGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ClassificationVoteCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClassificationVoteCountAggregateOutputType> | number
+        }
+      }
+    }
     SubmissionStatusHistory: {
       payload: Prisma.$SubmissionStatusHistoryPayload<ExtArgs>
       fields: Prisma.SubmissionStatusHistoryFieldRefs
@@ -1535,6 +1686,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.SubmissionStatusHistoryCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.SubmissionStatusHistoryCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProjectStatusHistory: {
+      payload: Prisma.$ProjectStatusHistoryPayload<ExtArgs>
+      fields: Prisma.ProjectStatusHistoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProjectStatusHistoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectStatusHistoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProjectStatusHistoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectStatusHistoryPayload>
+        }
+        findFirst: {
+          args: Prisma.ProjectStatusHistoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectStatusHistoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProjectStatusHistoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectStatusHistoryPayload>
+        }
+        findMany: {
+          args: Prisma.ProjectStatusHistoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectStatusHistoryPayload>[]
+        }
+        create: {
+          args: Prisma.ProjectStatusHistoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectStatusHistoryPayload>
+        }
+        createMany: {
+          args: Prisma.ProjectStatusHistoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProjectStatusHistoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectStatusHistoryPayload>[]
+        }
+        delete: {
+          args: Prisma.ProjectStatusHistoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectStatusHistoryPayload>
+        }
+        update: {
+          args: Prisma.ProjectStatusHistoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectStatusHistoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProjectStatusHistoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProjectStatusHistoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProjectStatusHistoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectStatusHistoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProjectStatusHistoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectStatusHistoryPayload>
+        }
+        aggregate: {
+          args: Prisma.ProjectStatusHistoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProjectStatusHistory>
+        }
+        groupBy: {
+          args: Prisma.ProjectStatusHistoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectStatusHistoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProjectStatusHistoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectStatusHistoryCountAggregateOutputType> | number
         }
       }
     }
@@ -2379,6 +2604,8 @@ export const ProjectScalarFieldEnum = {
   piName: 'piName',
   piSurname: 'piSurname',
   piAffiliation: 'piAffiliation',
+  collegeOrUnit: 'collegeOrUnit',
+  proponentCategory: 'proponentCategory',
   department: 'department',
   proponent: 'proponent',
   keywords: 'keywords',
@@ -2399,6 +2626,19 @@ export const ProjectScalarFieldEnum = {
 } as const
 
 export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
+
+
+export const AcademicTermScalarFieldEnum = {
+  id: 'id',
+  academicYear: 'academicYear',
+  term: 'term',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AcademicTermScalarFieldEnum = (typeof AcademicTermScalarFieldEnum)[keyof typeof AcademicTermScalarFieldEnum]
 
 
 export const ProponentScalarFieldEnum = {
@@ -2548,6 +2788,19 @@ export const ClassificationDecisionScalarFieldEnum = {
 export type ClassificationDecisionScalarFieldEnum = (typeof ClassificationDecisionScalarFieldEnum)[keyof typeof ClassificationDecisionScalarFieldEnum]
 
 
+export const ClassificationVoteScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  committeeMemberId: 'committeeMemberId',
+  classification: 'classification',
+  votedAt: 'votedAt',
+  remarks: 'remarks',
+  classificationDecisionId: 'classificationDecisionId'
+} as const
+
+export type ClassificationVoteScalarFieldEnum = (typeof ClassificationVoteScalarFieldEnum)[keyof typeof ClassificationVoteScalarFieldEnum]
+
+
 export const SubmissionStatusHistoryScalarFieldEnum = {
   id: 'id',
   submissionId: 'submissionId',
@@ -2560,6 +2813,20 @@ export const SubmissionStatusHistoryScalarFieldEnum = {
 } as const
 
 export type SubmissionStatusHistoryScalarFieldEnum = (typeof SubmissionStatusHistoryScalarFieldEnum)[keyof typeof SubmissionStatusHistoryScalarFieldEnum]
+
+
+export const ProjectStatusHistoryScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  oldStatus: 'oldStatus',
+  newStatus: 'newStatus',
+  effectiveDate: 'effectiveDate',
+  reason: 'reason',
+  changedById: 'changedById',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectStatusHistoryScalarFieldEnum = (typeof ProjectStatusHistoryScalarFieldEnum)[keyof typeof ProjectStatusHistoryScalarFieldEnum]
 
 
 export const ReviewScalarFieldEnum = {
@@ -2824,6 +3091,20 @@ export type EnumRoleTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
  * Reference to a field of type 'RoleType[]'
  */
 export type ListEnumRoleTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RoleType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ProponentCategory'
+ */
+export type EnumProponentCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProponentCategory'>
+    
+
+
+/**
+ * Reference to a field of type 'ProponentCategory[]'
+ */
+export type ListEnumProponentCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProponentCategory[]'>
     
 
 
@@ -3248,6 +3529,7 @@ export type GlobalOmitConfig = {
   panel?: Prisma.PanelOmit
   committeeMember?: Prisma.CommitteeMemberOmit
   project?: Prisma.ProjectOmit
+  academicTerm?: Prisma.AcademicTermOmit
   proponent?: Prisma.ProponentOmit
   projectProponent?: Prisma.ProjectProponentOmit
   projectMember?: Prisma.ProjectMemberOmit
@@ -3257,7 +3539,9 @@ export type GlobalOmitConfig = {
   submissionChangeLog?: Prisma.SubmissionChangeLogOmit
   classification?: Prisma.ClassificationOmit
   classificationDecision?: Prisma.ClassificationDecisionOmit
+  classificationVote?: Prisma.ClassificationVoteOmit
   submissionStatusHistory?: Prisma.SubmissionStatusHistoryOmit
+  projectStatusHistory?: Prisma.ProjectStatusHistoryOmit
   review?: Prisma.ReviewOmit
   reviewAssignment?: Prisma.ReviewAssignmentOmit
   submissionDocument?: Prisma.SubmissionDocumentOmit

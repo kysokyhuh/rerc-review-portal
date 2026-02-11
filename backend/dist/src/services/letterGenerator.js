@@ -7,6 +7,7 @@ exports.buildInitialAckLetter = buildInitialAckLetter;
 exports.buildInitialApprovalLetter = buildInitialApprovalLetter;
 const docx_1 = require("docx");
 const prismaClient_1 = __importDefault(require("../config/prismaClient"));
+const branding_1 = require("../config/branding");
 async function fetchSubmission(submissionId) {
     return prismaClient_1.default.submission.findUnique({
         where: { id: submissionId },
@@ -132,7 +133,7 @@ async function buildInitialApprovalLetter(submissionId) {
                         ],
                     }),
                     new docx_1.Paragraph(""),
-                    new docx_1.Paragraph(`Dear ${project.piName}, the RERC has approved protocol ${project.projectCode} - "${project.title}".`),
+                    new docx_1.Paragraph(`Dear ${project.piName}, the ${branding_1.BRAND.name} has approved protocol ${project.projectCode} - "${project.title}".`),
                     new docx_1.Paragraph(`Review Type: ${classification?.reviewType ?? "TBD"}; Decision: ${submission.finalDecision ?? "APPROVED"}.`),
                     new docx_1.Paragraph(`Approval validity: ${formatDate(project.approvalStartDate)} to ${formatDate(project.approvalEndDate)}.`),
                     new docx_1.Paragraph("Please ensure adherence to the approved protocol."),

@@ -325,6 +325,7 @@ export type ReviewAssignmentOrderByWithRelationInput = {
 
 export type ReviewAssignmentWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  submissionId_roundSequence_reviewerRole?: Prisma.ReviewAssignmentSubmissionIdRoundSequenceReviewerRoleCompoundUniqueInput
   AND?: Prisma.ReviewAssignmentWhereInput | Prisma.ReviewAssignmentWhereInput[]
   OR?: Prisma.ReviewAssignmentWhereInput[]
   NOT?: Prisma.ReviewAssignmentWhereInput | Prisma.ReviewAssignmentWhereInput[]
@@ -343,7 +344,7 @@ export type ReviewAssignmentWhereUniqueInput = Prisma.AtLeast<{
   endedAt?: Prisma.DateTimeNullableFilter<"ReviewAssignment"> | Date | string | null
   submission?: Prisma.XOR<Prisma.SubmissionScalarRelationFilter, Prisma.SubmissionWhereInput>
   reviewer?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "id">
+}, "id" | "submissionId_roundSequence_reviewerRole">
 
 export type ReviewAssignmentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -509,6 +510,12 @@ export type ReviewAssignmentListRelationFilter = {
 
 export type ReviewAssignmentOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type ReviewAssignmentSubmissionIdRoundSequenceReviewerRoleCompoundUniqueInput = {
+  submissionId: number
+  roundSequence: number
+  reviewerRole: $Enums.ReviewerRoundRole
 }
 
 export type ReviewAssignmentCountOrderByAggregateInput = {

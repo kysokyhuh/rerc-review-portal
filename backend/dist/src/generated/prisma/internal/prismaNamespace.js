@@ -48,7 +48,8 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defineExtension = exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.WorkflowEventScalarFieldEnum = exports.ConfigSLAScalarFieldEnum = exports.PanelMemberScalarFieldEnum = exports.ContractPeriodScalarFieldEnum = exports.LetterDraftScalarFieldEnum = exports.HolidayScalarFieldEnum = exports.SubmissionDecisionScalarFieldEnum = exports.SubmissionDocumentScalarFieldEnum = exports.ReviewAssignmentScalarFieldEnum = exports.ReviewScalarFieldEnum = exports.SubmissionStatusHistoryScalarFieldEnum = exports.ClassificationDecisionScalarFieldEnum = exports.ClassificationScalarFieldEnum = exports.SubmissionChangeLogScalarFieldEnum = exports.SubmissionScalarFieldEnum = exports.ProjectSnapshotScalarFieldEnum = exports.ProjectChangeLogScalarFieldEnum = exports.ProjectMemberScalarFieldEnum = exports.ProjectProponentScalarFieldEnum = exports.ProponentScalarFieldEnum = exports.ProjectScalarFieldEnum = exports.CommitteeMemberScalarFieldEnum = exports.PanelScalarFieldEnum = exports.CommitteeScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.WorkflowEventScalarFieldEnum = exports.ConfigSLAScalarFieldEnum = exports.PanelMemberScalarFieldEnum = exports.ContractPeriodScalarFieldEnum = exports.LetterDraftScalarFieldEnum = exports.HolidayScalarFieldEnum = exports.SubmissionDecisionScalarFieldEnum = exports.SubmissionDocumentScalarFieldEnum = exports.ReviewAssignmentScalarFieldEnum = exports.ReviewScalarFieldEnum = exports.ProjectStatusHistoryScalarFieldEnum = exports.SubmissionStatusHistoryScalarFieldEnum = exports.ClassificationVoteScalarFieldEnum = exports.ClassificationDecisionScalarFieldEnum = exports.ClassificationScalarFieldEnum = exports.SubmissionChangeLogScalarFieldEnum = exports.SubmissionScalarFieldEnum = exports.ProjectSnapshotScalarFieldEnum = exports.ProjectChangeLogScalarFieldEnum = exports.ProjectMemberScalarFieldEnum = exports.ProjectProponentScalarFieldEnum = exports.ProponentScalarFieldEnum = exports.AcademicTermScalarFieldEnum = exports.ProjectScalarFieldEnum = exports.CommitteeMemberScalarFieldEnum = exports.PanelScalarFieldEnum = exports.CommitteeScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.defineExtension = exports.JsonNullValueFilter = exports.NullsOrder = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 /**
  * Prisma Errors
@@ -108,6 +109,7 @@ exports.ModelName = {
     Panel: 'Panel',
     CommitteeMember: 'CommitteeMember',
     Project: 'Project',
+    AcademicTerm: 'AcademicTerm',
     Proponent: 'Proponent',
     ProjectProponent: 'ProjectProponent',
     ProjectMember: 'ProjectMember',
@@ -117,7 +119,9 @@ exports.ModelName = {
     SubmissionChangeLog: 'SubmissionChangeLog',
     Classification: 'Classification',
     ClassificationDecision: 'ClassificationDecision',
+    ClassificationVote: 'ClassificationVote',
     SubmissionStatusHistory: 'SubmissionStatusHistory',
+    ProjectStatusHistory: 'ProjectStatusHistory',
     Review: 'Review',
     ReviewAssignment: 'ReviewAssignment',
     SubmissionDocument: 'SubmissionDocument',
@@ -184,6 +188,8 @@ exports.ProjectScalarFieldEnum = {
     piName: 'piName',
     piSurname: 'piSurname',
     piAffiliation: 'piAffiliation',
+    collegeOrUnit: 'collegeOrUnit',
+    proponentCategory: 'proponentCategory',
     department: 'department',
     proponent: 'proponent',
     keywords: 'keywords',
@@ -201,6 +207,15 @@ exports.ProjectScalarFieldEnum = {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     createdById: 'createdById'
+};
+exports.AcademicTermScalarFieldEnum = {
+    id: 'id',
+    academicYear: 'academicYear',
+    term: 'term',
+    startDate: 'startDate',
+    endDate: 'endDate',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
 };
 exports.ProponentScalarFieldEnum = {
     id: 'id',
@@ -313,9 +328,28 @@ exports.ClassificationDecisionScalarFieldEnum = {
     recordedById: 'recordedById',
     notes: 'notes'
 };
+exports.ClassificationVoteScalarFieldEnum = {
+    id: 'id',
+    submissionId: 'submissionId',
+    committeeMemberId: 'committeeMemberId',
+    classification: 'classification',
+    votedAt: 'votedAt',
+    remarks: 'remarks',
+    classificationDecisionId: 'classificationDecisionId'
+};
 exports.SubmissionStatusHistoryScalarFieldEnum = {
     id: 'id',
     submissionId: 'submissionId',
+    oldStatus: 'oldStatus',
+    newStatus: 'newStatus',
+    effectiveDate: 'effectiveDate',
+    reason: 'reason',
+    changedById: 'changedById',
+    createdAt: 'createdAt'
+};
+exports.ProjectStatusHistoryScalarFieldEnum = {
+    id: 'id',
+    projectId: 'projectId',
     oldStatus: 'oldStatus',
     newStatus: 'newStatus',
     effectiveDate: 'effectiveDate',

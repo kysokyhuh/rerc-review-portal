@@ -9,7 +9,7 @@
 * 🟢 You can import this file directly.
 */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DecisionStatus = exports.ReviewerRoundRole = exports.ClassificationType = exports.WorkflowEventType = exports.LetterDraftStatus = exports.SubmissionDocumentStatus = exports.SubmissionDocumentType = exports.ProjectMemberRole = exports.EndorsementStatus = exports.HonorariumStatus = exports.ReviewerRoleType = exports.ResearchTypePHREB = exports.PanelMemberRole = exports.SLAStage = exports.SubmissionStatus = exports.ReviewDecision = exports.ReviewType = exports.CompletenessStatus = exports.ProjectStatus = exports.SubmissionType = exports.FundingType = exports.RoleType = void 0;
+exports.ProponentCategory = exports.DecisionStatus = exports.ReviewerRoundRole = exports.ClassificationType = exports.WorkflowEventType = exports.LetterDraftStatus = exports.SubmissionDocumentStatus = exports.SubmissionDocumentType = exports.ProjectMemberRole = exports.EndorsementStatus = exports.HonorariumStatus = exports.ReviewerRoleType = exports.ResearchTypePHREB = exports.PanelMemberRole = exports.SLAStage = exports.SubmissionStatus = exports.ReviewDecision = exports.ReviewType = exports.CompletenessStatus = exports.ProjectStatus = exports.SubmissionType = exports.FundingType = exports.RoleType = void 0;
 exports.RoleType = {
     CHAIR: 'CHAIR',
     MEMBER: 'MEMBER',
@@ -26,6 +26,7 @@ exports.FundingType = {
 };
 exports.SubmissionType = {
     INITIAL: 'INITIAL',
+    RESUBMISSION: 'RESUBMISSION',
     AMENDMENT: 'AMENDMENT',
     CONTINUING_REVIEW: 'CONTINUING_REVIEW',
     FINAL_REPORT: 'FINAL_REPORT',
@@ -138,15 +139,22 @@ exports.LetterDraftStatus = {
     SENT: 'SENT'
 };
 exports.WorkflowEventType = {
+    APPLICATION_SUBMITTED: 'APPLICATION_SUBMITTED',
+    PANEL_ASSIGNED: 'PANEL_ASSIGNED',
+    REVIEWERS_ASSIGNED: 'REVIEWERS_ASSIGNED',
     CLASSIFICATION_DONE: 'CLASSIFICATION_DONE',
     DOCUMENTS_TO_REVIEWER: 'DOCUMENTS_TO_REVIEWER',
     ASSESSMENT_FORMS_COMPLETED: 'ASSESSMENT_FORMS_COMPLETED',
+    REVIEW_SUBMITTED: 'REVIEW_SUBMITTED',
     FULL_REVIEW_MEETING: 'FULL_REVIEW_MEETING',
     REVIEW_RESULTS_FINALIZED: 'REVIEW_RESULTS_FINALIZED',
     RESULTS_COMMUNICATED: 'RESULTS_COMMUNICATED',
     RESUBMISSION_RECEIVED: 'RESUBMISSION_RECEIVED',
     RESUBMISSION_REVIEWED: 'RESUBMISSION_REVIEWED',
-    RESUBMISSION_FINALIZED: 'RESUBMISSION_FINALIZED'
+    RESUBMISSION_FINALIZED: 'RESUBMISSION_FINALIZED',
+    DECISION_ISSUED: 'DECISION_ISSUED',
+    CONTINUING_REVIEW_DUE: 'CONTINUING_REVIEW_DUE',
+    FINAL_REPORT_DUE: 'FINAL_REPORT_DUE'
 };
 exports.ClassificationType = {
     EXEMPT: 'EXEMPT',
@@ -161,4 +169,10 @@ exports.DecisionStatus = {
     ACTIVE: 'ACTIVE',
     EXPIRED: 'EXPIRED',
     REVOKED: 'REVOKED'
+};
+exports.ProponentCategory = {
+    UNDERGRAD: 'UNDERGRAD',
+    GRAD: 'GRAD',
+    FACULTY: 'FACULTY',
+    OTHER: 'OTHER'
 };

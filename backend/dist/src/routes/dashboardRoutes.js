@@ -8,6 +8,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 const express_1 = require("express");
 const prismaClient_1 = __importDefault(require("../config/prismaClient"));
+const branding_1 = require("../config/branding");
+const dashboardFilters_1 = require("../utils/dashboardFilters");
+const overdueClassifier_1 = require("../utils/overdueClassifier");
 const router = (0, express_1.Router)();
 const escapeHtml = (value) => String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -19,15 +22,18 @@ const escapeHtml = (value) => String(value ?? "")
 router.get("/dashboard/queues", async (req, res) => {
     try {
         const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
+        const filterParams = (0, dashboardFilters_1.parseDashboardFilterParams)(req.query);
+        const filterWhere = (0, dashboardFilters_1.buildDashboardFiltersWhere)(filterParams);
+        const baseProject = { committee: { code: committeeCode } };
         const classificationQueue = await prismaClient_1.default.submission.findMany({
-            where: {
-                status: { in: ["RECEIVED", "UNDER_CLASSIFICATION"] },
-                project: {
-                    committee: {
-                        code: committeeCode,
-                    },
-                },
-            },
+            where: (0, dashboardFilters_1.mergeDashboardWhere)({
+                status: filterParams.status
+                    ? filterParams.status
+                    : { in: ["RECEIVED", "UNDER_CLASSIFICATION"] },
+                project: baseProject,
+            }, 
+            // Don't override status if the user explicitly passed one
+            filterParams.status ? (() => { const { status, ...rest } = filterWhere; return rest; })() : filterWhere),
             include: {
                 project: true,
                 classification: true,
@@ -38,14 +44,10 @@ router.get("/dashboard/queues", async (req, res) => {
             },
         });
         const reviewQueue = await prismaClient_1.default.submission.findMany({
-            where: {
-                status: "UNDER_REVIEW",
-                project: {
-                    committee: {
-                        code: committeeCode,
-                    },
-                },
-            },
+            where: (0, dashboardFilters_1.mergeDashboardWhere)({
+                status: filterParams.status ? filterParams.status : "UNDER_REVIEW",
+                project: baseProject,
+            }, filterParams.status ? (() => { const { status, ...rest } = filterWhere; return rest; })() : filterWhere),
             include: {
                 project: true,
                 classification: true,
@@ -56,14 +58,10 @@ router.get("/dashboard/queues", async (req, res) => {
             },
         });
         const revisionQueue = await prismaClient_1.default.submission.findMany({
-            where: {
-                status: "AWAITING_REVISIONS",
-                project: {
-                    committee: {
-                        code: committeeCode,
-                    },
-                },
-            },
+            where: (0, dashboardFilters_1.mergeDashboardWhere)({
+                status: filterParams.status ? filterParams.status : "AWAITING_REVISIONS",
+                project: baseProject,
+            }, filterParams.status ? (() => { const { status, ...rest } = filterWhere; return rest; })() : filterWhere),
             include: {
                 project: true,
                 classification: true,
@@ -94,17 +92,27 @@ router.get("/dashboard/queues", async (req, res) => {
 router.get("/dashboard/overdue", async (req, res) => {
     try {
         const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
+        const filterParams = (0, dashboardFilters_1.parseDashboardFilterParams)(req.query);
+        const filterWhere = (0, dashboardFilters_1.buildDashboardFiltersWhere)(filterParams);
         const now = new Date();
+        // Build the submission-level where for filters on project fields
+        const submissionWhere = {
+            project: {
+                committee: { code: committeeCode },
+            },
+        };
+        // Merge project-level filters
+        if (filterWhere.project) {
+            submissionWhere.project = { ...submissionWhere.project, ...filterWhere.project };
+        }
+        // Merge classification-level filters
+        if (filterWhere.classification) {
+            submissionWhere.classification = filterWhere.classification;
+        }
         const reviews = await prismaClient_1.default.review.findMany({
             where: {
                 respondedAt: null,
-                submission: {
-                    project: {
-                        committee: {
-                            code: committeeCode,
-                        },
-                    },
-                },
+                submission: submissionWhere,
             },
             include: {
                 reviewer: true,
@@ -137,6 +145,7 @@ router.get("/dashboard/overdue", async (req, res) => {
                 reviewerRole: review.reviewerRole,
                 dueDate,
                 daysOverdue,
+                ...(0, overdueClassifier_1.classifyOverdue)(review.submission.status),
             };
             if (review.reviewerRole === "INDEPENDENT_CONSULTANT") {
                 const status = review.endorsementStatus ?? "PENDING";
@@ -228,7 +237,7 @@ router.get("/ra/dashboard", async (_req, res, next) => {
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>RA Dashboard – RERC-HUMAN</title>
+    <title>RA Dashboard – ${branding_1.BRAND.committeeLabel}</title>
     <style>
       body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 24px; max-width: 1100px; }
       h1 { margin-bottom: 0.5rem; }
@@ -255,7 +264,7 @@ router.get("/ra/dashboard", async (_req, res, next) => {
     </style>
   </head>
   <body>
-    <h1>RA Dashboard – RERC-HUMAN</h1>
+    <h1>RA Dashboard – ${branding_1.BRAND.committeeLabel}</h1>
     <p>Queues based on current submission statuses. Click "Open submission" for details.</p>
 
     <div class="tabs">

@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
- * RERC Review Portal - Express Server
+ * URERD Review Portal - Express Server
  *
  * Main entry point that starts the HTTP listener.
  */

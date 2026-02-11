@@ -56,6 +56,7 @@ export const ModelName = {
   Panel: 'Panel',
   CommitteeMember: 'CommitteeMember',
   Project: 'Project',
+  AcademicTerm: 'AcademicTerm',
   Proponent: 'Proponent',
   ProjectProponent: 'ProjectProponent',
   ProjectMember: 'ProjectMember',
@@ -65,7 +66,9 @@ export const ModelName = {
   SubmissionChangeLog: 'SubmissionChangeLog',
   Classification: 'Classification',
   ClassificationDecision: 'ClassificationDecision',
+  ClassificationVote: 'ClassificationVote',
   SubmissionStatusHistory: 'SubmissionStatusHistory',
+  ProjectStatusHistory: 'ProjectStatusHistory',
   Review: 'Review',
   ReviewAssignment: 'ReviewAssignment',
   SubmissionDocument: 'SubmissionDocument',
@@ -156,6 +159,8 @@ export const ProjectScalarFieldEnum = {
   piName: 'piName',
   piSurname: 'piSurname',
   piAffiliation: 'piAffiliation',
+  collegeOrUnit: 'collegeOrUnit',
+  proponentCategory: 'proponentCategory',
   department: 'department',
   proponent: 'proponent',
   keywords: 'keywords',
@@ -176,6 +181,19 @@ export const ProjectScalarFieldEnum = {
 } as const
 
 export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
+
+
+export const AcademicTermScalarFieldEnum = {
+  id: 'id',
+  academicYear: 'academicYear',
+  term: 'term',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AcademicTermScalarFieldEnum = (typeof AcademicTermScalarFieldEnum)[keyof typeof AcademicTermScalarFieldEnum]
 
 
 export const ProponentScalarFieldEnum = {
@@ -325,6 +343,19 @@ export const ClassificationDecisionScalarFieldEnum = {
 export type ClassificationDecisionScalarFieldEnum = (typeof ClassificationDecisionScalarFieldEnum)[keyof typeof ClassificationDecisionScalarFieldEnum]
 
 
+export const ClassificationVoteScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  committeeMemberId: 'committeeMemberId',
+  classification: 'classification',
+  votedAt: 'votedAt',
+  remarks: 'remarks',
+  classificationDecisionId: 'classificationDecisionId'
+} as const
+
+export type ClassificationVoteScalarFieldEnum = (typeof ClassificationVoteScalarFieldEnum)[keyof typeof ClassificationVoteScalarFieldEnum]
+
+
 export const SubmissionStatusHistoryScalarFieldEnum = {
   id: 'id',
   submissionId: 'submissionId',
@@ -337,6 +368,20 @@ export const SubmissionStatusHistoryScalarFieldEnum = {
 } as const
 
 export type SubmissionStatusHistoryScalarFieldEnum = (typeof SubmissionStatusHistoryScalarFieldEnum)[keyof typeof SubmissionStatusHistoryScalarFieldEnum]
+
+
+export const ProjectStatusHistoryScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  oldStatus: 'oldStatus',
+  newStatus: 'newStatus',
+  effectiveDate: 'effectiveDate',
+  reason: 'reason',
+  changedById: 'changedById',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectStatusHistoryScalarFieldEnum = (typeof ProjectStatusHistoryScalarFieldEnum)[keyof typeof ProjectStatusHistoryScalarFieldEnum]
 
 
 export const ReviewScalarFieldEnum = {
