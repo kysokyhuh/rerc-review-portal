@@ -282,9 +282,9 @@ export type SubmissionGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
 export type SubmissionGroupByOutputType = {
   id: number
   projectId: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType: $Enums.SubmissionType | null
   sequenceNumber: number
-  receivedDate: Date
+  receivedDate: Date | null
   documentLink: string | null
   completenessStatus: $Enums.CompletenessStatus
   completenessRemarks: string | null
@@ -327,9 +327,9 @@ export type SubmissionWhereInput = {
   NOT?: Prisma.SubmissionWhereInput | Prisma.SubmissionWhereInput[]
   id?: Prisma.IntFilter<"Submission"> | number
   projectId?: Prisma.IntNullableFilter<"Submission"> | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFilter<"Submission"> | $Enums.SubmissionType
+  submissionType?: Prisma.EnumSubmissionTypeNullableFilter<"Submission"> | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFilter<"Submission"> | number
-  receivedDate?: Prisma.DateTimeFilter<"Submission"> | Date | string
+  receivedDate?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
   documentLink?: Prisma.StringNullableFilter<"Submission"> | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFilter<"Submission"> | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.StringNullableFilter<"Submission"> | string | null
@@ -364,9 +364,9 @@ export type SubmissionWhereInput = {
 export type SubmissionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   projectId?: Prisma.SortOrderInput | Prisma.SortOrder
-  submissionType?: Prisma.SortOrder
+  submissionType?: Prisma.SortOrderInput | Prisma.SortOrder
   sequenceNumber?: Prisma.SortOrder
-  receivedDate?: Prisma.SortOrder
+  receivedDate?: Prisma.SortOrderInput | Prisma.SortOrder
   documentLink?: Prisma.SortOrderInput | Prisma.SortOrder
   completenessStatus?: Prisma.SortOrder
   completenessRemarks?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -405,9 +405,9 @@ export type SubmissionWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.SubmissionWhereInput[]
   NOT?: Prisma.SubmissionWhereInput | Prisma.SubmissionWhereInput[]
   projectId?: Prisma.IntNullableFilter<"Submission"> | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFilter<"Submission"> | $Enums.SubmissionType
+  submissionType?: Prisma.EnumSubmissionTypeNullableFilter<"Submission"> | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFilter<"Submission"> | number
-  receivedDate?: Prisma.DateTimeFilter<"Submission"> | Date | string
+  receivedDate?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
   documentLink?: Prisma.StringNullableFilter<"Submission"> | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFilter<"Submission"> | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.StringNullableFilter<"Submission"> | string | null
@@ -442,9 +442,9 @@ export type SubmissionWhereUniqueInput = Prisma.AtLeast<{
 export type SubmissionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   projectId?: Prisma.SortOrderInput | Prisma.SortOrder
-  submissionType?: Prisma.SortOrder
+  submissionType?: Prisma.SortOrderInput | Prisma.SortOrder
   sequenceNumber?: Prisma.SortOrder
-  receivedDate?: Prisma.SortOrder
+  receivedDate?: Prisma.SortOrderInput | Prisma.SortOrder
   documentLink?: Prisma.SortOrderInput | Prisma.SortOrder
   completenessStatus?: Prisma.SortOrder
   completenessRemarks?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -472,9 +472,9 @@ export type SubmissionScalarWhereWithAggregatesInput = {
   NOT?: Prisma.SubmissionScalarWhereWithAggregatesInput | Prisma.SubmissionScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"Submission"> | number
   projectId?: Prisma.IntNullableWithAggregatesFilter<"Submission"> | number | null
-  submissionType?: Prisma.EnumSubmissionTypeWithAggregatesFilter<"Submission"> | $Enums.SubmissionType
+  submissionType?: Prisma.EnumSubmissionTypeNullableWithAggregatesFilter<"Submission"> | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntWithAggregatesFilter<"Submission"> | number
-  receivedDate?: Prisma.DateTimeWithAggregatesFilter<"Submission"> | Date | string
+  receivedDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Submission"> | Date | string | null
   documentLink?: Prisma.StringNullableWithAggregatesFilter<"Submission"> | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusWithAggregatesFilter<"Submission"> | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.StringNullableWithAggregatesFilter<"Submission"> | string | null
@@ -492,9 +492,9 @@ export type SubmissionScalarWhereWithAggregatesInput = {
 }
 
 export type SubmissionCreateInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -527,9 +527,9 @@ export type SubmissionCreateInput = {
 export type SubmissionUncheckedCreateInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -559,9 +559,9 @@ export type SubmissionUncheckedCreateInput = {
 }
 
 export type SubmissionUpdateInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -594,9 +594,9 @@ export type SubmissionUpdateInput = {
 export type SubmissionUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -628,9 +628,9 @@ export type SubmissionUncheckedUpdateInput = {
 export type SubmissionCreateManyInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -648,9 +648,9 @@ export type SubmissionCreateManyInput = {
 }
 
 export type SubmissionUpdateManyMutationInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -668,9 +668,9 @@ export type SubmissionUpdateManyMutationInput = {
 export type SubmissionUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -936,8 +936,8 @@ export type SubmissionUpdateOneWithoutProjectChangeLogsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SubmissionUpdateToOneWithWhereWithoutProjectChangeLogsInput, Prisma.SubmissionUpdateWithoutProjectChangeLogsInput>, Prisma.SubmissionUncheckedUpdateWithoutProjectChangeLogsInput>
 }
 
-export type EnumSubmissionTypeFieldUpdateOperationsInput = {
-  set?: $Enums.SubmissionType
+export type NullableEnumSubmissionTypeFieldUpdateOperationsInput = {
+  set?: $Enums.SubmissionType | null
 }
 
 export type EnumCompletenessStatusFieldUpdateOperationsInput = {
@@ -1107,9 +1107,9 @@ export type SubmissionUpdateOneRequiredWithoutWorkflowEventsNestedInput = {
 }
 
 export type SubmissionCreateWithoutCreatedByInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -1141,9 +1141,9 @@ export type SubmissionCreateWithoutCreatedByInput = {
 export type SubmissionUncheckedCreateWithoutCreatedByInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -1182,9 +1182,9 @@ export type SubmissionCreateManyCreatedByInputEnvelope = {
 }
 
 export type SubmissionCreateWithoutStaffInChargeInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -1216,9 +1216,9 @@ export type SubmissionCreateWithoutStaffInChargeInput = {
 export type SubmissionUncheckedCreateWithoutStaffInChargeInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -1278,9 +1278,9 @@ export type SubmissionScalarWhereInput = {
   NOT?: Prisma.SubmissionScalarWhereInput | Prisma.SubmissionScalarWhereInput[]
   id?: Prisma.IntFilter<"Submission"> | number
   projectId?: Prisma.IntNullableFilter<"Submission"> | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFilter<"Submission"> | $Enums.SubmissionType
+  submissionType?: Prisma.EnumSubmissionTypeNullableFilter<"Submission"> | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFilter<"Submission"> | number
-  receivedDate?: Prisma.DateTimeFilter<"Submission"> | Date | string
+  receivedDate?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
   documentLink?: Prisma.StringNullableFilter<"Submission"> | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFilter<"Submission"> | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.StringNullableFilter<"Submission"> | string | null
@@ -1314,9 +1314,9 @@ export type SubmissionUpdateManyWithWhereWithoutStaffInChargeInput = {
 }
 
 export type SubmissionCreateWithoutProjectInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -1347,9 +1347,9 @@ export type SubmissionCreateWithoutProjectInput = {
 
 export type SubmissionUncheckedCreateWithoutProjectInput = {
   id?: number
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -1405,9 +1405,9 @@ export type SubmissionUpdateManyWithWhereWithoutProjectInput = {
 }
 
 export type SubmissionCreateWithoutProjectChangeLogsInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -1439,9 +1439,9 @@ export type SubmissionCreateWithoutProjectChangeLogsInput = {
 export type SubmissionUncheckedCreateWithoutProjectChangeLogsInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -1486,9 +1486,9 @@ export type SubmissionUpdateToOneWithWhereWithoutProjectChangeLogsInput = {
 }
 
 export type SubmissionUpdateWithoutProjectChangeLogsInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1520,9 +1520,9 @@ export type SubmissionUpdateWithoutProjectChangeLogsInput = {
 export type SubmissionUncheckedUpdateWithoutProjectChangeLogsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1551,9 +1551,9 @@ export type SubmissionUncheckedUpdateWithoutProjectChangeLogsInput = {
 }
 
 export type SubmissionCreateWithoutChangeLogsInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -1585,9 +1585,9 @@ export type SubmissionCreateWithoutChangeLogsInput = {
 export type SubmissionUncheckedCreateWithoutChangeLogsInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -1632,9 +1632,9 @@ export type SubmissionUpdateToOneWithWhereWithoutChangeLogsInput = {
 }
 
 export type SubmissionUpdateWithoutChangeLogsInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1666,9 +1666,9 @@ export type SubmissionUpdateWithoutChangeLogsInput = {
 export type SubmissionUncheckedUpdateWithoutChangeLogsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1697,9 +1697,9 @@ export type SubmissionUncheckedUpdateWithoutChangeLogsInput = {
 }
 
 export type SubmissionCreateWithoutClassificationInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -1731,9 +1731,9 @@ export type SubmissionCreateWithoutClassificationInput = {
 export type SubmissionUncheckedCreateWithoutClassificationInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -1778,9 +1778,9 @@ export type SubmissionUpdateToOneWithWhereWithoutClassificationInput = {
 }
 
 export type SubmissionUpdateWithoutClassificationInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1812,9 +1812,9 @@ export type SubmissionUpdateWithoutClassificationInput = {
 export type SubmissionUncheckedUpdateWithoutClassificationInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1843,9 +1843,9 @@ export type SubmissionUncheckedUpdateWithoutClassificationInput = {
 }
 
 export type SubmissionCreateWithoutClassificationDecisionInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -1877,9 +1877,9 @@ export type SubmissionCreateWithoutClassificationDecisionInput = {
 export type SubmissionUncheckedCreateWithoutClassificationDecisionInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -1924,9 +1924,9 @@ export type SubmissionUpdateToOneWithWhereWithoutClassificationDecisionInput = {
 }
 
 export type SubmissionUpdateWithoutClassificationDecisionInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1958,9 +1958,9 @@ export type SubmissionUpdateWithoutClassificationDecisionInput = {
 export type SubmissionUncheckedUpdateWithoutClassificationDecisionInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1989,9 +1989,9 @@ export type SubmissionUncheckedUpdateWithoutClassificationDecisionInput = {
 }
 
 export type SubmissionCreateWithoutClassificationVotesInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -2023,9 +2023,9 @@ export type SubmissionCreateWithoutClassificationVotesInput = {
 export type SubmissionUncheckedCreateWithoutClassificationVotesInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -2070,9 +2070,9 @@ export type SubmissionUpdateToOneWithWhereWithoutClassificationVotesInput = {
 }
 
 export type SubmissionUpdateWithoutClassificationVotesInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2104,9 +2104,9 @@ export type SubmissionUpdateWithoutClassificationVotesInput = {
 export type SubmissionUncheckedUpdateWithoutClassificationVotesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2135,9 +2135,9 @@ export type SubmissionUncheckedUpdateWithoutClassificationVotesInput = {
 }
 
 export type SubmissionCreateWithoutStatusHistoryInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -2169,9 +2169,9 @@ export type SubmissionCreateWithoutStatusHistoryInput = {
 export type SubmissionUncheckedCreateWithoutStatusHistoryInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -2216,9 +2216,9 @@ export type SubmissionUpdateToOneWithWhereWithoutStatusHistoryInput = {
 }
 
 export type SubmissionUpdateWithoutStatusHistoryInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2250,9 +2250,9 @@ export type SubmissionUpdateWithoutStatusHistoryInput = {
 export type SubmissionUncheckedUpdateWithoutStatusHistoryInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2281,9 +2281,9 @@ export type SubmissionUncheckedUpdateWithoutStatusHistoryInput = {
 }
 
 export type SubmissionCreateWithoutReviewsInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -2315,9 +2315,9 @@ export type SubmissionCreateWithoutReviewsInput = {
 export type SubmissionUncheckedCreateWithoutReviewsInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -2362,9 +2362,9 @@ export type SubmissionUpdateToOneWithWhereWithoutReviewsInput = {
 }
 
 export type SubmissionUpdateWithoutReviewsInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2396,9 +2396,9 @@ export type SubmissionUpdateWithoutReviewsInput = {
 export type SubmissionUncheckedUpdateWithoutReviewsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2427,9 +2427,9 @@ export type SubmissionUncheckedUpdateWithoutReviewsInput = {
 }
 
 export type SubmissionCreateWithoutReviewAssignmentsInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -2461,9 +2461,9 @@ export type SubmissionCreateWithoutReviewAssignmentsInput = {
 export type SubmissionUncheckedCreateWithoutReviewAssignmentsInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -2508,9 +2508,9 @@ export type SubmissionUpdateToOneWithWhereWithoutReviewAssignmentsInput = {
 }
 
 export type SubmissionUpdateWithoutReviewAssignmentsInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2542,9 +2542,9 @@ export type SubmissionUpdateWithoutReviewAssignmentsInput = {
 export type SubmissionUncheckedUpdateWithoutReviewAssignmentsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2573,9 +2573,9 @@ export type SubmissionUncheckedUpdateWithoutReviewAssignmentsInput = {
 }
 
 export type SubmissionCreateWithoutDocumentsInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -2607,9 +2607,9 @@ export type SubmissionCreateWithoutDocumentsInput = {
 export type SubmissionUncheckedCreateWithoutDocumentsInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -2654,9 +2654,9 @@ export type SubmissionUpdateToOneWithWhereWithoutDocumentsInput = {
 }
 
 export type SubmissionUpdateWithoutDocumentsInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2688,9 +2688,9 @@ export type SubmissionUpdateWithoutDocumentsInput = {
 export type SubmissionUncheckedUpdateWithoutDocumentsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2719,9 +2719,9 @@ export type SubmissionUncheckedUpdateWithoutDocumentsInput = {
 }
 
 export type SubmissionCreateWithoutDecisionInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -2753,9 +2753,9 @@ export type SubmissionCreateWithoutDecisionInput = {
 export type SubmissionUncheckedCreateWithoutDecisionInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -2800,9 +2800,9 @@ export type SubmissionUpdateToOneWithWhereWithoutDecisionInput = {
 }
 
 export type SubmissionUpdateWithoutDecisionInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2834,9 +2834,9 @@ export type SubmissionUpdateWithoutDecisionInput = {
 export type SubmissionUncheckedUpdateWithoutDecisionInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2865,9 +2865,9 @@ export type SubmissionUncheckedUpdateWithoutDecisionInput = {
 }
 
 export type SubmissionCreateWithoutLetterDraftsInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -2899,9 +2899,9 @@ export type SubmissionCreateWithoutLetterDraftsInput = {
 export type SubmissionUncheckedCreateWithoutLetterDraftsInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -2946,9 +2946,9 @@ export type SubmissionUpdateToOneWithWhereWithoutLetterDraftsInput = {
 }
 
 export type SubmissionUpdateWithoutLetterDraftsInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2980,9 +2980,9 @@ export type SubmissionUpdateWithoutLetterDraftsInput = {
 export type SubmissionUncheckedUpdateWithoutLetterDraftsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3011,9 +3011,9 @@ export type SubmissionUncheckedUpdateWithoutLetterDraftsInput = {
 }
 
 export type SubmissionCreateWithoutWorkflowEventsInput = {
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -3045,9 +3045,9 @@ export type SubmissionCreateWithoutWorkflowEventsInput = {
 export type SubmissionUncheckedCreateWithoutWorkflowEventsInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -3092,9 +3092,9 @@ export type SubmissionUpdateToOneWithWhereWithoutWorkflowEventsInput = {
 }
 
 export type SubmissionUpdateWithoutWorkflowEventsInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3126,9 +3126,9 @@ export type SubmissionUpdateWithoutWorkflowEventsInput = {
 export type SubmissionUncheckedUpdateWithoutWorkflowEventsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3159,9 +3159,9 @@ export type SubmissionUncheckedUpdateWithoutWorkflowEventsInput = {
 export type SubmissionCreateManyCreatedByInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -3180,9 +3180,9 @@ export type SubmissionCreateManyCreatedByInput = {
 export type SubmissionCreateManyStaffInChargeInput = {
   id?: number
   projectId?: number | null
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -3199,9 +3199,9 @@ export type SubmissionCreateManyStaffInChargeInput = {
 }
 
 export type SubmissionUpdateWithoutCreatedByInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3233,9 +3233,9 @@ export type SubmissionUpdateWithoutCreatedByInput = {
 export type SubmissionUncheckedUpdateWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3266,9 +3266,9 @@ export type SubmissionUncheckedUpdateWithoutCreatedByInput = {
 export type SubmissionUncheckedUpdateManyWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3285,9 +3285,9 @@ export type SubmissionUncheckedUpdateManyWithoutCreatedByInput = {
 }
 
 export type SubmissionUpdateWithoutStaffInChargeInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3319,9 +3319,9 @@ export type SubmissionUpdateWithoutStaffInChargeInput = {
 export type SubmissionUncheckedUpdateWithoutStaffInChargeInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3352,9 +3352,9 @@ export type SubmissionUncheckedUpdateWithoutStaffInChargeInput = {
 export type SubmissionUncheckedUpdateManyWithoutStaffInChargeInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3372,9 +3372,9 @@ export type SubmissionUncheckedUpdateManyWithoutStaffInChargeInput = {
 
 export type SubmissionCreateManyProjectInput = {
   id?: number
-  submissionType: $Enums.SubmissionType
+  submissionType?: $Enums.SubmissionType | null
   sequenceNumber?: number
-  receivedDate: Date | string
+  receivedDate?: Date | string | null
   documentLink?: string | null
   completenessStatus?: $Enums.CompletenessStatus
   completenessRemarks?: string | null
@@ -3392,9 +3392,9 @@ export type SubmissionCreateManyProjectInput = {
 }
 
 export type SubmissionUpdateWithoutProjectInput = {
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3425,9 +3425,9 @@ export type SubmissionUpdateWithoutProjectInput = {
 
 export type SubmissionUncheckedUpdateWithoutProjectInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3458,9 +3458,9 @@ export type SubmissionUncheckedUpdateWithoutProjectInput = {
 
 export type SubmissionUncheckedUpdateManyWithoutProjectInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  submissionType?: Prisma.EnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
   sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  receivedDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
   completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3742,9 +3742,9 @@ export type $SubmissionPayload<ExtArgs extends runtime.Types.Extensions.Internal
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     projectId: number | null
-    submissionType: $Enums.SubmissionType
+    submissionType: $Enums.SubmissionType | null
     sequenceNumber: number
-    receivedDate: Date
+    receivedDate: Date | null
     documentLink: string | null
     completenessStatus: $Enums.CompletenessStatus
     completenessRemarks: string | null

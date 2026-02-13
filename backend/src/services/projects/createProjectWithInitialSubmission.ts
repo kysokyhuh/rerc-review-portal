@@ -2,6 +2,7 @@ import prisma from "../../config/prismaClient";
 import {
   FundingType,
   ProponentCategory,
+  ResearchTypePHREB,
   SubmissionType,
 } from "../../generated/prisma/client";
 import { parseReceivedDate } from "../imports/projectCsvImport";
@@ -31,12 +32,12 @@ export class DuplicateProjectCodeError extends Error {
 
 export interface CreateProjectWithInitialSubmissionInput {
   projectCode: string;
-  title: string;
-  piName: string;
+  title?: string | null;
+  piName?: string | null;
   committeeCode?: string;
   committeeId?: number;
-  submissionType: string;
-  receivedDate: string | Date;
+  submissionType?: string | null;
+  receivedDate?: string | Date | null;
   fundingType?: string | null;
   notes?: string | null;
   piAffiliation?: string | null;
@@ -44,26 +45,45 @@ export interface CreateProjectWithInitialSubmissionInput {
   proponentCategory?: string | null;
   department?: string | null;
   proponent?: string | null;
+  researchTypePHREB?: string | null;
+  researchTypePHREBOther?: string | null;
+  // Extra ProtocolProfile fields
+  panel?: string | null;
+  scientistReviewer?: string | null;
+  layReviewer?: string | null;
+  independentConsultant?: string | null;
+  honorariumStatus?: string | null;
+  classificationDate?: string | Date | null;
+  finishDate?: string | Date | null;
+  status?: string | null;
+  monthOfSubmission?: string | null;
+  monthOfClearance?: string | null;
 }
 
 const normalizeProjectCode = (value: string) => value.trim().toUpperCase();
 const normalizeString = (value: unknown) => String(value ?? "").trim();
 
-const parseFundingType = (value?: string | null): FundingType => {
+const parseFundingType = (value?: string | null): FundingType | null => {
   const raw = normalizeString(value);
-  if (!raw) return FundingType.NO_FUNDING;
+  if (!raw || raw.toUpperCase() === "N/A") return null;
   const normalized = raw.toUpperCase();
   if (normalized in FundingType) {
     return FundingType[normalized as keyof typeof FundingType];
   }
-  throw new ProjectCreateValidationError([
-    { field: "fundingType", message: "Invalid fundingType." },
-  ]);
+  const compact = normalized.replace(/[^A-Z]/g, "");
+  if (compact.includes("SELF")) return FundingType.SELF_FUNDED;
+  if (compact.includes("NOFUND") || compact === "NONE") return FundingType.NO_FUNDING;
+  if (compact.includes("INTERNAL") || compact.includes("RGMO")) return FundingType.INTERNAL;
+  if (compact.includes("EXTERNAL")) return FundingType.EXTERNAL;
+  if (compact.includes("GOVERNMENT") || compact.includes("GRANT")) return FundingType.EXTERNAL;
+  if (compact === "OTHERS" || compact === "OTHER") return FundingType.EXTERNAL;
+  return null;
 };
 
-const parseSubmissionType = (value: string): SubmissionType => {
+const parseSubmissionType = (value?: string | null): SubmissionType | null => {
   const normalized = normalizeString(value).toUpperCase().replace(/\s+/g, "_");
-  if (normalized && normalized in SubmissionType) {
+  if (!normalized) return null;
+  if (normalized in SubmissionType) {
     return SubmissionType[normalized as keyof typeof SubmissionType];
   }
   throw new ProjectCreateValidationError([
@@ -85,7 +105,23 @@ const parseProponentCategory = (
   ]);
 };
 
-const parseDate = (value: string | Date): Date => {
+const parseResearchTypePHREB = (
+  value?: string | null
+): ResearchTypePHREB | null => {
+  const raw = normalizeString(value);
+  if (!raw) return null;
+  const normalized = raw.toUpperCase().replace(/\s+/g, "_");
+  if (normalized in ResearchTypePHREB) {
+    return ResearchTypePHREB[normalized as keyof typeof ResearchTypePHREB];
+  }
+  throw new ProjectCreateValidationError([
+    { field: "researchTypePHREB", message: "Invalid research type." },
+  ]);
+};
+
+const parseDate = (value?: string | Date | null): Date | null => {
+  if (value == null) return null;
+  if (typeof value === "string" && !value.trim()) return null;
   if (value instanceof Date) {
     if (!Number.isNaN(value.getTime())) return value;
     throw new ProjectCreateValidationError([
@@ -114,12 +150,6 @@ export async function createProjectWithInitialSubmission(
 
   if (!projectCode) {
     fieldErrors.push({ field: "projectCode", message: "projectCode is required." });
-  }
-  if (!title) {
-    fieldErrors.push({ field: "title", message: "title is required." });
-  }
-  if (!piName) {
-    fieldErrors.push({ field: "piName", message: "piName is required." });
   }
   if (!committeeCode && !input.committeeId) {
     fieldErrors.push({ field: "committeeCode", message: "committeeCode is required." });
@@ -162,19 +192,24 @@ export async function createProjectWithInitialSubmission(
   const proponentCategory = parseProponentCategory(input.proponentCategory);
   const department = normalizeString(input.department || "") || null;
   const proponent = normalizeString(input.proponent || "") || null;
+  const researchTypePHREB = parseResearchTypePHREB(input.researchTypePHREB);
+  const researchTypePHREBOther =
+    normalizeString(input.researchTypePHREBOther || "") || null;
 
   const created = await prisma.$transaction(async (tx) => {
     const project = await tx.project.create({
       data: {
         projectCode,
-        title,
-        piName,
+        title: title || null,
+        piName: piName || null,
         piAffiliation,
         collegeOrUnit,
         proponentCategory,
         department,
         proponent,
         fundingType,
+        researchTypePHREB,
+        researchTypePHREBOther,
         committeeId: committeeId!,
         initialSubmissionDate: receivedDate,
         createdById: actorId,
@@ -192,6 +227,41 @@ export async function createProjectWithInitialSubmission(
         createdById: actorId,
       },
       select: { id: true },
+    });
+
+    const profileFinishDate = input.finishDate
+      ? (typeof input.finishDate === 'string' ? new Date(input.finishDate) : input.finishDate)
+      : null;
+    const profileClassificationDate = input.classificationDate
+      ? (typeof input.classificationDate === 'string' ? new Date(input.classificationDate) : input.classificationDate)
+      : null;
+
+    await tx.protocolProfile.create({
+      data: {
+        projectId: project.id,
+        title: title || null,
+        projectLeader: piName || null,
+        college: collegeOrUnit,
+        department,
+        dateOfSubmission: receivedDate,
+        monthOfSubmission:
+          normalizeString(input.monthOfSubmission || '') ||
+          (receivedDate ? receivedDate.toISOString().slice(0, 7) : null),
+        typeOfReview: submissionType ?? null,
+        proponent,
+        funding: fundingType ?? null,
+        typeOfResearchPhreb: researchTypePHREB ?? null,
+        typeOfResearchPhrebOther: researchTypePHREBOther,
+        status: normalizeString(input.status || '') || null,
+        finishDate: profileFinishDate && !Number.isNaN(profileFinishDate.getTime()) ? profileFinishDate : null,
+        monthOfClearance: normalizeString(input.monthOfClearance || '') || null,
+        remarks: notes,
+        panel: normalizeString(input.panel || '') || null,
+        scientistReviewer: normalizeString(input.scientistReviewer || '') || null,
+        layReviewer: normalizeString(input.layReviewer || '') || null,
+        independentConsultant: normalizeString(input.independentConsultant || '') || null,
+        honorariumStatus: normalizeString(input.honorariumStatus || '') || null,
+      },
     });
 
     return {

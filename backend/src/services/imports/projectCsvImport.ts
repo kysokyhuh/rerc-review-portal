@@ -24,7 +24,7 @@ export const PROJECT_IMPORT_HEADERS = [
   "remarks",
 ] as const;
 
-export const REQUIRED_PROJECT_FIELDS = [
+export const MAPPABLE_PROJECT_FIELDS = [
   "projectCode",
   "title",
   "piName",
@@ -34,11 +34,16 @@ export const REQUIRED_PROJECT_FIELDS = [
   "receivedDate",
 ] as const;
 
+export const REQUIRED_PROJECT_FIELDS = [
+  "projectCode",
+] as const;
+
+export type MappableProjectField = (typeof MAPPABLE_PROJECT_FIELDS)[number];
 export type RequiredProjectField = (typeof REQUIRED_PROJECT_FIELDS)[number];
 export type ProjectField = (typeof PROJECT_IMPORT_HEADERS)[number];
-export type ColumnMapping = Record<RequiredProjectField, string | null>;
+export type ColumnMapping = Record<MappableProjectField, string | null>;
 
-const HEADER_SYNONYMS: Record<RequiredProjectField, string[]> = {
+const HEADER_SYNONYMS: Record<MappableProjectField, string[]> = {
   projectCode: [
     "projectcode",
     "protocolcode",
@@ -57,7 +62,7 @@ const HEADER_SYNONYMS: Record<RequiredProjectField, string[]> = {
   ],
   fundingType: ["funding", "fundingtype", "sourceoffunding", "fundingsource"],
   committeeCode: ["committee", "committeecode", "committeeid", "ethicscommittee"],
-  submissionType: ["submissiontype", "typeofreview", "reviewtype", "submission"],
+  submissionType: ["submissiontype", "submission"],
   receivedDate: ["receiveddate", "datereceived", "dateofsubmission", "submissiondate"],
 };
 
@@ -96,6 +101,7 @@ export interface RowError {
 
 export interface PreviewPayload {
   detectedHeaders: string[];
+  previewRowNumbers: number[];
   previewRows: Record<string, string>[];
   suggestedMapping: ColumnMapping;
   missingRequiredFields: RequiredProjectField[];
@@ -104,20 +110,21 @@ export interface PreviewPayload {
 
 export interface ValidatedProjectRow {
   rowNumber: number;
+  raw: Record<string, string>;
   projectCode: string;
-  title: string;
-  piName: string;
+  title: string | null;
+  piName: string | null;
   piAffiliation: string | null;
   collegeOrUnit: string | null;
   proponentCategory: ProponentCategory | null;
   department: string | null;
   proponent: string | null;
-  fundingType: FundingType;
+  fundingType: FundingType | null;
   researchTypePHREB: ResearchTypePHREB | null;
   researchTypePHREBOther: string | null;
   committeeId: number;
-  submissionType: SubmissionType;
-  receivedDate: Date;
+  submissionType: SubmissionType | null;
+  receivedDate: Date | null;
   remarks: string | null;
 }
 
@@ -183,6 +190,8 @@ const parseFundingType = (value: string): FundingType | null => {
   if (compact.includes("NOFUND") || compact === "NONE") return FundingType.NO_FUNDING;
   if (compact.includes("INTERNAL") || compact.includes("RGMO")) return FundingType.INTERNAL;
   if (compact.includes("EXTERNAL")) return FundingType.EXTERNAL;
+  if (compact.includes("GOVERNMENT") || compact.includes("GRANT")) return FundingType.EXTERNAL;
+  if (compact === "OTHERS" || compact === "OTHER") return FundingType.EXTERNAL;
   return null;
 };
 
@@ -281,7 +290,14 @@ export const suggestColumnMapping = (detectedHeaders: string[]): ColumnMapping =
     normalized: normalizeHeaderKey(header),
   }));
 
-  for (const field of REQUIRED_PROJECT_FIELDS) {
+  // Product rule: first CSV column is always projectCode.
+  if (detectedHeaders.length > 0) {
+    mapping.projectCode = detectedHeaders[0];
+    usedHeaders.add(detectedHeaders[0]);
+  }
+
+  for (const field of MAPPABLE_PROJECT_FIELDS) {
+    if (field === "projectCode") continue;
     const canonicalKey = normalizeHeaderKey(field);
     const directMatch = normalizedHeaderLookup.find(
       (header) => header.normalized === canonicalKey && !usedHeaders.has(header.original)
@@ -320,6 +336,14 @@ export const buildPreviewPayload = (
   if (missingRequiredFields.length > 0) {
     warnings.push("We can't find these required fields. Map columns to continue.");
   }
+  const missingOptionalCoreFields = MAPPABLE_PROJECT_FIELDS.filter(
+    (field) => !REQUIRED_PROJECT_FIELDS.includes(field as RequiredProjectField) && !suggestedMapping[field]
+  );
+  if (missingOptionalCoreFields.length > 0) {
+    warnings.push(
+      "Some core fields are missing in this file and will be left blank until backfilled."
+    );
+  }
 
   const normalizedCounts = new Map<string, number>();
   parsed.detectedHeaders.forEach((header) => {
@@ -337,6 +361,7 @@ export const buildPreviewPayload = (
 
   return {
     detectedHeaders: parsed.detectedHeaders,
+    previewRowNumbers: parsed.rows.slice(0, config.previewRows).map((row) => row.rowNumber),
     previewRows: parsed.rows.slice(0, config.previewRows).map((row) => row.raw),
     suggestedMapping,
     missingRequiredFields,
@@ -375,7 +400,7 @@ export const normalizeCommitMapping = (
     receivedDate: null,
   };
 
-  for (const field of REQUIRED_PROJECT_FIELDS) {
+  for (const field of MAPPABLE_PROJECT_FIELDS) {
     const selectedHeader = rawMapping[field];
     if (typeof selectedHeader !== "string" || !selectedHeader.trim()) {
       mapping[field] = null;
@@ -395,12 +420,14 @@ export const validateMappedProjectRows = ({
   parsed,
   mapping,
   committeeCodeMap,
+  defaultCommitteeId = null,
   existingProjectCodes,
   config = DEFAULT_IMPORT_CONFIG,
 }: {
   parsed: ParsedCsvData;
   mapping: ColumnMapping;
   committeeCodeMap: Map<string, number>;
+  defaultCommitteeId?: number | null;
   existingProjectCodes: Set<string>;
   config?: ImportConfig;
 }): { validRows: ValidatedProjectRow[]; errors: RowError[] } => {
@@ -420,8 +447,9 @@ export const validateMappedProjectRows = ({
   for (const row of parsed.rows) {
     const rowErrors: RowError[] = [];
 
-    const getMapped = (field: RequiredProjectField) => {
-      const header = mapping[field] as string;
+    const getMapped = (field: MappableProjectField) => {
+      const header = mapping[field];
+      if (!header) return "";
       return normalizeValue(row.raw[header]);
     };
 
@@ -436,25 +464,6 @@ export const validateMappedProjectRows = ({
     if (!projectCodeRaw) {
       rowErrors.push({ row: row.rowNumber, field: "projectCode", message: "projectCode is required." });
     }
-    if (!title) {
-      rowErrors.push({ row: row.rowNumber, field: "title", message: "title is required." });
-    }
-    if (!piName) {
-      rowErrors.push({ row: row.rowNumber, field: "piName", message: "piName is required." });
-    }
-    if (!fundingRaw) {
-      rowErrors.push({ row: row.rowNumber, field: "fundingType", message: "fundingType is required." });
-    }
-    if (!committeeCodeRaw) {
-      rowErrors.push({ row: row.rowNumber, field: "committeeCode", message: "committeeCode is required." });
-    }
-    if (!submissionRaw) {
-      rowErrors.push({ row: row.rowNumber, field: "submissionType", message: "submissionType is required." });
-    }
-    if (!receivedRaw) {
-      rowErrors.push({ row: row.rowNumber, field: "receivedDate", message: "receivedDate is required." });
-    }
-
     const projectCode = normalizeProjectCode(projectCodeRaw);
     if (projectCode) {
       if (seenProjectCodes.has(projectCode)) {
@@ -482,9 +491,18 @@ export const validateMappedProjectRows = ({
     }
 
     const committeeCode = committeeCodeRaw.toUpperCase();
-    const committeeId = committeeCodeMap.get(committeeCode);
+    const committeeId = committeeCodeRaw
+      ? committeeCodeMap.get(committeeCode) ?? null
+      : defaultCommitteeId;
     if (committeeCodeRaw && !committeeId) {
       rowErrors.push({ row: row.rowNumber, field: "committeeCode", message: "committeeCode does not exist." });
+    }
+    if (!committeeId) {
+      rowErrors.push({
+        row: row.rowNumber,
+        field: "committeeCode",
+        message: "No default committee is available for this import.",
+      });
     }
 
     for (const [field, value] of Object.entries(row.raw)) {
@@ -528,9 +546,10 @@ export const validateMappedProjectRows = ({
 
     validRows.push({
       rowNumber: row.rowNumber,
+      raw: row.raw,
       projectCode,
-      title,
-      piName,
+      title: title || null,
+      piName: piName || null,
       piAffiliation: normalizeValue(row.raw.piAffiliation) || null,
       collegeOrUnit:
         normalizeValue(row.raw.collegeOrUnit) ||
@@ -539,12 +558,12 @@ export const validateMappedProjectRows = ({
       proponentCategory: proponentCategory ?? null,
       department: normalizeValue(row.raw.department) || null,
       proponent: normalizeValue(row.raw.proponent) || null,
-      fundingType: fundingType!,
+      fundingType: fundingType ?? null,
       researchTypePHREB: researchType ?? null,
       researchTypePHREBOther: researchTypeOther,
       committeeId: committeeId!,
-      submissionType: submissionType!,
-      receivedDate: receivedDate!,
+      submissionType: submissionType ?? null,
+      receivedDate: receivedDate ?? null,
       remarks: normalizeValue(row.raw.remarks) || null,
     });
   }

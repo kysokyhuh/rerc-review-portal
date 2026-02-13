@@ -542,7 +542,7 @@ const backfillSubmissionDecisions = async () => {
 
   for (const s of submissions) {
     if (!s.finalDecision) continue;
-    const decidedAt = s.finalDecisionDate ?? s.receivedDate;
+    const decidedAt = s.finalDecisionDate ?? s.receivedDate ?? new Date();
     const validTo = s.finalDecisionDate
       ? new Date(new Date(s.finalDecisionDate).getTime() + 365 * 24 * 60 * 60 * 1000)
       : null;

@@ -63,6 +63,16 @@ export type CommitteeMember = Prisma.CommitteeMemberModel
  */
 export type Project = Prisma.ProjectModel
 /**
+ * Model ProtocolProfile
+ * 
+ */
+export type ProtocolProfile = Prisma.ProtocolProfileModel
+/**
+ * Model ProtocolMilestone
+ * 
+ */
+export type ProtocolMilestone = Prisma.ProtocolMilestoneModel
+/**
  * Model AcademicTerm
  * 
  */

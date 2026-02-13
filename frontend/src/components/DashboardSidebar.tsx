@@ -37,20 +37,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
             </svg>
             Dashboard
           </NavLink>
-          <button className="nav-item" type="button" aria-disabled="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            All Submissions
-          </button>
-          <button className="nav-item" type="button" aria-disabled="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
-            </svg>
-            Reviewers
-          </button>
         </div>
 
         <div className="nav-section">
@@ -94,13 +80,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
             </svg>
             New Protocol
           </button>
-          <button className="nav-item" type="button" aria-disabled="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-              <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
-            </svg>
-            Letter Generator
-          </button>
           <NavLink to="/imports/projects" className={navClassName}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 3v12" />
@@ -123,6 +102,13 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
               <path d="M10 12h4" />
             </svg>
             Archives
+          </NavLink>
+          <NavLink to="/holidays" className={navClassName}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <path d="M16 2v4M8 2v4M3 10h18" />
+            </svg>
+            Holidays
           </NavLink>
         </div>
       </nav>

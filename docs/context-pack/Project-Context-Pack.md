@@ -1,6 +1,6 @@
 # RERC Review Portal — Project Context Pack
 
-**Generated:** February 11, 2026  
+**Generated:** February 12, 2026  
 **Repository:** `rerc-review-portal`  
 **Version:** 0.1.0
 
@@ -840,6 +840,42 @@ cd backend && npm test
 #### Dependency/Lockfile Updates
 - `backend/package-lock.json` updated with backend schema/client-related dependency state.
 - `frontend/package-lock.json` updated as part of local dependency synchronization.
+
+---
+
+### February 12, 2026
+
+#### Legacy CSV Compliance Direction (Approved; Implementation In Progress)
+- **Compliance target selected:** normalized schema + computed/derived metrics (not literal 1:1 denormalized storage).
+- **Legacy ambiguity policy:** preserve raw legacy values when mapping is uncertain.
+- **Unknown status handling:** `Unknown` maps to safe normalized status and is flagged so it does not contaminate operational dashboards by default.
+- **Deterministic clearance anchor:** clearance/issuance date is persisted as a workflow event (`CLEARANCE_ISSUED`).
+
+#### Planned Schema Deltas (PR Spec Locked)
+- Add `Submission.isLegacyAmbiguous` (`Boolean`, default `false`).
+- Add `Submission.legacyStatusRaw` and `Submission.legacyReviewTypeRaw` (nullable strings).
+- Add `FollowUpRequest` entity for post-approval tracking (Progress/Final/Amendment/Continuing) with cycle support.
+- Add/extend enums for legacy mapping compatibility:
+  - `FundingType.OTHER`
+  - `ProponentCategory.STAFF`
+  - `WorkflowEventType.CLEARANCE_ISSUED`
+  - `ReviewerRoundRole.INDEPENDENT_CONSULTANT`
+- Make `Holiday.date` date-only storage (`@db.Date`) and keep unique by date.
+
+#### Idempotent Import Keys (Must-Have)
+- `WorkflowEvent`: unique `(submissionId, eventType, cycleNumber)`.
+- `FollowUpRequest`: unique `(projectId, type, cycleNumber)`.
+- `ReviewAssignment`: unique `(submissionId, roundSequence, reviewerRole)` used for deterministic role-slot upserts.
+
+#### Importer Behavior (Planned)
+- Canonical header normalization for messy CSV headers (newline cleanup, dedupe, context-aware `# days` disambiguation).
+- Table-driven value mapping for `Status`, `Funding`, `ProponentCategory`, and `ResearchTypePHREB`.
+- Per-row transactional upsert with continue-on-error batch processing.
+- Import report emits inserted/updated/failed counts and row-level reasons.
+
+#### Reporting/Dashboard Guardrail (Planned)
+- Dashboard and report queries will exclude `isLegacyAmbiguous=true` by default.
+- Audit flows can opt in to include ambiguous legacy records explicitly.
 
 ---
 

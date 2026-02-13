@@ -13,6 +13,36 @@ import {
 
 const router = Router();
 
+const asNullableString = (value: unknown) => {
+  if (value === null || value === undefined) return null;
+  const normalized = String(value).trim();
+  return normalized ? normalized : null;
+};
+
+const asNullableInt = (value: unknown) => {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.trunc(parsed) : null;
+};
+
+const asNullableBoolean = (value: unknown) => {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "boolean") return value;
+  const normalized = String(value).trim().toLowerCase();
+  if (["true", "1", "yes"].includes(normalized)) return true;
+  if (["false", "0", "no"].includes(normalized)) return false;
+  return null;
+};
+
+const asNullableDate = (value: unknown) => {
+  if (value === null || value === undefined || value === "") return null;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+  const parsed = new Date(String(value));
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
 // Create project + initial submission via individual entry form
 router.post(
   "/projects",
@@ -29,7 +59,22 @@ router.post(
       receivedDate,
       notes,
       collegeOrUnit,
+      department,
+      proponent,
+      researchTypePHREB,
+      researchTypePHREBOther,
       proponentCategory,
+      // Extra ProtocolProfile fields
+      panel,
+      scientistReviewer,
+      layReviewer,
+      independentConsultant,
+      honorariumStatus,
+      classificationDate,
+      finishDate,
+      status,
+      monthOfSubmission,
+      monthOfClearance,
     } = req.body;
 
     const created = await createProjectWithInitialSubmission(
@@ -43,7 +88,21 @@ router.post(
         fundingType,
         notes,
         collegeOrUnit,
+        department,
+        proponent,
+        researchTypePHREB,
+        researchTypePHREBOther,
         proponentCategory,
+        panel,
+        scientistReviewer,
+        layReviewer,
+        independentConsultant,
+        honorariumStatus,
+        classificationDate,
+        finishDate,
+        status: status,
+        monthOfSubmission,
+        monthOfClearance,
       },
       req.user?.id
     );
@@ -346,6 +405,10 @@ router.get("/projects/:id/full", async (req, res) => {
       include: {
         committee: true,
         createdBy: true,
+        protocolProfile: true,
+        protocolMilestones: {
+          orderBy: [{ orderIndex: "asc" }, { id: "asc" }],
+        },
         submissions: {
           orderBy: [{ receivedDate: "asc" }, { id: "asc" }],
           include: {
@@ -376,6 +439,233 @@ router.get("/projects/:id/full", async (req, res) => {
     res.status(500).json({ message: "Failed to fetch project lifecycle" });
   }
 });
+
+router.get("/projects/:id/profile", async (req, res) => {
+  try {
+    const projectId = Number(req.params.id);
+    if (Number.isNaN(projectId)) {
+      return res.status(400).json({ message: "Invalid project id" });
+    }
+
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: {
+        id: true,
+        protocolProfile: true,
+        protocolMilestones: {
+          orderBy: [{ orderIndex: "asc" }, { id: "asc" }],
+        },
+      },
+    });
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+    return res.json({
+      profile: project.protocolProfile,
+      milestones: project.protocolMilestones,
+    });
+  } catch (error) {
+    console.error("Error fetching protocol profile:", error);
+    return res.status(500).json({ message: "Failed to fetch protocol profile" });
+  }
+});
+
+router.put(
+  "/projects/:id/profile",
+  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  async (req, res) => {
+    try {
+      const projectId = Number(req.params.id);
+      if (Number.isNaN(projectId)) {
+        return res.status(400).json({ message: "Invalid project id" });
+      }
+
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: { id: true },
+      });
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      const payload = req.body ?? {};
+      const data = {
+        title: asNullableString(payload.title),
+        projectLeader: asNullableString(payload.projectLeader),
+        college: asNullableString(payload.college),
+        department: asNullableString(payload.department),
+        dateOfSubmission: asNullableDate(payload.dateOfSubmission),
+        monthOfSubmission: asNullableString(payload.monthOfSubmission),
+        typeOfReview: asNullableString(payload.typeOfReview),
+        proponent: asNullableString(payload.proponent),
+        funding: asNullableString(payload.funding),
+        typeOfResearchPhreb: asNullableString(payload.typeOfResearchPhreb),
+        typeOfResearchPhrebOther: asNullableString(payload.typeOfResearchPhrebOther),
+        status: asNullableString(payload.status),
+        finishDate: asNullableDate(payload.finishDate),
+        monthOfClearance: asNullableString(payload.monthOfClearance),
+        reviewDurationDays: asNullableInt(payload.reviewDurationDays),
+        remarks: asNullableString(payload.remarks),
+        panel: asNullableString(payload.panel),
+        scientistReviewer: asNullableString(payload.scientistReviewer),
+        layReviewer: asNullableString(payload.layReviewer),
+        independentConsultant: asNullableString(payload.independentConsultant),
+        honorariumStatus: asNullableString(payload.honorariumStatus),
+        classificationOfProposalRerc: asNullableString(payload.classificationOfProposalRerc),
+        totalDays: asNullableInt(payload.totalDays),
+        submissionCount: asNullableInt(payload.submissionCount),
+        withdrawn: asNullableBoolean(payload.withdrawn),
+        projectEndDate6A: asNullableDate(payload.projectEndDate6A),
+        clearanceExpiration: asNullableDate(payload.clearanceExpiration),
+        progressReportTargetDate: asNullableDate(payload.progressReportTargetDate),
+        progressReportSubmission: asNullableDate(payload.progressReportSubmission),
+        progressReportApprovalDate: asNullableDate(payload.progressReportApprovalDate),
+        progressReportStatus: asNullableString(payload.progressReportStatus),
+        progressReportDays: asNullableInt(payload.progressReportDays),
+        finalReportTargetDate: asNullableDate(payload.finalReportTargetDate),
+        finalReportSubmission: asNullableDate(payload.finalReportSubmission),
+        finalReportCompletionDate: asNullableDate(payload.finalReportCompletionDate),
+        finalReportStatus: asNullableString(payload.finalReportStatus),
+        finalReportDays: asNullableInt(payload.finalReportDays),
+        amendmentSubmission: asNullableDate(payload.amendmentSubmission),
+        amendmentStatusOfRequest: asNullableString(payload.amendmentStatusOfRequest),
+        amendmentApprovalDate: asNullableDate(payload.amendmentApprovalDate),
+        amendmentDays: asNullableInt(payload.amendmentDays),
+        continuingSubmission: asNullableDate(payload.continuingSubmission),
+        continuingStatusOfRequest: asNullableString(payload.continuingStatusOfRequest),
+        continuingApprovalDate: asNullableDate(payload.continuingApprovalDate),
+        continuingDays: asNullableInt(payload.continuingDays),
+        primaryReviewer: asNullableString(payload.primaryReviewer),
+        finalLayReviewer: asNullableString(payload.finalLayReviewer),
+      };
+
+      const profile = await prisma.protocolProfile.upsert({
+        where: { projectId },
+        update: data,
+        create: {
+          projectId,
+          ...data,
+        },
+      });
+      return res.json(profile);
+    } catch (error) {
+      console.error("Error upserting protocol profile:", error);
+      return res.status(500).json({ message: "Failed to save protocol profile" });
+    }
+  }
+);
+
+router.post(
+  "/projects/:id/profile/milestones",
+  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  async (req, res) => {
+    try {
+      const projectId = Number(req.params.id);
+      if (Number.isNaN(projectId)) {
+        return res.status(400).json({ message: "Invalid project id" });
+      }
+
+      const label = asNullableString(req.body?.label);
+      if (!label) {
+        return res.status(400).json({ message: "label is required" });
+      }
+
+      const created = await prisma.protocolMilestone.create({
+        data: {
+          projectId,
+          label,
+          orderIndex: asNullableInt(req.body?.orderIndex) ?? 0,
+          days: asNullableInt(req.body?.days),
+          dateOccurred: asNullableDate(req.body?.dateOccurred),
+          ownerRole: asNullableString(req.body?.ownerRole),
+          notes: asNullableString(req.body?.notes),
+        },
+      });
+      return res.status(201).json(created);
+    } catch (error) {
+      console.error("Error creating protocol milestone:", error);
+      return res.status(500).json({ message: "Failed to create milestone" });
+    }
+  }
+);
+
+router.patch(
+  "/projects/:id/profile/milestones/:milestoneId",
+  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  async (req, res) => {
+    try {
+      const projectId = Number(req.params.id);
+      const milestoneId = Number(req.params.milestoneId);
+      if (Number.isNaN(projectId) || Number.isNaN(milestoneId)) {
+        return res.status(400).json({ message: "Invalid id" });
+      }
+
+      const existing = await prisma.protocolMilestone.findUnique({
+        where: { id: milestoneId },
+        select: { id: true, projectId: true },
+      });
+      if (!existing || existing.projectId !== projectId) {
+        return res.status(404).json({ message: "Milestone not found" });
+      }
+
+      const updated = await prisma.protocolMilestone.update({
+        where: { id: milestoneId },
+        data: {
+          label: asNullableString(req.body?.label) ?? undefined,
+          orderIndex: asNullableInt(req.body?.orderIndex) ?? undefined,
+          days: req.body?.days === undefined ? undefined : asNullableInt(req.body?.days),
+          dateOccurred:
+            req.body?.dateOccurred === undefined
+              ? undefined
+              : asNullableDate(req.body?.dateOccurred),
+          ownerRole:
+            req.body?.ownerRole === undefined
+              ? undefined
+              : asNullableString(req.body?.ownerRole),
+          notes:
+            req.body?.notes === undefined
+              ? undefined
+              : asNullableString(req.body?.notes),
+        },
+      });
+
+      return res.json(updated);
+    } catch (error) {
+      console.error("Error updating protocol milestone:", error);
+      return res.status(500).json({ message: "Failed to update milestone" });
+    }
+  }
+);
+
+router.delete(
+  "/projects/:id/profile/milestones/:milestoneId",
+  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  async (req, res) => {
+    try {
+      const projectId = Number(req.params.id);
+      const milestoneId = Number(req.params.milestoneId);
+      if (Number.isNaN(projectId) || Number.isNaN(milestoneId)) {
+        return res.status(400).json({ message: "Invalid id" });
+      }
+
+      const existing = await prisma.protocolMilestone.findUnique({
+        where: { id: milestoneId },
+        select: { id: true, projectId: true },
+      });
+      if (!existing || existing.projectId !== projectId) {
+        return res.status(404).json({ message: "Milestone not found" });
+      }
+
+      await prisma.protocolMilestone.delete({
+        where: { id: milestoneId },
+      });
+      return res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting protocol milestone:", error);
+      return res.status(500).json({ message: "Failed to delete milestone" });
+    }
+  }
+);
 
 // Create a submission for a project (initial, amendment, etc.)
 router.post("/projects/:projectId/submissions", async (req, res) => {

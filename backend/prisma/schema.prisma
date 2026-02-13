@@ -284,8 +284,8 @@ model CommitteeMember {
 model Project {
   id                     Int                @id @default(autoincrement())
   projectCode            String?            @unique // e.g. "2025-350"
-  title                  String
-  piName                 String
+  title                  String?
+  piName                 String?
   piSurname              String?
   piAffiliation          String? // College
   collegeOrUnit          String? // reporting dimension for college/service unit
@@ -295,7 +295,7 @@ model Project {
   keywords               String[]           @default([])
   researchTypePHREB      ResearchTypePHREB?
   researchTypePHREBOther String? // For "Other" specification
-  fundingType            FundingType
+  fundingType            FundingType?
   initialSubmissionDate  DateTime?
   proposedStartDate      DateTime?
   proposedEndDate        DateTime?
@@ -315,8 +315,81 @@ model Project {
   proponents    ProjectProponent[]
   members       ProjectMember[]
   changeLog     ProjectChangeLog[]
+  protocolProfile ProtocolProfile?
+  protocolMilestones ProtocolMilestone[]
   createdBy     User?                  @relation("ProjectsCreated", fields: [createdById], references: [id])
   createdById   Int?
+}
+
+model ProtocolProfile {
+  id                             Int      @id @default(autoincrement())
+  project                        Project  @relation(fields: [projectId], references: [id])
+  projectId                      Int      @unique
+  title                          String?
+  projectLeader                  String?
+  college                        String?
+  department                     String?
+  dateOfSubmission               DateTime?
+  monthOfSubmission              String?
+  typeOfReview                   String?
+  proponent                      String?
+  funding                        String?
+  typeOfResearchPhreb            String?
+  typeOfResearchPhrebOther       String?
+  status                         String?
+  finishDate                     DateTime?
+  monthOfClearance               String?
+  reviewDurationDays             Int?
+  remarks                        String?
+  panel                          String?
+  scientistReviewer              String?
+  layReviewer                    String?
+  independentConsultant          String?
+  honorariumStatus               String?
+  classificationOfProposalRerc   String?
+  totalDays                      Int?
+  submissionCount                Int?
+  withdrawn                      Boolean?
+  projectEndDate6A               DateTime?
+  clearanceExpiration            DateTime?
+  progressReportTargetDate       DateTime?
+  progressReportSubmission       DateTime?
+  progressReportApprovalDate     DateTime?
+  progressReportStatus           String?
+  progressReportDays             Int?
+  finalReportTargetDate          DateTime?
+  finalReportSubmission          DateTime?
+  finalReportCompletionDate      DateTime?
+  finalReportStatus              String?
+  finalReportDays                Int?
+  amendmentSubmission            DateTime?
+  amendmentStatusOfRequest       String?
+  amendmentApprovalDate          DateTime?
+  amendmentDays                  Int?
+  continuingSubmission           DateTime?
+  continuingStatusOfRequest      String?
+  continuingApprovalDate         DateTime?
+  continuingDays                 Int?
+  primaryReviewer                String?
+  finalLayReviewer               String?
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+}
+
+model ProtocolMilestone {
+  id             Int      @id @default(autoincrement())
+  project        Project  @relation(fields: [projectId], references: [id])
+  projectId      Int
+  orderIndex     Int      @default(0)
+  label          String
+  days           Int?
+  dateOccurred   DateTime?
+  ownerRole      String?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([projectId, orderIndex])
 }
 
 model AcademicTerm {
@@ -390,13 +463,13 @@ model ProjectSnapshot {
   project                Project            @relation(fields: [projectId], references: [id])
   projectId              Int
   projectCode            String?
-  title                  String
-  piName                 String
+  title                  String?
+  piName                 String?
   piSurname              String?
   piAffiliation          String?
   department             String?
   proponent              String?
-  fundingType            FundingType
+  fundingType            FundingType?
   researchTypePHREB      ResearchTypePHREB?
   researchTypePHREBOther String?
   initialSubmissionDate  DateTime?
@@ -415,9 +488,9 @@ model Submission {
   id                      Int                @id @default(autoincrement())
   project                 Project?           @relation(fields: [projectId], references: [id])
   projectId               Int?
-  submissionType          SubmissionType
+  submissionType          SubmissionType?
   sequenceNumber          Int                @default(1) // 1 = initial, higher for follow-ups
-  receivedDate            DateTime
+  receivedDate            DateTime?
   documentLink            String? // e.g. Google Drive folder URL
   completenessStatus      CompletenessStatus @default(COMPLETE)
   completenessRemarks     String?

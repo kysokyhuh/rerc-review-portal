@@ -56,6 +56,8 @@ export const ModelName = {
   Panel: 'Panel',
   CommitteeMember: 'CommitteeMember',
   Project: 'Project',
+  ProtocolProfile: 'ProtocolProfile',
+  ProtocolMilestone: 'ProtocolMilestone',
   AcademicTerm: 'AcademicTerm',
   Proponent: 'Proponent',
   ProjectProponent: 'ProjectProponent',
@@ -181,6 +183,79 @@ export const ProjectScalarFieldEnum = {
 } as const
 
 export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
+
+
+export const ProtocolProfileScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  title: 'title',
+  projectLeader: 'projectLeader',
+  college: 'college',
+  department: 'department',
+  dateOfSubmission: 'dateOfSubmission',
+  monthOfSubmission: 'monthOfSubmission',
+  typeOfReview: 'typeOfReview',
+  proponent: 'proponent',
+  funding: 'funding',
+  typeOfResearchPhreb: 'typeOfResearchPhreb',
+  typeOfResearchPhrebOther: 'typeOfResearchPhrebOther',
+  status: 'status',
+  finishDate: 'finishDate',
+  monthOfClearance: 'monthOfClearance',
+  reviewDurationDays: 'reviewDurationDays',
+  remarks: 'remarks',
+  panel: 'panel',
+  scientistReviewer: 'scientistReviewer',
+  layReviewer: 'layReviewer',
+  independentConsultant: 'independentConsultant',
+  honorariumStatus: 'honorariumStatus',
+  classificationOfProposalRerc: 'classificationOfProposalRerc',
+  totalDays: 'totalDays',
+  submissionCount: 'submissionCount',
+  withdrawn: 'withdrawn',
+  projectEndDate6A: 'projectEndDate6A',
+  clearanceExpiration: 'clearanceExpiration',
+  progressReportTargetDate: 'progressReportTargetDate',
+  progressReportSubmission: 'progressReportSubmission',
+  progressReportApprovalDate: 'progressReportApprovalDate',
+  progressReportStatus: 'progressReportStatus',
+  progressReportDays: 'progressReportDays',
+  finalReportTargetDate: 'finalReportTargetDate',
+  finalReportSubmission: 'finalReportSubmission',
+  finalReportCompletionDate: 'finalReportCompletionDate',
+  finalReportStatus: 'finalReportStatus',
+  finalReportDays: 'finalReportDays',
+  amendmentSubmission: 'amendmentSubmission',
+  amendmentStatusOfRequest: 'amendmentStatusOfRequest',
+  amendmentApprovalDate: 'amendmentApprovalDate',
+  amendmentDays: 'amendmentDays',
+  continuingSubmission: 'continuingSubmission',
+  continuingStatusOfRequest: 'continuingStatusOfRequest',
+  continuingApprovalDate: 'continuingApprovalDate',
+  continuingDays: 'continuingDays',
+  primaryReviewer: 'primaryReviewer',
+  finalLayReviewer: 'finalLayReviewer',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProtocolProfileScalarFieldEnum = (typeof ProtocolProfileScalarFieldEnum)[keyof typeof ProtocolProfileScalarFieldEnum]
+
+
+export const ProtocolMilestoneScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  orderIndex: 'orderIndex',
+  label: 'label',
+  days: 'days',
+  dateOccurred: 'dateOccurred',
+  ownerRole: 'ownerRole',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProtocolMilestoneScalarFieldEnum = (typeof ProtocolMilestoneScalarFieldEnum)[keyof typeof ProtocolMilestoneScalarFieldEnum]
 
 
 export const AcademicTermScalarFieldEnum = {

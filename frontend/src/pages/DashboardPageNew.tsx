@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDashboardQueues } from "@/hooks/useDashboardQueues";
-import { useDashboardActivity } from "@/hooks/useDashboardActivity";
 import { useDashboardOverdue } from "@/hooks/useDashboardOverdue";
 import {
   DashboardFilters,
@@ -20,7 +19,6 @@ import type {
 } from "@/types";
 import { DUE_SOON_THRESHOLD } from "@/constants";
 import { BRAND } from "@/config/branding";
-import { DashboardSidebar } from "@/components/DashboardSidebar";
 import "../styles/dashboard.css";
 
 // Get greeting based on time of day
@@ -61,12 +59,47 @@ function formatShortDate(value?: string | Date | null): string {
   });
 }
 
-type CollapsedPanels = {
-  actionNow: boolean;
-  overdue: boolean;
-  quickActions: boolean;
-  activity: boolean;
+const OWNER_BADGE_META: Record<
+  string,
+  { label: string; icon: string; cssClass: string; reason: string }
+> = {
+  PROJECT_LEADER_RESEARCHER_PROPONENT: {
+    label: "Researcher",
+    icon: "\u25CE",
+    cssClass: "researcher",
+    reason: "Waiting on project leader/researcher/proponent action",
+  },
+  REVIEWER_GROUP: {
+    label: "Reviewer",
+    icon: "\u2611",
+    cssClass: "reviewer",
+    reason: "Waiting on reviewer or consultant action",
+  },
+  RESEARCH_ASSOCIATE_PROCESSING_STAFF: {
+    label: "Staff",
+    icon: "\u25A3",
+    cssClass: "staff",
+    reason: "Waiting on staff processing/routing",
+  },
+  COMMITTEE_CHAIRPERSON_DESIGNATE: {
+    label: "Chairperson",
+    icon: "\u2713",
+    cssClass: "chairperson",
+    reason: "Waiting on chairperson decision/finalization",
+  },
+  UNASSIGNED_PROCESS_GAP: {
+    label: "Unassigned",
+    icon: "\u26A0",
+    cssClass: "unassigned",
+    reason: "Missing actionable assignee or routing metadata",
+  },
 };
+
+type CollapsedPanels = {
+  overdue: boolean;
+};
+
+const PAGE_SIZE = 15;
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -83,14 +116,19 @@ export const DashboardPage: React.FC = () => {
     | "blocked"
     | "unassigned"
   >("all");
-  const [slaFilter, setSlaFilter] = useState<
-    "all" | "on-track" | "due-soon" | "overdue" | "paused"
-  >("all");
+  // Removed separate slaFilter — merged into queueFilter
   const [dismissedAnnouncements, setDismissedAnnouncements] = useState<string[]>([]);
   const [overdueTab, setOverdueTab] = useState<
     "submissions" | "reviewers" | "endorsements" | "due-soon"
   >("submissions");
-  const [letterModalOpen, setLetterModalOpen] = useState(false);
+  const [overdueOwnerFilter, setOverdueOwnerFilter] = useState<
+    | "all"
+    | "PROJECT_LEADER_RESEARCHER_PROPONENT"
+    | "REVIEWER_GROUP"
+    | "RESEARCH_ASSOCIATE_PROCESSING_STAFF"
+    | "COMMITTEE_CHAIRPERSON_DESIGNATE"
+    | "UNASSIGNED_PROCESS_GAP"
+  >("all");
   const [searchResults, setSearchResults] = useState<ProjectSearchResult[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -108,21 +146,11 @@ export const DashboardPage: React.FC = () => {
   const [quickViewLoading, setQuickViewLoading] = useState(false);
   const [quickViewError, setQuickViewError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [railCollapsed, setRailCollapsed] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem("dashboardRailCollapsed") === "true";
-  });
-  const [density, setDensity] = useState<"compact" | "comfortable">(() => {
-    if (typeof window === "undefined") return "comfortable";
-    return (window.localStorage.getItem("dashboardDensity") as "compact" | "comfortable") ?? "comfortable";
-  });
+  const density = "comfortable" as const;
   const [collapsedPanels, setCollapsedPanels] = useState<CollapsedPanels>(() => {
     if (typeof window === "undefined") {
       return {
-        actionNow: false,
         overdue: false,
-        quickActions: false,
-        activity: false,
       };
     }
     try {
@@ -130,31 +158,35 @@ export const DashboardPage: React.FC = () => {
       return stored
         ? JSON.parse(stored)
         : {
-            actionNow: false,
             overdue: false,
-            quickActions: false,
-            activity: false,
           };
     } catch {
       return {
-        actionNow: false,
         overdue: false,
-        quickActions: false,
-        activity: false,
       };
     }
   });
-  const [activityFilter, setActivityFilter] = useState<
-    "all" | "classification" | "review" | "revision"
-  >("all");
   const [dashboardFilters, setDashboardFilters] = useState<Record<string, string>>({});
+  const [currentPage, setCurrentPage] = useState(1);
   const tableRef = useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const fromLogin = Boolean((location.state as { fromLogin?: boolean } | null)?.fromLogin);
 
   useEffect(() => {
-    document.title = "URERD Portal — Dashboard Overview";
+    document.title = "URERB Portal — Dashboard Overview";
   }, []);
+
+  // Reset owner role filter when not on overdue/due-soon tabs
+  useEffect(() => {
+    if (queueFilter !== "overdue" && queueFilter !== "due-soon") {
+      setOverdueOwnerFilter("all");
+    }
+  }, [queueFilter]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [queueFilter, searchTerm, overdueOwnerFilter]);
 
   // Callback from DashboardFilters component — converts FilterValues to a plain
   // Record<string,string> suitable for passing into API hooks.
@@ -171,7 +203,6 @@ export const DashboardPage: React.FC = () => {
     classificationQueue,
     reviewQueue,
     revisionQueue,
-    letterReadiness,
     attention,
     allItems,
     lastUpdated,
@@ -179,13 +210,6 @@ export const DashboardPage: React.FC = () => {
     loading,
     error,
   } = useDashboardQueues(BRAND.defaultCommitteeCode, dashboardFilters);
-
-  const {
-    activity,
-    loading: activityLoading,
-    error: activityError,
-    refresh: refreshActivity,
-  } = useDashboardActivity(BRAND.defaultCommitteeCode, 8, dashboardFilters);
 
   const {
     overdueReviews,
@@ -197,7 +221,6 @@ export const DashboardPage: React.FC = () => {
 
   const handleRefresh = () => {
     refresh();
-    refreshActivity();
     refreshOverdue();
   };
 
@@ -228,6 +251,27 @@ export const DashboardPage: React.FC = () => {
     []
   );
 
+  const resolveOwnerRoleKey = (item: {
+    overdueOwnerRole?: string;
+    overdueOwner?: "PANEL" | "RESEARCHER";
+  }) => {
+    if (item.overdueOwnerRole) return item.overdueOwnerRole;
+    if (item.overdueOwner === "RESEARCHER") {
+      return "PROJECT_LEADER_RESEARCHER_PROPONENT";
+    }
+    if (item.overdueOwner === "PANEL") {
+      return "RESEARCH_ASSOCIATE_PROCESSING_STAFF";
+    }
+    return "UNASSIGNED_PROCESS_GAP";
+  };
+
+  const matchesOwnerFilter = (item: {
+    overdueOwnerRole?: string;
+    overdueOwner?: "PANEL" | "RESEARCHER";
+  }) =>
+    overdueOwnerFilter === "all" ||
+    resolveOwnerRoleKey(item) === overdueOwnerFilter;
+
   const baseItems = useMemo(() => {
     switch (queueFilter) {
       case "classification":
@@ -237,9 +281,9 @@ export const DashboardPage: React.FC = () => {
       case "revision":
         return revisionQueue;
       case "due-soon":
-        return allItems.filter(isDueSoon);
+        return allItems.filter(isDueSoon).filter(matchesOwnerFilter);
       case "overdue":
-        return allItems.filter(isOverdue);
+        return allItems.filter(isOverdue).filter(matchesOwnerFilter);
       case "blocked":
         return allItems.filter(isBlocked);
       case "unassigned":
@@ -249,33 +293,15 @@ export const DashboardPage: React.FC = () => {
     }
   }, [
     queueFilter,
+    overdueOwnerFilter,
     classificationQueue,
     reviewQueue,
     revisionQueue,
     allItems,
   ]);
 
-  const slaCounts = useMemo(() => {
-    return {
-      all: baseItems.length,
-      onTrack: baseItems.filter((item) => item.slaStatus === "ON_TRACK").length,
-      dueSoon: baseItems.filter((item) => item.slaStatus === "DUE_SOON").length,
-      overdue: baseItems.filter((item) => item.slaStatus === "OVERDUE").length,
-      paused: baseItems.filter((item) => isPaused(item)).length,
-    };
-  }, [baseItems, isPaused]);
-
-  const slaFilteredItems = useMemo(() => {
-    if (slaFilter === "all") return baseItems;
-    if (slaFilter === "paused") return baseItems.filter((item) => isPaused(item));
-    const target =
-      slaFilter === "overdue"
-        ? "OVERDUE"
-        : slaFilter === "due-soon"
-        ? "DUE_SOON"
-        : "ON_TRACK";
-    return baseItems.filter((item) => item.slaStatus === target);
-  }, [baseItems, slaFilter, isPaused]);
+  // SLA filter merged into queue filter — baseItems is now the filtered set
+  const slaFilteredItems = baseItems;
 
   const searchedItems = useMemo(() => {
     if (!searchTerm) return slaFilteredItems;
@@ -318,6 +344,46 @@ export const DashboardPage: React.FC = () => {
     return `${item.workingDaysRemaining} wd left`;
   };
 
+  const renderOverdueOwnerBadge = (
+    item: {
+      overdueOwnerRole?: string;
+      overdueOwnerLabel?: string;
+      overdueOwnerIcon?: string;
+      overdueOwnerReason?: string;
+      overdueOwner?: "PANEL" | "RESEARCHER";
+      overdueReason?: string;
+    },
+    tone: "overdue" | "pending" = "overdue"
+  ) => {
+    const fallbackRole =
+      item.overdueOwner === "RESEARCHER"
+        ? "PROJECT_LEADER_RESEARCHER_PROPONENT"
+        : item.overdueOwner
+          ? "RESEARCH_ASSOCIATE_PROCESSING_STAFF"
+          : undefined;
+    const ownerRole = item.overdueOwnerRole ?? fallbackRole;
+    if (!ownerRole) return null;
+
+    const meta =
+      OWNER_BADGE_META[ownerRole] ??
+      OWNER_BADGE_META.RESEARCH_ASSOCIATE_PROCESSING_STAFF;
+    const label = item.overdueOwnerLabel ?? meta.label;
+    const icon = item.overdueOwnerIcon ?? meta.icon;
+    const title = item.overdueOwnerReason ?? item.overdueReason ?? meta.reason;
+
+    return (
+      <span
+        className={`overdue-owner-badge role-${meta.cssClass}`}
+        title={title}
+      >
+        <span className="overdue-owner-icon" aria-hidden="true">
+          {icon}
+        </span>
+        <span>{`${label} ${tone}`}</span>
+      </span>
+    );
+  };
+
   const sortedItems = useMemo(
     () =>
       [...searchedItems].sort((a, b) => {
@@ -329,7 +395,12 @@ export const DashboardPage: React.FC = () => {
   );
 
   const totalFiltered = sortedItems.length;
-  const filteredItems = sortedItems.slice(0, 10);
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
+  // Clamp page if filter change shrinks the list
+  const safePage = Math.min(currentPage, totalPages);
+  const startIdx = (safePage - 1) * PAGE_SIZE;
+  const endIdx = Math.min(startIdx + PAGE_SIZE, totalFiltered);
+  const filteredItems = sortedItems.slice(startIdx, endIdx);
   const visibleItemIds = useMemo(
     () => filteredItems.map((item) => item.id),
     [filteredItems]
@@ -363,6 +434,8 @@ export const DashboardPage: React.FC = () => {
     });
   };
 
+  const hasActiveFilters = queueFilter !== "all" || Boolean(searchTerm);
+
   const activeFilters = useMemo(() => {
     const chips: Array<{ id: string; label: string; onClear: () => void }> = [];
     if (queueFilter !== "all") {
@@ -381,19 +454,6 @@ export const DashboardPage: React.FC = () => {
         onClear: () => setQueueFilter("all"),
       });
     }
-    if (slaFilter !== "all") {
-      const labelMap: Record<string, string> = {
-        "on-track": "On track",
-        "due-soon": "Due soon",
-        overdue: "Overdue",
-        paused: "SLA paused",
-      };
-      chips.push({
-        id: "sla",
-        label: `SLA: ${labelMap[slaFilter] ?? slaFilter}`,
-        onClear: () => setSlaFilter("all"),
-      });
-    }
     if (searchTerm) {
       chips.push({
         id: "search",
@@ -402,53 +462,7 @@ export const DashboardPage: React.FC = () => {
       });
     }
     return chips;
-  }, [queueFilter, slaFilter, searchTerm]);
-
-  const handleLetterExport = (templateCode: string) => {
-    const rows = allItems.filter((row) =>
-      templateCode === "ALL" ? true : row.templateCode === templateCode
-    );
-    if (rows.length === 0) {
-      window.alert("No rows available for export.");
-      return;
-    }
-    const headers = [
-      "template_code",
-      "submission_id",
-      "project_code",
-      "project_title",
-      "pi_name",
-      "status",
-      "sla_status",
-      "missing_fields",
-    ];
-    const csv = [
-      headers.join(","),
-      ...rows.map((row) =>
-        [
-          row.templateCode,
-          row.id,
-          row.projectCode,
-          row.projectTitle,
-          row.piName,
-          row.status,
-          row.slaStatus,
-          row.missingFields.join("|"),
-        ]
-          .map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`)
-          .join(",")
-      ),
-    ].join("\r\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `letter_readiness_${templateCode}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
+  }, [queueFilter, searchTerm]);
 
   const handleExportFiltered = () => {
     if (sortedItems.length === 0) {
@@ -493,11 +507,6 @@ export const DashboardPage: React.FC = () => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  };
-
-  const handleViewMissing = (templateCode: string, fields: string[]) => {
-    const message = fields.length ? fields.join(", ") : "none";
-    window.alert(`Missing fields for ${templateCode}: ${message}`);
   };
 
   const handleBulkAssign = () => {
@@ -586,43 +595,21 @@ export const DashboardPage: React.FC = () => {
     [allItems]
   );
 
-  const actionNowItems = useMemo(() => {
-    const actionable = allItems.filter(
-      (item) => isOverdue(item) || isDueSoon(item) || isBlocked(item)
-    );
-    return actionable
-      .sort((a, b) => priorityScore(b) - priorityScore(a))
-      .slice(0, 6);
-  }, [allItems]);
-
-  const letterTotals = useMemo(() => {
-    return letterReadiness.reduce(
-      (acc, row) => {
-        acc.ready += row.ready;
-        acc.missing += row.missingFields;
-        return acc;
-      },
-      { ready: 0, missing: 0 }
-    );
-  }, [letterReadiness]);
-
-  const filteredActivity = useMemo(() => {
-    if (activityFilter === "all") return activity;
-    return activity.filter((entry) => {
-      const status = entry.newStatus?.toUpperCase() ?? "";
-      if (activityFilter === "classification") {
-        return status.includes("CLASS");
-      }
-      if (activityFilter === "review") {
-        return status.includes("REVIEW");
-      }
-      return status.includes("REVISION");
-    });
-  }, [activity, activityFilter]);
-
-  const activityToShow = useMemo(
-    () => filteredActivity.slice(0, 3),
-    [filteredActivity]
+  const filteredOverdueSubmissions = useMemo(
+    () => overdueSubmissions.filter(matchesOwnerFilter),
+    [overdueSubmissions, overdueOwnerFilter]
+  );
+  const filteredDueSoonSubmissions = useMemo(
+    () => dueSoonSubmissions.filter(matchesOwnerFilter),
+    [dueSoonSubmissions, overdueOwnerFilter]
+  );
+  const filteredOverdueReviews = useMemo(
+    () => overdueReviews.filter(matchesOwnerFilter),
+    [overdueReviews, overdueOwnerFilter]
+  );
+  const filteredOverdueEndorsements = useMemo(
+    () => overdueEndorsements.filter(matchesOwnerFilter),
+    [overdueEndorsements, overdueOwnerFilter]
   );
 
   useEffect(() => {
@@ -662,14 +649,20 @@ export const DashboardPage: React.FC = () => {
     const loadQuickView = async () => {
       try {
         setQuickViewLoading(true);
-        const [detail, sla] = await Promise.all([
-          fetchSubmissionDetail(quickViewId),
-          fetchSubmissionSlaSummary(quickViewId),
-        ]);
+        // Load detail first — always works
+        const detail = await fetchSubmissionDetail(quickViewId);
         if (cancelled) return;
         setQuickViewDetail(detail);
-        setQuickViewSla(sla);
         setQuickViewError(null);
+
+        // SLA may 400 for unclassified submissions — that's OK
+        try {
+          const sla = await fetchSubmissionSlaSummary(quickViewId);
+          if (!cancelled) setQuickViewSla(sla);
+        } catch {
+          // SLA not available — leave null silently
+          if (!cancelled) setQuickViewSla(null);
+        }
       } catch (err) {
         if (cancelled) return;
         setQuickViewError(
@@ -698,19 +691,6 @@ export const DashboardPage: React.FC = () => {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [quickViewOpen]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(
-      "dashboardRailCollapsed",
-      railCollapsed ? "true" : "false"
-    );
-  }, [railCollapsed]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem("dashboardDensity", density);
-  }, [density]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -762,7 +742,7 @@ export const DashboardPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="dashboard-page">
+      <div className="dashboard-content">
         <div className="empty-state" style={{ minHeight: "50vh", display: "flex", flexDirection: "column", justifyContent: "center" }} role="alert">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
@@ -793,16 +773,10 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div
-      className={`dashboard-page ${fromLogin ? "dashboard-enter" : ""} ${
+      className={`dashboard-content ${fromLogin ? "dashboard-enter" : ""} ${
         loading ? "is-loading" : "is-ready"
       }`}
     >
-      <div className="dashboard-layout">
-        {/* Sidebar */}
-        <DashboardSidebar counts={counts} />
-
-        {/* Main Content */}
-        <main className="dashboard-main">
           {/* Top Bar */}
           <div className="dashboard-topbar">
             <div className="topbar-left">
@@ -930,127 +904,9 @@ export const DashboardPage: React.FC = () => {
             </div>
           )}
 
-          {/* Action Now */}
-          <div className="panel action-now-panel">
-            <div className="panel-header">
-              <div>
-                <h3 className="panel-title">Action now</h3>
-                <p className="panel-subtitle">
-                  Prioritized by SLA risk, blocked fields, and ownership.
-                </p>
-              </div>
-              <button
-                className="panel-toggle"
-                type="button"
-                onClick={() =>
-                    setCollapsedPanels((prev: CollapsedPanels) => ({
-                    ...prev,
-                    actionNow: !prev.actionNow,
-                  }))
-                }
-                aria-expanded={!collapsedPanels.actionNow}
-              >
-                {collapsedPanels.actionNow ? "Expand" : "Collapse"}
-              </button>
-            </div>
-            <div
-              className={`panel-body collapsible ${
-                collapsedPanels.actionNow ? "is-collapsed" : ""
-              }`}
-              aria-hidden={collapsedPanels.actionNow}
-            >
-                {actionNowItems.length === 0 ? (
-                  <div className="empty-state compact">
-                    <h3>Nothing urgent right now</h3>
-                    <p>Review the full queue or check “Due ≤3 days”.</p>
-                  </div>
-                ) : (
-                  <div className="action-now-list">
-                    {actionNowItems.map((item) => (
-                      <div key={item.id} className="action-now-item">
-                        <div className="action-now-main">
-                          <div className="action-now-title">
-                            <span
-                              className={`priority-dot ${
-                                isOverdue(item)
-                                  ? "overdue"
-                                  : isDueSoon(item)
-                                  ? "due-soon"
-                                  : "blocked"
-                              }`}
-                              aria-hidden="true"
-                            />
-                            {item.projectCode} • {item.projectTitle}
-                          </div>
-                          <div className="action-now-meta">
-                            {item.piName} •{" "}
-                            {item.staffInChargeName
-                              ? `Owner: ${item.staffInChargeName}`
-                              : "Unassigned"}
-                          </div>
-                          <div className="action-now-tags">
-                            <span
-                              className={`sla-chip-badge ${
-                                isOverdue(item)
-                                  ? "overdue"
-                                  : isDueSoon(item)
-                                  ? "due-soon"
-                                  : "on-track"
-                              }`}
-                            >
-                              {slaChipText(item)}
-                            </span>
-                            {isBlocked(item) && (
-                              <span className="block-chip">
-                                {blockReasonFor(item)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="action-now-actions">
-                          <button
-                            className="ghost-btn"
-                            type="button"
-                            onClick={() => navigate(`/submissions/${item.id}`)}
-                          >
-                            Open
-                          </button>
-                          <button
-                            className="ghost-btn"
-                            type="button"
-                            onClick={() => {
-                              const confirmed = window.confirm(
-                                "Send reminder for this submission?"
-                              );
-                              if (confirmed) {
-                                window.alert("Reminder queued (UI only).");
-                              }
-                            }}
-                          >
-                            Remind
-                          </button>
-                          <button
-                            className="primary-btn"
-                            type="button"
-                            onClick={() =>
-                              window.alert(
-                                "Assign reviewer (UI only; backend pending)."
-                              )
-                            }
-                          >
-                            Assign
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
           {/* Stats Grid */}
           <div className="stats-grid">
-            <div className="stat-card danger" onClick={() => setQueueFilter("overdue")}>
+            <div className="stat-card danger" onClick={() => { setQueueFilter("overdue"); tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>
               <div className="stat-header">
                 <div className="stat-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1109,27 +965,18 @@ export const DashboardPage: React.FC = () => {
               <h3>Queue workspace</h3>
               <p>Filters, triage, and bulk actions in one place.</p>
             </div>
-            <button
-              className="ghost-btn"
-              type="button"
-              onClick={() => setRailCollapsed((prev) => !prev)}
-            >
-              {railCollapsed ? "Show insights" : "Hide insights"}
-            </button>
           </div>
 
           {/* Content Grid */}
-          <div className={`content-grid ${railCollapsed ? "rail-collapsed" : ""}`}>
+          <div className="content-grid rail-collapsed">
             {/* Main Table Panel */}
             <div className="panel" ref={tableRef}>
               <div className="panel-header">
                 <div>
                   <h3 className="panel-title">Submissions Queue</h3>
-                  <p className="panel-subtitle">
-                    Showing {filteredItems.length} of {totalFiltered} submissions • newest first
-                  </p>
                 </div>
                 <div className="panel-actions">
+                  <span className="panel-count">{filteredItems.length} submissions</span>
                   <button 
                     className="topbar-btn" 
                     title="Export"
@@ -1192,82 +1039,35 @@ export const DashboardPage: React.FC = () => {
                           key={tab.key}
                           className={`filter-tab ${
                             queueFilter === tab.key ? "active" : ""
-                          }`}
+                          } ${tab.key === "overdue" ? "tab-danger" : tab.key === "due-soon" ? "tab-warning" : tab.key === "blocked" ? "tab-info" : ""}`}
                           onClick={() =>
                             setQueueFilter(tab.key as typeof queueFilter)
                           }
                         >
                           {tab.label}
                           <span className="filter-tab-count">
-                            ({tab.count})
+                            {tab.count}
                           </span>
                         </button>
                       ))}
                     </div>
                   </div>
                 </div>
-                <div className="filter-row">
-                  <div className="filter-group">
-                    <span className="filter-label">SLA</span>
-                    <div className="sla-chips">
-                      {[
-                        { key: "all", label: `All (${slaCounts.all})` },
-                        {
-                          key: "on-track",
-                          label: `On track (${slaCounts.onTrack})`,
-                        },
-                        {
-                          key: "due-soon",
-                          label: `Due soon (${slaCounts.dueSoon})`,
-                        },
-                        {
-                          key: "overdue",
-                          label: `Overdue (${slaCounts.overdue})`,
-                        },
-                        {
-                          key: "paused",
-                          label: `Paused (${slaCounts.paused})`,
-                        },
-                      ].map((chip) => (
-                        <button
-                          key={chip.key}
-                          className={`sla-chip ${
-                            slaFilter === chip.key ? "active" : ""
-                          }`}
-                          onClick={() =>
-                            setSlaFilter(chip.key as typeof slaFilter)
-                          }
-                        >
-                          {chip.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="filter-group filter-actions">
-                    <button
-                      className="ghost-btn"
-                      type="button"
-                      onClick={() =>
-                        setDensity((prev: "compact" | "comfortable") =>
-                          prev === "compact" ? "comfortable" : "compact"
-                        )
-                      }
-                    >
-                      Density: {density === "compact" ? "Compact" : "Comfortable"}
-                    </button>
+                {/* Reset filter — only when filters are active */}
+                {hasActiveFilters && (
+                  <div className="filter-row filter-row-reset">
                     <button
                       className="ghost-btn"
                       type="button"
                       onClick={() => {
                         setQueueFilter("all");
-                        setSlaFilter("all");
                         setSearchTerm("");
                       }}
                     >
                       Reset filters
                     </button>
                   </div>
-                </div>
+                )}
                 {activeFilters.length > 0 && (
                   <div className="active-filters">
                     {activeFilters.map((chip) => (
@@ -1283,6 +1083,45 @@ export const DashboardPage: React.FC = () => {
                     ))}
                   </div>
                 )}
+                {(queueFilter === "overdue" || queueFilter === "due-soon") && (
+                  <div
+                    className="overdue-owner-filters"
+                    role="group"
+                    aria-label="Filter by responsible role"
+                  >
+                    <span className="owner-filter-label">Responsible role</span>
+                    <button
+                      type="button"
+                      className={`owner-filter-chip ${overdueOwnerFilter === "all" ? "active" : ""}`}
+                      onClick={() => setOverdueOwnerFilter("all")}
+                    >
+                      All
+                    </button>
+                    {(
+                      [
+                        "PROJECT_LEADER_RESEARCHER_PROPONENT",
+                        "REVIEWER_GROUP",
+                        "RESEARCH_ASSOCIATE_PROCESSING_STAFF",
+                        "COMMITTEE_CHAIRPERSON_DESIGNATE",
+                        "UNASSIGNED_PROCESS_GAP",
+                      ] as const
+                    ).map((roleKey) => {
+                      const meta = OWNER_BADGE_META[roleKey];
+                      return (
+                        <button
+                          key={roleKey}
+                          type="button"
+                          className={`owner-filter-chip role-${meta.cssClass} ${overdueOwnerFilter === roleKey ? "active" : ""}`}
+                          onClick={() => setOverdueOwnerFilter(roleKey)}
+                          title={meta.reason}
+                        >
+                          <span aria-hidden="true">{meta.icon}</span>
+                          <span>{meta.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               <div className="panel-body no-padding">
@@ -1293,12 +1132,8 @@ export const DashboardPage: React.FC = () => {
                         <th className="table-select" scope="col">
                           <span className="skeleton-box"></span>
                         </th>
-                        <th scope="col">Code / Title</th>
-                        <th scope="col">PI / Queue</th>
-                        <th scope="col">Stage</th>
-                        <th scope="col">SLA</th>
-                        <th scope="col" className="hide-mobile">Owner</th>
-                        <th scope="col" className="hide-mobile">Block</th>
+                        <th scope="col">Submission</th>
+                        <th scope="col">Stage / SLA</th>
                         <th scope="col" className="table-actions-header">Actions</th>
                       </tr>
                     </thead>
@@ -1311,22 +1146,11 @@ export const DashboardPage: React.FC = () => {
                           <td>
                             <div className="skeleton-line wide"></div>
                             <div className="skeleton-line"></div>
-                          </td>
-                          <td>
-                            <div className="skeleton-line"></div>
                             <div className="skeleton-line small"></div>
                           </td>
                           <td>
                             <div className="skeleton-pill"></div>
-                          </td>
-                          <td>
                             <div className="skeleton-pill"></div>
-                          </td>
-                          <td className="hide-mobile">
-                            <div className="skeleton-line small"></div>
-                          </td>
-                          <td className="hide-mobile">
-                            <div className="skeleton-line small"></div>
                           </td>
                           <td className="table-actions">
                             <div className="skeleton-actions"></div>
@@ -1347,7 +1171,6 @@ export const DashboardPage: React.FC = () => {
                       type="button"
                       onClick={() => {
                         setQueueFilter("all");
-                        setSlaFilter("all");
                         setSearchTerm("");
                       }}
                     >
@@ -1356,9 +1179,7 @@ export const DashboardPage: React.FC = () => {
                   </div>
                 ) : (
                   <table
-                    className={`data-table ${
-                      density === "compact" ? "compact" : ""
-                    } ${loading ? "is-loading" : ""}`}
+                    className={`data-table ${loading ? "is-loading" : ""}`}
                   >
                     <thead>
                       <tr>
@@ -1370,12 +1191,8 @@ export const DashboardPage: React.FC = () => {
                             onChange={toggleSelectAllVisible}
                           />
                         </th>
-                        <th scope="col">Code / Title</th>
-                        <th scope="col">PI / Queue</th>
-                        <th scope="col">Stage</th>
-                        <th scope="col">SLA</th>
-                        <th scope="col" className="hide-mobile">Owner</th>
-                        <th scope="col" className="hide-mobile">Block</th>
+                        <th scope="col">Submission</th>
+                        <th scope="col">Stage / SLA</th>
                         <th scope="col" className="table-actions-header">Actions</th>
                       </tr>
                     </thead>
@@ -1401,36 +1218,13 @@ export const DashboardPage: React.FC = () => {
                           </td>
                           <td>
                             <div className="table-title">
-                              <span
-                                className={`audit-icon ${
-                                  isOverdue(item)
-                                    ? "overdue"
-                                    : isDueSoon(item)
-                                    ? "due-soon"
-                                    : isBlocked(item)
-                                    ? "blocked"
-                                    : "on-track"
-                                }`}
-                                title={
-                                  isOverdue(item)
-                                    ? "Overdue"
-                                    : isDueSoon(item)
-                                    ? "Due soon"
-                                    : isBlocked(item)
-                                    ? "Blocked"
-                                    : "On track"
-                                }
-                                aria-hidden="true"
-                              />
                               {item.projectCode}
+                              {isBlocked(item) && (
+                                <span className="blocked-indicator" title={blockReasonFor(item)} aria-label="Blocked">⚠</span>
+                              )}
                             </div>
-                            <div className="table-subtitle">{item.projectTitle}</div>
-                          </td>
-                          <td>
-                            <div className="table-title">{item.piName}</div>
-                            <div className="table-subtitle">
-                              Queue: {formatStatusLabel(item.queue)}
-                            </div>
+                            <div className="table-subtitle" title={item.projectTitle}>{item.projectTitle}</div>
+                            <div className="table-meta">{item.piName}</div>
                           </td>
                           <td>
                             <span className={`status-badge ${
@@ -1441,35 +1235,18 @@ export const DashboardPage: React.FC = () => {
                               <span className="status-dot"></span>
                               {formatStatusLabel(item.status)}
                             </span>
-                            {item.status === "REVISION_SUBMITTED" && (
-                              <span className="status-tag">Reopened</span>
-                            )}
-                          </td>
-                          <td>
-                            <div className="sla-stack">
-                              <span className={`status-badge ${
-                                isPaused(item)
-                                  ? "pending"
-                                  : isOverdue(item)
-                                  ? "overdue"
-                                  : isDueSoon(item)
-                                  ? "due-soon"
-                                  : "on-track"
-                              }`}>
-                                {slaChipText(item)}
-                              </span>
-                              <span className="table-meta">
-                                Due {formatShortDate(item.slaDueDate)}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="hide-mobile">
-                            <span className="table-owner">
-                              {item.staffInChargeName ?? "Unassigned"}
+                            <span className={`status-badge sla-inline ${
+                              isPaused(item)
+                                ? "pending"
+                                : isOverdue(item)
+                                ? "overdue"
+                                : isDueSoon(item)
+                                ? "due-soon"
+                                : "on-track"
+                            }`}>
+                              {slaChipText(item)}
                             </span>
-                          </td>
-                          <td className="hide-mobile">
-                            <span className="table-block">{blockReasonFor(item)}</span>
+                            {(isOverdue(item) || isDueSoon(item)) && renderOverdueOwnerBadge(item, isOverdue(item) ? "overdue" : "pending")}
                           </td>
                           <td className="table-actions">
                             <div className="row-actions">
@@ -1502,43 +1279,43 @@ export const DashboardPage: React.FC = () => {
                                   <path d="M14 5l7 7-7 7M3 12h18" />
                                 </svg>
                               </button>
-                              <button
-                                type="button"
-                                className="row-action-btn"
-                                title="Assign reviewer"
-                                aria-label="Assign reviewer"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  window.alert("Assign reviewer (UI only).");
-                                }}
-                              >
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
-                                  <circle cx="9" cy="7" r="4" />
-                                  <path d="M19 8v6M22 11h-6" />
-                                </svg>
-                              </button>
-                              <button
-                                type="button"
-                                className="row-action-btn"
-                                title="Generate letter"
-                                aria-label="Generate letter"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  window.alert("Generate letter (UI only).");
-                                }}
-                              >
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                                  <path d="M14 2v6h6M8 13h8M8 17h5" />
-                                </svg>
-                              </button>
                             </div>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                )}
+                {/* Pagination footer */}
+                {totalFiltered > 0 && (
+                  <div className="table-pagination">
+                    <span className="pagination-info">
+                      Showing {startIdx + 1}–{endIdx} of {totalFiltered}
+                    </span>
+                    <div className="pagination-controls">
+                      <button
+                        type="button"
+                        className="pagination-btn"
+                        disabled={safePage <= 1}
+                        onClick={() => setCurrentPage(safePage - 1)}
+                        aria-label="Previous page"
+                      >
+                        ← Previous
+                      </button>
+                      <span className="pagination-current">
+                        Page {safePage} of {totalPages}
+                      </span>
+                      <button
+                        type="button"
+                        className="pagination-btn"
+                        disabled={safePage >= totalPages}
+                        onClick={() => setCurrentPage(safePage + 1)}
+                        aria-label="Next page"
+                      >
+                        Next →
+                      </button>
+                    </div>
+                  </div>
                 )}
                 {selectedCount > 0 && (
                   <div className="bulk-action-bar" role="region" aria-label="Bulk actions">
@@ -1571,563 +1348,7 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Column */}
-            {!railCollapsed && (
-            <div className="dashboard-rail">
-              {/* Overdue Panel */}
-              <div className="panel">
-                <div className="panel-header">
-                  <div>
-                    <h3 className="panel-title">Overdue queue</h3>
-                    <p className="panel-subtitle">Focus on the most urgent items first.</p>
-                  </div>
-                  <button
-                    className="panel-toggle"
-                    type="button"
-                    onClick={() =>
-                      setCollapsedPanels((prev: CollapsedPanels) => ({
-                        ...prev,
-                        overdue: !prev.overdue,
-                      }))
-                    }
-                    aria-expanded={!collapsedPanels.overdue}
-                  >
-                    {collapsedPanels.overdue ? "Expand" : "Collapse"}
-                  </button>
-                  {!collapsedPanels.overdue && (
-                    <div className="panel-tabs">
-                      <button
-                        className={`panel-tab ${
-                          overdueTab === "submissions" ? "active" : ""
-                        }`}
-                        onClick={() => setOverdueTab("submissions")}
-                      >
-                        Submissions ({overdueSubmissions.length})
-                      </button>
-                      <button
-                        className={`panel-tab ${
-                          overdueTab === "reviewers" ? "active" : ""
-                        }`}
-                        onClick={() => setOverdueTab("reviewers")}
-                      >
-                        Reviewers ({overdueReviews.length})
-                      </button>
-                      <button
-                        className={`panel-tab ${
-                          overdueTab === "due-soon" ? "active" : ""
-                        }`}
-                        onClick={() => setOverdueTab("due-soon")}
-                      >
-                        Due ≤3 days ({dueSoonSubmissions.length})
-                      </button>
-                      <button
-                        className={`panel-tab ${
-                          overdueTab === "endorsements" ? "active" : ""
-                        }`}
-                        onClick={() => setOverdueTab("endorsements")}
-                      >
-                        Endorsements ({overdueEndorsements.length})
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <div
-                  className={`panel-body collapsible ${
-                    collapsedPanels.overdue ? "is-collapsed" : ""
-                  }`}
-                  aria-hidden={collapsedPanels.overdue}
-                >
-                  {overdueLoading ? (
-                    <div className="empty-state compact">
-                      <p>Loading overdue items...</p>
-                    </div>
-                  ) : overdueError ? (
-                    <div className="empty-state compact">
-                      <p>{overdueError}</p>
-                      <button
-                        className="ghost-btn"
-                        type="button"
-                        onClick={refreshOverdue}
-                      >
-                        Retry
-                      </button>
-                    </div>
-                  ) : overdueTab === "submissions" ? (
-                    overdueSubmissions.length === 0 ? (
-                      <div className="empty-state compact">
-                        <p>No overdue submissions.</p>
-                      </div>
-                    ) : (
-                      <div className="overdue-list">
-                        {overdueSubmissions.slice(0, 5).map((item) => (
-                          <div key={item.id} className="overdue-item">
-                            <div className="overdue-main">
-                              <div className="overdue-title">
-                                {item.projectCode} • {item.piName}
-                                {item.overdueOwner && (
-                                  <span
-                                    className={`overdue-owner-badge ${item.overdueOwner === "RESEARCHER" ? "researcher" : "panel"}`}
-                                    title={item.overdueReason}
-                                  >
-                                    {item.overdueOwner === "RESEARCHER"
-                                      ? "Researcher overdue"
-                                      : "Panel overdue"}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="overdue-meta">
-                                Due {formatShortDate(item.slaDueDate)} •{" "}
-                                {formatStatusLabel(item.status)}
-                              </div>
-                            </div>
-                            <button
-                              className="overdue-link"
-                              type="button"
-                              onClick={() => navigate(`/submissions/${item.id}`)}
-                            >
-                              Open
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  ) : overdueTab === "due-soon" ? (
-                    dueSoonSubmissions.length === 0 ? (
-                      <div className="empty-state compact">
-                        <p>No submissions due in ≤3 days.</p>
-                      </div>
-                    ) : (
-                      <div className="overdue-list">
-                        {dueSoonSubmissions.slice(0, 5).map((item) => (
-                          <div key={item.id} className="overdue-item">
-                            <div className="overdue-main">
-                              <div className="overdue-title">
-                                {item.projectCode} • {item.piName}
-                                {item.overdueOwner && (
-                                  <span
-                                    className={`overdue-owner-badge ${item.overdueOwner === "RESEARCHER" ? "researcher" : "panel"}`}
-                                    title={item.overdueReason}
-                                  >
-                                    {item.overdueOwner === "RESEARCHER"
-                                      ? "Researcher pending"
-                                      : "Panel pending"}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="overdue-meta">
-                                Due {formatShortDate(item.slaDueDate)} •{" "}
-                                {formatStatusLabel(item.status)}
-                              </div>
-                            </div>
-                            <button
-                              className="overdue-link"
-                              type="button"
-                              onClick={() => navigate(`/submissions/${item.id}`)}
-                            >
-                              Open
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  ) : overdueTab === "reviewers" ? (
-                    overdueReviews.length === 0 ? (
-                      <div className="empty-state compact">
-                        <p>No overdue reviewer tasks.</p>
-                      </div>
-                    ) : (
-                      <div className="overdue-list">
-                        {overdueReviews.slice(0, 5).map((review) => (
-                          <div key={review.id} className="overdue-item">
-                            <div className="overdue-main">
-                              <div className="overdue-title">
-                                {review.projectCode} • {review.reviewerName}
-                                {review.overdueOwner && (
-                                  <span
-                                    className={`overdue-owner-badge ${review.overdueOwner === "RESEARCHER" ? "researcher" : "panel"}`}
-                                    title={review.overdueReason}
-                                  >
-                                    {review.overdueOwner === "RESEARCHER"
-                                      ? "Researcher overdue"
-                                      : "Panel overdue"}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="overdue-meta">
-                                Due {formatShortDate(review.dueDate)} •{" "}
-                                {review.daysOverdue}d overdue
-                              </div>
-                            </div>
-                            <button
-                              className="overdue-link"
-                              type="button"
-                              onClick={() => navigate(`/submissions/${review.submissionId}`)}
-                            >
-                              Open
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  ) : overdueEndorsements.length === 0 ? (
-                    <div className="empty-state compact">
-                      <p>No overdue endorsements.</p>
-                    </div>
-                  ) : (
-                    <div className="overdue-list">
-                      {overdueEndorsements.slice(0, 5).map((review) => (
-                        <div key={review.id} className="overdue-item">
-                          <div className="overdue-main">
-                            <div className="overdue-title">
-                              {review.projectCode} • {review.reviewerName}
-                              {review.overdueOwner && (
-                                <span
-                                  className={`overdue-owner-badge ${review.overdueOwner === "RESEARCHER" ? "researcher" : "panel"}`}
-                                  title={review.overdueReason}
-                                >
-                                  {review.overdueOwner === "RESEARCHER"
-                                    ? "Researcher overdue"
-                                    : "Panel overdue"}
-                                </span>
-                              )}
-                            </div>
-                            <div className="overdue-meta">
-                              Due {formatShortDate(review.dueDate)} •{" "}
-                              {review.daysOverdue}d overdue
-                            </div>
-                          </div>
-                          <button
-                            className="overdue-link"
-                            type="button"
-                            onClick={() => navigate(`/submissions/${review.submissionId}`)}
-                          >
-                            Open
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="panel">
-                <div className="panel-header">
-                  <div>
-                    <h3 className="panel-title">Quick actions</h3>
-                    <p className="panel-subtitle">
-                      {selectedCount > 0
-                        ? `Actions for ${selectedCount} selected submissions.`
-                        : "Select submissions to unlock bulk actions."}
-                    </p>
-                  </div>
-                  <button
-                    className="panel-toggle"
-                    type="button"
-                    onClick={() =>
-                      setCollapsedPanels((prev: CollapsedPanels) => ({
-                        ...prev,
-                        quickActions: !prev.quickActions,
-                      }))
-                    }
-                    aria-expanded={!collapsedPanels.quickActions}
-                  >
-                    {collapsedPanels.quickActions ? "Expand" : "Collapse"}
-                  </button>
-                </div>
-                <div
-                  className={`panel-body collapsible ${
-                    collapsedPanels.quickActions ? "is-collapsed" : ""
-                  }`}
-                  aria-hidden={collapsedPanels.quickActions}
-                >
-                  <div className="quick-actions">
-                    <button
-                      type="button"
-                      className="quick-action"
-                      onClick={() => window.alert("Create new submission (UI only).")}
-                    >
-                      <div className="quick-action-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                          <path d="M14 2v6h6M12 18v-6M9 15h6"/>
-                        </svg>
-                      </div>
-                      <span className="quick-action-text">New submission</span>
-                    </button>
-                    <button
-                      type="button"
-                      className={`quick-action ${selectedCount === 0 ? "disabled" : ""}`}
-                      onClick={handleBulkStatusChange}
-                      disabled={selectedCount === 0}
-                    >
-                      <div className="quick-action-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                          <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
-                        </svg>
-                      </div>
-                      <span className="quick-action-text">Change status</span>
-                    </button>
-                    <button
-                      type="button"
-                      className={`quick-action ${selectedCount === 0 ? "disabled" : ""}`}
-                      onClick={handleBulkAssign}
-                      disabled={selectedCount === 0}
-                    >
-                      <div className="quick-action-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-                          <circle cx="9" cy="7" r="4"/>
-                          <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-                        </svg>
-                      </div>
-                      <span className="quick-action-text">Assign reviewer</span>
-                    </button>
-                    <button
-                      type="button"
-                      className={`quick-action ${selectedCount === 0 ? "disabled" : ""}`}
-                      onClick={handleBulkReminder}
-                      disabled={selectedCount === 0}
-                    >
-                      <div className="quick-action-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-                        </svg>
-                      </div>
-                      <span className="quick-action-text">Send reminder</span>
-                    </button>
-                  </div>
-                  <div className="quick-actions-summary">
-                    <div className="quick-actions-metrics">
-                      <div>
-                        <div className="quick-actions-label">Letters ready</div>
-                        <div className="quick-actions-value">
-                          {letterTotals.ready}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="quick-actions-label">Missing fields</div>
-                        <div className="quick-actions-value warning">
-                          {letterTotals.missing}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="quick-actions-buttons">
-                      <button
-                        className="ghost-btn"
-                        type="button"
-                        onClick={() => setLetterModalOpen(true)}
-                      >
-                        View details
-                      </button>
-                      <button
-                        className="primary-btn"
-                        type="button"
-                        onClick={() => handleLetterExport("ALL")}
-                      >
-                        Export all
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Recent Activity */}
-              <div className="panel">
-                <div className="panel-header">
-                  <div>
-                    <h3 className="panel-title">Recent Activity</h3>
-                    <p className="panel-subtitle">Latest 3 updates</p>
-                  </div>
-                  <button
-                    className="panel-toggle"
-                    type="button"
-                    onClick={() =>
-                      setCollapsedPanels((prev: CollapsedPanels) => ({
-                        ...prev,
-                        activity: !prev.activity,
-                      }))
-                    }
-                    aria-expanded={!collapsedPanels.activity}
-                  >
-                    {collapsedPanels.activity ? "Expand" : "Collapse"}
-                  </button>
-                </div>
-                <div
-                  className={`panel-body collapsible ${
-                    collapsedPanels.activity ? "is-collapsed" : ""
-                  }`}
-                  aria-hidden={collapsedPanels.activity}
-                >
-                  <div className="activity-filters">
-                    {[
-                      { key: "all", label: "All" },
-                      { key: "classification", label: "Classification" },
-                      { key: "review", label: "Review" },
-                      { key: "revision", label: "Revision" },
-                    ].map((filter) => (
-                      <button
-                        key={filter.key}
-                        className={`panel-tab ${
-                          activityFilter === filter.key ? "active" : ""
-                        }`}
-                        onClick={() =>
-                          setActivityFilter(filter.key as typeof activityFilter)
-                        }
-                      >
-                        {filter.label}
-                      </button>
-                    ))}
-                  </div>
-                  {activityLoading && activity.length === 0 ? (
-                    <div className="empty-state compact">
-                      <p>Loading recent activity...</p>
-                    </div>
-                  ) : activityError ? (
-                    <div className="empty-state compact">
-                      <p>{activityError}</p>
-                      <button
-                        className="ghost-btn"
-                        type="button"
-                        onClick={refreshActivity}
-                      >
-                        Retry
-                      </button>
-                    </div>
-                  ) : activityToShow.length === 0 ? (
-                    <div className="empty-state compact">
-                      <p>No recent activity yet.</p>
-                    </div>
-                  ) : (
-                    <div className="activity-list">
-                      {activityToShow.map((entry) => (
-                        <div key={entry.id} className="activity-item">
-                          <div className="activity-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          </div>
-                          <div className="activity-content">
-                            <div className="activity-text">
-                              <strong>{entry.projectCode}</strong> moved to{" "}
-                              {formatStatusLabel(entry.newStatus)}
-                            </div>
-                            <div className="activity-meta">
-                              {entry.projectTitle} |{" "}
-                              {entry.changedBy?.fullName ?? "System"}
-                            </div>
-                            <div className="activity-time">
-                              {formatTimeAgo(new Date(entry.effectiveDate))}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            )}
           </div>
-
-          {letterModalOpen && (
-            <div
-              className="letter-modal-backdrop"
-              role="dialog"
-              aria-modal="true"
-              onClick={() => setLetterModalOpen(false)}
-            >
-              <div
-                className="letter-modal"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <div className="letter-modal-header">
-                  <div>
-                    <h3>Letter readiness</h3>
-                    <p>Ready vs. missing fields by template.</p>
-                  </div>
-                  <button
-                    className="quick-view-close"
-                    type="button"
-                    onClick={() => setLetterModalOpen(false)}
-                    aria-label="Close letter details"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M18 6L6 18M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="letter-modal-body">
-                  {letterReadiness.length === 0 ? (
-                    <div className="empty-state compact">
-                      <p>No letter readiness data yet.</p>
-                    </div>
-                  ) : (
-                    <div className="letter-grid compact">
-                      <div className="letter-grid-row header">
-                        <div>Template</div>
-                        <div>Ready</div>
-                        <div>Missing</div>
-                        <div>Actions</div>
-                      </div>
-                      {letterReadiness.map((row) => (
-                        <div key={row.templateCode} className="letter-grid-row">
-                          <div className="letter-template">{row.templateCode}</div>
-                          <div className="letter-count">{row.ready}</div>
-                          <div
-                            className={`letter-missing ${
-                              row.missingFields > 0 ? "has-missing" : ""
-                            }`}
-                          >
-                            {row.missingFields}
-                          </div>
-                          <div className="letter-actions">
-                            <button
-                              className="letter-action-btn"
-                              type="button"
-                              onClick={() => handleLetterExport(row.templateCode)}
-                            >
-                              Export CSV
-                            </button>
-                            <button
-                              className="letter-action-btn ghost"
-                              type="button"
-                              disabled={row.missingFields === 0}
-                              onClick={() =>
-                                handleViewMissing(
-                                  row.templateCode,
-                                  row.samples.flatMap((sample) => sample.fields)
-                                )
-                              }
-                            >
-                              View missing
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="letter-modal-footer">
-                  <button
-                    className="ghost-btn"
-                    type="button"
-                    onClick={() => setLetterModalOpen(false)}
-                  >
-                    Close
-                  </button>
-                  <button
-                    className="primary-btn"
-                    type="button"
-                    onClick={() => handleLetterExport("ALL")}
-                  >
-                    Export all
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
           {quickViewOpen && (
             <div
@@ -2140,13 +1361,20 @@ export const DashboardPage: React.FC = () => {
                 className="quick-view-modal"
                 onClick={(event) => event.stopPropagation()}
               >
+                {/* Header with project code accent */}
                 <div className="quick-view-header">
-                  <div>
-                    <h3>Submission quick view</h3>
-                    <p>
-                      {quickViewSummary?.projectCode ?? "—"} •{" "}
-                      {quickViewSummary?.projectTitle ?? "—"}
-                    </p>
+                  <div className="quick-view-header-left">
+                    <span className="quick-view-code">{quickViewSummary?.projectCode ?? "—"}</span>
+                    <h3>{quickViewSummary?.projectTitle ?? "—"}</h3>
+                    <div className="quick-view-header-meta">
+                      <span>{quickViewSummary?.piName ?? "—"}</span>
+                      {quickViewSummary?.staffInChargeName && (
+                        <>
+                          <span className="quick-view-sep">•</span>
+                          <span>Assigned to {quickViewSummary.staffInChargeName}</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                   <button
                     className="quick-view-close"
@@ -2162,96 +1390,100 @@ export const DashboardPage: React.FC = () => {
 
                 {quickViewLoading ? (
                   <div className="quick-view-body">
-                    <div className="empty-state compact">
-                      <p>Loading submission details...</p>
+                    <div className="quick-view-skeleton">
+                      <div className="skeleton-pill" style={{ width: 80 }}></div>
+                      <div className="skeleton-line wide" style={{ marginTop: 16 }}></div>
+                      <div className="skeleton-line" style={{ marginTop: 8 }}></div>
+                      <div className="skeleton-line small" style={{ marginTop: 8 }}></div>
+                      <div className="skeleton-pill" style={{ width: 120, marginTop: 20 }}></div>
+                      <div className="skeleton-line" style={{ marginTop: 8 }}></div>
+                      <div className="skeleton-line small" style={{ marginTop: 8 }}></div>
                     </div>
                   </div>
                 ) : quickViewError ? (
                   <div className="quick-view-body">
-                    <div className="empty-state compact">
+                    <div className="quick-view-error">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 20, height: 20 }}>
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 8v4M12 16h.01" />
+                      </svg>
                       <p>{quickViewError}</p>
+                      <button className="ghost-btn" onClick={() => { setQuickViewOpen(false); setTimeout(() => { setQuickViewOpen(true); }, 100); }}>
+                        Retry
+                      </button>
                     </div>
                   </div>
                 ) : (
                   <div className="quick-view-body">
-                    <div className="quick-view-grid">
-                      <div className="quick-view-section">
-                        <h4>General</h4>
-                        <dl>
-                          <div>
-                            <dt>Project code</dt>
-                            <dd>{quickViewSummary?.projectCode ?? "—"}</dd>
-                          </div>
-                          <div>
-                            <dt>Title</dt>
-                            <dd>{quickViewSummary?.projectTitle ?? "—"}</dd>
-                          </div>
-                          <div>
-                            <dt>PI</dt>
-                            <dd>{quickViewSummary?.piName ?? "—"}</dd>
-                          </div>
-                          <div>
-                            <dt>Staff in charge</dt>
-                            <dd>{quickViewSummary?.staffInChargeName ?? "—"}</dd>
-                          </div>
-                          <div>
-                            <dt>Submission type</dt>
-                            <dd>{quickViewDetail?.submissionType ?? "—"}</dd>
-                          </div>
-                          <div>
-                            <dt>Status</dt>
-                            <dd>{formatStatusLabel(quickViewDetail?.status ?? null)}</dd>
-                          </div>
-                        </dl>
-                      </div>
+                    {/* Status badges row */}
+                    <div className="quick-view-badges">
+                      <span className={`status-badge ${
+                        (quickViewDetail?.status ?? "").includes("REVISION") ? "pending" :
+                        (quickViewDetail?.status ?? "").includes("REVIEW") ? "on-track" :
+                        "pending"
+                      }`}>
+                        <span className="status-dot"></span>
+                        {formatStatusLabel(quickViewDetail?.status ?? null)}
+                      </span>
+                      {quickViewDetail?.classification?.reviewType && (
+                        <span className="status-badge neutral">
+                          {quickViewDetail.classification.reviewType}
+                        </span>
+                      )}
+                      {quickViewDetail?.finalDecision && (
+                        <span className={`status-badge ${
+                          quickViewDetail.finalDecision === "APPROVED" ? "on-track" : "pending"
+                        }`}>
+                          {formatStatusLabel(quickViewDetail.finalDecision)}
+                        </span>
+                      )}
+                    </div>
 
-                      <div className="quick-view-section">
-                        <h4>Specific</h4>
-                        <dl>
-                          <div>
-                            <dt>Received</dt>
-                            <dd>{formatShortDate(quickViewDetail?.receivedDate)}</dd>
-                          </div>
-                          <div>
-                            <dt>Review type</dt>
-                            <dd>{quickViewDetail?.classification?.reviewType ?? "—"}</dd>
-                          </div>
-                          <div>
-                            <dt>SLA due</dt>
-                            <dd>{formatShortDate(quickViewSla?.classification.end ?? null)}</dd>
-                          </div>
-                          <div>
-                            <dt>Final decision</dt>
-                            <dd>{quickViewDetail?.finalDecision ?? "—"}</dd>
-                          </div>
-                        </dl>
+                    {/* Key details — horizontal cards */}
+                    <div className="quick-view-details">
+                      <div className="qv-detail-item">
+                        <span className="qv-detail-label">Submission type</span>
+                        <span className="qv-detail-value">{quickViewDetail?.submissionType ?? "—"}</span>
+                      </div>
+                      <div className="qv-detail-item">
+                        <span className="qv-detail-label">Received</span>
+                        <span className="qv-detail-value">{formatShortDate(quickViewDetail?.receivedDate)}</span>
+                      </div>
+                      <div className="qv-detail-item">
+                        <span className="qv-detail-label">SLA due</span>
+                        <span className="qv-detail-value">{quickViewSla ? formatShortDate(quickViewSla.classification?.end ?? null) : "Not set"}</span>
+                      </div>
+                      <div className="qv-detail-item">
+                        <span className="qv-detail-label">Staff in charge</span>
+                        <span className="qv-detail-value">{quickViewSummary?.staffInChargeName ?? "Unassigned"}</span>
                       </div>
                     </div>
 
+                    {/* Recent activity */}
                     <div className="quick-view-section">
-                      <h4>Recent status updates</h4>
+                      <h4>Recent activity</h4>
                       {quickViewDetail?.statusHistory?.length ? (
                         <div className="quick-view-timeline">
                           {quickViewDetail.statusHistory
-                            .slice(-3)
+                            .slice(-4)
                             .reverse()
-                            .map((entry) => (
-                              <div key={entry.id} className="quick-view-event">
-                                <div className="quick-view-dot"></div>
-                                <div>
+                            .map((entry, idx) => (
+                              <div key={entry.id} className={`quick-view-event ${idx === 0 ? "latest" : ""}`}>
+                                <div className={`quick-view-dot ${idx === 0 ? "dot-active" : ""}`}></div>
+                                <div className="quick-view-event-content">
                                   <div className="quick-view-event-title">
                                     {formatStatusLabel(entry.newStatus)}
                                   </div>
                                   <div className="quick-view-event-meta">
-                                    {formatShortDate(entry.effectiveDate)} •{" "}
-                                    {entry.changedBy?.fullName ?? "System"}
+                                    {formatShortDate(entry.effectiveDate)}
+                                    {entry.changedBy?.fullName && ` — ${entry.changedBy.fullName}`}
                                   </div>
                                 </div>
                               </div>
                             ))}
                         </div>
                       ) : (
-                        <p className="quick-view-empty">No status history yet.</p>
+                        <p className="quick-view-empty">No activity recorded yet.</p>
                       )}
                     </div>
                   </div>
@@ -2271,15 +1503,13 @@ export const DashboardPage: React.FC = () => {
                       type="button"
                       onClick={() => navigate(`/submissions/${quickViewId}`)}
                     >
-                      Open full record
+                      Open full record →
                     </button>
                   )}
                 </div>
               </div>
             </div>
           )}
-        </main>
-      </div>
     </div>
   );
 };

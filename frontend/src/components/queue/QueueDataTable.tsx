@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import type { DecoratedQueueItem } from "@/types";
 
 const toDate = (value: string) =>
@@ -24,6 +24,8 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
   loading,
   error,
 }) => {
+  const navigate = useNavigate();
+
   return (
     <section className="panel queue-focused-table">
       <div className="panel-header">
@@ -49,12 +51,11 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                   <th>Status</th>
                   <th>Received</th>
                   <th>SLA</th>
-                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((item) => (
-                  <tr key={item.id}>
+                  <tr key={item.id} onClick={() => navigate(`/submissions/${item.id}`)} style={{ cursor: "pointer" }}>
                     <td>
                       <strong>{item.projectCode}</strong>
                       <div>{item.projectTitle}</div>
@@ -66,11 +67,6 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                       <span className={`queue-sla-chip ${item.slaStatus.toLowerCase()}`}>
                         {item.slaStatus.replace("_", " ")}
                       </span>
-                    </td>
-                    <td>
-                      <Link to={`/submissions/${item.id}`} className="queue-open-link">
-                        Open
-                      </Link>
                     </td>
                   </tr>
                 ))}

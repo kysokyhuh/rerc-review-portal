@@ -1,5 +1,5 @@
 /**
- * Shared type definitions for the URERD Review Portal frontend
+ * Shared type definitions for the URERB Review Portal frontend
  */
 
 // Queue and SLA types
@@ -86,6 +86,15 @@ export interface DecoratedQueueItem extends QueueItem {
   notes?: string;
   overdueOwner?: "PANEL" | "RESEARCHER";
   overdueReason?: string;
+  overdueOwnerRole?:
+    | "PROJECT_LEADER_RESEARCHER_PROPONENT"
+    | "REVIEWER_GROUP"
+    | "RESEARCH_ASSOCIATE_PROCESSING_STAFF"
+    | "COMMITTEE_CHAIRPERSON_DESIGNATE"
+    | "UNASSIGNED_PROCESS_GAP";
+  overdueOwnerLabel?: string;
+  overdueOwnerIcon?: string;
+  overdueOwnerReason?: string;
 }
 
 // Letter templates
@@ -114,13 +123,22 @@ export interface OverdueReviewItem {
   endorsementStatus?: string;
   overdueOwner?: "PANEL" | "RESEARCHER";
   overdueReason?: string;
+  overdueOwnerRole?:
+    | "PROJECT_LEADER_RESEARCHER_PROPONENT"
+    | "REVIEWER_GROUP"
+    | "RESEARCH_ASSOCIATE_PROCESSING_STAFF"
+    | "COMMITTEE_CHAIRPERSON_DESIGNATE"
+    | "UNASSIGNED_PROCESS_GAP";
+  overdueOwnerLabel?: string;
+  overdueOwnerIcon?: string;
+  overdueOwnerReason?: string;
 }
 
 export interface ProjectSearchResult {
   id: number;
   projectCode: string;
-  title: string;
-  piName: string;
+  title: string | null;
+  piName: string | null;
   updatedAt: string;
 }
 
@@ -150,10 +168,78 @@ export interface ChangeLogEntry {
   } | null;
 }
 
+export interface SubmissionReviewerEntry {
+  id: number;
+  reviewerRole: string | null;
+  isPrimary?: boolean;
+  assignedAt?: string;
+  receivedAt?: string | null;
+  dueDate?: string | null;
+  respondedAt?: string | null;
+  decision?: string | null;
+  remarks?: string | null;
+  endorsementStatus?: string | null;
+  honorariumStatus?: string | null;
+  reviewer: {
+    id: number;
+    fullName: string;
+    email: string;
+  };
+}
+
+export interface SubmissionReviewAssignmentEntry {
+  id: number;
+  roundSequence: number;
+  reviewerRole: string;
+  assignedAt: string;
+  dueDate: string | null;
+  receivedAt: string | null;
+  submittedAt: string | null;
+  decision: string | null;
+  endorsementStatus: string | null;
+  remarks: string | null;
+  isActive: boolean;
+  endedAt: string | null;
+  reviewer: {
+    id: number;
+    fullName: string;
+    email: string;
+  };
+}
+
+export interface SubmissionDocumentEntry {
+  id: number;
+  type: string;
+  title: string;
+  status: string;
+  documentUrl: string | null;
+  notes: string | null;
+  receivedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CommitteeSummary {
   id: number;
   code: string;
   name: string;
+}
+
+export interface HolidayItem {
+  id: number;
+  date: string;
+  name: string;
+  createdAt: string;
+}
+
+export interface CreateHolidayPayload {
+  date: string;
+  name: string;
+}
+
+export interface UpdateHolidayPayload {
+  date?: string;
+  name?: string;
 }
 
 export interface ImportRowError {
@@ -172,23 +258,44 @@ export interface ImportResult {
 
 export interface ProjectImportPreview {
   detectedHeaders: string[];
+  previewRowNumbers: number[];
   previewRows: Record<string, string>[];
   suggestedMapping: Record<string, string | null>;
   missingRequiredFields: string[];
   warnings: string[];
 }
 
+export interface ProjectImportRowEdit {
+  rowNumber: number;
+  values: Record<string, string>;
+}
+
 export interface CreateProjectPayload {
   projectCode: string;
-  title: string;
-  piName: string;
+  title?: string;
+  piName?: string;
   committeeCode: string;
-  submissionType: string;
-  receivedDate: string;
+  submissionType?: string;
+  receivedDate?: string;
   fundingType?: string;
   notes?: string;
   collegeOrUnit?: string;
+  department?: string;
+  proponent?: string;
+  researchTypePHREB?: string;
+  researchTypePHREBOther?: string;
   proponentCategory?: "UNDERGRAD" | "GRAD" | "FACULTY" | "OTHER";
+  // Extra ProtocolProfile fields
+  panel?: string;
+  scientistReviewer?: string;
+  layReviewer?: string;
+  independentConsultant?: string;
+  honorariumStatus?: string;
+  classificationDate?: string;
+  finishDate?: string;
+  status?: string;
+  monthOfSubmission?: string;
+  monthOfClearance?: string;
 }
 
 export interface CreateProjectResponse {
@@ -199,12 +306,15 @@ export interface CreateProjectResponse {
 // Submission details
 export interface SubmissionDetail {
   id: number;
-  submissionType: string;
+  submissionType: string | null;
   status: string;
-  receivedDate: string;
+  receivedDate: string | null;
   finalDecision: string | null;
   finalDecisionDate: string | null;
   statusHistory: StatusHistoryEntry[];
+  reviews?: SubmissionReviewerEntry[];
+  reviewAssignments?: SubmissionReviewAssignmentEntry[];
+  documents?: SubmissionDocumentEntry[];
   changeLogs?: ChangeLogEntry[];
   projectChangeLogs?: ChangeLogEntry[];
   classification?: {
@@ -215,8 +325,8 @@ export interface SubmissionDetail {
   project?: {
     id: number;
     projectCode: string;
-    title: string;
-    piName: string;
+    title: string | null;
+    piName: string | null;
     piAffiliation?: string | null;
     committee?: {
       id: number;
@@ -225,6 +335,7 @@ export interface SubmissionDetail {
     } | null;
     approvalStartDate?: string | null;
     approvalEndDate?: string | null;
+    protocolProfile?: ProtocolProfile | null;
   } | null;
 }
 
@@ -232,10 +343,10 @@ export interface SubmissionDetail {
 export interface ProjectDetail {
   id: number;
   projectCode: string;
-  title: string;
-  piName: string;
+  title: string | null;
+  piName: string | null;
   piAffiliation: string;
-  fundingType: string;
+  fundingType: string | null;
   overallStatus: string;
   approvalStartDate: string | null;
   approvalEndDate: string | null;
@@ -244,7 +355,144 @@ export interface ProjectDetail {
     name: string;
     code: string;
   };
+  protocolProfile?: ProtocolProfile | null;
+  protocolMilestones?: ProtocolMilestone[];
   submissions: SubmissionDetail[];
+}
+
+export interface ProtocolProfile {
+  id: number;
+  projectId: number;
+  title?: string | null;
+  projectLeader?: string | null;
+  college?: string | null;
+  department?: string | null;
+  dateOfSubmission?: string | null;
+  monthOfSubmission?: string | null;
+  typeOfReview?: string | null;
+  proponent?: string | null;
+  funding?: string | null;
+  typeOfResearchPhreb?: string | null;
+  typeOfResearchPhrebOther?: string | null;
+  status?: string | null;
+  finishDate?: string | null;
+  monthOfClearance?: string | null;
+  reviewDurationDays?: number | null;
+  remarks?: string | null;
+  panel?: string | null;
+  scientistReviewer?: string | null;
+  layReviewer?: string | null;
+  independentConsultant?: string | null;
+  honorariumStatus?: string | null;
+  classificationOfProposalRerc?: string | null;
+  totalDays?: number | null;
+  submissionCount?: number | null;
+  withdrawn?: boolean | null;
+  projectEndDate6A?: string | null;
+  clearanceExpiration?: string | null;
+  progressReportTargetDate?: string | null;
+  progressReportSubmission?: string | null;
+  progressReportApprovalDate?: string | null;
+  progressReportStatus?: string | null;
+  progressReportDays?: number | null;
+  finalReportTargetDate?: string | null;
+  finalReportSubmission?: string | null;
+  finalReportCompletionDate?: string | null;
+  finalReportStatus?: string | null;
+  finalReportDays?: number | null;
+  amendmentSubmission?: string | null;
+  amendmentStatusOfRequest?: string | null;
+  amendmentApprovalDate?: string | null;
+  amendmentDays?: number | null;
+  continuingSubmission?: string | null;
+  continuingStatusOfRequest?: string | null;
+  continuingApprovalDate?: string | null;
+  continuingDays?: number | null;
+  primaryReviewer?: string | null;
+  finalLayReviewer?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateProtocolProfilePayload {
+  title?: string | null;
+  projectLeader?: string | null;
+  college?: string | null;
+  department?: string | null;
+  dateOfSubmission?: string | null;
+  monthOfSubmission?: string | null;
+  typeOfReview?: string | null;
+  proponent?: string | null;
+  funding?: string | null;
+  typeOfResearchPhreb?: string | null;
+  typeOfResearchPhrebOther?: string | null;
+  status?: string | null;
+  finishDate?: string | null;
+  monthOfClearance?: string | null;
+  reviewDurationDays?: number | null;
+  remarks?: string | null;
+  panel?: string | null;
+  scientistReviewer?: string | null;
+  layReviewer?: string | null;
+  independentConsultant?: string | null;
+  honorariumStatus?: string | null;
+  classificationOfProposalRerc?: string | null;
+  totalDays?: number | null;
+  submissionCount?: number | null;
+  withdrawn?: boolean | null;
+  projectEndDate6A?: string | null;
+  clearanceExpiration?: string | null;
+  progressReportTargetDate?: string | null;
+  progressReportSubmission?: string | null;
+  progressReportApprovalDate?: string | null;
+  progressReportStatus?: string | null;
+  progressReportDays?: number | null;
+  finalReportTargetDate?: string | null;
+  finalReportSubmission?: string | null;
+  finalReportCompletionDate?: string | null;
+  finalReportStatus?: string | null;
+  finalReportDays?: number | null;
+  amendmentSubmission?: string | null;
+  amendmentStatusOfRequest?: string | null;
+  amendmentApprovalDate?: string | null;
+  amendmentDays?: number | null;
+  continuingSubmission?: string | null;
+  continuingStatusOfRequest?: string | null;
+  continuingApprovalDate?: string | null;
+  continuingDays?: number | null;
+  primaryReviewer?: string | null;
+  finalLayReviewer?: string | null;
+}
+
+export interface ProtocolMilestone {
+  id: number;
+  projectId: number;
+  orderIndex: number;
+  label: string;
+  days?: number | null;
+  dateOccurred?: string | null;
+  ownerRole?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateProtocolMilestonePayload {
+  orderIndex?: number;
+  label: string;
+  days?: number | null;
+  dateOccurred?: string | null;
+  ownerRole?: string | null;
+  notes?: string | null;
+}
+
+export interface UpdateProtocolMilestonePayload {
+  orderIndex?: number;
+  label?: string;
+  days?: number | null;
+  dateOccurred?: string | null;
+  ownerRole?: string | null;
+  notes?: string | null;
 }
 
 // SLA summary
@@ -282,8 +530,8 @@ export interface SubmissionSlaSummary {
 export interface ArchivedProject {
   projectId: number;
   projectCode: string;
-  title: string;
-  piName: string;
+  title: string | null;
+  piName: string | null;
   latestSubmissionId: number | null;
   latestSubmissionStatus: string | null;
   receivedDate: string | null;

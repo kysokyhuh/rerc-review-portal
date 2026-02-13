@@ -40,6 +40,8 @@ async function buildInitialAckLetter(submissionId) {
     const committee = project.committee;
     const classification = submission.classification;
     const ra = project.createdBy;
+    const piName = project.piName ?? "Principal Investigator";
+    const projectTitle = project.title ?? "Untitled Protocol";
     const doc = new docx_1.Document({
         sections: [
             {
@@ -56,7 +58,7 @@ async function buildInitialAckLetter(submissionId) {
                     new docx_1.Paragraph(""),
                     new docx_1.Paragraph({
                         children: [
-                            new docx_1.TextRun({ text: project.piName, break: 1 }),
+                            new docx_1.TextRun({ text: piName, break: 1 }),
                             new docx_1.TextRun({
                                 text: project.piAffiliation ?? "",
                                 break: 1,
@@ -73,7 +75,7 @@ async function buildInitialAckLetter(submissionId) {
                         ],
                     }),
                     new docx_1.Paragraph(""),
-                    new docx_1.Paragraph(`Dear ${project.piName}, this letter acknowledges receipt of protocol ${project.projectCode} - "${project.title}".`),
+                    new docx_1.Paragraph(`Dear ${piName}, this letter acknowledges receipt of protocol ${project.projectCode} - "${projectTitle}".`),
                     new docx_1.Paragraph(`The submission was received on ${formatDate(submission.receivedDate)} and classified as ${classification?.reviewType ?? "TBD"}.`),
                     new docx_1.Paragraph({
                         text: "Our office will contact you if additional documents are required.",
@@ -105,6 +107,8 @@ async function buildInitialApprovalLetter(submissionId) {
     const committee = project.committee;
     const classification = submission.classification;
     const ra = project.createdBy;
+    const piName = project.piName ?? "Principal Investigator";
+    const projectTitle = project.title ?? "Untitled Protocol";
     const doc = new docx_1.Document({
         sections: [
             {
@@ -116,7 +120,7 @@ async function buildInitialApprovalLetter(submissionId) {
                     new docx_1.Paragraph(""),
                     new docx_1.Paragraph({
                         children: [
-                            new docx_1.TextRun({ text: project.piName, break: 1 }),
+                            new docx_1.TextRun({ text: piName, break: 1 }),
                             new docx_1.TextRun({
                                 text: project.piAffiliation ?? "",
                                 break: 1,
@@ -133,7 +137,7 @@ async function buildInitialApprovalLetter(submissionId) {
                         ],
                     }),
                     new docx_1.Paragraph(""),
-                    new docx_1.Paragraph(`Dear ${project.piName}, the ${branding_1.BRAND.name} has approved protocol ${project.projectCode} - "${project.title}".`),
+                    new docx_1.Paragraph(`Dear ${piName}, the ${branding_1.BRAND.name} has approved protocol ${project.projectCode} - "${projectTitle}".`),
                     new docx_1.Paragraph(`Review Type: ${classification?.reviewType ?? "TBD"}; Decision: ${submission.finalDecision ?? "APPROVED"}.`),
                     new docx_1.Paragraph(`Approval validity: ${formatDate(project.approvalStartDate)} to ${formatDate(project.approvalEndDate)}.`),
                     new docx_1.Paragraph("Please ensure adherence to the approved protocol."),

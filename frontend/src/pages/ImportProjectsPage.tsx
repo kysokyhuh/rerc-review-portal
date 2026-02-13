@@ -7,6 +7,7 @@ import {
   type ImportResult,
   type ProjectImportPreview,
 } from "@/services/api";
+import type { ProjectImportRowEdit } from "@/types";
 import {
   Breadcrumbs,
   CsvDropzone,
@@ -19,29 +20,6 @@ import "../styles/imports.css";
 const MAX_FILE_SIZE_MB = 5;
 const MAX_ERRORS_DISPLAY = 50;
 const PREVIEW_ROWS_LIMIT = 10;
-
-const REQUIRED_FIELDS = [
-  { key: "projectCode", label: "Project Code" },
-  { key: "title", label: "Project Title" },
-  { key: "piName", label: "Principal Investigator" },
-  { key: "fundingType", label: "Funding Type" },
-  { key: "committeeCode", label: "Committee Code" },
-  { key: "submissionType", label: "Submission Type" },
-  { key: "receivedDate", label: "Date Received" },
-] as const;
-
-type RequiredFieldKey = (typeof REQUIRED_FIELDS)[number]["key"];
-type MappingState = Record<RequiredFieldKey, string | null>;
-
-const EMPTY_MAPPING: MappingState = {
-  projectCode: null,
-  title: null,
-  piName: null,
-  fundingType: null,
-  committeeCode: null,
-  submissionType: null,
-  receivedDate: null,
-};
 
 const formatBytes = (bytes: number) => {
   if (bytes < 1024) return `${bytes} B`;
@@ -67,28 +45,18 @@ const buildErrorsCsv = (result: ImportResult) => {
   return [header, ...lines].join("\n");
 };
 
-const toMappingState = (preview: ProjectImportPreview): MappingState => ({
-  projectCode: preview.suggestedMapping.projectCode ?? null,
-  title: preview.suggestedMapping.title ?? null,
-  piName: preview.suggestedMapping.piName ?? null,
-  fundingType: preview.suggestedMapping.fundingType ?? null,
-  committeeCode: preview.suggestedMapping.committeeCode ?? null,
-  submissionType: preview.suggestedMapping.submissionType ?? null,
-  receivedDate: preview.suggestedMapping.receivedDate ?? null,
-});
-
 export default function ImportProjectsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<ProjectImportPreview | null>(null);
-  const [mapping, setMapping] = useState<MappingState>(EMPTY_MAPPING);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [templateDownloading, setTemplateDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
+  const [editablePreviewRows, setEditablePreviewRows] = useState<Record<string, string>[]>([]);
 
-  const missingMappings = REQUIRED_FIELDS.filter((field) => !mapping[field.key]);
+  const missingMappings = preview?.missingRequiredFields ?? [];
   const canImport =
     Boolean(selectedFile) &&
     Boolean(preview) &&
@@ -110,7 +78,7 @@ export default function ImportProjectsPage() {
     setStatusMessage(null);
     setResult(null);
     setPreview(null);
-    setMapping(EMPTY_MAPPING);
+    setEditablePreviewRows([]);
 
     if (!file) {
       setSelectedFile(null);
@@ -133,22 +101,22 @@ export default function ImportProjectsPage() {
 
     setSelectedFile(file);
     setPreviewLoading(true);
-    setStatusMessage("Analyzing file and suggesting column mapping...");
+    setStatusMessage("Analyzing file and auto-detecting required headers...");
 
     try {
       const previewResponse = await previewProjectsCsv(file);
       setPreview(previewResponse);
-      setMapping(toMappingState(previewResponse));
+      setEditablePreviewRows(previewResponse.previewRows.map((row) => ({ ...row })));
       if (previewResponse.missingRequiredFields.length > 0) {
-        setStatusMessage("We can't find some required fields. Map columns to continue.");
+        setStatusMessage("We can't read required headers from this file.");
       } else {
-        setStatusMessage("Preview ready. Review mapping, then import.");
+        setStatusMessage("Preview ready. You can edit blank cells in the preview before import.");
       }
     } catch (err: any) {
       const message = err?.response?.data?.message || err?.message || "Failed to preview CSV.";
       setError(message);
       setPreview(null);
-      setMapping(EMPTY_MAPPING);
+      setEditablePreviewRows([]);
     } finally {
       setPreviewLoading(false);
     }
@@ -175,17 +143,10 @@ export default function ImportProjectsPage() {
     }
   };
 
-  const handleMappingChange = (field: RequiredFieldKey, value: string) => {
-    setMapping((prev) => ({
-      ...prev,
-      [field]: value || null,
-    }));
-  };
-
   const handleImport = async () => {
     if (!selectedFile || !preview) return;
     if (missingMappings.length > 0) {
-      setError("Map all required fields before importing.");
+      setError("Missing required header in CSV.");
       return;
     }
 
@@ -194,7 +155,31 @@ export default function ImportProjectsPage() {
       setError(null);
       setResult(null);
       setStatusMessage("Import in progress...");
-      const response = await commitProjectsCsvImport(selectedFile, mapping);
+      const previewHeaders = preview.detectedHeaders;
+      const rowNumbers =
+        preview.previewRowNumbers && preview.previewRowNumbers.length === preview.previewRows.length
+          ? preview.previewRowNumbers
+          : preview.previewRows.map((_, index) => index + 2);
+
+      const rowEdits: ProjectImportRowEdit[] = editablePreviewRows
+        .map((editedRow, index) => {
+          const original = preview.previewRows[index] ?? {};
+          const changed: Record<string, string> = {};
+          for (const header of previewHeaders) {
+            const before = original[header] ?? "";
+            const after = editedRow[header] ?? "";
+            if (before !== after) {
+              changed[header] = after;
+            }
+          }
+          return {
+            rowNumber: rowNumbers[index] ?? index + 2,
+            values: changed,
+          };
+        })
+        .filter((edit) => Object.keys(edit.values).length > 0);
+
+      const response = await commitProjectsCsvImport(selectedFile, undefined, rowEdits);
       setResult(response);
       setStatusMessage(
         `Import finished: ${response.insertedRows} inserted, ${response.failedRows} failed.`
@@ -223,7 +208,11 @@ export default function ImportProjectsPage() {
   };
 
   const previewHeaders = preview?.detectedHeaders ?? [];
-  const previewRows = (preview?.previewRows ?? []).slice(0, PREVIEW_ROWS_LIMIT);
+  const previewRows = editablePreviewRows.slice(0, PREVIEW_ROWS_LIMIT);
+  const blockingWarnings =
+    preview && preview.missingRequiredFields.length > 0
+      ? ["We can't auto-detect required headers for import."]
+      : [];
 
   return (
     <div className="import-page">
@@ -242,7 +231,7 @@ export default function ImportProjectsPage() {
           Back to Dashboard
         </Link>
         <h1>Import Projects CSV</h1>
-        <p>Upload any CSV format. We will preview and help map columns before importing.</p>
+        <p>Upload any CSV format. We auto-detect required headers and let you edit preview cells before import.</p>
       </header>
 
       <ImportStepper currentStep={currentStep} warningsCount={missingMappings.length} />
@@ -277,7 +266,7 @@ export default function ImportProjectsPage() {
 
             <section className="import-card" aria-labelledby="step-2-title">
               <div className="import-card-head">
-                <h2 id="step-2-title">Step 2: Preview and mapping</h2>
+                <h2 id="step-2-title">Step 2: Preview</h2>
                 <span className="import-file-meta">
                   {fileMeta ? `${fileMeta.name} • ${fileMeta.formattedSize}` : "No file loaded"}
                 </span>
@@ -287,9 +276,9 @@ export default function ImportProjectsPage() {
 
               {!previewLoading && preview && (
                 <>
-                  {preview.warnings.length > 0 && (
+                  {blockingWarnings.length > 0 && (
                     <div className="import-alert warning">
-                      {preview.warnings.map((warning) => (
+                      {blockingWarnings.map((warning) => (
                         <p key={warning} className="import-alert-line">
                           {warning}
                         </p>
@@ -297,48 +286,8 @@ export default function ImportProjectsPage() {
                     </div>
                   )}
 
-                  <div className="preview-validation">
-                    <h3>Detected headers</h3>
-                    <div className="header-list" role="list">
-                      {previewHeaders.map((header) => (
-                        <span key={header} className="header-chip" role="listitem">
-                          {header}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mapping-form" aria-label="Required field mapping">
-                    {REQUIRED_FIELDS.map((field) => {
-                      const selected = mapping[field.key] || "";
-                      const isMissing = !mapping[field.key];
-                      return (
-                        <label key={field.key} className="mapping-row">
-                          <span>{field.label}</span>
-                          <select
-                            value={selected}
-                            onChange={(event) => handleMappingChange(field.key, event.target.value)}
-                            disabled={uploading}
-                          >
-                            <option value="">Select column...</option>
-                            {previewHeaders.map((header) => (
-                              <option key={header} value={header}>
-                                {header}
-                              </option>
-                            ))}
-                          </select>
-                          {isMissing && (
-                            <small className="mapping-help-error">
-                              Your file does not include a column for {field.label}; please add it or map correctly.
-                            </small>
-                          )}
-                        </label>
-                      );
-                    })}
-                  </div>
-
                   <div className="preview-table-wrap">
-                    <h3>Preview rows ({Math.min(PREVIEW_ROWS_LIMIT, previewRows.length)} shown)</h3>
+                    <h3>Preview rows ({Math.min(PREVIEW_ROWS_LIMIT, previewRows.length)} shown, editable)</h3>
                     <table className="preview-table">
                       <thead>
                         <tr>
@@ -353,7 +302,23 @@ export default function ImportProjectsPage() {
                         {previewRows.map((row, rowIndex) => (
                           <tr key={`preview-${rowIndex}`}>
                             {previewHeaders.map((header) => (
-                              <td key={`${rowIndex}-${header}`}>{row[header] || <span className="cell-empty">—</span>}</td>
+                              <td key={`${rowIndex}-${header}`}>
+                                <input
+                                  type="text"
+                                  value={row[header] ?? ""}
+                                  onChange={(event) =>
+                                    setEditablePreviewRows((prev) =>
+                                      prev.map((item, idx) =>
+                                        idx === rowIndex
+                                          ? { ...item, [header]: event.target.value }
+                                          : item
+                                      )
+                                    )
+                                  }
+                                  placeholder="—"
+                                  disabled={uploading}
+                                />
+                              </td>
                             ))}
                           </tr>
                         ))}
@@ -371,7 +336,7 @@ export default function ImportProjectsPage() {
                   {uploading ? "Importing..." : "Import CSV"}
                 </button>
               </div>
-              <p className="import-hint">Import stays disabled until all required fields are mapped.</p>
+              <p className="import-hint">Import stays disabled until required headers are auto-detected.</p>
             </section>
 
             {result && <ImportSummary result={result} onDownloadErrors={handleDownloadErrors} />}
@@ -380,20 +345,18 @@ export default function ImportProjectsPage() {
 
           <aside className="import-side-col">
             <div className="import-card import-guide-card">
-              <h3>Required fields</h3>
+              <h3>Required headers</h3>
               <ul>
-                {REQUIRED_FIELDS.map((field) => (
-                  <li key={field.key}>{field.label}</li>
-                ))}
+                <li>Column 1: projectCode (fixed)</li>
               </ul>
-              <p>Any CSV shape is accepted, but these fields must be mapped for import.</p>
+              <p>Any CSV shape is accepted. Project code is read from column 1.</p>
             </div>
             <div className="import-card import-guide-card">
               <h3>Safety checks</h3>
               <ul>
                 <li>Maximum file size: 5MB.</li>
                 <li>Maximum rows: 5,000.</li>
-                <li>Server re-validates file and mapping on commit.</li>
+                <li>Server re-validates file and auto-detected fields on commit.</li>
               </ul>
             </div>
           </aside>
