@@ -145,7 +145,14 @@ router.get("/dashboard/overdue", async (req, res) => {
                 reviewerRole: review.reviewerRole,
                 dueDate,
                 daysOverdue,
-                ...(0, overdueClassifier_1.classifyOverdue)(review.submission.status),
+                ...(0, overdueClassifier_1.classifyOverdue)(review.submission.status, {
+                    hasActionableAssignee: Boolean(review.reviewerId),
+                    hasRoutingMetadata: Boolean(review.submissionId),
+                    isReviewerTask: review.reviewerRole !== "INDEPENDENT_CONSULTANT",
+                    isEndorsementTask: review.reviewerRole === "INDEPENDENT_CONSULTANT",
+                    hasChairGate: review.submission.status === "UNDER_CLASSIFICATION" ||
+                        review.submission.status === "CLASSIFIED",
+                }),
             };
             if (review.reviewerRole === "INDEPENDENT_CONSULTANT") {
                 const status = review.endorsementStatus ?? "PENDING";
@@ -446,14 +453,14 @@ router.get("/ra/submissions/:submissionId", async (req, res, next) => {
       <h2>Project information</h2>
       <div class="meta-grid">
         <div><strong>Project code:</strong> ${escapeHtml(project.projectCode)}</div>
-        <div><strong>Title:</strong> ${escapeHtml(project.title)}</div>
-        <div><strong>PI:</strong> ${escapeHtml(project.piName)}</div>
+        <div><strong>Title:</strong> ${escapeHtml(project.title ?? "-")}</div>
+        <div><strong>PI:</strong> ${escapeHtml(project.piName ?? "-")}</div>
         <div><strong>Affiliation:</strong> ${escapeHtml(project.piAffiliation ?? "-")}</div>
         <div><strong>Committee:</strong> ${escapeHtml(project.committee.code)} – ${escapeHtml(project.committee.name)}</div>
-        <div><strong>Submission type:</strong> ${escapeHtml(submission.submissionType)}</div>
+        <div><strong>Submission type:</strong> ${escapeHtml(submission.submissionType ?? "-")}</div>
         <div><strong>Received date:</strong> ${submission.receivedDate
-            .toISOString()
-            .slice(0, 10)}</div>
+            ? submission.receivedDate.toISOString().slice(0, 10)
+            : "-"}</div>
       </div>
     </div>
 

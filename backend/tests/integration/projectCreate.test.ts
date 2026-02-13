@@ -4,6 +4,7 @@ import prismaClient from "../../src/config/prismaClient";
 
 const txProjectCreate = jest.fn();
 const txSubmissionCreate = jest.fn();
+const txProtocolProfileCreate = jest.fn();
 
 jest.mock("../../src/config/prismaClient", () => ({
   __esModule: true,
@@ -23,6 +24,7 @@ jest.mock("../../src/config/prismaClient", () => ({
       callback({
         project: { create: txProjectCreate },
         submission: { create: txSubmissionCreate },
+        protocolProfile: { create: txProtocolProfileCreate },
       })
     ),
   },
@@ -48,6 +50,7 @@ describe("POST /projects", () => {
     prisma.project.findFirst.mockResolvedValue(null);
     txProjectCreate.mockResolvedValue({ id: 101 });
     txSubmissionCreate.mockResolvedValue({ id: 202 });
+    txProtocolProfileCreate.mockResolvedValue({ id: 303 });
   });
 
   it("creates project + initial submission in one request", async () => {
@@ -71,7 +74,7 @@ describe("POST /projects", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           projectCode: "P-001",
-          fundingType: "NO_FUNDING",
+          fundingType: null,
           createdById: 9,
         }),
       })
@@ -82,6 +85,39 @@ describe("POST /projects", () => {
           projectId: 101,
           submissionType: "INITIAL",
           createdById: 9,
+        }),
+      })
+    );
+    expect(txProtocolProfileCreate).toHaveBeenCalled();
+  });
+
+  it("allows missing non-anchor fields and stores null for later backfill", async () => {
+    const response = await request(app)
+      .post("/projects")
+      .set("X-User-ID", "9")
+      .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+      .send({
+        projectCode: "P-002",
+        committeeCode: "RERC-HUMAN",
+      });
+
+    expect(response.status).toBe(201);
+    expect(txProjectCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          projectCode: "P-002",
+          title: null,
+          piName: null,
+          fundingType: null,
+          initialSubmissionDate: null,
+        }),
+      })
+    );
+    expect(txSubmissionCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          submissionType: null,
+          receivedDate: null,
         }),
       })
     );

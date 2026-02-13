@@ -1,5 +1,5 @@
 /**
- * URERD Review Portal - Express App
+ * URERB Review Portal - Express App
  *
  * Configures middleware and mounts route modules.
  */
@@ -18,6 +18,7 @@ import {
   mailMergeRoutes,
   importRoutes,
   reportRoutes,
+  holidayRoutes,
 } from "./routes";
 import { authenticateUser } from "./middleware/auth";
 
@@ -78,5 +79,8 @@ app.use(importRoutes);
 
 // Reports routes (/reports/*)
 app.use(reportRoutes);
+
+// Holiday routes (/holidays)
+app.use(holidayRoutes);
 
 export default app;

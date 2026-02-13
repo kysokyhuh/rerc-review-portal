@@ -10,7 +10,7 @@
 
 export const BRAND = {
   /** Short organisation/product name shown in titles and headings */
-  name: process.env.BRAND_NAME || "URERD",
+  name: process.env.BRAND_NAME || "URERB",
 
   /** Full organisation name */
   fullName:
@@ -21,7 +21,7 @@ export const BRAND = {
   defaultCommitteeCode: "RERC-HUMAN",
 
   /** Label shown on rendered HTML pages / letters for the committee */
-  committeeLabel: process.env.BRAND_COMMITTEE_LABEL || "URERD",
+  committeeLabel: process.env.BRAND_COMMITTEE_LABEL || "URERB",
 
   /** Support / contact e-mail surfaced in UI & letters */
   supportEmail:

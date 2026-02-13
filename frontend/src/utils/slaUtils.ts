@@ -66,7 +66,13 @@ export function decorateQueueItem(
   // Classify overdue/due-soon owner
   const overdueClassification =
     slaStatus === "OVERDUE" || slaStatus === "DUE_SOON"
-      ? classifyOverdue(item.status)
+      ? classifyOverdue(item.status, {
+          hasActionableAssignee: Boolean(item.staffInChargeName),
+          hasRoutingMetadata: Boolean(item.projectId),
+          hasChairGate:
+            item.status === "UNDER_CLASSIFICATION" ||
+            item.status === "CLASSIFIED",
+        })
       : undefined;
 
   return {
@@ -83,6 +89,10 @@ export function decorateQueueItem(
     lastAction: item.status,
     overdueOwner: overdueClassification?.overdueOwner,
     overdueReason: overdueClassification?.overdueReason,
+    overdueOwnerRole: overdueClassification?.overdueOwnerRole,
+    overdueOwnerLabel: overdueClassification?.overdueOwnerLabel,
+    overdueOwnerIcon: overdueClassification?.overdueOwnerIcon,
+    overdueOwnerReason: overdueClassification?.overdueOwnerReason,
     nextAction:
       queue === "classification"
         ? "Classify"

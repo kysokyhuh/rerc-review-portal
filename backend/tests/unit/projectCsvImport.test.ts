@@ -50,9 +50,7 @@ describe("project CSV import mapping", () => {
     expect(preview.detectedHeaders).toEqual(["Project Code", "PI", "Date Received"]);
     expect(preview.suggestedMapping.projectCode).toBe("Project Code");
     expect(preview.suggestedMapping.piName).toBe("PI");
-    expect(preview.missingRequiredFields).toEqual(
-      expect.arrayContaining(["title", "fundingType", "committeeCode", "submissionType"])
-    );
+    expect(preview.missingRequiredFields).toEqual([]);
   });
 
   it("rejects CSV beyond max rows", () => {

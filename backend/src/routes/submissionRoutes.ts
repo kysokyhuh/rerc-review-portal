@@ -84,6 +84,7 @@ router.get("/submissions/:id", async (req, res) => {
         project: {
           include: {
             committee: true,
+            protocolProfile: true,
           },
         },
         classification: {
@@ -97,6 +98,15 @@ router.get("/submissions/:id", async (req, res) => {
             reviewer: true,
           },
           orderBy: { assignedAt: "asc" },
+        },
+        reviewAssignments: {
+          include: {
+            reviewer: true,
+          },
+          orderBy: [{ roundSequence: "asc" }, { assignedAt: "asc" }],
+        },
+        documents: {
+          orderBy: [{ type: "asc" }, { createdAt: "asc" }],
         },
         statusHistory: {
           include: {
@@ -440,6 +450,15 @@ router.patch("/submissions/:id/overview", async (req, res) => {
           },
           orderBy: { assignedAt: "asc" },
         },
+        reviewAssignments: {
+          include: {
+            reviewer: true,
+          },
+          orderBy: [{ roundSequence: "asc" }, { assignedAt: "asc" }],
+        },
+        documents: {
+          orderBy: [{ type: "asc" }, { createdAt: "asc" }],
+        },
         statusHistory: {
           include: {
             changedBy: true,
@@ -768,14 +787,17 @@ router.get("/submissions/:id/sla-summary", async (req, res) => {
     );
 
     const classificationStart =
-      classificationStartHistory?.effectiveDate ?? submission.receivedDate;
+      classificationStartHistory?.effectiveDate ??
+      submission.receivedDate ??
+      submission.createdAt;
 
     const classificationEnd =
       submission.classification.classificationDate ?? new Date();
 
     const classificationActual = workingDaysBetween(
       new Date(classificationStart),
-      new Date(classificationEnd)
+      new Date(classificationEnd),
+      []
     );
 
     const classificationConfigured =
@@ -818,7 +840,8 @@ router.get("/submissions/:id/sla-summary", async (req, res) => {
     if (reviewStart && reviewEnd && reviewSlaConfig) {
       reviewActual = workingDaysBetween(
         new Date(reviewStart),
-        new Date(reviewEnd)
+        new Date(reviewEnd),
+        []
       );
       reviewWithin = reviewActual <= reviewSlaConfig.workingDays;
     }
@@ -849,7 +872,8 @@ router.get("/submissions/:id/sla-summary", async (req, res) => {
     if (revisionStart && revisionEnd && revisionSlaConfig) {
       revisionActual = workingDaysBetween(
         new Date(revisionStart),
-        new Date(revisionEnd)
+        new Date(revisionEnd),
+        []
       );
       revisionWithin = revisionActual <= revisionSlaConfig.workingDays;
     }

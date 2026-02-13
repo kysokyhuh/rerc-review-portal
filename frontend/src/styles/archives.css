@@ -1,25 +1,12 @@
 /* Archives Page Styles */
 .archives-page {
-  max-width: 1400px;
+  max-width: 980px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 20px;
 }
 
-.archives-header {
-  margin-bottom: 24px;
-}
-
-.archives-header h1 {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--neutral-900);
-  margin: 12px 0 8px;
-}
-
-.archives-header p {
-  color: var(--neutral-600);
-  font-size: 14px;
-  margin: 0;
+.archives-hero {
+  margin-bottom: 0;
 }
 
 /* Toolbar */
@@ -30,6 +17,10 @@
   gap: 16px;
   margin-bottom: 20px;
   flex-wrap: wrap;
+}
+
+.archives-toolbar-card {
+  padding-top: 16px;
 }
 
 .archives-search {
@@ -71,9 +62,8 @@
 
 /* Table Container */
 .archives-table-container {
-  background: var(--surface);
   border: 1px solid var(--neutral-200);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -168,8 +158,8 @@
   justify-content: center;
   align-items: center;
   gap: 16px;
-  margin-top: 20px;
-  padding: 16px;
+  margin-top: 0;
+  padding: 14px 16px;
 }
 
 .pagination-btn {
@@ -205,7 +195,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 48px 20px;
   color: var(--neutral-500);
 }
 
@@ -231,10 +221,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
-  background: var(--surface);
-  border: 1px solid var(--neutral-200);
-  border-radius: var(--radius-lg);
+  padding: 48px 20px;
   text-align: center;
 }
 
@@ -265,10 +252,8 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding: 24px;
+  padding: 20px;
   background: var(--danger-soft);
-  border-radius: var(--radius-md);
-  margin-bottom: 20px;
 }
 
 .archives-error p {

@@ -20,12 +20,21 @@ export type {
   CommitteeSummary,
   ImportResult,
   ProjectImportPreview,
+  ProjectImportRowEdit,
   CreateProjectPayload,
   CreateProjectResponse,
   ArchivedProject,
   ArchivedProjectsResponse,
   ReportsAcademicYearOption,
   ReportsSummaryResponse,
+  HolidayItem,
+  CreateHolidayPayload,
+  UpdateHolidayPayload,
+  ProtocolProfile,
+  UpdateProtocolProfilePayload,
+  ProtocolMilestone,
+  CreateProtocolMilestonePayload,
+  UpdateProtocolMilestonePayload,
 } from "@/types";
 
 import type {
@@ -45,6 +54,15 @@ import type {
   ArchivedProjectsResponse,
   ReportsAcademicYearOption,
   ReportsSummaryResponse,
+  HolidayItem,
+  CreateHolidayPayload,
+  UpdateHolidayPayload,
+  ProjectImportRowEdit,
+  ProtocolProfile,
+  UpdateProtocolProfilePayload,
+  ProtocolMilestone,
+  CreateProtocolMilestonePayload,
+  UpdateProtocolMilestonePayload,
 } from "@/types";
 
 // Minimal process typing so Vite builds without Node typings
@@ -173,6 +191,47 @@ export async function fetchProjectDetail(projectId: number) {
   return response.data as ProjectDetail;
 }
 
+export async function fetchProtocolProfile(projectId: number) {
+  const response = await api.get(`/projects/${projectId}/profile`);
+  return response.data as {
+    profile: ProtocolProfile | null;
+    milestones: ProtocolMilestone[];
+  };
+}
+
+export async function updateProtocolProfile(
+  projectId: number,
+  payload: UpdateProtocolProfilePayload
+) {
+  const response = await api.put(`/projects/${projectId}/profile`, payload);
+  return response.data as ProtocolProfile;
+}
+
+export async function createProtocolMilestone(
+  projectId: number,
+  payload: CreateProtocolMilestonePayload
+) {
+  const response = await api.post(`/projects/${projectId}/profile/milestones`, payload);
+  return response.data as ProtocolMilestone;
+}
+
+export async function updateProtocolMilestone(
+  projectId: number,
+  milestoneId: number,
+  payload: UpdateProtocolMilestonePayload
+) {
+  const response = await api.patch(
+    `/projects/${projectId}/profile/milestones/${milestoneId}`,
+    payload
+  );
+  return response.data as ProtocolMilestone;
+}
+
+export async function deleteProtocolMilestone(projectId: number, milestoneId: number) {
+  const response = await api.delete(`/projects/${projectId}/profile/milestones/${milestoneId}`);
+  return response.data as { success: boolean };
+}
+
 export async function fetchSubmissionDetail(submissionId: number) {
   const response = await api.get(`/submissions/${submissionId}`);
   return response.data as SubmissionDetail;
@@ -206,6 +265,36 @@ export async function fetchSubmissionSlaSummary(submissionId: number) {
 export async function fetchCommittees() {
   const response = await api.get("/committees");
   return response.data as CommitteeSummary[];
+}
+
+export async function fetchHolidays(params?: {
+  year?: number;
+  from?: string;
+  to?: string;
+}) {
+  const search = new URLSearchParams();
+  if (params?.year !== undefined) search.set("year", String(params.year));
+  if (params?.from) search.set("from", params.from);
+  if (params?.to) search.set("to", params.to);
+
+  const suffix = search.toString();
+  const response = await api.get(`/holidays${suffix ? `?${suffix}` : ""}`);
+  return response.data as { items: HolidayItem[] };
+}
+
+export async function createHoliday(payload: CreateHolidayPayload) {
+  const response = await api.post("/holidays", payload);
+  return response.data as HolidayItem;
+}
+
+export async function updateHoliday(id: number, payload: UpdateHolidayPayload) {
+  const response = await api.patch(`/holidays/${id}`, payload);
+  return response.data as HolidayItem;
+}
+
+export async function deleteHoliday(id: number) {
+  const response = await api.delete(`/holidays/${id}`);
+  return response.data as { success: boolean };
 }
 
 /**
@@ -242,15 +331,7 @@ export async function fetchProjectImportTemplate() {
 }
 
 export async function importProjectsCsv(file: File) {
-  return commitProjectsCsvImport(file, {
-    projectCode: "projectCode",
-    title: "title",
-    piName: "piName",
-    fundingType: "fundingType",
-    committeeCode: "committeeCode",
-    submissionType: "submissionType",
-    receivedDate: "receivedDate",
-  });
+  return commitProjectsCsvImport(file);
 }
 
 export async function previewProjectsCsv(file: File) {
@@ -266,11 +347,17 @@ export async function previewProjectsCsv(file: File) {
 
 export async function commitProjectsCsvImport(
   file: File,
-  mapping: Record<string, string | null>
+  mapping?: Record<string, string | null>,
+  rowEdits?: ProjectImportRowEdit[]
 ) {
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("mapping", JSON.stringify(mapping));
+  if (mapping) {
+    formData.append("mapping", JSON.stringify(mapping));
+  }
+  if (rowEdits && rowEdits.length > 0) {
+    formData.append("rowEdits", JSON.stringify(rowEdits));
+  }
   const response = await api.post("/imports/projects/commit", formData, {
     headers: {
       "Content-Type": "multipart/form-data",

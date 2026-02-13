@@ -10,6 +10,7 @@ export type { DashboardFilterValues } from "./DashboardFilters";
 export { ImportStepper } from "./ImportStepper";
 export { ImportSummary } from "./ImportSummary";
 export { LetterReadinessPanel } from "./LetterReadinessPanel";
+export { ProtocolProfileSection, profileToFormState, formStateToPayload } from "./ProtocolProfileSection";
 export { QueueTable } from "./QueueTable";
 export { RowErrorsTable } from "./RowErrorsTable";
 export { SLAStatusChip } from "./SLAStatusChip";

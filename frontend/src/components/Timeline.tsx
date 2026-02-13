@@ -7,31 +7,51 @@ interface TimelineProps {
 
 export const Timeline: React.FC<TimelineProps> = ({ entries }) => {
   return (
-    <div className="timeline">
-      <h3>Submission Timeline</h3>
+    <div className="timeline-v2">
+      <div className="section-title">
+        <h2>Submission Timeline</h2>
+        {entries.length > 0 && (
+          <span className="badge">{entries.length} event{entries.length !== 1 ? 's' : ''}</span>
+        )}
+      </div>
       {entries.length === 0 ? (
-        <p>No status history available.</p>
+        <div className="empty-history">
+          <span className="empty-history-icon">📋</span>
+          <p>No status history available.</p>
+        </div>
       ) : (
-        <div className="timeline-events">
+        <div className="timeline-v2-events">
           {entries.map((entry, index) => (
-            <div key={entry.id} className="timeline-event">
-              <div className="timeline-marker"></div>
-              <div className="timeline-content">
-                <div className="event-status">
+            <div key={entry.id} className={`timeline-v2-event ${index === 0 ? 'timeline-v2-latest' : ''}`}>
+              <div className="timeline-v2-rail">
+                <div className={`timeline-v2-dot ${index === 0 ? 'dot-latest' : ''}`} />
+                {index < entries.length - 1 && <div className="timeline-v2-line" />}
+              </div>
+              <div className="timeline-v2-content">
+                <div className="timeline-v2-status">
                   {entry.oldStatus && (
-                    <span className="old">{entry.oldStatus}</span>
+                    <span className="timeline-v2-old">{entry.oldStatus.replace(/_/g, ' ')}</span>
                   )}
-                  <span className="arrow">→</span>
-                  <span className="new">{entry.newStatus}</span>
+                  <span className="timeline-v2-arrow">→</span>
+                  <span className="timeline-v2-new">{entry.newStatus.replace(/_/g, ' ')}</span>
                 </div>
-                <div className="event-date">
-                  {new Date(entry.effectiveDate).toLocaleDateString()}
+                <div className="timeline-v2-meta">
+                  <span className="timeline-v2-date">
+                    {new Date(entry.effectiveDate).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </span>
+                  {entry.reason && (
+                    <>
+                      <span className="timeline-v2-sep">·</span>
+                      <span className="timeline-v2-reason">{entry.reason}</span>
+                    </>
+                  )}
                 </div>
-                {entry.reason && (
-                  <div className="event-reason">{entry.reason}</div>
-                )}
                 {entry.changedBy && (
-                  <div className="event-user">
+                  <div className="timeline-v2-user">
                     by {entry.changedBy.fullName} ({entry.changedBy.email})
                   </div>
                 )}

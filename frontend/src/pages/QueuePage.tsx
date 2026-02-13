@@ -1,13 +1,11 @@
 import React, { useEffect, useMemo } from "react";
-import { Link, Navigate, useSearchParams, useParams } from "react-router-dom";
-import { DashboardSidebar } from "@/components/DashboardSidebar";
+import { Navigate, useSearchParams, useParams } from "react-router-dom";
 import { QueueFilters } from "@/components/queue/QueueFilters";
 import { QueueKpiCards } from "@/components/queue/QueueKpiCards";
 import { QueueDataTable } from "@/components/queue/QueueDataTable";
 import { useDashboardQueues } from "@/hooks/useDashboardQueues";
 import { BRAND } from "@/config/branding";
 import type { DecoratedQueueItem } from "@/types";
-import "../styles/dashboard.css";
 
 type QueueRouteKey = "classification" | "under-review" | "revisions";
 
@@ -60,11 +58,11 @@ export default function QueuePage() {
     | "overdue"
     | "blocked";
 
-  const { counts, classificationQueue, reviewQueue, revisionQueue, loading, error } =
+  const { classificationQueue, reviewQueue, revisionQueue, loading, error } =
     useDashboardQueues(BRAND.defaultCommitteeCode);
 
   useEffect(() => {
-    document.title = `URERD Portal — ${meta.title}`;
+    document.title = `URERB Portal — ${meta.title}`;
   }, [meta.title]);
 
   const queueItems = useMemo(() => {
@@ -107,13 +105,8 @@ export default function QueuePage() {
   };
 
   return (
-    <div className="dashboard-layout">
-      <DashboardSidebar counts={counts} />
-      <main className="dashboard-main queue-page-main">
+    <div className="dashboard-content queue-page-content">
         <header className="queue-page-header">
-          <Link to="/dashboard" className="queue-back-link">
-            Back to Dashboard
-          </Link>
           <h1>{meta.title}</h1>
           <p>{meta.description}</p>
         </header>
@@ -139,7 +132,6 @@ export default function QueuePage() {
           loading={loading}
           error={error}
         />
-      </main>
     </div>
   );
 }

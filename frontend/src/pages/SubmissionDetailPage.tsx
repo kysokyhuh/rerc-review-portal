@@ -1,25 +1,33 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
-  exportInitialAckCSV,
-  exportInitialApprovalDocx,
   fetchCommittees,
+  updateProtocolProfile,
   updateSubmissionOverview,
 } from "@/services/api";
 import { useSubmissionDetail } from "@/hooks/useSubmissionDetail";
 import { formatDateDisplay } from "@/utils/dateUtils";
 import { Timeline } from "@/components/Timeline";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import {
+  ProtocolProfileSection,
+  profileToFormState,
+  formStateToPayload,
+} from "@/components/ProtocolProfileSection";
 import type { CommitteeSummary, SubmissionDetail } from "@/types";
 
 export const SubmissionDetailPage: React.FC = () => {
   const { submissionId } = useParams<{ submissionId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const [exporting, setExporting] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [committees, setCommittees] = useState<CommitteeSummary[]>([]);
+  const [profileEditing, setProfileEditing] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileForm, setProfileForm] = useState<Record<string, string>>({});
   const [formState, setFormState] = useState({
     piName: "",
     committeeId: "",
@@ -36,44 +44,6 @@ export const SubmissionDetailPage: React.FC = () => {
     useSubmissionDetail(numericId);
 
   const backTarget = `/dashboard${location.search ?? ""}`;
-
-  const handleExportAckCSV = async () => {
-    try {
-      setExporting("ack-csv");
-      const blob = await exportInitialAckCSV(numericId);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `initial_ack_${submission?.project?.projectCode ?? numericId}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err) {
-      alert("Failed to export acknowledgement letter");
-    } finally {
-      setExporting(null);
-    }
-  };
-
-  const handleExportApprovalDocx = async () => {
-    try {
-      setExporting("approval-docx");
-      const blob = await exportInitialApprovalDocx(numericId);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `initial_approval_${submission?.project?.projectCode ?? numericId}.docx`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err) {
-      alert("Failed to export approval letter");
-    } finally {
-      setExporting(null);
-    }
-  };
 
   const submissionTypeOptions = [
     "INITIAL",
@@ -147,7 +117,28 @@ export const SubmissionDetailPage: React.FC = () => {
   useEffect(() => {
     if (!submission) return;
     resetFormState(submission);
+    setProfileForm(profileToFormState(submission.project?.protocolProfile));
   }, [submission]);
+
+  const handleProfileSave = async () => {
+    if (!submission?.project?.id) return;
+    setProfileSaving(true);
+    setProfileError(null);
+    try {
+      const payload = formStateToPayload(profileForm);
+      const updated = await updateProtocolProfile(submission.project.id, payload);
+      setSubmission((prev) => {
+        if (!prev || !prev.project) return prev;
+        return { ...prev, project: { ...prev.project, protocolProfile: updated } };
+      });
+      setProfileForm(profileToFormState(updated));
+      setProfileEditing(false);
+    } catch (err) {
+      setProfileError(err instanceof Error ? err.message : "Failed to save profile");
+    } finally {
+      setProfileSaving(false);
+    }
+  };
 
   if (!submissionId || Number.isNaN(numericId)) {
     return <div>Submission ID is required</div>;
@@ -211,6 +202,24 @@ export const SubmissionDetailPage: React.FC = () => {
       hour: "numeric",
       minute: "2-digit",
     });
+  };
+
+  const formatDateTimeDisplay = (value?: string | null) => {
+    if (!value) return "—";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "—";
+    return parsed.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  const humanizeEnum = (value?: string | null) => {
+    if (!value) return "—";
+    return value.replace(/_/g, " ");
   };
 
   const handleEditStart = () => {
@@ -280,29 +289,108 @@ export const SubmissionDetailPage: React.FC = () => {
 
   const projectCode = submission.project?.projectCode ?? "N/A";
   const title = submission.project?.title ?? "Untitled submission";
+  const reviewerRows =
+    submission.reviewAssignments && submission.reviewAssignments.length > 0
+      ? submission.reviewAssignments.map((item) => ({
+          id: `assign-${item.id}`,
+          name: item.reviewer?.fullName ?? "Unknown reviewer",
+          email: item.reviewer?.email ?? "—",
+          role: item.reviewerRole,
+          assignedAt: item.assignedAt,
+          dueDate: item.dueDate,
+          submittedAt: item.submittedAt,
+          decision: item.decision,
+          endorsementStatus: item.endorsementStatus,
+          source: "assignment",
+          isActive: item.isActive,
+        }))
+      : (submission.reviews ?? []).map((item) => ({
+          id: `review-${item.id}`,
+          name: item.reviewer?.fullName ?? "Unknown reviewer",
+          email: item.reviewer?.email ?? "—",
+          role: item.reviewerRole,
+          assignedAt: item.assignedAt ?? null,
+          dueDate: item.dueDate ?? null,
+          submittedAt: item.respondedAt ?? null,
+          decision: item.decision ?? null,
+          endorsementStatus: item.endorsementStatus ?? null,
+          source: "review",
+          isActive: true,
+        }));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const getDueMeta = (
+    dueDate?: string | null,
+    submittedAt?: string | null,
+    isActive = true
+  ) => {
+    if (!dueDate) return { label: "No deadline", className: "due-neutral" };
+    if (submittedAt) return { label: "Submitted", className: "due-good" };
+    if (!isActive) return { label: "Closed", className: "due-neutral" };
+
+    const due = new Date(dueDate);
+    if (Number.isNaN(due.getTime())) {
+      return { label: "No deadline", className: "due-neutral" };
+    }
+    due.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((due.getTime() - today.getTime()) / 86400000);
+    if (diffDays < 0) {
+      return { label: `${Math.abs(diffDays)}d overdue`, className: "due-overdue" };
+    }
+    if (diffDays === 0) return { label: "Due today", className: "due-soon" };
+    if (diffDays <= 3) return { label: `${diffDays}d left`, className: "due-soon" };
+    return { label: `${diffDays}d left`, className: "due-good" };
+  };
+
+  const getSlaStatus = (stage: { actualWorkingDays: number | null; configuredWorkingDays: number | null; withinSla: boolean | null }) => {
+    if (stage.actualWorkingDays == null || stage.configuredWorkingDays == null) return 'pending';
+    if (stage.withinSla === false) return 'overdue';
+    const ratio = stage.actualWorkingDays / stage.configuredWorkingDays;
+    if (ratio >= 0.8) return 'due-soon';
+    return 'on-track';
+  };
+
+  const getSlaPercent = (stage: { actualWorkingDays: number | null; configuredWorkingDays: number | null }) => {
+    if (stage.actualWorkingDays == null || stage.configuredWorkingDays == null) return 0;
+    if (stage.configuredWorkingDays === 0) return 100;
+    return Math.min(100, Math.round((stage.actualWorkingDays / stage.configuredWorkingDays) * 100));
+  };
+
+  const getStatusVariant = (status: string) => {
+    if (['CLOSED', 'WITHDRAWN'].includes(status)) return 'badge-neutral';
+    if (['AWAITING_REVISIONS', 'REVISION_SUBMITTED'].includes(status)) return 'badge-warning';
+    if (['UNDER_REVIEW', 'UNDER_CLASSIFICATION', 'UNDER_COMPLETENESS_CHECK'].includes(status)) return 'badge-info';
+    if (status === 'RECEIVED') return 'badge-positive';
+    return 'badge-positive';
+  };
 
   return (
-    <div className="project-detail-page">
-      <header className="page-header" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <button onClick={() => navigate(backTarget)} className="btn btn-secondary btn-sm">
-          ← Back to dashboard
-        </button>
-        <div>
-          <h1>
-            {projectCode} – {title}
-          </h1>
-          <p>Submission ID {submission.id}</p>
+    <div className="project-detail-page detail-v2">
+      <header className="detail-hero">
+        <Breadcrumbs items={[
+          { label: 'Dashboard', href: backTarget },
+          { label: projectCode },
+        ]} />
+        <div className="detail-hero-content">
+          <div className="detail-hero-text">
+            <span className="detail-project-code">{projectCode}</span>
+            <h1 className="detail-title">{title}</h1>
+            <span className="detail-subtitle">Submission #{submission.id}</span>
+          </div>
+          <span className={`badge badge-lg ${getStatusVariant(submission.status)}`}>
+            {submission.status.replace(/_/g, ' ')}
+          </span>
         </div>
       </header>
 
-      <section className="card" style={{ marginBottom: 14 }}>
+      <section className="card detail-card">
         <div className="section-title">
-          <div>
+          <div className="section-title-left">
             <h2>Submission overview</h2>
             {saveError && <p className="error-text">{saveError}</p>}
           </div>
           <div className="section-actions">
-            <span className="badge badge-positive">{submission.status}</span>
             {isEditing ? (
               <>
                 <button
@@ -310,10 +398,10 @@ export const SubmissionDetailPage: React.FC = () => {
                   onClick={handleSave}
                   disabled={saving}
                 >
-                  {saving ? "Saving..." : "Save"}
+                  {saving ? "Saving..." : "Save changes"}
                 </button>
                 <button
-                  className="btn btn-secondary btn-sm"
+                  className="btn btn-ghost btn-sm"
                   onClick={handleEditCancel}
                   disabled={saving}
                 >
@@ -325,7 +413,7 @@ export const SubmissionDetailPage: React.FC = () => {
                 className="btn btn-secondary btn-sm"
                 onClick={handleEditStart}
               >
-                Edit overview
+                ✎ Edit overview
               </button>
             )}
           </div>
@@ -503,99 +591,221 @@ export const SubmissionDetailPage: React.FC = () => {
         </div>
       </section>
 
-      <section className="card" style={{ marginBottom: 14 }}>
+      <ProtocolProfileSection
+        profile={submission.project?.protocolProfile}
+        editing={profileEditing}
+        saving={profileSaving}
+        error={profileError}
+        profileForm={profileForm}
+        setProfileForm={setProfileForm}
+        onEdit={() => setProfileEditing(true)}
+        onSave={handleProfileSave}
+        onCancel={() => setProfileEditing(false)}
+      />
+
+      <section className="card detail-card">
         <div className="section-title">
-          <h2>Actions</h2>
-        </div>
-        <div className="button-group" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button
-            onClick={handleExportAckCSV}
-            disabled={exporting === "ack-csv"}
-            className="btn btn-secondary"
-          >
-            {exporting === "ack-csv"
-              ? "Exporting..."
-              : "Download Initial Acknowledgement (CSV)"}
-          </button>
-          {submission.finalDecision === "APPROVED" && (
-            <button
-              onClick={handleExportApprovalDocx}
-              disabled={exporting === "approval-docx"}
-              className="btn btn-primary"
-            >
-              {exporting === "approval-docx"
-                ? "Exporting..."
-                : "Download Approval Letter (DOCX)"}
-            </button>
+          <h2>Reviewer assignments</h2>
+          {reviewerRows.length > 0 && (
+            <span className="badge">{reviewerRows.length} reviewer{reviewerRows.length !== 1 ? "s" : ""}</span>
           )}
         </div>
+        {reviewerRows.length === 0 ? (
+          <div className="empty-history">
+            <span className="empty-history-icon">👥</span>
+            <p>No reviewers assigned yet.</p>
+          </div>
+        ) : (
+          <div className="detail-table-wrap">
+            <table className="detail-table">
+              <thead>
+                <tr>
+                  <th>Reviewer</th>
+                  <th>Role</th>
+                  <th>Assigned</th>
+                  <th>Due</th>
+                  <th>Decision</th>
+                  <th>Endorsement</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reviewerRows.map((item) => {
+                  const dueMeta = getDueMeta(
+                    item.dueDate,
+                    item.submittedAt,
+                    item.isActive
+                  );
+                  return (
+                    <tr key={item.id}>
+                      <td>
+                        <div className="table-primary">{item.name}</div>
+                        <div className="table-secondary">{item.email}</div>
+                      </td>
+                      <td>{humanizeEnum(item.role)}</td>
+                      <td>{formatDateTimeDisplay(item.assignedAt)}</td>
+                      <td>
+                        <div className="table-primary">{formatDateDisplay(item.dueDate)}</div>
+                        <span className={`table-chip ${dueMeta.className}`}>{dueMeta.label}</span>
+                      </td>
+                      <td>{humanizeEnum(item.decision)}</td>
+                      <td>{humanizeEnum(item.endorsementStatus)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="card detail-card">
+        <div className="section-title">
+          <h2>Documents</h2>
+          {submission.documents && submission.documents.length > 0 && (
+            <span className="badge">
+              {submission.documents.length} document{submission.documents.length !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+        {!submission.documents || submission.documents.length === 0 ? (
+          <div className="empty-history">
+            <span className="empty-history-icon">📎</span>
+            <p>No documents logged yet.</p>
+          </div>
+        ) : (
+          <div className="detail-table-wrap">
+            <table className="detail-table">
+              <thead>
+                <tr>
+                  <th>Document</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Received</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {submission.documents.map((doc) => (
+                  <tr key={doc.id}>
+                    <td>
+                      {doc.documentUrl ? (
+                        <a
+                          className="table-link"
+                          href={doc.documentUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {doc.title}
+                        </a>
+                      ) : (
+                        <span className="table-primary">{doc.title}</span>
+                      )}
+                    </td>
+                    <td>{humanizeEnum(doc.type)}</td>
+                    <td>
+                      <span className="table-chip due-neutral">{humanizeEnum(doc.status)}</span>
+                    </td>
+                    <td>{formatDateDisplay(doc.receivedAt)}</td>
+                    <td className="table-note">{doc.notes || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       {slaSummary && (
-        <section className="card" style={{ marginBottom: 14 }}>
+        <section className="card detail-card">
           <div className="section-title">
-            <h2>SLA explainability</h2>
+            <h2>SLA tracking</h2>
           </div>
-          <div className="header-grid">
-            <div className="field">
-              <label>Classification</label>
-              <p>
-                {slaSummary.classification.actualWorkingDays} wd actual /{" "}
-                {slaSummary.classification.configuredWorkingDays ?? "—"} wd target
-              </p>
-            </div>
-            <div className="field">
-              <label>Review</label>
-              <p>
-                {slaSummary.review.actualWorkingDays ?? "—"} wd actual /{" "}
-                {slaSummary.review.configuredWorkingDays ?? "—"} wd target
-              </p>
-            </div>
-            <div className="field">
-              <label>Revision response</label>
-              <p>
-                {slaSummary.revisionResponse.actualWorkingDays ?? "—"} wd actual /{" "}
-                {slaSummary.revisionResponse.configuredWorkingDays ?? "—"} wd target
-              </p>
-            </div>
+          <div className="sla-track-grid">
+            {[
+              { label: 'Classification', data: slaSummary.classification },
+              { label: 'Review', data: slaSummary.review },
+              { label: 'Revision response', data: slaSummary.revisionResponse },
+            ].map(({ label, data }) => {
+              const status = getSlaStatus(data);
+              const pct = getSlaPercent(data);
+              const hasDays = data.actualWorkingDays != null;
+              return (
+                <div key={label} className={`sla-track-card sla-track-${status}`}>
+                  <div className="sla-track-header">
+                    <span className="sla-track-label">{label}</span>
+                    {status !== 'pending' && (
+                      <span className={`sla-track-badge sla-badge-${status}`}>
+                        {status === 'on-track' ? '✓ On track' : status === 'due-soon' ? '⚠ Due soon' : '✕ Overdue'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="sla-track-bar-wrap">
+                    <div
+                      className={`sla-track-bar sla-bar-${status}`}
+                      style={{ width: `${hasDays ? pct : 0}%` }}
+                    />
+                  </div>
+                  <div className="sla-track-numbers">
+                    <span className="sla-track-actual">
+                      {data.actualWorkingDays ?? '—'} <small>wd actual</small>
+                    </span>
+                    <span className="sla-track-target">
+                      {data.configuredWorkingDays ?? '—'} <small>wd target</small>
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
 
       {submission.statusHistory && (
-        <section className="timeline-section card">
+        <section className="card detail-card">
           <Timeline entries={submission.statusHistory} />
         </section>
       )}
 
-      <section className="card" style={{ marginTop: 14 }}>
+      <section className="card detail-card">
         <div className="section-title">
           <h2>Edit history</h2>
+          {changeHistory.length > 0 && (
+            <span className="badge">{changeHistory.length} edit{changeHistory.length !== 1 ? 's' : ''}</span>
+          )}
         </div>
         {changeHistory.length === 0 ? (
-          <p className="attention-muted">No edits logged yet.</p>
+          <div className="empty-history">
+            <span className="empty-history-icon">📝</span>
+            <p>No edits logged yet.</p>
+          </div>
         ) : (
           <div className="history-list">
             {changeHistory.map((entry) => (
               <div key={`${entry.source}-${entry.id}`} className="history-item">
-                <div className="history-meta">
-                  {entry.source} • {formatHistoryDate(entry.createdAt)}
-                  {entry.changedBy
-                    ? ` • ${entry.changedBy.fullName} (${entry.changedBy.email})`
-                    : ""}
+                <div className="history-header">
+                  <span className="history-field-badge">
+                    {formatFieldName(entry.fieldName)}
+                  </span>
+                  <span className="history-meta">
+                    {entry.source} • {formatHistoryDate(entry.createdAt)}
+                  </span>
                 </div>
                 <div className="history-change">
-                  {formatFieldName(entry.fieldName)}:{" "}
                   <span className="history-old">
                     {formatChangeValue(entry.fieldName, entry.oldValue)}
-                  </span>{" "}
-                  →{" "}
+                  </span>
+                  <span className="history-arrow">→</span>
                   <span className="history-new">
                     {formatChangeValue(entry.fieldName, entry.newValue)}
                   </span>
                 </div>
+                {entry.changedBy && (
+                  <div className="history-user">
+                    by {entry.changedBy.fullName}
+                  </div>
+                )}
                 {entry.reason && (
-                  <div className="history-reason">{entry.reason}</div>
+                  <div className="history-reason">"{entry.reason}"</div>
                 )}
               </div>
             ))}

@@ -116,28 +116,31 @@ export default function ArchivesPage() {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="archives-page">
-      <Breadcrumbs
-        items={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Archives" },
-        ]}
-      />
-
-      <header className="archives-header">
-        <Link to="/dashboard" className="back-link">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Back to Dashboard
-        </Link>
-        <h1>Archives</h1>
-        <p>
-          Historical protocols with completed or withdrawn status. These don't appear in active dashboard queues.
-        </p>
+    <div className="archives-page detail-v2">
+      <header className="detail-hero archives-hero">
+        <Breadcrumbs
+          items={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Archives" },
+          ]}
+        />
+        <div className="detail-hero-content">
+          <div className="detail-hero-text">
+            <span className="detail-project-code">ARCHIVES</span>
+            <h1 className="detail-title">Archived Protocols</h1>
+            <span className="detail-subtitle">
+              Historical protocols with completed or withdrawn status.
+            </span>
+          </div>
+          <span className="badge badge-lg badge-neutral">{total} total</span>
+        </div>
       </header>
 
-      <div className="archives-toolbar">
+      <section className="card detail-card archives-toolbar-card">
+        <div className="section-title">
+          <h2>Search & Filters</h2>
+        </div>
+        <div className="archives-toolbar">
         <div className="archives-search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="8"/>
@@ -158,21 +161,22 @@ export default function ArchivesPage() {
           )}
         </div>
       </div>
+      </section>
 
       {error && (
-        <div className="archives-error">
+        <div className="archives-error card detail-card">
           <p>{error}</p>
           <button onClick={loadArchives}>Retry</button>
         </div>
       )}
 
       {loading ? (
-        <div className="archives-loading">
+        <div className="archives-loading card detail-card">
           <div className="loading-spinner" />
           <p>Loading archives...</p>
         </div>
       ) : items.length === 0 ? (
-        <div className="archives-empty">
+        <div className="archives-empty card detail-card">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M21 8v13H3V8"/>
             <path d="M1 3h22v5H1z"/>
@@ -187,7 +191,11 @@ export default function ArchivesPage() {
         </div>
       ) : (
         <>
-          <div className="archives-table-container">
+          <section className="card detail-card">
+            <div className="section-title">
+              <h2>Archive List</h2>
+            </div>
+            <div className="archives-table-container">
             <table className="archives-table">
               <thead>
                 <tr>
@@ -197,21 +205,20 @@ export default function ArchivesPage() {
                   <th>Status</th>
                   <th>Date Received</th>
                   <th>Review Type</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((item) => (
-                  <tr key={item.projectId}>
+                  <tr key={item.projectId} onClick={() => navigate(`/projects/${item.projectId}`)} style={{ cursor: "pointer" }}>
                     <td className="code-cell">
                       <Link to={`/projects/${item.projectId}`}>
                         {item.projectCode}
                       </Link>
                     </td>
-                    <td className="title-cell" title={item.title}>
-                      {item.title}
+                    <td className="title-cell" title={item.title ?? "—"}>
+                      {item.title || "—"}
                     </td>
-                    <td>{item.piName}</td>
+                    <td>{item.piName || "—"}</td>
                     <td>
                       <span className={`status-badge status-${item.latestSubmissionStatus?.toLowerCase()}`}>
                         {formatStatus(item.latestSubmissionStatus)}
@@ -219,22 +226,15 @@ export default function ArchivesPage() {
                     </td>
                     <td>{formatDate(item.receivedDate)}</td>
                     <td>{formatReviewType(item.reviewType)}</td>
-                    <td>
-                      <button
-                        className="view-btn"
-                        onClick={() => navigate(`/projects/${item.projectId}`)}
-                      >
-                        View
-                      </button>
-                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          </section>
 
           {totalPages > 1 && (
-            <div className="archives-pagination">
+            <div className="archives-pagination card detail-card">
               <button
                 className="pagination-btn"
                 onClick={handlePrevPage}

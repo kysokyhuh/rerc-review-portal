@@ -91,6 +91,15 @@ router.get("/submissions/:id", async (req, res) => {
                     },
                     orderBy: { assignedAt: "asc" },
                 },
+                reviewAssignments: {
+                    include: {
+                        reviewer: true,
+                    },
+                    orderBy: [{ roundSequence: "asc" }, { assignedAt: "asc" }],
+                },
+                documents: {
+                    orderBy: [{ type: "asc" }, { createdAt: "asc" }],
+                },
                 statusHistory: {
                     include: {
                         changedBy: true,
@@ -366,6 +375,15 @@ router.patch("/submissions/:id/overview", async (req, res) => {
                         reviewer: true,
                     },
                     orderBy: { assignedAt: "asc" },
+                },
+                reviewAssignments: {
+                    include: {
+                        reviewer: true,
+                    },
+                    orderBy: [{ roundSequence: "asc" }, { assignedAt: "asc" }],
+                },
+                documents: {
+                    orderBy: [{ type: "asc" }, { createdAt: "asc" }],
                 },
                 statusHistory: {
                     include: {
@@ -646,9 +664,11 @@ router.get("/submissions/:id/sla-summary", async (req, res) => {
             },
         });
         const classificationStartHistory = findLatestStatus((history) => history.newStatus === client_1.SubmissionStatus.UNDER_CLASSIFICATION);
-        const classificationStart = classificationStartHistory?.effectiveDate ?? submission.receivedDate;
+        const classificationStart = classificationStartHistory?.effectiveDate ??
+            submission.receivedDate ??
+            submission.createdAt;
         const classificationEnd = submission.classification.classificationDate ?? new Date();
-        const classificationActual = (0, slaUtils_1.workingDaysBetween)(new Date(classificationStart), new Date(classificationEnd));
+        const classificationActual = (0, slaUtils_1.workingDaysBetween)(new Date(classificationStart), new Date(classificationEnd), []);
         const classificationConfigured = classificationSlaConfig?.workingDays ?? null;
         const classificationWithin = classificationConfigured === null
             ? null
@@ -677,7 +697,7 @@ router.get("/submissions/:id/sla-summary", async (req, res) => {
         let reviewActual = null;
         let reviewWithin = null;
         if (reviewStart && reviewEnd && reviewSlaConfig) {
-            reviewActual = (0, slaUtils_1.workingDaysBetween)(new Date(reviewStart), new Date(reviewEnd));
+            reviewActual = (0, slaUtils_1.workingDaysBetween)(new Date(reviewStart), new Date(reviewEnd), []);
             reviewWithin = reviewActual <= reviewSlaConfig.workingDays;
         }
         const revisionSlaConfig = await prismaClient_1.default.configSLA.findFirst({
@@ -695,7 +715,7 @@ router.get("/submissions/:id/sla-summary", async (req, res) => {
         let revisionActual = null;
         let revisionWithin = null;
         if (revisionStart && revisionEnd && revisionSlaConfig) {
-            revisionActual = (0, slaUtils_1.workingDaysBetween)(new Date(revisionStart), new Date(revisionEnd));
+            revisionActual = (0, slaUtils_1.workingDaysBetween)(new Date(revisionStart), new Date(revisionEnd), []);
             revisionWithin = revisionActual <= revisionSlaConfig.workingDays;
         }
         res.json({

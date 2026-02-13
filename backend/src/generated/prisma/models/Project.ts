@@ -306,8 +306,8 @@ export type ProjectGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
 export type ProjectGroupByOutputType = {
   id: number
   projectCode: string | null
-  title: string
-  piName: string
+  title: string | null
+  piName: string | null
   piSurname: string | null
   piAffiliation: string | null
   collegeOrUnit: string | null
@@ -317,7 +317,7 @@ export type ProjectGroupByOutputType = {
   keywords: string[]
   researchTypePHREB: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther: string | null
-  fundingType: $Enums.FundingType
+  fundingType: $Enums.FundingType | null
   initialSubmissionDate: Date | null
   proposedStartDate: Date | null
   proposedEndDate: Date | null
@@ -357,8 +357,8 @@ export type ProjectWhereInput = {
   NOT?: Prisma.ProjectWhereInput | Prisma.ProjectWhereInput[]
   id?: Prisma.IntFilter<"Project"> | number
   projectCode?: Prisma.StringNullableFilter<"Project"> | string | null
-  title?: Prisma.StringFilter<"Project"> | string
-  piName?: Prisma.StringFilter<"Project"> | string
+  title?: Prisma.StringNullableFilter<"Project"> | string | null
+  piName?: Prisma.StringNullableFilter<"Project"> | string | null
   piSurname?: Prisma.StringNullableFilter<"Project"> | string | null
   piAffiliation?: Prisma.StringNullableFilter<"Project"> | string | null
   collegeOrUnit?: Prisma.StringNullableFilter<"Project"> | string | null
@@ -368,7 +368,7 @@ export type ProjectWhereInput = {
   keywords?: Prisma.StringNullableListFilter<"Project">
   researchTypePHREB?: Prisma.EnumResearchTypePHREBNullableFilter<"Project"> | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.StringNullableFilter<"Project"> | string | null
-  fundingType?: Prisma.EnumFundingTypeFilter<"Project"> | $Enums.FundingType
+  fundingType?: Prisma.EnumFundingTypeNullableFilter<"Project"> | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   proposedStartDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   proposedEndDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
@@ -387,14 +387,16 @@ export type ProjectWhereInput = {
   proponents?: Prisma.ProjectProponentListRelationFilter
   members?: Prisma.ProjectMemberListRelationFilter
   changeLog?: Prisma.ProjectChangeLogListRelationFilter
+  protocolProfile?: Prisma.XOR<Prisma.ProtocolProfileNullableScalarRelationFilter, Prisma.ProtocolProfileWhereInput> | null
+  protocolMilestones?: Prisma.ProtocolMilestoneListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type ProjectOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   projectCode?: Prisma.SortOrderInput | Prisma.SortOrder
-  title?: Prisma.SortOrder
-  piName?: Prisma.SortOrder
+  title?: Prisma.SortOrderInput | Prisma.SortOrder
+  piName?: Prisma.SortOrderInput | Prisma.SortOrder
   piSurname?: Prisma.SortOrderInput | Prisma.SortOrder
   piAffiliation?: Prisma.SortOrderInput | Prisma.SortOrder
   collegeOrUnit?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -404,7 +406,7 @@ export type ProjectOrderByWithRelationInput = {
   keywords?: Prisma.SortOrder
   researchTypePHREB?: Prisma.SortOrderInput | Prisma.SortOrder
   researchTypePHREBOther?: Prisma.SortOrderInput | Prisma.SortOrder
-  fundingType?: Prisma.SortOrder
+  fundingType?: Prisma.SortOrderInput | Prisma.SortOrder
   initialSubmissionDate?: Prisma.SortOrderInput | Prisma.SortOrder
   proposedStartDate?: Prisma.SortOrderInput | Prisma.SortOrder
   proposedEndDate?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -423,6 +425,8 @@ export type ProjectOrderByWithRelationInput = {
   proponents?: Prisma.ProjectProponentOrderByRelationAggregateInput
   members?: Prisma.ProjectMemberOrderByRelationAggregateInput
   changeLog?: Prisma.ProjectChangeLogOrderByRelationAggregateInput
+  protocolProfile?: Prisma.ProtocolProfileOrderByWithRelationInput
+  protocolMilestones?: Prisma.ProtocolMilestoneOrderByRelationAggregateInput
   createdBy?: Prisma.UserOrderByWithRelationInput
 }
 
@@ -432,8 +436,8 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.ProjectWhereInput | Prisma.ProjectWhereInput[]
   OR?: Prisma.ProjectWhereInput[]
   NOT?: Prisma.ProjectWhereInput | Prisma.ProjectWhereInput[]
-  title?: Prisma.StringFilter<"Project"> | string
-  piName?: Prisma.StringFilter<"Project"> | string
+  title?: Prisma.StringNullableFilter<"Project"> | string | null
+  piName?: Prisma.StringNullableFilter<"Project"> | string | null
   piSurname?: Prisma.StringNullableFilter<"Project"> | string | null
   piAffiliation?: Prisma.StringNullableFilter<"Project"> | string | null
   collegeOrUnit?: Prisma.StringNullableFilter<"Project"> | string | null
@@ -443,7 +447,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   keywords?: Prisma.StringNullableListFilter<"Project">
   researchTypePHREB?: Prisma.EnumResearchTypePHREBNullableFilter<"Project"> | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.StringNullableFilter<"Project"> | string | null
-  fundingType?: Prisma.EnumFundingTypeFilter<"Project"> | $Enums.FundingType
+  fundingType?: Prisma.EnumFundingTypeNullableFilter<"Project"> | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   proposedStartDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   proposedEndDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
@@ -462,14 +466,16 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   proponents?: Prisma.ProjectProponentListRelationFilter
   members?: Prisma.ProjectMemberListRelationFilter
   changeLog?: Prisma.ProjectChangeLogListRelationFilter
+  protocolProfile?: Prisma.XOR<Prisma.ProtocolProfileNullableScalarRelationFilter, Prisma.ProtocolProfileWhereInput> | null
+  protocolMilestones?: Prisma.ProtocolMilestoneListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id" | "projectCode">
 
 export type ProjectOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   projectCode?: Prisma.SortOrderInput | Prisma.SortOrder
-  title?: Prisma.SortOrder
-  piName?: Prisma.SortOrder
+  title?: Prisma.SortOrderInput | Prisma.SortOrder
+  piName?: Prisma.SortOrderInput | Prisma.SortOrder
   piSurname?: Prisma.SortOrderInput | Prisma.SortOrder
   piAffiliation?: Prisma.SortOrderInput | Prisma.SortOrder
   collegeOrUnit?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -479,7 +485,7 @@ export type ProjectOrderByWithAggregationInput = {
   keywords?: Prisma.SortOrder
   researchTypePHREB?: Prisma.SortOrderInput | Prisma.SortOrder
   researchTypePHREBOther?: Prisma.SortOrderInput | Prisma.SortOrder
-  fundingType?: Prisma.SortOrder
+  fundingType?: Prisma.SortOrderInput | Prisma.SortOrder
   initialSubmissionDate?: Prisma.SortOrderInput | Prisma.SortOrder
   proposedStartDate?: Prisma.SortOrderInput | Prisma.SortOrder
   proposedEndDate?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -504,8 +510,8 @@ export type ProjectScalarWhereWithAggregatesInput = {
   NOT?: Prisma.ProjectScalarWhereWithAggregatesInput | Prisma.ProjectScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"Project"> | number
   projectCode?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
-  title?: Prisma.StringWithAggregatesFilter<"Project"> | string
-  piName?: Prisma.StringWithAggregatesFilter<"Project"> | string
+  title?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
+  piName?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   piSurname?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   piAffiliation?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   collegeOrUnit?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
@@ -515,7 +521,7 @@ export type ProjectScalarWhereWithAggregatesInput = {
   keywords?: Prisma.StringNullableListFilter<"Project">
   researchTypePHREB?: Prisma.EnumResearchTypePHREBNullableWithAggregatesFilter<"Project"> | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
-  fundingType?: Prisma.EnumFundingTypeWithAggregatesFilter<"Project"> | $Enums.FundingType
+  fundingType?: Prisma.EnumFundingTypeNullableWithAggregatesFilter<"Project"> | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
   proposedStartDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
   proposedEndDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
@@ -531,8 +537,8 @@ export type ProjectScalarWhereWithAggregatesInput = {
 
 export type ProjectCreateInput = {
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -542,7 +548,7 @@ export type ProjectCreateInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -559,14 +565,16 @@ export type ProjectCreateInput = {
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
 
 export type ProjectUncheckedCreateInput = {
   id?: number
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -576,7 +584,7 @@ export type ProjectUncheckedCreateInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -594,12 +602,14 @@ export type ProjectUncheckedCreateInput = {
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUpdateInput = {
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -609,7 +619,7 @@ export type ProjectUpdateInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -626,14 +636,16 @@ export type ProjectUpdateInput = {
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
 
 export type ProjectUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -643,7 +655,7 @@ export type ProjectUncheckedUpdateInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -661,13 +673,15 @@ export type ProjectUncheckedUpdateInput = {
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateManyInput = {
   id?: number
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -677,7 +691,7 @@ export type ProjectCreateManyInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -693,8 +707,8 @@ export type ProjectCreateManyInput = {
 
 export type ProjectUpdateManyMutationInput = {
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -704,7 +718,7 @@ export type ProjectUpdateManyMutationInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -719,8 +733,8 @@ export type ProjectUpdateManyMutationInput = {
 export type ProjectUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -730,7 +744,7 @@ export type ProjectUncheckedUpdateManyInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -959,8 +973,8 @@ export type NullableEnumResearchTypePHREBFieldUpdateOperationsInput = {
   set?: $Enums.ResearchTypePHREB | null
 }
 
-export type EnumFundingTypeFieldUpdateOperationsInput = {
-  set?: $Enums.FundingType
+export type NullableEnumFundingTypeFieldUpdateOperationsInput = {
+  set?: $Enums.FundingType | null
 }
 
 export type EnumProjectStatusFieldUpdateOperationsInput = {
@@ -973,6 +987,34 @@ export type NullableIntFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type ProjectCreateNestedOneWithoutProtocolProfileInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutProtocolProfileInput, Prisma.ProjectUncheckedCreateWithoutProtocolProfileInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutProtocolProfileInput
+  connect?: Prisma.ProjectWhereUniqueInput
+}
+
+export type ProjectUpdateOneRequiredWithoutProtocolProfileNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutProtocolProfileInput, Prisma.ProjectUncheckedCreateWithoutProtocolProfileInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutProtocolProfileInput
+  upsert?: Prisma.ProjectUpsertWithoutProtocolProfileInput
+  connect?: Prisma.ProjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutProtocolProfileInput, Prisma.ProjectUpdateWithoutProtocolProfileInput>, Prisma.ProjectUncheckedUpdateWithoutProtocolProfileInput>
+}
+
+export type ProjectCreateNestedOneWithoutProtocolMilestonesInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutProtocolMilestonesInput, Prisma.ProjectUncheckedCreateWithoutProtocolMilestonesInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutProtocolMilestonesInput
+  connect?: Prisma.ProjectWhereUniqueInput
+}
+
+export type ProjectUpdateOneRequiredWithoutProtocolMilestonesNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutProtocolMilestonesInput, Prisma.ProjectUncheckedCreateWithoutProtocolMilestonesInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutProtocolMilestonesInput
+  upsert?: Prisma.ProjectUpsertWithoutProtocolMilestonesInput
+  connect?: Prisma.ProjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutProtocolMilestonesInput, Prisma.ProjectUpdateWithoutProtocolMilestonesInput>, Prisma.ProjectUncheckedUpdateWithoutProtocolMilestonesInput>
 }
 
 export type ProjectCreateNestedOneWithoutProponentsInput = {
@@ -1063,8 +1105,8 @@ export type ProjectUpdateOneRequiredWithoutStatusHistoryNestedInput = {
 
 export type ProjectCreateWithoutCreatedByInput = {
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -1074,7 +1116,7 @@ export type ProjectCreateWithoutCreatedByInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -1091,13 +1133,15 @@ export type ProjectCreateWithoutCreatedByInput = {
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutCreatedByInput = {
   id?: number
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -1107,7 +1151,7 @@ export type ProjectUncheckedCreateWithoutCreatedByInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -1124,6 +1168,8 @@ export type ProjectUncheckedCreateWithoutCreatedByInput = {
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutCreatedByInput = {
@@ -1158,8 +1204,8 @@ export type ProjectScalarWhereInput = {
   NOT?: Prisma.ProjectScalarWhereInput | Prisma.ProjectScalarWhereInput[]
   id?: Prisma.IntFilter<"Project"> | number
   projectCode?: Prisma.StringNullableFilter<"Project"> | string | null
-  title?: Prisma.StringFilter<"Project"> | string
-  piName?: Prisma.StringFilter<"Project"> | string
+  title?: Prisma.StringNullableFilter<"Project"> | string | null
+  piName?: Prisma.StringNullableFilter<"Project"> | string | null
   piSurname?: Prisma.StringNullableFilter<"Project"> | string | null
   piAffiliation?: Prisma.StringNullableFilter<"Project"> | string | null
   collegeOrUnit?: Prisma.StringNullableFilter<"Project"> | string | null
@@ -1169,7 +1215,7 @@ export type ProjectScalarWhereInput = {
   keywords?: Prisma.StringNullableListFilter<"Project">
   researchTypePHREB?: Prisma.EnumResearchTypePHREBNullableFilter<"Project"> | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.StringNullableFilter<"Project"> | string | null
-  fundingType?: Prisma.EnumFundingTypeFilter<"Project"> | $Enums.FundingType
+  fundingType?: Prisma.EnumFundingTypeNullableFilter<"Project"> | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   proposedStartDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   proposedEndDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
@@ -1185,8 +1231,8 @@ export type ProjectScalarWhereInput = {
 
 export type ProjectCreateWithoutCommitteeInput = {
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -1196,7 +1242,7 @@ export type ProjectCreateWithoutCommitteeInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -1212,14 +1258,16 @@ export type ProjectCreateWithoutCommitteeInput = {
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
 
 export type ProjectUncheckedCreateWithoutCommitteeInput = {
   id?: number
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -1229,7 +1277,7 @@ export type ProjectUncheckedCreateWithoutCommitteeInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -1246,6 +1294,8 @@ export type ProjectUncheckedCreateWithoutCommitteeInput = {
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutCommitteeInput = {
@@ -1274,10 +1324,10 @@ export type ProjectUpdateManyWithWhereWithoutCommitteeInput = {
   data: Prisma.XOR<Prisma.ProjectUpdateManyMutationInput, Prisma.ProjectUncheckedUpdateManyWithoutCommitteeInput>
 }
 
-export type ProjectCreateWithoutProponentsInput = {
+export type ProjectCreateWithoutProtocolProfileInput = {
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -1287,7 +1337,315 @@ export type ProjectCreateWithoutProponentsInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
+  initialSubmissionDate?: Date | string | null
+  proposedStartDate?: Date | string | null
+  proposedEndDate?: Date | string | null
+  overallStatus?: $Enums.ProjectStatus
+  approvalStartDate?: Date | string | null
+  approvalEndDate?: Date | string | null
+  isArchived?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
+  submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
+  proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
+  members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
+  changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
+}
+
+export type ProjectUncheckedCreateWithoutProtocolProfileInput = {
+  id?: number
+  projectCode?: string | null
+  title?: string | null
+  piName?: string | null
+  piSurname?: string | null
+  piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
+  department?: string | null
+  proponent?: string | null
+  keywords?: Prisma.ProjectCreatekeywordsInput | string[]
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
+  fundingType?: $Enums.FundingType | null
+  initialSubmissionDate?: Date | string | null
+  proposedStartDate?: Date | string | null
+  proposedEndDate?: Date | string | null
+  committeeId: number
+  overallStatus?: $Enums.ProjectStatus
+  approvalStartDate?: Date | string | null
+  approvalEndDate?: Date | string | null
+  isArchived?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: number | null
+  snapshots?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutProjectInput
+  submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
+  proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
+  members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
+  changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectCreateOrConnectWithoutProtocolProfileInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutProtocolProfileInput, Prisma.ProjectUncheckedCreateWithoutProtocolProfileInput>
+}
+
+export type ProjectUpsertWithoutProtocolProfileInput = {
+  update: Prisma.XOR<Prisma.ProjectUpdateWithoutProtocolProfileInput, Prisma.ProjectUncheckedUpdateWithoutProtocolProfileInput>
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutProtocolProfileInput, Prisma.ProjectUncheckedCreateWithoutProtocolProfileInput>
+  where?: Prisma.ProjectWhereInput
+}
+
+export type ProjectUpdateToOneWithWhereWithoutProtocolProfileInput = {
+  where?: Prisma.ProjectWhereInput
+  data: Prisma.XOR<Prisma.ProjectUpdateWithoutProtocolProfileInput, Prisma.ProjectUncheckedUpdateWithoutProtocolProfileInput>
+}
+
+export type ProjectUpdateWithoutProtocolProfileInput = {
+  projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
+  initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
+  submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
+  proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
+  members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
+  changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
+}
+
+export type ProjectUncheckedUpdateWithoutProtocolProfileInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
+  initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  snapshots?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutProjectNestedInput
+  submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
+  members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
+  changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
+}
+
+export type ProjectCreateWithoutProtocolMilestonesInput = {
+  projectCode?: string | null
+  title?: string | null
+  piName?: string | null
+  piSurname?: string | null
+  piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
+  department?: string | null
+  proponent?: string | null
+  keywords?: Prisma.ProjectCreatekeywordsInput | string[]
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
+  fundingType?: $Enums.FundingType | null
+  initialSubmissionDate?: Date | string | null
+  proposedStartDate?: Date | string | null
+  proposedEndDate?: Date | string | null
+  overallStatus?: $Enums.ProjectStatus
+  approvalStartDate?: Date | string | null
+  approvalEndDate?: Date | string | null
+  isArchived?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
+  submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
+  proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
+  members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
+  changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
+}
+
+export type ProjectUncheckedCreateWithoutProtocolMilestonesInput = {
+  id?: number
+  projectCode?: string | null
+  title?: string | null
+  piName?: string | null
+  piSurname?: string | null
+  piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
+  department?: string | null
+  proponent?: string | null
+  keywords?: Prisma.ProjectCreatekeywordsInput | string[]
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
+  fundingType?: $Enums.FundingType | null
+  initialSubmissionDate?: Date | string | null
+  proposedStartDate?: Date | string | null
+  proposedEndDate?: Date | string | null
+  committeeId: number
+  overallStatus?: $Enums.ProjectStatus
+  approvalStartDate?: Date | string | null
+  approvalEndDate?: Date | string | null
+  isArchived?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: number | null
+  snapshots?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutProjectInput
+  submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
+  proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
+  members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
+  changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+}
+
+export type ProjectCreateOrConnectWithoutProtocolMilestonesInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutProtocolMilestonesInput, Prisma.ProjectUncheckedCreateWithoutProtocolMilestonesInput>
+}
+
+export type ProjectUpsertWithoutProtocolMilestonesInput = {
+  update: Prisma.XOR<Prisma.ProjectUpdateWithoutProtocolMilestonesInput, Prisma.ProjectUncheckedUpdateWithoutProtocolMilestonesInput>
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutProtocolMilestonesInput, Prisma.ProjectUncheckedCreateWithoutProtocolMilestonesInput>
+  where?: Prisma.ProjectWhereInput
+}
+
+export type ProjectUpdateToOneWithWhereWithoutProtocolMilestonesInput = {
+  where?: Prisma.ProjectWhereInput
+  data: Prisma.XOR<Prisma.ProjectUpdateWithoutProtocolMilestonesInput, Prisma.ProjectUncheckedUpdateWithoutProtocolMilestonesInput>
+}
+
+export type ProjectUpdateWithoutProtocolMilestonesInput = {
+  projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
+  initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
+  submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
+  proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
+  members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
+  changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
+}
+
+export type ProjectUncheckedUpdateWithoutProtocolMilestonesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
+  initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  snapshots?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutProjectNestedInput
+  submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
+  members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
+  changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+}
+
+export type ProjectCreateWithoutProponentsInput = {
+  projectCode?: string | null
+  title?: string | null
+  piName?: string | null
+  piSurname?: string | null
+  piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
+  department?: string | null
+  proponent?: string | null
+  keywords?: Prisma.ProjectCreatekeywordsInput | string[]
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -1303,14 +1661,16 @@ export type ProjectCreateWithoutProponentsInput = {
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
 
 export type ProjectUncheckedCreateWithoutProponentsInput = {
   id?: number
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -1320,7 +1680,7 @@ export type ProjectUncheckedCreateWithoutProponentsInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -1337,6 +1697,8 @@ export type ProjectUncheckedCreateWithoutProponentsInput = {
   submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutProponentsInput = {
@@ -1357,8 +1719,8 @@ export type ProjectUpdateToOneWithWhereWithoutProponentsInput = {
 
 export type ProjectUpdateWithoutProponentsInput = {
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1368,7 +1730,7 @@ export type ProjectUpdateWithoutProponentsInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1384,14 +1746,16 @@ export type ProjectUpdateWithoutProponentsInput = {
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutProponentsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1401,7 +1765,7 @@ export type ProjectUncheckedUpdateWithoutProponentsInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1418,12 +1782,14 @@ export type ProjectUncheckedUpdateWithoutProponentsInput = {
   submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateWithoutMembersInput = {
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -1433,7 +1799,7 @@ export type ProjectCreateWithoutMembersInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -1449,14 +1815,16 @@ export type ProjectCreateWithoutMembersInput = {
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
 
 export type ProjectUncheckedCreateWithoutMembersInput = {
   id?: number
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -1466,7 +1834,7 @@ export type ProjectUncheckedCreateWithoutMembersInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -1483,6 +1851,8 @@ export type ProjectUncheckedCreateWithoutMembersInput = {
   submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutMembersInput = {
@@ -1503,8 +1873,8 @@ export type ProjectUpdateToOneWithWhereWithoutMembersInput = {
 
 export type ProjectUpdateWithoutMembersInput = {
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1514,7 +1884,7 @@ export type ProjectUpdateWithoutMembersInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1530,14 +1900,16 @@ export type ProjectUpdateWithoutMembersInput = {
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutMembersInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1547,7 +1919,7 @@ export type ProjectUncheckedUpdateWithoutMembersInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1564,12 +1936,14 @@ export type ProjectUncheckedUpdateWithoutMembersInput = {
   submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateWithoutChangeLogInput = {
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -1579,7 +1953,7 @@ export type ProjectCreateWithoutChangeLogInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -1595,14 +1969,16 @@ export type ProjectCreateWithoutChangeLogInput = {
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
 
 export type ProjectUncheckedCreateWithoutChangeLogInput = {
   id?: number
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -1612,7 +1988,7 @@ export type ProjectUncheckedCreateWithoutChangeLogInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -1629,6 +2005,8 @@ export type ProjectUncheckedCreateWithoutChangeLogInput = {
   submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutChangeLogInput = {
@@ -1649,8 +2027,8 @@ export type ProjectUpdateToOneWithWhereWithoutChangeLogInput = {
 
 export type ProjectUpdateWithoutChangeLogInput = {
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1660,7 +2038,7 @@ export type ProjectUpdateWithoutChangeLogInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1676,14 +2054,16 @@ export type ProjectUpdateWithoutChangeLogInput = {
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutChangeLogInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1693,7 +2073,7 @@ export type ProjectUncheckedUpdateWithoutChangeLogInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1710,12 +2090,14 @@ export type ProjectUncheckedUpdateWithoutChangeLogInput = {
   submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateWithoutSnapshotsInput = {
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -1725,7 +2107,7 @@ export type ProjectCreateWithoutSnapshotsInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -1741,14 +2123,16 @@ export type ProjectCreateWithoutSnapshotsInput = {
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
 
 export type ProjectUncheckedCreateWithoutSnapshotsInput = {
   id?: number
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -1758,7 +2142,7 @@ export type ProjectUncheckedCreateWithoutSnapshotsInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -1775,6 +2159,8 @@ export type ProjectUncheckedCreateWithoutSnapshotsInput = {
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutSnapshotsInput = {
@@ -1795,8 +2181,8 @@ export type ProjectUpdateToOneWithWhereWithoutSnapshotsInput = {
 
 export type ProjectUpdateWithoutSnapshotsInput = {
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1806,7 +2192,7 @@ export type ProjectUpdateWithoutSnapshotsInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1822,14 +2208,16 @@ export type ProjectUpdateWithoutSnapshotsInput = {
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutSnapshotsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1839,7 +2227,7 @@ export type ProjectUncheckedUpdateWithoutSnapshotsInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1856,12 +2244,14 @@ export type ProjectUncheckedUpdateWithoutSnapshotsInput = {
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateWithoutSubmissionsInput = {
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -1871,7 +2261,7 @@ export type ProjectCreateWithoutSubmissionsInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -1887,14 +2277,16 @@ export type ProjectCreateWithoutSubmissionsInput = {
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
 
 export type ProjectUncheckedCreateWithoutSubmissionsInput = {
   id?: number
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -1904,7 +2296,7 @@ export type ProjectUncheckedCreateWithoutSubmissionsInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -1921,6 +2313,8 @@ export type ProjectUncheckedCreateWithoutSubmissionsInput = {
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutSubmissionsInput = {
@@ -1941,8 +2335,8 @@ export type ProjectUpdateToOneWithWhereWithoutSubmissionsInput = {
 
 export type ProjectUpdateWithoutSubmissionsInput = {
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1952,7 +2346,7 @@ export type ProjectUpdateWithoutSubmissionsInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1968,14 +2362,16 @@ export type ProjectUpdateWithoutSubmissionsInput = {
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutSubmissionsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1985,7 +2381,7 @@ export type ProjectUncheckedUpdateWithoutSubmissionsInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2002,12 +2398,14 @@ export type ProjectUncheckedUpdateWithoutSubmissionsInput = {
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateWithoutStatusHistoryInput = {
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -2017,7 +2415,7 @@ export type ProjectCreateWithoutStatusHistoryInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -2033,14 +2431,16 @@ export type ProjectCreateWithoutStatusHistoryInput = {
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
 
 export type ProjectUncheckedCreateWithoutStatusHistoryInput = {
   id?: number
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -2050,7 +2450,7 @@ export type ProjectUncheckedCreateWithoutStatusHistoryInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -2067,6 +2467,8 @@ export type ProjectUncheckedCreateWithoutStatusHistoryInput = {
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutStatusHistoryInput = {
@@ -2087,8 +2489,8 @@ export type ProjectUpdateToOneWithWhereWithoutStatusHistoryInput = {
 
 export type ProjectUpdateWithoutStatusHistoryInput = {
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2098,7 +2500,7 @@ export type ProjectUpdateWithoutStatusHistoryInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2114,14 +2516,16 @@ export type ProjectUpdateWithoutStatusHistoryInput = {
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutStatusHistoryInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2131,7 +2535,7 @@ export type ProjectUncheckedUpdateWithoutStatusHistoryInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2148,13 +2552,15 @@ export type ProjectUncheckedUpdateWithoutStatusHistoryInput = {
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateManyCreatedByInput = {
   id?: number
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -2164,7 +2570,7 @@ export type ProjectCreateManyCreatedByInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -2179,8 +2585,8 @@ export type ProjectCreateManyCreatedByInput = {
 
 export type ProjectUpdateWithoutCreatedByInput = {
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2190,7 +2596,7 @@ export type ProjectUpdateWithoutCreatedByInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2207,13 +2613,15 @@ export type ProjectUpdateWithoutCreatedByInput = {
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2223,7 +2631,7 @@ export type ProjectUncheckedUpdateWithoutCreatedByInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2240,13 +2648,15 @@ export type ProjectUncheckedUpdateWithoutCreatedByInput = {
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateManyWithoutCreatedByInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2256,7 +2666,7 @@ export type ProjectUncheckedUpdateManyWithoutCreatedByInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2272,8 +2682,8 @@ export type ProjectUncheckedUpdateManyWithoutCreatedByInput = {
 export type ProjectCreateManyCommitteeInput = {
   id?: number
   projectCode?: string | null
-  title: string
-  piName: string
+  title?: string | null
+  piName?: string | null
   piSurname?: string | null
   piAffiliation?: string | null
   collegeOrUnit?: string | null
@@ -2283,7 +2693,7 @@ export type ProjectCreateManyCommitteeInput = {
   keywords?: Prisma.ProjectCreatekeywordsInput | string[]
   researchTypePHREB?: $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: string | null
-  fundingType: $Enums.FundingType
+  fundingType?: $Enums.FundingType | null
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
@@ -2298,8 +2708,8 @@ export type ProjectCreateManyCommitteeInput = {
 
 export type ProjectUpdateWithoutCommitteeInput = {
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2309,7 +2719,7 @@ export type ProjectUpdateWithoutCommitteeInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2325,14 +2735,16 @@ export type ProjectUpdateWithoutCommitteeInput = {
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutCommitteeInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2342,7 +2754,7 @@ export type ProjectUncheckedUpdateWithoutCommitteeInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2359,13 +2771,15 @@ export type ProjectUncheckedUpdateWithoutCommitteeInput = {
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateManyWithoutCommitteeInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  piName?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2375,7 +2789,7 @@ export type ProjectUncheckedUpdateManyWithoutCommitteeInput = {
   keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
   researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
   researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.EnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2400,6 +2814,7 @@ export type ProjectCountOutputType = {
   proponents: number
   members: number
   changeLog: number
+  protocolMilestones: number
 }
 
 export type ProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2409,6 +2824,7 @@ export type ProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   proponents?: boolean | ProjectCountOutputTypeCountProponentsArgs
   members?: boolean | ProjectCountOutputTypeCountMembersArgs
   changeLog?: boolean | ProjectCountOutputTypeCountChangeLogArgs
+  protocolMilestones?: boolean | ProjectCountOutputTypeCountProtocolMilestonesArgs
 }
 
 /**
@@ -2463,6 +2879,13 @@ export type ProjectCountOutputTypeCountChangeLogArgs<ExtArgs extends runtime.Typ
   where?: Prisma.ProjectChangeLogWhereInput
 }
 
+/**
+ * ProjectCountOutputType without action
+ */
+export type ProjectCountOutputTypeCountProtocolMilestonesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProtocolMilestoneWhereInput
+}
+
 
 export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2497,6 +2920,8 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   proponents?: boolean | Prisma.Project$proponentsArgs<ExtArgs>
   members?: boolean | Prisma.Project$membersArgs<ExtArgs>
   changeLog?: boolean | Prisma.Project$changeLogArgs<ExtArgs>
+  protocolProfile?: boolean | Prisma.Project$protocolProfileArgs<ExtArgs>
+  protocolMilestones?: boolean | Prisma.Project$protocolMilestonesArgs<ExtArgs>
   createdBy?: boolean | Prisma.Project$createdByArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["project"]>
@@ -2598,6 +3023,8 @@ export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   proponents?: boolean | Prisma.Project$proponentsArgs<ExtArgs>
   members?: boolean | Prisma.Project$membersArgs<ExtArgs>
   changeLog?: boolean | Prisma.Project$changeLogArgs<ExtArgs>
+  protocolProfile?: boolean | Prisma.Project$protocolProfileArgs<ExtArgs>
+  protocolMilestones?: boolean | Prisma.Project$protocolMilestonesArgs<ExtArgs>
   createdBy?: boolean | Prisma.Project$createdByArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -2620,13 +3047,15 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     proponents: Prisma.$ProjectProponentPayload<ExtArgs>[]
     members: Prisma.$ProjectMemberPayload<ExtArgs>[]
     changeLog: Prisma.$ProjectChangeLogPayload<ExtArgs>[]
+    protocolProfile: Prisma.$ProtocolProfilePayload<ExtArgs> | null
+    protocolMilestones: Prisma.$ProtocolMilestonePayload<ExtArgs>[]
     createdBy: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     projectCode: string | null
-    title: string
-    piName: string
+    title: string | null
+    piName: string | null
     piSurname: string | null
     piAffiliation: string | null
     collegeOrUnit: string | null
@@ -2636,7 +3065,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     keywords: string[]
     researchTypePHREB: $Enums.ResearchTypePHREB | null
     researchTypePHREBOther: string | null
-    fundingType: $Enums.FundingType
+    fundingType: $Enums.FundingType | null
     initialSubmissionDate: Date | null
     proposedStartDate: Date | null
     proposedEndDate: Date | null
@@ -3049,6 +3478,8 @@ export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.
   proponents<T extends Prisma.Project$proponentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$proponentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectProponentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   members<T extends Prisma.Project$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   changeLog<T extends Prisma.Project$changeLogArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$changeLogArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectChangeLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  protocolProfile<T extends Prisma.Project$protocolProfileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$protocolProfileArgs<ExtArgs>>): Prisma.Prisma__ProtocolProfileClient<runtime.Types.Result.GetResult<Prisma.$ProtocolProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  protocolMilestones<T extends Prisma.Project$protocolMilestonesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$protocolMilestonesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProtocolMilestonePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdBy<T extends Prisma.Project$createdByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$createdByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -3641,6 +4072,49 @@ export type Project$changeLogArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.ProjectChangeLogScalarFieldEnum | Prisma.ProjectChangeLogScalarFieldEnum[]
+}
+
+/**
+ * Project.protocolProfile
+ */
+export type Project$protocolProfileArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProtocolProfile
+   */
+  select?: Prisma.ProtocolProfileSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProtocolProfile
+   */
+  omit?: Prisma.ProtocolProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProtocolProfileInclude<ExtArgs> | null
+  where?: Prisma.ProtocolProfileWhereInput
+}
+
+/**
+ * Project.protocolMilestones
+ */
+export type Project$protocolMilestonesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProtocolMilestone
+   */
+  select?: Prisma.ProtocolMilestoneSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProtocolMilestone
+   */
+  omit?: Prisma.ProtocolMilestoneOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProtocolMilestoneInclude<ExtArgs> | null
+  where?: Prisma.ProtocolMilestoneWhereInput
+  orderBy?: Prisma.ProtocolMilestoneOrderByWithRelationInput | Prisma.ProtocolMilestoneOrderByWithRelationInput[]
+  cursor?: Prisma.ProtocolMilestoneWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProtocolMilestoneScalarFieldEnum | Prisma.ProtocolMilestoneScalarFieldEnum[]
 }
 
 /**

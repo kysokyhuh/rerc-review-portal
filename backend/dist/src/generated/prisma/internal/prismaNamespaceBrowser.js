@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.WorkflowEventScalarFieldEnum = exports.ConfigSLAScalarFieldEnum = exports.PanelMemberScalarFieldEnum = exports.ContractPeriodScalarFieldEnum = exports.LetterDraftScalarFieldEnum = exports.HolidayScalarFieldEnum = exports.SubmissionDecisionScalarFieldEnum = exports.SubmissionDocumentScalarFieldEnum = exports.ReviewAssignmentScalarFieldEnum = exports.ReviewScalarFieldEnum = exports.ProjectStatusHistoryScalarFieldEnum = exports.SubmissionStatusHistoryScalarFieldEnum = exports.ClassificationVoteScalarFieldEnum = exports.ClassificationDecisionScalarFieldEnum = exports.ClassificationScalarFieldEnum = exports.SubmissionChangeLogScalarFieldEnum = exports.SubmissionScalarFieldEnum = exports.ProjectSnapshotScalarFieldEnum = exports.ProjectChangeLogScalarFieldEnum = exports.ProjectMemberScalarFieldEnum = exports.ProjectProponentScalarFieldEnum = exports.ProponentScalarFieldEnum = exports.AcademicTermScalarFieldEnum = exports.ProjectScalarFieldEnum = exports.CommitteeMemberScalarFieldEnum = exports.PanelScalarFieldEnum = exports.CommitteeScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.WorkflowEventScalarFieldEnum = exports.ConfigSLAScalarFieldEnum = exports.PanelMemberScalarFieldEnum = exports.ContractPeriodScalarFieldEnum = exports.LetterDraftScalarFieldEnum = exports.HolidayScalarFieldEnum = exports.SubmissionDecisionScalarFieldEnum = exports.SubmissionDocumentScalarFieldEnum = exports.ReviewAssignmentScalarFieldEnum = exports.ReviewScalarFieldEnum = exports.ProjectStatusHistoryScalarFieldEnum = exports.SubmissionStatusHistoryScalarFieldEnum = exports.ClassificationVoteScalarFieldEnum = exports.ClassificationDecisionScalarFieldEnum = exports.ClassificationScalarFieldEnum = exports.SubmissionChangeLogScalarFieldEnum = exports.SubmissionScalarFieldEnum = exports.ProjectSnapshotScalarFieldEnum = exports.ProjectChangeLogScalarFieldEnum = exports.ProjectMemberScalarFieldEnum = exports.ProjectProponentScalarFieldEnum = exports.ProponentScalarFieldEnum = exports.AcademicTermScalarFieldEnum = exports.ProtocolMilestoneScalarFieldEnum = exports.ProtocolProfileScalarFieldEnum = exports.ProjectScalarFieldEnum = exports.CommitteeMemberScalarFieldEnum = exports.PanelScalarFieldEnum = exports.CommitteeScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -80,6 +80,8 @@ exports.ModelName = {
     Panel: 'Panel',
     CommitteeMember: 'CommitteeMember',
     Project: 'Project',
+    ProtocolProfile: 'ProtocolProfile',
+    ProtocolMilestone: 'ProtocolMilestone',
     AcademicTerm: 'AcademicTerm',
     Proponent: 'Proponent',
     ProjectProponent: 'ProjectProponent',
@@ -178,6 +180,71 @@ exports.ProjectScalarFieldEnum = {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     createdById: 'createdById'
+};
+exports.ProtocolProfileScalarFieldEnum = {
+    id: 'id',
+    projectId: 'projectId',
+    title: 'title',
+    projectLeader: 'projectLeader',
+    college: 'college',
+    department: 'department',
+    dateOfSubmission: 'dateOfSubmission',
+    monthOfSubmission: 'monthOfSubmission',
+    typeOfReview: 'typeOfReview',
+    proponent: 'proponent',
+    funding: 'funding',
+    typeOfResearchPhreb: 'typeOfResearchPhreb',
+    typeOfResearchPhrebOther: 'typeOfResearchPhrebOther',
+    status: 'status',
+    finishDate: 'finishDate',
+    monthOfClearance: 'monthOfClearance',
+    reviewDurationDays: 'reviewDurationDays',
+    remarks: 'remarks',
+    panel: 'panel',
+    scientistReviewer: 'scientistReviewer',
+    layReviewer: 'layReviewer',
+    independentConsultant: 'independentConsultant',
+    honorariumStatus: 'honorariumStatus',
+    classificationOfProposalRerc: 'classificationOfProposalRerc',
+    totalDays: 'totalDays',
+    submissionCount: 'submissionCount',
+    withdrawn: 'withdrawn',
+    projectEndDate6A: 'projectEndDate6A',
+    clearanceExpiration: 'clearanceExpiration',
+    progressReportTargetDate: 'progressReportTargetDate',
+    progressReportSubmission: 'progressReportSubmission',
+    progressReportApprovalDate: 'progressReportApprovalDate',
+    progressReportStatus: 'progressReportStatus',
+    progressReportDays: 'progressReportDays',
+    finalReportTargetDate: 'finalReportTargetDate',
+    finalReportSubmission: 'finalReportSubmission',
+    finalReportCompletionDate: 'finalReportCompletionDate',
+    finalReportStatus: 'finalReportStatus',
+    finalReportDays: 'finalReportDays',
+    amendmentSubmission: 'amendmentSubmission',
+    amendmentStatusOfRequest: 'amendmentStatusOfRequest',
+    amendmentApprovalDate: 'amendmentApprovalDate',
+    amendmentDays: 'amendmentDays',
+    continuingSubmission: 'continuingSubmission',
+    continuingStatusOfRequest: 'continuingStatusOfRequest',
+    continuingApprovalDate: 'continuingApprovalDate',
+    continuingDays: 'continuingDays',
+    primaryReviewer: 'primaryReviewer',
+    finalLayReviewer: 'finalLayReviewer',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.ProtocolMilestoneScalarFieldEnum = {
+    id: 'id',
+    projectId: 'projectId',
+    orderIndex: 'orderIndex',
+    label: 'label',
+    days: 'days',
+    dateOccurred: 'dateOccurred',
+    ownerRole: 'ownerRole',
+    notes: 'notes',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
 };
 exports.AcademicTermScalarFieldEnum = {
     id: 'id',

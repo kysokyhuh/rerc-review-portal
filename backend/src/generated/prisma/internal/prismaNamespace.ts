@@ -389,6 +389,8 @@ export const ModelName = {
   Panel: 'Panel',
   CommitteeMember: 'CommitteeMember',
   Project: 'Project',
+  ProtocolProfile: 'ProtocolProfile',
+  ProtocolMilestone: 'ProtocolMilestone',
   AcademicTerm: 'AcademicTerm',
   Proponent: 'Proponent',
   ProjectProponent: 'ProjectProponent',
@@ -427,7 +429,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "committee" | "panel" | "committeeMember" | "project" | "academicTerm" | "proponent" | "projectProponent" | "projectMember" | "projectChangeLog" | "projectSnapshot" | "submission" | "submissionChangeLog" | "classification" | "classificationDecision" | "classificationVote" | "submissionStatusHistory" | "projectStatusHistory" | "review" | "reviewAssignment" | "submissionDocument" | "submissionDecision" | "holiday" | "letterDraft" | "contractPeriod" | "panelMember" | "configSLA" | "workflowEvent"
+    modelProps: "user" | "committee" | "panel" | "committeeMember" | "project" | "protocolProfile" | "protocolMilestone" | "academicTerm" | "proponent" | "projectProponent" | "projectMember" | "projectChangeLog" | "projectSnapshot" | "submission" | "submissionChangeLog" | "classification" | "classificationDecision" | "classificationVote" | "submissionStatusHistory" | "projectStatusHistory" | "review" | "reviewAssignment" | "submissionDocument" | "submissionDecision" | "holiday" | "letterDraft" | "contractPeriod" | "panelMember" | "configSLA" | "workflowEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -798,6 +800,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ProjectCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProjectCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProtocolProfile: {
+      payload: Prisma.$ProtocolProfilePayload<ExtArgs>
+      fields: Prisma.ProtocolProfileFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProtocolProfileFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolProfilePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProtocolProfileFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolProfilePayload>
+        }
+        findFirst: {
+          args: Prisma.ProtocolProfileFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolProfilePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProtocolProfileFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolProfilePayload>
+        }
+        findMany: {
+          args: Prisma.ProtocolProfileFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolProfilePayload>[]
+        }
+        create: {
+          args: Prisma.ProtocolProfileCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolProfilePayload>
+        }
+        createMany: {
+          args: Prisma.ProtocolProfileCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProtocolProfileCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolProfilePayload>[]
+        }
+        delete: {
+          args: Prisma.ProtocolProfileDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolProfilePayload>
+        }
+        update: {
+          args: Prisma.ProtocolProfileUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolProfilePayload>
+        }
+        deleteMany: {
+          args: Prisma.ProtocolProfileDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProtocolProfileUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProtocolProfileUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolProfilePayload>[]
+        }
+        upsert: {
+          args: Prisma.ProtocolProfileUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolProfilePayload>
+        }
+        aggregate: {
+          args: Prisma.ProtocolProfileAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProtocolProfile>
+        }
+        groupBy: {
+          args: Prisma.ProtocolProfileGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProtocolProfileGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProtocolProfileCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProtocolProfileCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProtocolMilestone: {
+      payload: Prisma.$ProtocolMilestonePayload<ExtArgs>
+      fields: Prisma.ProtocolMilestoneFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProtocolMilestoneFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolMilestonePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProtocolMilestoneFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolMilestonePayload>
+        }
+        findFirst: {
+          args: Prisma.ProtocolMilestoneFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolMilestonePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProtocolMilestoneFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolMilestonePayload>
+        }
+        findMany: {
+          args: Prisma.ProtocolMilestoneFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolMilestonePayload>[]
+        }
+        create: {
+          args: Prisma.ProtocolMilestoneCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolMilestonePayload>
+        }
+        createMany: {
+          args: Prisma.ProtocolMilestoneCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProtocolMilestoneCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolMilestonePayload>[]
+        }
+        delete: {
+          args: Prisma.ProtocolMilestoneDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolMilestonePayload>
+        }
+        update: {
+          args: Prisma.ProtocolMilestoneUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolMilestonePayload>
+        }
+        deleteMany: {
+          args: Prisma.ProtocolMilestoneDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProtocolMilestoneUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProtocolMilestoneUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolMilestonePayload>[]
+        }
+        upsert: {
+          args: Prisma.ProtocolMilestoneUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProtocolMilestonePayload>
+        }
+        aggregate: {
+          args: Prisma.ProtocolMilestoneAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProtocolMilestone>
+        }
+        groupBy: {
+          args: Prisma.ProtocolMilestoneGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProtocolMilestoneGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProtocolMilestoneCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProtocolMilestoneCountAggregateOutputType> | number
         }
       }
     }
@@ -2628,6 +2778,79 @@ export const ProjectScalarFieldEnum = {
 export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
 
 
+export const ProtocolProfileScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  title: 'title',
+  projectLeader: 'projectLeader',
+  college: 'college',
+  department: 'department',
+  dateOfSubmission: 'dateOfSubmission',
+  monthOfSubmission: 'monthOfSubmission',
+  typeOfReview: 'typeOfReview',
+  proponent: 'proponent',
+  funding: 'funding',
+  typeOfResearchPhreb: 'typeOfResearchPhreb',
+  typeOfResearchPhrebOther: 'typeOfResearchPhrebOther',
+  status: 'status',
+  finishDate: 'finishDate',
+  monthOfClearance: 'monthOfClearance',
+  reviewDurationDays: 'reviewDurationDays',
+  remarks: 'remarks',
+  panel: 'panel',
+  scientistReviewer: 'scientistReviewer',
+  layReviewer: 'layReviewer',
+  independentConsultant: 'independentConsultant',
+  honorariumStatus: 'honorariumStatus',
+  classificationOfProposalRerc: 'classificationOfProposalRerc',
+  totalDays: 'totalDays',
+  submissionCount: 'submissionCount',
+  withdrawn: 'withdrawn',
+  projectEndDate6A: 'projectEndDate6A',
+  clearanceExpiration: 'clearanceExpiration',
+  progressReportTargetDate: 'progressReportTargetDate',
+  progressReportSubmission: 'progressReportSubmission',
+  progressReportApprovalDate: 'progressReportApprovalDate',
+  progressReportStatus: 'progressReportStatus',
+  progressReportDays: 'progressReportDays',
+  finalReportTargetDate: 'finalReportTargetDate',
+  finalReportSubmission: 'finalReportSubmission',
+  finalReportCompletionDate: 'finalReportCompletionDate',
+  finalReportStatus: 'finalReportStatus',
+  finalReportDays: 'finalReportDays',
+  amendmentSubmission: 'amendmentSubmission',
+  amendmentStatusOfRequest: 'amendmentStatusOfRequest',
+  amendmentApprovalDate: 'amendmentApprovalDate',
+  amendmentDays: 'amendmentDays',
+  continuingSubmission: 'continuingSubmission',
+  continuingStatusOfRequest: 'continuingStatusOfRequest',
+  continuingApprovalDate: 'continuingApprovalDate',
+  continuingDays: 'continuingDays',
+  primaryReviewer: 'primaryReviewer',
+  finalLayReviewer: 'finalLayReviewer',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProtocolProfileScalarFieldEnum = (typeof ProtocolProfileScalarFieldEnum)[keyof typeof ProtocolProfileScalarFieldEnum]
+
+
+export const ProtocolMilestoneScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  orderIndex: 'orderIndex',
+  label: 'label',
+  days: 'days',
+  dateOccurred: 'dateOccurred',
+  ownerRole: 'ownerRole',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProtocolMilestoneScalarFieldEnum = (typeof ProtocolMilestoneScalarFieldEnum)[keyof typeof ProtocolMilestoneScalarFieldEnum]
+
+
 export const AcademicTermScalarFieldEnum = {
   id: 'id',
   academicYear: 'academicYear',
@@ -3529,6 +3752,8 @@ export type GlobalOmitConfig = {
   panel?: Prisma.PanelOmit
   committeeMember?: Prisma.CommitteeMemberOmit
   project?: Prisma.ProjectOmit
+  protocolProfile?: Prisma.ProtocolProfileOmit
+  protocolMilestone?: Prisma.ProtocolMilestoneOmit
   academicTerm?: Prisma.AcademicTermOmit
   proponent?: Prisma.ProponentOmit
   projectProponent?: Prisma.ProjectProponentOmit

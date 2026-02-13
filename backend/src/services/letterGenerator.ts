@@ -36,6 +36,8 @@ export async function buildInitialAckLetter(submissionId: number) {
   const committee = project.committee;
   const classification = submission.classification;
   const ra = project.createdBy;
+  const piName = project.piName ?? "Principal Investigator";
+  const projectTitle = project.title ?? "Untitled Protocol";
 
   const doc = new Document({
     sections: [
@@ -55,7 +57,7 @@ export async function buildInitialAckLetter(submissionId: number) {
           new Paragraph(""),
           new Paragraph({
             children: [
-              new TextRun({ text: project.piName, break: 1 }),
+              new TextRun({ text: piName, break: 1 }),
               new TextRun({
                 text: project.piAffiliation ?? "",
                 break: 1,
@@ -73,7 +75,7 @@ export async function buildInitialAckLetter(submissionId: number) {
           }),
           new Paragraph(""),
           new Paragraph(
-            `Dear ${project.piName}, this letter acknowledges receipt of protocol ${project.projectCode} - "${project.title}".`
+            `Dear ${piName}, this letter acknowledges receipt of protocol ${project.projectCode} - "${projectTitle}".`
           ),
           new Paragraph(
             `The submission was received on ${formatDate(
@@ -113,6 +115,8 @@ export async function buildInitialApprovalLetter(submissionId: number) {
   const committee = project.committee;
   const classification = submission.classification;
   const ra = project.createdBy;
+  const piName = project.piName ?? "Principal Investigator";
+  const projectTitle = project.title ?? "Untitled Protocol";
 
   const doc = new Document({
     sections: [
@@ -127,7 +131,7 @@ export async function buildInitialApprovalLetter(submissionId: number) {
           new Paragraph(""),
           new Paragraph({
             children: [
-              new TextRun({ text: project.piName, break: 1 }),
+              new TextRun({ text: piName, break: 1 }),
               new TextRun({
                 text: project.piAffiliation ?? "",
                 break: 1,
@@ -145,7 +149,7 @@ export async function buildInitialApprovalLetter(submissionId: number) {
           }),
           new Paragraph(""),
           new Paragraph(
-            `Dear ${project.piName}, the ${BRAND.name} has approved protocol ${project.projectCode} - "${project.title}".`
+            `Dear ${piName}, the ${BRAND.name} has approved protocol ${project.projectCode} - "${projectTitle}".`
           ),
           new Paragraph(
             `Review Type: ${classification?.reviewType ?? "TBD"}; Decision: ${

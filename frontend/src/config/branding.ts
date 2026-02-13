@@ -10,7 +10,7 @@
 
 export const BRAND = {
   /** Short name used in headings, page titles, sidebar, footer */
-  name: "URERD",
+  name: "URERB",
 
   /** Full organisation name for formal contexts */
   fullName: "University Research Ethics Review and Development",
