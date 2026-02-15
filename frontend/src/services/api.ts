@@ -82,6 +82,16 @@ const api = axios.create({
 });
 
 /**
+ * Fetch distinct college values for filter dropdowns
+ */
+export async function fetchColleges(committeeCode: string): Promise<string[]> {
+  const response = await api.get(
+    `/dashboard/colleges?committeeCode=${encodeURIComponent(committeeCode)}`
+  );
+  return response.data;
+}
+
+/**
  * Fetch queues for a specific committee
  */
 export async function fetchDashboardQueues(
@@ -382,12 +392,18 @@ export async function fetchArchivedProjects(params?: {
   limit?: number;
   offset?: number;
   search?: string;
+  status?: string;
+  reviewType?: string;
+  college?: string;
 }) {
   const searchParams = new URLSearchParams();
   if (params?.committeeCode) searchParams.set("committeeCode", params.committeeCode);
   if (params?.limit) searchParams.set("limit", String(params.limit));
   if (params?.offset) searchParams.set("offset", String(params.offset));
   if (params?.search) searchParams.set("search", params.search);
+  if (params?.status) searchParams.set("status", params.status);
+  if (params?.reviewType) searchParams.set("reviewType", params.reviewType);
+  if (params?.college) searchParams.set("college", params.college);
   
   const query = searchParams.toString();
   const url = `/projects/archived${query ? `?${query}` : ""}`;

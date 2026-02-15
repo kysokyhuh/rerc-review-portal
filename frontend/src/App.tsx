@@ -38,7 +38,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       <main className="app-main">{children}</main>
 
       <footer className="app-footer">
-        <p>&copy; 2025 RERC Review Portal. All rights reserved.</p>
+        <p>&copy; 2026 RERC Review Portal. All rights reserved.</p>
       </footer>
     </div>
   );

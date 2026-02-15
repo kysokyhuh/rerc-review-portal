@@ -60,6 +60,84 @@
   font-size: 13px;
 }
 
+/* Filter Row */
+.archives-filter-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.archives-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 140px;
+  max-width: 220px;
+}
+
+.archives-filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.archives-filter-field select {
+  appearance: none;
+  background: var(--surface);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: 7px 32px 7px 10px;
+  font-size: 13px;
+  color: var(--neutral-800);
+  cursor: pointer;
+  transition: border-color var(--motion-fast) ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.archives-filter-field select:hover {
+  border-color: var(--neutral-300);
+}
+
+.archives-filter-field select:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 2px rgba(34, 139, 34, 0.08);
+}
+
+.archives-filter-field select:active {
+  transform: scale(0.99);
+}
+
+.archives-clear-btn {
+  padding: 7px 14px;
+  background: transparent;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--neutral-600);
+  cursor: pointer;
+  transition: all var(--motion-fast) ease;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+
+.archives-clear-btn:hover {
+  background: var(--surface-muted);
+  border-color: var(--neutral-300);
+  color: var(--neutral-800);
+}
+
+.archives-clear-btn:active {
+  transform: scale(0.97);
+}
+
 /* Table Container */
 .archives-table-container {
   border: 1px solid var(--neutral-200);
@@ -284,6 +362,14 @@
   }
 
   .archives-search {
+    max-width: none;
+  }
+
+  .archives-filter-row {
+    flex-direction: column;
+  }
+
+  .archives-filter-field {
     max-width: none;
   }
 

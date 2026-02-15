@@ -28,7 +28,7 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--neutral-400);
-  transition: color 0.2s;
+  transition: color var(--motion-slow) ease;
 }
 
 .np-step.active {
@@ -51,7 +51,7 @@
   border: 2px solid var(--neutral-300);
   background: var(--surface);
   color: var(--neutral-400);
-  transition: all 0.2s;
+  transition: all var(--motion-slow) ease;
 }
 
 .np-step.active .np-step-num {
@@ -145,7 +145,7 @@
   font: inherit;
   font-size: 14px;
   padding: 9px 10px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--motion-base) ease, box-shadow var(--motion-base) ease;
 }
 
 .new-protocol-grid input:hover,

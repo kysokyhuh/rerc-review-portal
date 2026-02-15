@@ -103,6 +103,26 @@ router.get("/dashboard/queues", async (req, res) => {
   }
 });
 
+// Distinct college values for the filter dropdown
+router.get("/dashboard/colleges", async (req, res) => {
+  try {
+    const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
+    const colleges = await prisma.project.findMany({
+      where: {
+        committee: { code: committeeCode },
+        piAffiliation: { not: null },
+      },
+      select: { piAffiliation: true },
+      distinct: ["piAffiliation"],
+      orderBy: { piAffiliation: "asc" },
+    });
+    res.json(colleges.map((c) => c.piAffiliation).filter(Boolean));
+  } catch (error) {
+    console.error("Error fetching colleges:", error);
+    res.status(500).json({ message: "Failed to fetch colleges" });
+  }
+});
+
 // Overdue review and endorsement tracking
 router.get("/dashboard/overdue", async (req, res) => {
   try {

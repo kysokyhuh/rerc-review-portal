@@ -274,9 +274,14 @@ router.get("/projects/archived", async (req, res) => {
       : 100;
     const offset = Number(req.query.offset || 0);
     const search = req.query.search ? String(req.query.search).trim() : null;
+    const statusFilter = req.query.status ? String(req.query.status).trim() : null;
+    const reviewTypeFilter = req.query.reviewType ? String(req.query.reviewType).trim() : null;
+    const collegeFilter = req.query.college ? String(req.query.college).trim() : null;
 
     // Find projects where the latest submission has a terminal status
-    const terminalStatuses = ["CLOSED", "WITHDRAWN"];
+    const terminalStatuses = statusFilter
+      ? [statusFilter]
+      : ["CLOSED", "WITHDRAWN"];
 
     // Build the where clause
     const whereClause: any = {
@@ -289,6 +294,19 @@ router.get("/projects/archived", async (req, res) => {
 
     if (committeeCode) {
       whereClause.committee = { code: committeeCode };
+    }
+
+    if (collegeFilter) {
+      whereClause.piAffiliation = { equals: collegeFilter, mode: "insensitive" };
+    }
+
+    if (reviewTypeFilter) {
+      whereClause.submissions = {
+        some: {
+          status: { in: terminalStatuses },
+          classification: { reviewType: reviewTypeFilter },
+        },
+      };
     }
 
     if (search) {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { fetchArchivedProjects, type ArchivedProject } from "@/services/api";
+import { fetchArchivedProjects, fetchColleges, type ArchivedProject } from "@/services/api";
 import { Breadcrumbs } from "@/components";
 import { BRAND } from "@/config/branding";
 import "../styles/archives.css";
@@ -65,7 +65,18 @@ export default function ArchivesPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [reviewTypeFilter, setReviewTypeFilter] = useState("");
+  const [collegeFilter, setCollegeFilter] = useState("");
+  const [collegeOptions, setCollegeOptions] = useState<string[]>([]);
   const limit = 50;
+
+  // Load distinct college values once
+  useEffect(() => {
+    fetchColleges(BRAND.defaultCommitteeCode)
+      .then(setCollegeOptions)
+      .catch(() => {});
+  }, []);
 
   // Debounce search input
   useEffect(() => {
@@ -76,6 +87,11 @@ export default function ArchivesPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
+  // Reset to first page when filters change
+  useEffect(() => {
+    setOffset(0);
+  }, [statusFilter, reviewTypeFilter, collegeFilter]);
+
   const loadArchives = useCallback(async () => {
     try {
       setLoading(true);
@@ -85,6 +101,9 @@ export default function ArchivesPage() {
         limit,
         offset,
         search: debouncedSearch || undefined,
+        status: statusFilter || undefined,
+        reviewType: reviewTypeFilter || undefined,
+        college: collegeFilter || undefined,
       });
       setItems(response.items);
       setTotal(response.total);
@@ -94,7 +113,7 @@ export default function ArchivesPage() {
     } finally {
       setLoading(false);
     }
-  }, [offset, debouncedSearch]);
+  }, [offset, debouncedSearch, statusFilter, reviewTypeFilter, collegeFilter]);
 
   useEffect(() => {
     loadArchives();
@@ -141,26 +160,67 @@ export default function ArchivesPage() {
           <h2>Search & Filters</h2>
         </div>
         <div className="archives-toolbar">
-        <div className="archives-search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="M21 21l-4.35-4.35"/>
-          </svg>
-          <input
-            type="text"
-            placeholder="Search by code, title, or PI name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+          <div className="archives-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search by code, title, or PI name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="archives-stats">
+            {!loading && (
+              <span>
+                Showing {items.length} of {total} archived protocols
+              </span>
+            )}
+          </div>
         </div>
-        <div className="archives-stats">
-          {!loading && (
-            <span>
-              Showing {items.length} of {total} archived protocols
-            </span>
+
+        <div className="archives-filter-row">
+          <label className="archives-filter-field">
+            <span className="archives-filter-label">Status</span>
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="">All statuses</option>
+              <option value="CLOSED">Closed</option>
+              <option value="WITHDRAWN">Withdrawn</option>
+            </select>
+          </label>
+
+          <label className="archives-filter-field">
+            <span className="archives-filter-label">Review Type</span>
+            <select value={reviewTypeFilter} onChange={(e) => setReviewTypeFilter(e.target.value)}>
+              <option value="">All review types</option>
+              <option value="EXEMPT">Exempt</option>
+              <option value="EXPEDITED">Expedited</option>
+              <option value="FULL_BOARD">Full Board</option>
+            </select>
+          </label>
+
+          <label className="archives-filter-field">
+            <span className="archives-filter-label">College</span>
+            <select value={collegeFilter} onChange={(e) => setCollegeFilter(e.target.value)}>
+              <option value="">All colleges</option>
+              {collegeOptions.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </label>
+
+          {(statusFilter || reviewTypeFilter || collegeFilter) && (
+            <button
+              type="button"
+              className="archives-clear-btn"
+              onClick={() => { setStatusFilter(""); setReviewTypeFilter(""); setCollegeFilter(""); }}
+            >
+              Clear filters
+            </button>
           )}
         </div>
-      </div>
       </section>
 
       {error && (

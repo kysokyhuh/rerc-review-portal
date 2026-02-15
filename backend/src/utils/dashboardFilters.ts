@@ -58,9 +58,12 @@ export function buildDashboardFiltersWhere(params: DashboardFilterParams) {
   const where: Record<string, unknown> = {};
   const projectConditions: Record<string, unknown> = {};
 
-  // college → exact match on project.piAffiliation
+  // college → case-insensitive match on project.piAffiliation
   if (params.college) {
-    projectConditions.piAffiliation = params.college;
+    projectConditions.piAffiliation = {
+      equals: params.college,
+      mode: "insensitive",
+    };
   }
 
   // proponent → case-insensitive substring on project.piName

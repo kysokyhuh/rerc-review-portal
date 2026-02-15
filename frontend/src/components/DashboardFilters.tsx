@@ -7,6 +7,8 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { fetchColleges } from "@/services/api";
+import { BRAND } from "@/config/branding";
 
 // ── Filter key definitions ──────────────────────────────────────────────────
 
@@ -114,6 +116,14 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
   const [filters, setFilters] = useState<DashboardFilterValues>(() =>
     readFiltersFromParams(searchParams)
   );
+  const [collegeOptions, setCollegeOptions] = useState<string[]>([]);
+
+  // Load distinct college values once
+  useEffect(() => {
+    fetchColleges(BRAND.defaultCommitteeCode)
+      .then(setCollegeOptions)
+      .catch(() => {});
+  }, []);
 
   // Sync URL → state on mount (only)
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -179,12 +189,17 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
             {/* College */}
             <label className="dashboard-filter-field">
               <span className="dashboard-filter-label">College</span>
-              <input
-                type="text"
-                placeholder="e.g. CLA, COS, GCOE"
+              <select
                 value={filters.college}
                 onChange={(e) => handleChange("college", e.target.value)}
-              />
+              >
+                <option value="">All colleges</option>
+                {collegeOptions.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
             </label>
 
             {/* Review Type */}

@@ -279,7 +279,6 @@ const importLegacyCsv = async ({
     const existingSubmission = await prisma.submission.findFirst({
       where: {
         projectId: project.id,
-        submissionType: SubmissionType.INITIAL,
         sequenceNumber: 1,
       },
     });
