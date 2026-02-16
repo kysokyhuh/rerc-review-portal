@@ -358,6 +358,7 @@ export interface ProjectDetail {
   protocolProfile?: ProtocolProfile | null;
   protocolMilestones?: ProtocolMilestone[];
   submissions: SubmissionDetail[];
+  changeLog?: ChangeLogEntry[];
 }
 
 export interface ProtocolProfile {
@@ -462,6 +463,10 @@ export interface UpdateProtocolProfilePayload {
   continuingDays?: number | null;
   primaryReviewer?: string | null;
   finalLayReviewer?: string | null;
+  _meta?: {
+    changeReason?: string;
+    sourceSubmissionId?: number;
+  };
 }
 
 export interface ProtocolMilestone {

@@ -427,6 +427,12 @@ router.get("/projects/:id/full", async (req, res) => {
         protocolMilestones: {
           orderBy: [{ orderIndex: "asc" }, { id: "asc" }],
         },
+        changeLog: {
+          orderBy: { createdAt: "desc" },
+          include: {
+            changedBy: true,
+          },
+        },
         submissions: {
           orderBy: [{ receivedDate: "asc" }, { id: "asc" }],
           include: {
@@ -507,6 +513,14 @@ router.put(
       }
 
       const payload = req.body ?? {};
+
+      // Extract audit metadata (not profile fields)
+      const changeReason = asNullableString(payload._meta?.changeReason);
+      const sourceSubmissionId = payload._meta?.sourceSubmissionId
+        ? Number(payload._meta.sourceSubmissionId)
+        : null;
+      const changedById = req.user?.id ?? null;
+
       const data = {
         title: asNullableString(payload.title),
         projectLeader: asNullableString(payload.projectLeader),
@@ -557,14 +571,63 @@ router.put(
         finalLayReviewer: asNullableString(payload.finalLayReviewer),
       };
 
-      const profile = await prisma.protocolProfile.upsert({
+      // Fetch existing profile to diff changes
+      const existing = await prisma.protocolProfile.findUnique({
         where: { projectId },
-        update: data,
-        create: {
-          projectId,
-          ...data,
-        },
       });
+
+      // Build change log entries by comparing old vs new values
+      const changeLogs: Array<{
+        projectId: number;
+        fieldName: string;
+        oldValue: string | null;
+        newValue: string | null;
+        reason: string | null;
+        sourceSubmissionId: number | null;
+        changedById: number | null;
+      }> = [];
+
+      const serializeValue = (val: unknown): string | null => {
+        if (val === null || val === undefined) return null;
+        if (val instanceof Date) return val.toISOString();
+        return String(val);
+      };
+
+      for (const [fieldName, newVal] of Object.entries(data)) {
+        const oldRaw = existing ? (existing as Record<string, unknown>)[fieldName] : undefined;
+        const oldSerialized = serializeValue(oldRaw);
+        const newSerialized = serializeValue(newVal);
+        if (oldSerialized !== newSerialized) {
+          changeLogs.push({
+            projectId,
+            fieldName,
+            oldValue: oldSerialized,
+            newValue: newSerialized,
+            reason: changeReason,
+            sourceSubmissionId:
+              sourceSubmissionId && Number.isFinite(sourceSubmissionId)
+                ? sourceSubmissionId
+                : null,
+            changedById,
+          });
+        }
+      }
+
+      // Atomically upsert the profile and persist change logs
+      const profile = await prisma.$transaction(async (tx) => {
+        const upserted = await tx.protocolProfile.upsert({
+          where: { projectId },
+          update: data,
+          create: { projectId, ...data },
+        });
+
+        if (changeLogs.length > 0) {
+          await tx.projectChangeLog.createMany({ data: changeLogs });
+        }
+
+        return upserted;
+      });
+
       return res.json(profile);
     } catch (error) {
       console.error("Error upserting protocol profile:", error);

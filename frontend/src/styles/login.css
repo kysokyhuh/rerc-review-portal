@@ -279,6 +279,15 @@
   font-size: 15px;
 }
 
+.login-intro .login-intro-tagline {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: -6px 0 18px;
+}
+
 /* Bullets list */
 .login-bullets {
   margin: 12px 0 0;
@@ -883,6 +892,7 @@
 
 /* RERC Logo */
 .login-logo {
+  width: 100%;
   margin-bottom: 16px;
 }
 
@@ -890,6 +900,13 @@
   width: 80px;
   height: 80px;
   color: var(--cream-100);
+}
+
+.login-logo-img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 24px rgba(0,0,0,0.3));
 }
 
 /* Shake animation for errors */

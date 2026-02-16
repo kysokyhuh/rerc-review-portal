@@ -2,8 +2,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   fetchCommittees,
+  fetchSubmissionDetail,
   updateProtocolProfile,
   updateSubmissionOverview,
+  createProtocolMilestone,
+  updateProtocolMilestone,
+  deleteProtocolMilestone,
 } from "@/services/api";
 import { useSubmissionDetail } from "@/hooks/useSubmissionDetail";
 import { formatDateDisplay } from "@/utils/dateUtils";
@@ -14,7 +18,20 @@ import {
   profileToFormState,
   formStateToPayload,
 } from "@/components/ProtocolProfileSection";
-import type { CommitteeSummary, SubmissionDetail } from "@/types";
+import type { CommitteeSummary, ProtocolMilestone, SubmissionDetail } from "@/types";
+
+const STANDARD_MILESTONES: { label: string; ownerRole: string }[] = [
+  { label: "Classification of Proposal (RERC)", ownerRole: "RERC Staff" },
+  { label: "Provision of Documents & Assessment Forms to Primary Reviewer", ownerRole: "RERC Staff" },
+  { label: "Accomplishment of Assessment Forms", ownerRole: "Primary Reviewers" },
+  { label: "Full Review Meeting (for Full Review only)", ownerRole: "RERP" },
+  { label: "Finalization of Review Results", ownerRole: "RERP Chair Designate" },
+  { label: "Communication of Review Results to Project Leader", ownerRole: "RERC Chair/Staff" },
+  { label: "1st Resubmission from Proponent", ownerRole: "RERC Staff" },
+  { label: "1st Review of Resubmission", ownerRole: "Primary Reviewers" },
+  { label: "1st Finalization of Review Results - Resubmission", ownerRole: "RERP Chair Designate" },
+  { label: "Issuance of Ethics Clearance", ownerRole: "RERC and RERC Chair" },
+];
 
 export const SubmissionDetailPage: React.FC = () => {
   const { submissionId } = useParams<{ submissionId: string }>();
@@ -28,6 +45,8 @@ export const SubmissionDetailPage: React.FC = () => {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileForm, setProfileForm] = useState<Record<string, string>>({});
+  const [milestones, setMilestones] = useState<ProtocolMilestone[]>([]);
+  const [newMilestoneLabel, setNewMilestoneLabel] = useState("");
   const [formState, setFormState] = useState({
     piName: "",
     committeeId: "",
@@ -118,6 +137,7 @@ export const SubmissionDetailPage: React.FC = () => {
     if (!submission) return;
     resetFormState(submission);
     setProfileForm(profileToFormState(submission.project?.protocolProfile));
+    setMilestones((submission.project as any)?.protocolMilestones ?? []);
   }, [submission]);
 
   const handleProfileSave = async () => {
@@ -126,17 +146,86 @@ export const SubmissionDetailPage: React.FC = () => {
     setProfileError(null);
     try {
       const payload = formStateToPayload(profileForm);
-      const updated = await updateProtocolProfile(submission.project.id, payload);
-      setSubmission((prev) => {
-        if (!prev || !prev.project) return prev;
-        return { ...prev, project: { ...prev.project, protocolProfile: updated } };
-      });
-      setProfileForm(profileToFormState(updated));
+      payload._meta = { sourceSubmissionId: numericId };
+      await updateProtocolProfile(submission.project.id, payload);
+      // Re-fetch the full submission so projectChangeLogs and edit history are up to date
+      const refreshed = await fetchSubmissionDetail(numericId);
+      setSubmission(refreshed);
+      setProfileForm(profileToFormState(refreshed.project?.protocolProfile));
       setProfileEditing(false);
     } catch (err) {
       setProfileError(err instanceof Error ? err.message : "Failed to save profile");
     } finally {
       setProfileSaving(false);
+    }
+  };
+
+  const projectId = submission?.project?.id;
+
+  const handleAddMilestone = async () => {
+    if (!projectId || !newMilestoneLabel.trim()) return;
+    try {
+      const created = await createProtocolMilestone(projectId, {
+        label: newMilestoneLabel.trim(),
+        orderIndex: milestones.length,
+      });
+      setMilestones((prev) => [...prev, created]);
+      setNewMilestoneLabel("");
+    } catch {
+      setProfileError("Failed to add milestone");
+    }
+  };
+
+  const handleLoadStandardTimeline = async () => {
+    if (!projectId) return;
+    if (milestones.length > 0) {
+      const confirmed = window.confirm(
+        "This will add the standard timeline milestones to the existing list. Continue?"
+      );
+      if (!confirmed) return;
+    }
+    try {
+      const startIndex = milestones.length;
+      const created: ProtocolMilestone[] = [];
+      for (let i = 0; i < STANDARD_MILESTONES.length; i++) {
+        const m = STANDARD_MILESTONES[i];
+        const result = await createProtocolMilestone(projectId, {
+          label: m.label,
+          ownerRole: m.ownerRole,
+          orderIndex: startIndex + i,
+        });
+        created.push(result);
+      }
+      setMilestones((prev) => [...prev, ...created]);
+    } catch {
+      setProfileError("Failed to load standard timeline");
+    }
+  };
+
+  const handleMilestoneSave = async (row: ProtocolMilestone) => {
+    if (!projectId) return;
+    try {
+      const updated = await updateProtocolMilestone(projectId, row.id, {
+        label: row.label,
+        orderIndex: row.orderIndex,
+        days: row.days ?? null,
+        dateOccurred: row.dateOccurred ?? null,
+        ownerRole: row.ownerRole ?? null,
+        notes: row.notes ?? null,
+      });
+      setMilestones((prev) => prev.map((item) => (item.id === row.id ? updated : item)));
+    } catch {
+      setProfileError("Failed to save milestone");
+    }
+  };
+
+  const handleMilestoneDelete = async (row: ProtocolMilestone) => {
+    if (!projectId) return;
+    try {
+      await deleteProtocolMilestone(projectId, row.id);
+      setMilestones((prev) => prev.filter((item) => item.id !== row.id));
+    } catch {
+      setProfileError("Failed to delete milestone");
     }
   };
 
@@ -601,7 +690,143 @@ export const SubmissionDetailPage: React.FC = () => {
         onEdit={() => setProfileEditing(true)}
         onSave={handleProfileSave}
         onCancel={() => setProfileEditing(false)}
-      />
+      >
+        {/* Milestones */}
+        <div style={{ marginTop: "1rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <h3 className="pp-group-name" style={{ margin: 0 }}>Milestones / # days</h3>
+            <button className="btn btn-ghost btn-sm" type="button" onClick={handleLoadStandardTimeline}>
+              Load Standard Timeline
+            </button>
+          </div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+            <input
+              className="pp-field-input"
+              type="text"
+              value={newMilestoneLabel}
+              onChange={(event) => setNewMilestoneLabel(event.target.value)}
+              placeholder="Add milestone label (e.g. Full Review Meeting)"
+              style={{ flex: 1 }}
+            />
+            <button className="btn btn-secondary btn-sm" type="button" onClick={handleAddMilestone}>
+              Add
+            </button>
+          </div>
+          <table className="preview-table" style={{ marginTop: "0.5rem" }}>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Label</th>
+                <th># days</th>
+                <th>Date</th>
+                <th>Owner</th>
+                <th>Notes</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {milestones.map((milestone) => {
+                const isDone = !!milestone.dateOccurred;
+                return (
+                  <tr key={milestone.id} style={{ opacity: isDone ? 1 : 0.75 }}>
+                    <td style={{ textAlign: "center" }}>
+                      {isDone ? (
+                        <span title="Completed" style={{ color: "var(--color-positive, #22c55e)", fontSize: 16 }}>✓</span>
+                      ) : (
+                        <span title="Pending" style={{ color: "var(--color-neutral, #94a3b8)", fontSize: 16 }}>○</span>
+                      )}
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        value={milestone.label}
+                        onChange={(event) =>
+                          setMilestones((prev) =>
+                            prev.map((item) =>
+                              item.id === milestone.id ? { ...item, label: event.target.value } : item
+                            )
+                          )
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        value={milestone.days ?? ""}
+                        onChange={(event) =>
+                          setMilestones((prev) =>
+                            prev.map((item) =>
+                              item.id === milestone.id
+                                ? { ...item, days: event.target.value ? Number(event.target.value) : null }
+                                : item
+                            )
+                          )
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="date"
+                        value={milestone.dateOccurred ? milestone.dateOccurred.slice(0, 10) : ""}
+                        onChange={(event) =>
+                          setMilestones((prev) =>
+                            prev.map((item) =>
+                              item.id === milestone.id
+                                ? { ...item, dateOccurred: event.target.value || null }
+                                : item
+                            )
+                          )
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        value={milestone.ownerRole ?? ""}
+                        onChange={(event) =>
+                          setMilestones((prev) =>
+                            prev.map((item) =>
+                              item.id === milestone.id
+                                ? { ...item, ownerRole: event.target.value || null }
+                                : item
+                            )
+                          )
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        value={milestone.notes ?? ""}
+                        onChange={(event) =>
+                          setMilestones((prev) =>
+                            prev.map((item) =>
+                              item.id === milestone.id
+                                ? { ...item, notes: event.target.value || null }
+                                : item
+                            )
+                          )
+                        }
+                      />
+                    </td>
+                    <td>
+                      <button className="btn btn-secondary btn-sm" type="button" onClick={() => handleMilestoneSave(milestone)}>
+                        Save
+                      </button>
+                      <button className="btn btn-ghost btn-sm" type="button" onClick={() => handleMilestoneDelete(milestone)}>
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {milestones.length === 0 && (
+                <tr><td colSpan={7}>No milestones yet.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </ProtocolProfileSection>
 
       <section className="card detail-card">
         <div className="section-title">

@@ -8,7 +8,8 @@ import "../styles/protocol-profile.css";
 type ProfileField = {
   key: keyof UpdateProtocolProfilePayload;
   label: string;
-  type: "text" | "date" | "number";
+  type: "text" | "date" | "number" | "select";
+  options?: string[];
 };
 
 type ProfileGroup = {
@@ -48,7 +49,7 @@ const PROFILE_GROUPS: ProfileGroup[] = [
     icon: "👥",
     defaultOpen: true,
     fields: [
-      { key: "panel", label: "Panel", type: "text" },
+      { key: "panel", label: "Panel", type: "select", options: ["Panel 1", "Panel 2", "Panel 3"] },
       { key: "scientistReviewer", label: "Scientist Reviewer", type: "text" },
       { key: "layReviewer", label: "Lay Reviewer", type: "text" },
       { key: "independentConsultant", label: "Independent Consultant", type: "text" },
@@ -324,14 +325,29 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
                         <div className={`pp-field ${isEmpty ? "pp-field-empty" : ""}`} key={field.key}>
                           <label className="pp-field-label">{field.label}</label>
                           {editing ? (
-                            <input
-                              className="pp-field-input"
-                              type={field.type}
-                              value={profileForm[field.key] ?? ""}
-                              onChange={(e) =>
-                                setProfileForm((prev) => ({ ...prev, [field.key]: e.target.value }))
-                              }
-                            />
+                            field.type === "select" ? (
+                              <select
+                                className="pp-field-input"
+                                value={profileForm[field.key] ?? ""}
+                                onChange={(e) =>
+                                  setProfileForm((prev) => ({ ...prev, [field.key]: e.target.value }))
+                                }
+                              >
+                                <option value="">Select...</option>
+                                {field.options?.map((opt) => (
+                                  <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                              </select>
+                            ) : (
+                              <input
+                                className="pp-field-input"
+                                type={field.type}
+                                value={profileForm[field.key] ?? ""}
+                                onChange={(e) =>
+                                  setProfileForm((prev) => ({ ...prev, [field.key]: e.target.value }))
+                                }
+                              />
+                            )
                           ) : (
                             <span className="pp-field-value">{formatValue(field)}</span>
                           )}

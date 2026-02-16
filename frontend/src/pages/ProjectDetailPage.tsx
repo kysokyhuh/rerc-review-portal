@@ -6,6 +6,7 @@ import {
   deleteProtocolMilestone,
   exportInitialAckCSV,
   exportInitialApprovalDocx,
+  fetchProjectDetail,
   updateProtocolMilestone,
   updateProtocolProfile,
 } from "@/services/api";
@@ -17,6 +18,19 @@ import {
   formStateToPayload,
 } from "@/components/ProtocolProfileSection";
 import type { ProtocolMilestone } from "@/types";
+
+const STANDARD_MILESTONES: { label: string; ownerRole: string }[] = [
+  { label: "Classification of Proposal (RERC)", ownerRole: "RERC Staff" },
+  { label: "Provision of Documents & Assessment Forms to Primary Reviewer", ownerRole: "RERC Staff" },
+  { label: "Accomplishment of Assessment Forms", ownerRole: "Primary Reviewers" },
+  { label: "Full Review Meeting (for Full Review only)", ownerRole: "RERP" },
+  { label: "Finalization of Review Results", ownerRole: "RERP Chair Designate" },
+  { label: "Communication of Review Results to Project Leader", ownerRole: "RERC Chair/Staff" },
+  { label: "1st Resubmission from Proponent", ownerRole: "RERC Staff" },
+  { label: "1st Review of Resubmission", ownerRole: "Primary Reviewers" },
+  { label: "1st Finalization of Review Results - Resubmission", ownerRole: "RERP Chair Designate" },
+  { label: "Issuance of Ethics Clearance", ownerRole: "RERC and RERC Chair" },
+];
 
 export const ProjectDetailPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -35,7 +49,7 @@ export const ProjectDetailPage: React.FC = () => {
     return <div>Project ID is required</div>;
   }
 
-  const { project, loading, error } = useProjectDetail(parseInt(projectId));
+  const { project, loading, error, reload: reloadProject } = useProjectDetail(parseInt(projectId));
 
   useEffect(() => {
     if (!project) return;
@@ -130,8 +144,9 @@ export const ProjectDetailPage: React.FC = () => {
     setProfileError(null);
     try {
       const payload = formStateToPayload(profileForm);
-      const saved = await updateProtocolProfile(project.id, payload);
-      setProfileForm(profileToFormState(saved));
+      await updateProtocolProfile(project.id, payload);
+      // Reload full project to pick up the new changeLog entries
+      await reloadProject();
       setProfileEditing(false);
     } catch (err: any) {
       setProfileError(err?.response?.data?.message || err?.message || "Failed to save profile");
@@ -151,6 +166,32 @@ export const ProjectDetailPage: React.FC = () => {
       setNewMilestoneLabel("");
     } catch {
       setProfileError("Failed to add milestone");
+    }
+  };
+
+  const handleLoadStandardTimeline = async () => {
+    if (!project) return;
+    if (milestones.length > 0) {
+      const confirmed = window.confirm(
+        "This will add the standard timeline milestones to the existing list. Continue?"
+      );
+      if (!confirmed) return;
+    }
+    try {
+      const startIndex = milestones.length;
+      const created: ProtocolMilestone[] = [];
+      for (let i = 0; i < STANDARD_MILESTONES.length; i++) {
+        const m = STANDARD_MILESTONES[i];
+        const result = await createProtocolMilestone(project.id, {
+          label: m.label,
+          ownerRole: m.ownerRole,
+          orderIndex: startIndex + i,
+        });
+        created.push(result);
+      }
+      setMilestones((prev) => [...prev, ...created]);
+    } catch {
+      setProfileError("Failed to load standard timeline");
     }
   };
 
@@ -222,7 +263,12 @@ export const ProjectDetailPage: React.FC = () => {
       >
         {/* Milestones */}
         <div style={{ marginTop: "1rem" }}>
-          <h3 className="pp-group-name" style={{ marginBottom: 8 }}>Milestones / # days</h3>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <h3 className="pp-group-name" style={{ margin: 0 }}>Milestones / # days</h3>
+            <button className="btn btn-ghost btn-sm" type="button" onClick={handleLoadStandardTimeline}>
+              Load Standard Timeline
+            </button>
+          </div>
           <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
             <input
               className="pp-field-input"
@@ -239,86 +285,113 @@ export const ProjectDetailPage: React.FC = () => {
           <table className="preview-table" style={{ marginTop: "0.5rem" }}>
             <thead>
               <tr>
+                <th></th>
                 <th>Label</th>
                 <th># days</th>
                 <th>Date</th>
                 <th>Owner</th>
+                <th>Notes</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {milestones.map((milestone) => (
-                <tr key={milestone.id}>
-                  <td>
-                    <input
-                      type="text"
-                      value={milestone.label}
-                      onChange={(event) =>
-                        setMilestones((prev) =>
-                          prev.map((item) =>
-                            item.id === milestone.id ? { ...item, label: event.target.value } : item
+              {milestones.map((milestone) => {
+                const isDone = !!milestone.dateOccurred;
+                return (
+                  <tr key={milestone.id} style={{ opacity: isDone ? 1 : 0.75 }}>
+                    <td style={{ textAlign: "center" }}>
+                      {isDone ? (
+                        <span title="Completed" style={{ color: "var(--color-positive, #22c55e)", fontSize: 16 }}>✓</span>
+                      ) : (
+                        <span title="Pending" style={{ color: "var(--color-neutral, #94a3b8)", fontSize: 16 }}>○</span>
+                      )}
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        value={milestone.label}
+                        onChange={(event) =>
+                          setMilestones((prev) =>
+                            prev.map((item) =>
+                              item.id === milestone.id ? { ...item, label: event.target.value } : item
+                            )
                           )
-                        )
-                      }
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      value={milestone.days ?? ""}
-                      onChange={(event) =>
-                        setMilestones((prev) =>
-                          prev.map((item) =>
-                            item.id === milestone.id
-                              ? { ...item, days: event.target.value ? Number(event.target.value) : null }
-                              : item
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        value={milestone.days ?? ""}
+                        onChange={(event) =>
+                          setMilestones((prev) =>
+                            prev.map((item) =>
+                              item.id === milestone.id
+                                ? { ...item, days: event.target.value ? Number(event.target.value) : null }
+                                : item
+                            )
                           )
-                        )
-                      }
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="date"
-                      value={milestone.dateOccurred ? milestone.dateOccurred.slice(0, 10) : ""}
-                      onChange={(event) =>
-                        setMilestones((prev) =>
-                          prev.map((item) =>
-                            item.id === milestone.id
-                              ? { ...item, dateOccurred: event.target.value || null }
-                              : item
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="date"
+                        value={milestone.dateOccurred ? milestone.dateOccurred.slice(0, 10) : ""}
+                        onChange={(event) =>
+                          setMilestones((prev) =>
+                            prev.map((item) =>
+                              item.id === milestone.id
+                                ? { ...item, dateOccurred: event.target.value || null }
+                                : item
+                            )
                           )
-                        )
-                      }
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      value={milestone.ownerRole ?? ""}
-                      onChange={(event) =>
-                        setMilestones((prev) =>
-                          prev.map((item) =>
-                            item.id === milestone.id
-                              ? { ...item, ownerRole: event.target.value || null }
-                              : item
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        value={milestone.ownerRole ?? ""}
+                        onChange={(event) =>
+                          setMilestones((prev) =>
+                            prev.map((item) =>
+                              item.id === milestone.id
+                                ? { ...item, ownerRole: event.target.value || null }
+                                : item
+                            )
                           )
-                        )
-                      }
-                    />
-                  </td>
-                  <td>
-                    <button className="btn btn-secondary btn-sm" type="button" onClick={() => handleMilestoneSave(milestone)}>
-                      Save
-                    </button>
-                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => handleMilestoneDelete(milestone)}>
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        value={milestone.notes ?? ""}
+                        onChange={(event) =>
+                          setMilestones((prev) =>
+                            prev.map((item) =>
+                              item.id === milestone.id
+                                ? { ...item, notes: event.target.value || null }
+                                : item
+                            )
+                          )
+                        }
+                      />
+                    </td>
+                    <td>
+                      <button className="btn btn-secondary btn-sm" type="button" onClick={() => handleMilestoneSave(milestone)}>
+                        Save
+                      </button>
+                      <button className="btn btn-ghost btn-sm" type="button" onClick={() => handleMilestoneDelete(milestone)}>
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
               {milestones.length === 0 && (
-                <tr><td colSpan={5}>No milestones yet.</td></tr>
+                <tr><td colSpan={7}>No milestones yet.</td></tr>
               )}
             </tbody>
           </table>
@@ -400,6 +473,56 @@ export const ProjectDetailPage: React.FC = () => {
           <Timeline entries={latestSubmission.statusHistory} />
         </section>
       )}
+
+      {/* Edit history */}
+      <section className="card detail-card">
+        <div className="section-title">
+          <h2>Edit history</h2>
+          {(project.changeLog?.length ?? 0) > 0 && (
+            <span className="badge">
+              {project.changeLog!.length} edit{project.changeLog!.length !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+        {!project.changeLog || project.changeLog.length === 0 ? (
+          <div className="empty-history">
+            <span className="empty-history-icon">📝</span>
+            <p>No edits logged yet.</p>
+          </div>
+        ) : (
+          <div className="history-list">
+            {project.changeLog.map((entry) => (
+              <div key={entry.id} className="history-item">
+                <div className="history-header">
+                  <span className="history-field-badge">
+                    {entry.fieldName.replace(/([A-Z])/g, " $1").toLowerCase()}
+                  </span>
+                  <span className="history-meta">
+                    {new Date(entry.createdAt).toLocaleString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+                <div className="history-change">
+                  <span className="history-old">{entry.oldValue ?? "—"}</span>
+                  <span className="history-arrow">→</span>
+                  <span className="history-new">{entry.newValue ?? "—"}</span>
+                </div>
+                {entry.changedBy && (
+                  <div className="history-user">by {entry.changedBy.fullName}</div>
+                )}
+                {entry.reason && (
+                  <div className="history-reason">"{entry.reason}"</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 };

@@ -198,13 +198,9 @@ export default function LoginPage() {
 
       <div className="login-shell">
         <section className="login-intro">
-          <div className="login-kicker">
-            <span className="login-dot"></span> {BRAND.fullName}
+          <div className="login-logo">
+            <img src="/urerblogo.png" alt="URERB Portal" className="login-logo-img" />
           </div>
-          <h1>{BRAND.name} Portal</h1>
-          <p>
-            Secure access for designated reviewers and staff.
-          </p>
         </section>
 
         <aside className={`login-card ${shake ? 'shake' : ''}`} role="region" aria-label="Sign in">
@@ -342,8 +338,6 @@ export default function LoginPage() {
                 />
                 Stay signed in on this device
               </label>
-            </div>
-            <div className="login-row login-row-right">
               <a className="login-link" href="/forgot-password">Forgot your password?</a>
             </div>
 
