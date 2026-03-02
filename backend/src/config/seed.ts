@@ -640,7 +640,7 @@ async function main() {
   // 1) Ensure a Research Associate user exists
   const raUser = await prisma.user.upsert({
     where: { email: "ra@example.com" },
-    update: {},
+    update: { passwordHash: defaultHash },
     create: {
       email: "ra@example.com",
       fullName: "Research Associate",
@@ -996,7 +996,7 @@ async function main() {
 
   const staffUser = await prisma.user.upsert({
     where: { email: "staff@rerc.demo" },
-    update: { fullName: "Dashboard Staff", isCommonReviewer: false },
+    update: { fullName: "Dashboard Staff", isCommonReviewer: false, passwordHash: defaultHash },
     create: {
       email: "staff@rerc.demo",
       fullName: "Dashboard Staff",
@@ -1006,7 +1006,7 @@ async function main() {
 
   const reviewerScientist = await prisma.user.upsert({
     where: { email: "reviewer.scientist@rerc.demo" },
-    update: { fullName: "Dr. Mira Cruz", isCommonReviewer: true },
+    update: { fullName: "Dr. Mira Cruz", isCommonReviewer: true, passwordHash: defaultHash },
     create: {
       email: "reviewer.scientist@rerc.demo",
       fullName: "Dr. Mira Cruz",
@@ -1018,7 +1018,7 @@ async function main() {
 
   const reviewerLay = await prisma.user.upsert({
     where: { email: "reviewer.lay@rerc.demo" },
-    update: { fullName: "Josefina Reyes", isCommonReviewer: true },
+    update: { fullName: "Josefina Reyes", isCommonReviewer: true, passwordHash: defaultHash },
     create: {
       email: "reviewer.lay@rerc.demo",
       fullName: "Josefina Reyes",
@@ -1030,7 +1030,7 @@ async function main() {
 
   const reviewerConsultant = await prisma.user.upsert({
     where: { email: "reviewer.consultant@rerc.demo" },
-    update: { fullName: "Dr. Paulo Santos", isCommonReviewer: true },
+    update: { fullName: "Dr. Paulo Santos", isCommonReviewer: true, passwordHash: defaultHash },
     create: {
       email: "reviewer.consultant@rerc.demo",
       fullName: "Dr. Paulo Santos",
