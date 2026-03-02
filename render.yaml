@@ -1,0 +1,25 @@
+# Render Blueprint — free-tier web service for the RERC backend API.
+# See https://render.com/docs/blueprint-spec for full reference.
+
+services:
+  - type: web
+    name: rerc-api
+    runtime: node
+    region: singapore
+    plan: free
+    buildCommand: cd backend && npm ci && npx prisma generate && npm run build
+    startCommand: cd backend && npx prisma migrate deploy && node dist/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false            # set manually in Render dashboard
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false            # e.g. https://rerc.pages.dev
+      - key: FRONTEND_URL
+        sync: false

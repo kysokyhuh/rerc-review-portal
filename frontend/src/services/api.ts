@@ -75,11 +75,138 @@ const API_BASE_URL =
   "http://localhost:3000";
 
 const api = axios.create({
+  withCredentials: true,
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
+// ---------------------------------------------------------------------------
+// Cold-start retry — Render free tier can take ~30s to spin up
+// ---------------------------------------------------------------------------
+
+const COLD_START_MAX_RETRIES = 3;
+const COLD_START_BACKOFF_MS = [1500, 3000, 6000];
+
+function isColdStartError(error: any): boolean {
+  if (!error.response) return true; // network error
+  const status = error.response.status;
+  return status === 502 || status === 503 || status === 504;
+}
+
+api.interceptors.response.use(
+  (response) => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("rerc:cold-start-resolved"));
+    }
+    return response;
+  },
+  async (error) => {
+    const config = error.config;
+    if (config._retry || config.url?.startsWith("/auth/")) {
+      return Promise.reject(error);
+    }
+
+    if (isColdStartError(error)) {
+      const retryCount = config._coldRetry || 0;
+      if (retryCount < COLD_START_MAX_RETRIES) {
+        config._coldRetry = retryCount + 1;
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("rerc:cold-start"));
+        }
+        const delay = COLD_START_BACKOFF_MS[retryCount] ?? 6000;
+        await new Promise((r) => setTimeout(r, delay));
+        return api(config);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Auth interceptors — Bearer token injection + 401 refresh retry
+// ---------------------------------------------------------------------------
+
+const TOKEN_KEY = "rerc_access_token";
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+let isRefreshing = false;
+let refreshQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (err: unknown) => void;
+}> = [];
+
+function processQueue(error: unknown, token: string | null) {
+  for (const { resolve, reject } of refreshQueue) {
+    if (error) reject(error);
+    else resolve(token!);
+  }
+  refreshQueue = [];
+}
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const original = error.config;
+
+    // Only retry once, and only for 401s (not login itself)
+    if (
+      error.response?.status === 401 &&
+      !original._retry &&
+      !original.url?.startsWith("/auth/")
+    ) {
+      if (isRefreshing) {
+        // Queue this request until refresh completes
+        return new Promise((resolve, reject) => {
+          refreshQueue.push({
+            resolve: (token: string) => {
+              original.headers.Authorization = `Bearer ${token}`;
+              resolve(api(original));
+            },
+            reject,
+          });
+        });
+      }
+
+      original._retry = true;
+      isRefreshing = true;
+
+      try {
+        const res = await axios.post(
+          `${API_BASE_URL}/auth/refresh`,
+          {},
+          { withCredentials: true }
+        );
+        const newToken = res.data.accessToken;
+        localStorage.setItem(TOKEN_KEY, newToken);
+        original.headers.Authorization = `Bearer ${newToken}`;
+        processQueue(null, newToken);
+        return api(original);
+      } catch (refreshErr) {
+        processQueue(refreshErr, null);
+        localStorage.removeItem(TOKEN_KEY);
+        // Redirect to login with expired flag
+        if (typeof window !== "undefined") {
+          window.location.href = "/login?expired=true";
+        }
+        return Promise.reject(refreshErr);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 
 /**
  * Fetch distinct college values for filter dropdowns

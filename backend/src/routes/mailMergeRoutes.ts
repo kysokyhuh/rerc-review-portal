@@ -2,6 +2,7 @@
  * Mail merge and letter generation routes
  */
 import { Router } from "express";
+import { requireUser } from "../middleware/auth";
 import prisma from "../config/prismaClient";
 import { csvEscape } from "../utils/csvUtils";
 import {
@@ -11,9 +12,10 @@ import {
 import { Parser as Json2CsvParser } from "json2csv";
 
 const router = Router();
+router.use(requireUser);
 
 // Mail-merge CSV export for initial submission acknowledgment letters
-router.get("/mail-merge/initial-ack.csv", async (req, res) => {
+router.get("/mail-merge/initial-ack.csv", async (req, res, next) => {
   try {
     const committeeCode = req.query.committeeCode
       ? String(req.query.committeeCode)
@@ -138,13 +140,12 @@ router.get("/mail-merge/initial-ack.csv", async (req, res) => {
     );
     res.send(rows.join("\r\n"));
   } catch (error) {
-    console.error("Error generating mail merge CSV:", error);
-    res.status(500).json({ message: "Failed to generate CSV" });
+    next(error);
   }
 });
 
 // Mail-merge CSV export for initial approval letters
-router.get("/mail-merge/initial-approval.csv", async (req, res) => {
+router.get("/mail-merge/initial-approval.csv", async (req, res, next) => {
   try {
     const committeeCode = req.query.committeeCode
       ? String(req.query.committeeCode)
@@ -274,13 +275,12 @@ router.get("/mail-merge/initial-approval.csv", async (req, res) => {
     );
     res.send(rows.join("\r\n"));
   } catch (error) {
-    console.error("Error generating approval mail merge CSV:", error);
-    res.status(500).json({ message: "Failed to generate approval CSV" });
+    next(error);
   }
 });
 
 // Mail merge payload for a single submission's initial acknowledgement letter
-router.get("/mail-merge/initial-ack/:submissionId", async (req, res) => {
+router.get("/mail-merge/initial-ack/:submissionId", async (req, res, next) => {
   try {
     const submissionId = Number(req.params.submissionId);
     if (Number.isNaN(submissionId)) {
@@ -326,13 +326,12 @@ router.get("/mail-merge/initial-ack/:submissionId", async (req, res) => {
       ra_email: project.createdBy?.email ?? null,
     });
   } catch (error) {
-    console.error("Error building initial ack payload:", error);
-    res.status(500).json({ message: "Failed to build initial ack payload" });
+    next(error);
   }
 });
 
 // CSV export for initial acknowledgement
-router.get("/mail-merge/initial-ack/:submissionId/csv", async (req, res) => {
+router.get("/mail-merge/initial-ack/:submissionId/csv", async (req, res, next) => {
   try {
     const submissionId = Number(req.params.submissionId);
     if (Number.isNaN(submissionId)) {
@@ -409,13 +408,12 @@ router.get("/mail-merge/initial-ack/:submissionId/csv", async (req, res) => {
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     res.send(csv);
   } catch (error) {
-    console.error("Error exporting initial ack CSV:", error);
-    res.status(500).json({ message: "Failed to export CSV" });
+    next(error);
   }
 });
 
 // Mail merge payload for a single submission's initial approval letter
-router.get("/mail-merge/initial-approval/:submissionId", async (req, res) => {
+router.get("/mail-merge/initial-approval/:submissionId", async (req, res, next) => {
   try {
     const submissionId = Number(req.params.submissionId);
     if (Number.isNaN(submissionId)) {
@@ -464,7 +462,7 @@ router.get("/mail-merge/initial-approval/:submissionId", async (req, res) => {
       ra_email: project.createdBy?.email ?? null,
     });
   } catch (error) {
-    console.error("Error building initial approval payload:", error);
+    next(error);
     res
       .status(500)
       .json({ message: "Failed to build initial approval payload" });
@@ -472,7 +470,7 @@ router.get("/mail-merge/initial-approval/:submissionId", async (req, res) => {
 });
 
 // CSV export for initial approval
-router.get("/mail-merge/initial-approval/:submissionId/csv", async (req, res) => {
+router.get("/mail-merge/initial-approval/:submissionId/csv", async (req, res, next) => {
   try {
     const submissionId = Number(req.params.submissionId);
     if (Number.isNaN(submissionId)) {
@@ -551,13 +549,12 @@ router.get("/mail-merge/initial-approval/:submissionId/csv", async (req, res) =>
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     res.send(csv);
   } catch (error) {
-    console.error("Error exporting initial approval CSV:", error);
-    res.status(500).json({ message: "Failed to export CSV" });
+    next(error);
   }
 });
 
 // Generate initial acknowledgment letter (DOCX)
-router.get("/letters/initial-ack/:submissionId.docx", async (req, res) => {
+router.get("/letters/initial-ack/:submissionId.docx", async (req, res, next) => {
   try {
     const submissionId = Number(req.params.submissionId);
     if (Number.isNaN(submissionId)) {
@@ -574,13 +571,12 @@ router.get("/letters/initial-ack/:submissionId.docx", async (req, res) => {
     );
     res.send(buffer);
   } catch (error) {
-    console.error("Error generating initial ack letter:", error);
-    res.status(500).json({ message: "Failed to generate letter" });
+    next(error);
   }
 });
 
 // Generate initial approval letter (DOCX)
-router.get("/letters/initial-approval/:submissionId.docx", async (req, res) => {
+router.get("/letters/initial-approval/:submissionId.docx", async (req, res, next) => {
   try {
     const submissionId = Number(req.params.submissionId);
     if (Number.isNaN(submissionId)) {
@@ -597,8 +593,7 @@ router.get("/letters/initial-approval/:submissionId.docx", async (req, res) => {
     );
     res.send(buffer);
   } catch (error) {
-    console.error("Error generating initial approval letter:", error);
-    res.status(500).json({ message: "Failed to generate letter" });
+    next(error);
   }
 });
 

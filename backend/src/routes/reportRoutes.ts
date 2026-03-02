@@ -1,5 +1,6 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { Router } from "express";
+import { requireUser } from "../middleware/auth";
 import prisma from "../config/prismaClient";
 import {
   buildAcademicYearSummary,
@@ -18,7 +19,7 @@ const addDays = (date: Date, days: number) => {
   return next;
 };
 
-export const getAcademicYearsHandler = async (_req: Request, res: Response) => {
+export const getAcademicYearsHandler = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const terms = await prisma.academicTerm.findMany({
       orderBy: [{ academicYear: "desc" }, { term: "asc" }],
@@ -34,14 +35,14 @@ export const getAcademicYearsHandler = async (_req: Request, res: Response) => {
       items: listAcademicYears(terms),
     });
   } catch (error) {
-    console.error("Error fetching academic years:", error);
-    return res.status(500).json({ message: "Failed to fetch academic years" });
+    next(error);
   }
 };
 
 export const getAcademicYearSummaryHandler = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
   try {
     const academicYear = String(req.query.academicYear || "").trim();
@@ -253,14 +254,14 @@ export const getAcademicYearSummaryHandler = async (
       averages: summary.averages,
     });
   } catch (error) {
-    console.error("Error building academic year summary:", error);
+    next(error);
     return res
       .status(500)
       .json({ message: "Failed to build academic year report" });
   }
 };
 
-router.get("/reports/academic-years", getAcademicYearsHandler);
-router.get("/reports/academic-year-summary", getAcademicYearSummaryHandler);
+router.get("/reports/academic-years", requireUser, getAcademicYearsHandler);
+router.get("/reports/academic-year-summary", requireUser, getAcademicYearSummaryHandler);
 
 export default router;

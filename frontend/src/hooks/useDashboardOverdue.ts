@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { OverdueReviewItem } from "@/types";
 import { fetchDashboardOverdue } from "@/services/api";
 import { AUTO_REFRESH_INTERVAL_MS } from "@/constants";
@@ -7,38 +7,20 @@ export function useDashboardOverdue(
   committeeCode: string,
   filters?: Record<string, string>
 ) {
-  const [overdueReviews, setOverdueReviews] = useState<OverdueReviewItem[]>([]);
-  const [overdueEndorsements, setOverdueEndorsements] = useState<
-    OverdueReviewItem[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const filterKey = filters ? JSON.stringify(filters) : "";
 
-  const loadOverdue = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await fetchDashboardOverdue(committeeCode, filters);
-      setOverdueReviews(data.overdueReviews ?? []);
-      setOverdueEndorsements(data.overdueEndorsements ?? []);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load overdue data");
-    } finally {
-      setLoading(false);
-    }
-  }, [committeeCode, filters ? JSON.stringify(filters) : ""]);
-
-  useEffect(() => {
-    loadOverdue();
-    const interval = setInterval(loadOverdue, AUTO_REFRESH_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [loadOverdue]);
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["dashboardOverdue", committeeCode, filterKey],
+    queryFn: () => fetchDashboardOverdue(committeeCode, filters),
+    refetchInterval: AUTO_REFRESH_INTERVAL_MS,
+    enabled: !!committeeCode,
+  });
 
   return {
-    overdueReviews,
-    overdueEndorsements,
-    loading,
-    error,
-    refresh: loadOverdue,
+    overdueReviews: (data?.overdueReviews ?? []) as OverdueReviewItem[],
+    overdueEndorsements: (data?.overdueEndorsements ?? []) as OverdueReviewItem[],
+    loading: isLoading,
+    error: error ? (error instanceof Error ? error.message : "Failed to load overdue data") : null,
+    refresh: () => { refetch(); },
   };
 }

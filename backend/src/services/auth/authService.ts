@@ -41,7 +41,7 @@ async function buildAccessPayload(userId: number): Promise<AccessTokenPayload> {
     new Set(user.committeeMemberships.map((m) => m.role)),
   ) as RoleType[];
 
-  // Build committee → role mapping
+  // Build committee -> role mapping
   const committeeRoles: Record<number, RoleType> = {};
   for (const m of user.committeeMemberships) {
     committeeRoles[m.committeeId] = m.role;

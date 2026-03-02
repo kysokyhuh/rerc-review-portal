@@ -2,6 +2,7 @@
  * Dashboard and queue routes
  */
 import { Router } from "express";
+import { requireUser } from "../middleware/auth";
 import prisma from "../config/prismaClient";
 import { BRAND } from "../config/branding";
 import {
@@ -21,7 +22,7 @@ const escapeHtml = (value: string | null | undefined) =>
     .replace(/'/g, "&#39;");
 
 // Dashboard queues for classification, review, revision
-router.get("/dashboard/queues", async (req, res) => {
+router.get("/dashboard/queues", requireUser, async (req, res, next) => {
   try {
     const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
     const filterParams = parseDashboardFilterParams(req.query as Record<string, unknown>);
@@ -98,13 +99,12 @@ router.get("/dashboard/queues", async (req, res) => {
       revisionQueue,
     });
   } catch (error) {
-    console.error("Error generating dashboard queues:", error);
-    res.status(500).json({ message: "Failed to load dashboard queues" });
+    next(error);
   }
 });
 
 // Distinct college values for the filter dropdown
-router.get("/dashboard/colleges", async (req, res) => {
+router.get("/dashboard/colleges", requireUser, async (req, res, next) => {
   try {
     const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
     const colleges = await prisma.project.findMany({
@@ -118,13 +118,12 @@ router.get("/dashboard/colleges", async (req, res) => {
     });
     res.json(colleges.map((c) => c.piAffiliation).filter(Boolean));
   } catch (error) {
-    console.error("Error fetching colleges:", error);
-    res.status(500).json({ message: "Failed to fetch colleges" });
+    next(error);
   }
 });
 
 // Overdue review and endorsement tracking
-router.get("/dashboard/overdue", async (req, res) => {
+router.get("/dashboard/overdue", requireUser, async (req, res, next) => {
   try {
     const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
     const filterParams = parseDashboardFilterParams(req.query as Record<string, unknown>);
@@ -220,13 +219,12 @@ router.get("/dashboard/overdue", async (req, res) => {
       overdueEndorsements,
     });
   } catch (error) {
-    console.error("Error loading overdue reviews:", error);
-    res.status(500).json({ message: "Failed to load overdue reviews" });
+    next(error);
   }
 });
 
 // Dashboard recent activity (status history)
-router.get("/dashboard/activity", async (req, res) => {
+router.get("/dashboard/activity", requireUser, async (req, res, next) => {
   try {
     const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
     const rawLimit = Number(req.query.limit || 8);
@@ -280,13 +278,12 @@ router.get("/dashboard/activity", async (req, res) => {
       })),
     });
   } catch (error) {
-    console.error("Error loading dashboard activity:", error);
-    res.status(500).json({ message: "Failed to load dashboard activity" });
+    next(error);
   }
 });
 
 // RA dashboard - queues overview (HTML page)
-router.get("/ra/dashboard", async (_req, res, next) => {
+router.get("/ra/dashboard", requireUser, async (_req, res, next) => {
   try {
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -412,7 +409,7 @@ router.get("/ra/dashboard", async (_req, res, next) => {
 });
 
 // RA submission detail page with letter actions (HTML page)
-router.get("/ra/submissions/:submissionId", async (req, res, next) => {
+router.get("/ra/submissions/:submissionId", requireUser, async (req, res, next) => {
   try {
     const submissionId = Number(req.params.submissionId);
     if (Number.isNaN(submissionId)) {

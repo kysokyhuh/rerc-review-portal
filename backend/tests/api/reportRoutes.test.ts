@@ -123,7 +123,7 @@ describe("GET /reports/academic-year-summary", () => {
     };
     const res = createResponseMock();
 
-    await getAcademicYearSummaryHandler(req, res as any);
+    await getAcademicYearSummaryHandler(req, res as any, jest.fn());
 
     expect(res.status).not.toHaveBeenCalled();
     expect(res.json).toHaveBeenCalledTimes(1);

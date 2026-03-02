@@ -5,11 +5,10 @@
  */
 import "dotenv/config";
 import app from "./app";
+import { logger } from "./config/logger";
+
 const PORT = process.env.PORT || 3000;
-// =============================================================================
-// Start Server
-// =============================================================================
 
 app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
+  logger.info(`Server listening on http://localhost:${PORT}`);
 });

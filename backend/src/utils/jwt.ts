@@ -29,9 +29,9 @@ export function signRefreshToken(payload: RefreshTokenPayload): string {
 }
 
 export function verifyAccessToken(token: string): AccessTokenPayload {
-  return jwt.verify(token, ACCESS_SECRET) as AccessTokenPayload;
+  return jwt.verify(token, ACCESS_SECRET) as unknown as AccessTokenPayload;
 }
 
 export function verifyRefreshToken(token: string): RefreshTokenPayload {
-  return jwt.verify(token, REFRESH_SECRET) as RefreshTokenPayload;
+  return jwt.verify(token, REFRESH_SECRET) as unknown as RefreshTokenPayload;
 }

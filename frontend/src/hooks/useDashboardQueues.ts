@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type {
   AttentionMetrics,
   DecoratedQueueItem,
@@ -13,114 +14,87 @@ import {
   DUE_SOON_THRESHOLD,
 } from "@/constants";
 
+interface DashboardQueuesResult {
+  counts: QueueCounts | null;
+  classificationQueue: DecoratedQueueItem[];
+  reviewQueue: DecoratedQueueItem[];
+  revisionQueue: DecoratedQueueItem[];
+  letterReadiness: LetterTemplateReadiness[];
+  attention: AttentionMetrics;
+  allItems: DecoratedQueueItem[];
+  lastUpdated: Date | null;
+  refresh: () => void;
+  loading: boolean;
+  error: string | null;
+}
+
 export function useDashboardQueues(
   committeeCode: string,
   filters?: Record<string, string>
-) {
-  const [counts, setCounts] = useState<QueueCounts | null>(null);
-  const [classificationQueue, setClassificationQueue] = useState<
-    DecoratedQueueItem[]
-  >([]);
-  const [reviewQueue, setReviewQueue] = useState<DecoratedQueueItem[]>([]);
-  const [revisionQueue, setRevisionQueue] = useState<DecoratedQueueItem[]>([]);
-  const [letterReadiness, setLetterReadiness] = useState<
-    LetterTemplateReadiness[]
-  >([]);
-  const [attention, setAttention] = useState<AttentionMetrics>({
-    overdue: 0,
-    dueSoon: 0,
-    classificationWait: 0,
-    missingLetterFields: 0,
+): DashboardQueuesResult {
+  const filterKey = filters ? JSON.stringify(filters) : "";
+
+  const { data, isLoading, error, refetch, dataUpdatedAt } = useQuery({
+    queryKey: ["dashboardQueues", committeeCode, filterKey],
+    queryFn: () => fetchDashboardQueues(committeeCode, filters),
+    refetchInterval: AUTO_REFRESH_INTERVAL_MS,
+    enabled: !!committeeCode,
   });
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const loadQueues = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await fetchDashboardQueues(committeeCode, filters);
-      const now = new Date();
-
-      const decoratedClassification = data.classificationQueue.map((item) =>
-        decorateQueueItem(item, "classification", now)
-      );
-      const decoratedReview = data.reviewQueue.map((item) =>
-        decorateQueueItem(item, "review", now)
-      );
-      const decoratedRevision = data.revisionQueue.map((item) =>
-        decorateQueueItem(item, "revision", now)
-      );
-
-      const allItems = [
-        ...decoratedClassification,
-        ...decoratedReview,
-        ...decoratedRevision,
-      ];
-
-      const overdue = allItems.filter(
-        (item) => item.slaStatus === "OVERDUE"
-      ).length;
-      const dueSoon = allItems.filter(
-        (item) =>
-          item.workingDaysRemaining <= DUE_SOON_THRESHOLD &&
-          item.workingDaysRemaining >= 0
-      ).length;
-      const classificationWait = decoratedClassification.filter(
-        (item) => item.workingDaysElapsed > CLASSIFICATION_WAIT_THRESHOLD
-      ).length;
-      const missingLetterFields = allItems.filter(
-        (item) => item.missingFields.length > 0
-      ).length;
-
-      setCounts({
-        ...data.counts,
-        dueSoon,
-        overdue,
-        classificationStuck: classificationWait,
-        missingLetterFields,
-      });
-      setClassificationQueue(decoratedClassification);
-      setReviewQueue(decoratedReview);
-      setRevisionQueue(decoratedRevision);
-      setLetterReadiness(buildLetterReadiness(allItems));
-      setAttention({
-        overdue,
-        dueSoon,
-        classificationWait,
-        missingLetterFields,
-      });
-      setLastUpdated(now);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load queues");
-    } finally {
-      setLoading(false);
+  const processed = useMemo(() => {
+    if (!data) {
+      return {
+        counts: null,
+        classificationQueue: [] as DecoratedQueueItem[],
+        reviewQueue: [] as DecoratedQueueItem[],
+        revisionQueue: [] as DecoratedQueueItem[],
+        letterReadiness: [] as LetterTemplateReadiness[],
+        attention: { overdue: 0, dueSoon: 0, classificationWait: 0, missingLetterFields: 0 },
+      };
     }
-  }, [committeeCode, filters ? JSON.stringify(filters) : ""]);
 
-  useEffect(() => {
-    loadQueues();
-    const interval = setInterval(loadQueues, AUTO_REFRESH_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [loadQueues]);
+    const now = new Date();
+    const decoratedClassification = data.classificationQueue.map((item: any) =>
+      decorateQueueItem(item, "classification", now)
+    );
+    const decoratedReview = data.reviewQueue.map((item: any) =>
+      decorateQueueItem(item, "review", now)
+    );
+    const decoratedRevision = data.revisionQueue.map((item: any) =>
+      decorateQueueItem(item, "revision", now)
+    );
+
+    const allItems = [...decoratedClassification, ...decoratedReview, ...decoratedRevision];
+    const overdue = allItems.filter((i) => i.slaStatus === "OVERDUE").length;
+    const dueSoon = allItems.filter(
+      (i) => i.workingDaysRemaining <= DUE_SOON_THRESHOLD && i.workingDaysRemaining >= 0
+    ).length;
+    const classificationWait = decoratedClassification.filter(
+      (i) => i.workingDaysElapsed > CLASSIFICATION_WAIT_THRESHOLD
+    ).length;
+    const missingLetterFields = allItems.filter((i) => i.missingFields.length > 0).length;
+
+    return {
+      counts: { ...data.counts, dueSoon, overdue, classificationStuck: classificationWait, missingLetterFields },
+      classificationQueue: decoratedClassification,
+      reviewQueue: decoratedReview,
+      revisionQueue: decoratedRevision,
+      letterReadiness: buildLetterReadiness(allItems),
+      attention: { overdue, dueSoon, classificationWait, missingLetterFields },
+    };
+  }, [data]);
 
   const allItems = useMemo(
-    () => [...classificationQueue, ...reviewQueue, ...revisionQueue],
-    [classificationQueue, reviewQueue, revisionQueue]
+    () => [...processed.classificationQueue, ...processed.reviewQueue, ...processed.revisionQueue],
+    [processed.classificationQueue, processed.reviewQueue, processed.revisionQueue]
   );
 
   return {
-    counts,
-    classificationQueue,
-    reviewQueue,
-    revisionQueue,
-    letterReadiness,
-    attention,
+    ...processed,
     allItems,
-    lastUpdated,
-    refresh: loadQueues,
-    loading,
-    error,
+    lastUpdated: dataUpdatedAt ? new Date(dataUpdatedAt) : null,
+    refresh: () => { refetch(); },
+    loading: isLoading,
+    error: error ? (error instanceof Error ? error.message : "Failed to load queues") : null,
   };
 }

@@ -1,19 +1,14 @@
 import { Router } from "express";
 import { login, refresh, AuthError } from "../services/auth/authService";
+import { validate } from "../middleware/validate";
+import { loginSchema } from "../schemas/auth";
 
 const router = Router();
 
 // POST /auth/login
-router.post("/auth/login", async (req, res) => {
+router.post("/auth/login", validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required" });
-    }
-
     const result = await login(email, password);
 
     // Set refresh token as httpOnly cookie
@@ -33,16 +28,14 @@ router.post("/auth/login", async (req, res) => {
     if (error instanceof AuthError) {
       return res.status(error.statusCode).json({ message: error.message });
     }
-    console.error("Login error:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 });
 
 // POST /auth/refresh
-router.post("/auth/refresh", async (req, res) => {
+router.post("/auth/refresh", async (req, res, next) => {
   try {
-    const token =
-      req.cookies?.refreshToken || req.body.refreshToken;
+    const token = req.cookies?.refreshToken || req.body.refreshToken;
 
     if (!token) {
       return res.status(401).json({ message: "Refresh token required" });
@@ -64,7 +57,6 @@ router.post("/auth/refresh", async (req, res) => {
     if (error instanceof AuthError) {
       return res.status(error.statusCode).json({ message: error.message });
     }
-    // Invalid/expired refresh token
     return res.status(401).json({ message: "Invalid or expired refresh token" });
   }
 });

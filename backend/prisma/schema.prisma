@@ -264,6 +264,7 @@ model Panel {
   // later: full-board assignments; for now we keep no relations here
   classifications Classification[] @relation("PanelClassifications")
   members         PanelMember[]
+  @@index([committeeId])
 }
 
 model CommitteeMember {
@@ -279,6 +280,7 @@ model CommitteeMember {
   classificationVotes ClassificationVote[]
 
   @@unique([committeeId, userId, role])
+  @@index([userId])
 }
 
 model Project {
@@ -319,6 +321,8 @@ model Project {
   protocolMilestones ProtocolMilestone[]
   createdBy     User?                  @relation("ProjectsCreated", fields: [createdById], references: [id])
   createdById   Int?
+  @@index([committeeId])
+  @@index([createdById])
 }
 
 model ProtocolProfile {
@@ -428,6 +432,7 @@ model ProjectProponent {
   createdAt   DateTime  @default(now())
 
   @@unique([projectId, proponentId])
+  @@index([proponentId])
 }
 
 model ProjectMember {
@@ -439,6 +444,7 @@ model ProjectMember {
   email       String?
   affiliation String?
   createdAt   DateTime          @default(now())
+  @@index([projectId])
 }
 
 model ProjectChangeLog {
@@ -456,6 +462,8 @@ model ProjectChangeLog {
   createdAt          DateTime    @default(now())
 
   @@index([projectId])
+  @@index([sourceSubmissionId])
+  @@index([changedById])
 }
 
 model ProjectSnapshot {
@@ -482,6 +490,7 @@ model ProjectSnapshot {
   changedById            Int?
 
   @@index([projectId])
+  @@index([changedById])
 }
 
 model Submission {
@@ -524,6 +533,8 @@ model Submission {
 
   @@unique([projectId, sequenceNumber])
   @@index([projectId, submissionType])
+  @@index([createdById])
+  @@index([staffInChargeId])
 }
 
 model SubmissionChangeLog {
@@ -539,6 +550,7 @@ model SubmissionChangeLog {
   createdAt    DateTime   @default(now())
 
   @@index([submissionId])
+  @@index([changedById])
 }
 
 model Classification {
@@ -557,6 +569,8 @@ model Classification {
 
   classifiedBy   User? @relation("ClassificationsClassified", fields: [classifiedById], references: [id])
   classifiedById Int?
+  @@index([panelId])
+  @@index([classifiedById])
 }
 
 model ClassificationDecision {
@@ -572,6 +586,8 @@ model ClassificationDecision {
   notes          String?
 
   votes ClassificationVote[]
+  @@index([committeeId])
+  @@index([recordedById])
 }
 
 model ClassificationVote {
@@ -588,6 +604,7 @@ model ClassificationVote {
 
   @@unique([submissionId, committeeMemberId])
   @@index([committeeMemberId])
+  @@index([classificationDecisionId])
 }
 
 model SubmissionStatusHistory {
@@ -601,6 +618,8 @@ model SubmissionStatusHistory {
   changedBy     User?             @relation("SubmissionStatusChanges", fields: [changedById], references: [id])
   changedById   Int?
   createdAt     DateTime          @default(now())
+  @@index([submissionId])
+  @@index([changedById])
 }
 
 model ProjectStatusHistory {
@@ -616,6 +635,7 @@ model ProjectStatusHistory {
   createdAt     DateTime       @default(now())
 
   @@index([projectId])
+  @@index([changedById])
 }
 
 model Review {
@@ -644,6 +664,7 @@ model Review {
 
   @@unique([submissionId, reviewerId])
   @@index([submissionId])
+  @@index([reviewerId])
 }
 
 model ReviewAssignment {
@@ -723,6 +744,8 @@ model LetterDraft {
   updatedAt     DateTime          @updatedAt
 
   @@index([submissionId, status])
+  @@index([generatedById])
+  @@index([approvedById])
 }
 
 model ContractPeriod {
@@ -734,6 +757,7 @@ model ContractPeriod {
   endDate     DateTime
   isActive    Boolean    @default(true)
   createdAt   DateTime   @default(now())
+  @@index([committeeId])
 }
 
 model PanelMember {
@@ -748,6 +772,7 @@ model PanelMember {
   user  User  @relation(fields: [userId], references: [id])
 
   @@unique([panelId, userId])
+  @@index([userId])
 }
 
 model ConfigSLA {
@@ -761,6 +786,7 @@ model ConfigSLA {
   isActive    Boolean     @default(true)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+  @@index([committeeId])
 }
 
 // Tracks granular workflow events/stages for each submission

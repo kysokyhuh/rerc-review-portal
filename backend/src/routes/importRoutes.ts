@@ -134,8 +134,8 @@ router.post(
   "/imports/projects/preview",
   requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   uploadSingleFile,
-  async (req, res) => {
-    try {
+  async (req, res, next) => {
+  try {
       const file = getUploadFileOrThrow(req);
       const parsed = parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
       const preview = buildPreviewPayload(parsed, DEFAULT_IMPORT_CONFIG);
@@ -156,8 +156,8 @@ router.post(
   "/imports/projects/commit",
   requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   uploadSingleFile,
-  async (req, res) => {
-    try {
+  async (req, res, next) => {
+  try {
       const file = getUploadFileOrThrow(req);
       const parsed = parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
       const rowEdits = parseRowEditsPayload(req.body?.rowEdits);
@@ -412,8 +412,7 @@ router.post(
           details: error.details,
         });
       }
-      console.error("Import commit failed:", error);
-      return res.status(500).json({ message: "Import failed." });
+      next(error);
     }
   }
 );

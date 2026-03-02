@@ -1,8 +1,8 @@
 # RERC Review Portal — Project Context Pack
 
-**Generated:** February 15, 2026  
+**Generated:** March 1, 2026  
 **Repository:** `rerc-review-portal`  
-**Version:** 0.2.0
+**Version:** 0.2.1
 
 ---
 
@@ -17,7 +17,7 @@ The **RERC Review Portal** is a web-based Research Ethics Review Committee (RERC
 | Layer         | Technology                                            |
 | ------------- | ----------------------------------------------------- |
 | **Backend**   | Node.js 18+, Express 5.x, TypeScript 5.x              |
-| **Frontend**  | React 18, Vite 5.x, TypeScript, React Router 6        |
+| **Frontend**  | React 18, Vite 5.x, TypeScript, React Router 6         |
 | **Database**  | PostgreSQL (via Prisma ORM 7.x)                       |
 | **Libraries** | Axios, docx (Word generation), json2csv, csv-parse    |
 | **Infra**     | Local development (no CI/CD or containerization yet)  |
@@ -34,9 +34,9 @@ The **RERC Review Portal** is a web-based Research Ethics Review Committee (RERC
 ### Where to Start Reading the Code (Top 5 Files)
 
 1. `backend/src/server.ts` — Express app entry point, middleware setup, route mounting
-2. `backend/prisma/schema.prisma` — Complete data model (782 lines) with all enums and relationships
+2. `backend/prisma/schema.prisma` — Complete data model (781 lines) with all enums and relationships
 3. `backend/src/routes/dashboardRoutes.ts` — Dashboard queues, activity, and filter endpoints (595 lines)
-4. `frontend/src/pages/DashboardPageNew.tsx` — Main dashboard UI with route-driven queues (1515 lines)
+4. `frontend/src/pages/DashboardPageNew.tsx` — Main dashboard UI with route-driven queues (1,515 lines)
 5. `docs/SECURITY.md` — RBAC design and audit logging approach
 
 ---
@@ -49,18 +49,14 @@ rerc-review-portal/
 ├── FILE_EXPLANATIONS.txt              # Detailed file documentation
 ├── package.json                       # Root workspace scripts
 │
-├── ai/                                # AI assistant context (mostly empty)
-│   ├── context.md
-│   ├── decisions.md
-│   ├── plan.md
-│   └── tasks.md
+├── .env.example                       # Environment variable template
 │
 ├── backend/                           # Express.js API Server
 │   ├── package.json                   # Backend dependencies
 │   ├── tsconfig.json                  # TypeScript config
 │   ├── prisma.config.ts               # Prisma configuration
 │   ├── prisma/
-│   │   ├── schema.prisma              # Database schema (782 lines)
+│   │   ├── schema.prisma              # Database schema (781 lines)
 │   │   └── migrations/                # 16 migration folders
 │   └── src/
 │       ├── server.ts                  # Express entry point
@@ -68,28 +64,29 @@ rerc-review-portal/
 │       ├── config/
 │       │   ├── branding.ts            # Committee branding config
 │       │   ├── prismaClient.ts        # Prisma client singleton
-│       │   ├── seed.ts                # Database seeder (1423 lines)
+│       │   ├── seed.ts                # Database seeder (1,423 lines)
+│       │   ├── seedReportsDemo.ts     # Reports demo data seeder (469 lines)
 │       │   └── importCSV.ts           # CSV import utilities
 │       ├── routes/
-│       │   ├── index.ts               # Route barrel exports (9 modules)
+│       │   ├── index.ts               # Route barrel exports (9 route modules)
 │       │   ├── healthRoutes.ts        # Health check endpoints (33 lines)
 │       │   ├── committeeRoutes.ts     # Committee/panel endpoints (164 lines)
 │       │   ├── dashboardRoutes.ts     # Dashboard queues & filters (595 lines)
-│       │   ├── projectRoutes.ts       # Project CRUD & archives (777 lines)
+│       │   ├── projectRoutes.ts       # Project CRUD & archives (840 lines)
 │       │   ├── submissionRoutes.ts    # Submissions/reviews (916 lines)
 │       │   ├── mailMergeRoutes.ts     # Letter generation (605 lines)
 │       │   ├── importRoutes.ts        # CSV import endpoints (435 lines)
 │       │   ├── reportRoutes.ts        # Academic year reports (266 lines)
 │       │   └── holidayRoutes.ts       # Holiday CRUD (205 lines)
 │       ├── services/
-│       │   ├── letterGenerator.ts     # DOCX letter builder
+│       │   ├── letterGenerator.ts     # DOCX letter builder (183 lines)
 │       │   ├── imports/
 │       │   │   └── projectCsvImport.ts # CSV parsing & validation (580 lines)
 │       │   ├── projects/
-│       │   │   └── createProjectWithInitialSubmission.ts # Project creation service
+│       │   │   └── createProjectWithInitialSubmission.ts # Project creation service (274 lines)
 │       │   └── reports/
 │       │       ├── academicTerms.ts   # Academic term helpers
-│       │       └── reportMetrics.ts   # Report aggregation logic
+│       │       └── reportMetrics.ts   # Report aggregation logic (406 lines)
 │       ├── utils/
 │       │   ├── index.ts
 │       │   ├── csvUtils.ts            # CSV escape utilities
@@ -110,7 +107,7 @@ rerc-review-portal/
 │   └── src/
 │       ├── App.tsx                    # React app root & routing
 │       ├── main.tsx                   # React entry point
-│       ├── constants.ts               # App-wide constants (PAGE_SIZE=15)
+│       ├── constants.ts               # App-wide constants (SLA targets, thresholds, refresh intervals) (34 lines)
 │       ├── components/                # Reusable UI components
 │       │   ├── AttentionStrip.tsx
 │       │   ├── Breadcrumbs.tsx         # Navigation breadcrumbs
@@ -123,7 +120,7 @@ rerc-review-portal/
 │       │   ├── ImportStepper.tsx       # Multi-step import wizard
 │       │   ├── ImportSummary.tsx       # Import results summary
 │       │   ├── LetterReadinessPanel.tsx
-│       │   ├── ProtocolProfileSection.tsx # Editable protocol profile (375 lines)
+│       │   ├── ProtocolProfileSection.tsx # Editable protocol profile (391 lines)
 │       │   ├── QueueTable.tsx          # Queue data table (466 lines)
 │       │   ├── RowErrorsTable.tsx      # Import error rows display
 │       │   ├── SLAStatusChip.tsx
@@ -140,38 +137,44 @@ rerc-review-portal/
 │       │   ├── useProjectDetail.ts
 │       │   └── useSubmissionDetail.ts
 │       ├── pages/
-│       │   ├── DashboardPageNew.tsx   # Main dashboard (1515 lines)
-│       │   ├── DashboardPage.tsx      # Legacy dashboard (unused)
+│       │   ├── DashboardPageNew.tsx   # Main dashboard (1,515 lines)
+│       │   ├── DashboardPage.tsx      # Legacy dashboard (359 lines, unused)
 │       │   ├── QueuePage.tsx          # Route-driven queue page (137 lines)
 │       │   ├── HolidaysPage.tsx       # Calendar-based holiday mgmt (629 lines)
 │       │   ├── ReportsPage.tsx        # Academic year reports (535 lines)
 │       │   ├── ImportProjectsPage.tsx # CSV import with preview (373 lines)
 │       │   ├── NewProtocolPage.tsx    # Create protocol form, 24 fields (580 lines)
 │       │   ├── ArchivesPage.tsx       # Archived projects with filters (321 lines)
-│       │   ├── ProjectDetailPage.tsx  # Project detail & letters (405 lines)
-│       │   ├── SubmissionDetailPage.tsx # Submission detail & editing (817 lines)
-│       │   ├── LoginPage.tsx          # Login page (stub) (401 lines)
+│       │   ├── ProjectDetailPage.tsx  # Project detail & letters (528 lines)
+│       │   ├── SubmissionDetailPage.tsx # Submission detail & editing (1,042 lines)
+│       │   ├── LoginPage.tsx          # Login page (stub) (395 lines)
 │       │   └── ForgotPasswordPage.tsx # Password reset (stub) (131 lines)
 │       ├── services/
 │       │   └── api.ts                 # API client (437 lines, 28+ functions)
 │       ├── styles/
-│       │   ├── globals.css            # Design tokens & base styles (1640 lines)
-│       │   ├── dashboard.css          # Dashboard styles (3487 lines)
+│       │   ├── globals.css            # Design tokens & base styles (1,640 lines)
+│       │   ├── dashboard.css          # Dashboard styles (3,487 lines)
 │       │   ├── imports.css            # Import page styles (589 lines)
 │       │   ├── new-protocol.css       # New protocol form (365 lines)
 │       │   ├── archives.css           # Archives page + filters (383 lines)
 │       │   ├── protocol-profile.css   # Protocol profile section (208 lines)
 │       │   ├── reports.css            # Reports page (272 lines)
-│       │   └── login.css              # Login page styles (1289 lines)
+│       │   └── login.css              # Login page styles (1,306 lines)
+│       ├── config/
+│       │   └── branding.ts            # Frontend branding config (30 lines)
 │       ├── types/
-│       │   └── index.ts               # TypeScript interfaces (611 lines, 37 interfaces)
+│       │   └── index.ts               # TypeScript interfaces (616 lines)
 │       └── utils/
-│           ├── overdueClassifier.ts   # Frontend overdue logic
-│           └── slaUtils.ts            # Frontend SLA helpers
+│           ├── dateUtils.ts           # Working-day math & date formatting (54 lines)
+│           ├── overdueClassifier.ts   # Frontend overdue logic (128 lines)
+│           └── slaUtils.ts            # Frontend SLA helpers (147 lines)
 │
-├── packages/shared/                   # Shared code (minimal usage)
+├── packages/shared/                   # Shared constants, types & DTOs
 │   ├── package.json
 │   └── src/
+│       ├── index.ts               # Barrel export
+│       ├── constants.ts           # Shared enums (roles, statuses, review types) (115 lines)
+│       └── types.ts               # Shared DTOs & interfaces (260 lines)
 │
 ├── samples/                           # Sample CSV exports
 │   ├── initial_ack.csv
@@ -710,7 +713,7 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 
 - No hardcoded secrets found in source code
 - `DATABASE_URL` must be in `.env` (not checked into repo)
-- No `.env.example` file visible in workspace (mentioned in README but not found)
+- `.env.example` exists at repo root with placeholder values for `DATABASE_URL`, `PORT`, `CORS_ORIGINS`, `FRONTEND_URL`
 
 ---
 
@@ -773,11 +776,11 @@ npm run test:api      # API tests
 
 | Module                    | Reason                                          | File Reference                    |
 | ------------------------- | ----------------------------------------------- | --------------------------------- |
-| `DashboardPageNew.tsx`    | 1515 lines, complex state, should be split      | `frontend/src/pages/DashboardPageNew.tsx` |
+| `DashboardPageNew.tsx`    | 1,515 lines, complex state, should be split     | `frontend/src/pages/DashboardPageNew.tsx` |
+| `SubmissionDetailPage.tsx`| 1,042 lines, heavy editing logic                | `frontend/src/pages/SubmissionDetailPage.tsx` |
 | `submissionRoutes.ts`     | 916 lines, multiple responsibilities            | `backend/src/routes/submissionRoutes.ts` |
-| `SubmissionDetailPage.tsx`| 817 lines, heavy editing logic                  | `frontend/src/pages/SubmissionDetailPage.tsx` |
-| `projectRoutes.ts`        | 777 lines, project + archive + profile routes   | `backend/src/routes/projectRoutes.ts` |
-| `seed.ts`                 | 1423 lines, complex CSV parsing                 | `backend/src/config/seed.ts`     |
+| `projectRoutes.ts`        | 840 lines, project + archive + profile routes   | `backend/src/routes/projectRoutes.ts` |
+| `seed.ts`                 | 1,423 lines, complex CSV parsing                | `backend/src/config/seed.ts`     |
 | Auth middleware           | Exists but not consistently wired               | `docs/SECURITY.md` describes design |
 | SLA calculations          | Simple working-days only, holiday table exists but unused in SLA | `backend/src/utils/slaUtils.ts`  |
 
@@ -1102,4 +1105,4 @@ cd backend && npm test
 
 ---
 
-*Document updated February 15, 2026 by analyzing repository structure, source files, git history, and documentation. Some details are inferred where explicit documentation was incomplete.*
+*Document updated March 1, 2026 by analyzing repository structure, source files, git history, and documentation. Some details are inferred where explicit documentation was incomplete.*

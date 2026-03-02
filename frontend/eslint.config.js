@@ -1,0 +1,72 @@
+import js from "@eslint/js";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
+import tsParser from "@typescript-eslint/parser";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
+
+export default [
+  js.configs.recommended,
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    languageOptions: {
+      parser: tsParser,
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        window: "readonly",
+        document: "readonly",
+        console: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        fetch: "readonly",
+        URL: "readonly",
+        URLSearchParams: "readonly",
+        FormData: "readonly",
+        Blob: "readonly",
+        File: "readonly",
+        FileReader: "readonly",
+        AbortController: "readonly",
+        Event: "readonly",
+        CustomEvent: "readonly",
+        HTMLElement: "readonly",
+        HTMLInputElement: "readonly",
+        HTMLDivElement: "readonly",
+        HTMLSelectElement: "readonly",
+        HTMLTextAreaElement: "readonly",
+        HTMLButtonElement: "readonly",
+        HTMLFormElement: "readonly",
+        MouseEvent: "readonly",
+        KeyboardEvent: "readonly",
+        localStorage: "readonly",
+        sessionStorage: "readonly",
+        navigator: "readonly",
+        location: "readonly",
+        history: "readonly",
+        alert: "readonly",
+        confirm: "readonly",
+        prompt: "readonly",
+        requestAnimationFrame: "readonly",
+        cancelAnimationFrame: "readonly",
+        IntersectionObserver: "readonly",
+        ResizeObserver: "readonly",
+        MutationObserver: "readonly",
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tsPlugin,
+      "react-hooks": reactHooksPlugin,
+    },
+    rules: {
+      ...tsPlugin.configs.recommended.rules,
+      ...reactHooksPlugin.configs.recommended.rules,
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "no-undef": "off",
+    },
+  },
+  {
+    ignores: ["dist/**", "node_modules/**", "vite.config.*"],
+  },
+];

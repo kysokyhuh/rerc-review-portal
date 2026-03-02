@@ -8,6 +8,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
 import rateLimit from "express-rate-limit";
+import pinoHttp from "pino-http";
 import "dotenv/config";
 
 // Import route modules
@@ -24,6 +25,9 @@ import {
 } from "./routes";
 import authRoutes from "./routes/authRoutes";
 import { authenticateUser } from "./middleware/auth";
+import { requestId } from "./middleware/requestId";
+import { errorHandler } from "./middleware/errorHandler";
+import { logger } from "./config/logger";
 
 const app = express();
 const allowedOrigins = (
@@ -54,6 +58,26 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "../public")));
+
+// Request ID — attaches unique ID to every request
+app.use(requestId);
+
+// Structured request logging
+app.use(
+  pinoHttp({
+    logger,
+    autoLogging: {
+      ignore: (req) => {
+        // Don't log health checks
+        const url = (req as any).url || "";
+        return url === "/health" || url === "/";
+      },
+    },
+    customProps: (req) => ({
+      reqId: (req as any).id,
+    }),
+  })
+);
 
 // Rate limiting — strict on auth, relaxed globally
 const authLimiter = rateLimit({
@@ -110,5 +134,10 @@ app.use(reportRoutes);
 
 // Holiday routes (/holidays)
 app.use(holidayRoutes);
+
+// =============================================================================
+// Error handler — MUST be last
+// =============================================================================
+app.use(errorHandler);
 
 export default app;

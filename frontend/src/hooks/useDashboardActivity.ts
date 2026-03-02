@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { DashboardActivityEntry } from "@/types";
 import { fetchDashboardActivity } from "@/services/api";
 import { AUTO_REFRESH_INTERVAL_MS } from "@/constants";
@@ -8,28 +8,19 @@ export function useDashboardActivity(
   limit = 8,
   filters?: Record<string, string>
 ) {
-  const [activity, setActivity] = useState<DashboardActivityEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const filterKey = filters ? JSON.stringify(filters) : "";
 
-  const loadActivity = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await fetchDashboardActivity(committeeCode, limit, filters);
-      setActivity(data.items ?? []);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load activity");
-    } finally {
-      setLoading(false);
-    }
-  }, [committeeCode, limit, filters ? JSON.stringify(filters) : ""]);
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["dashboardActivity", committeeCode, limit, filterKey],
+    queryFn: () => fetchDashboardActivity(committeeCode, limit, filters),
+    refetchInterval: AUTO_REFRESH_INTERVAL_MS,
+    enabled: !!committeeCode,
+  });
 
-  useEffect(() => {
-    loadActivity();
-    const interval = setInterval(loadActivity, AUTO_REFRESH_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [loadActivity]);
-
-  return { activity, loading, error, refresh: loadActivity };
+  return {
+    activity: (data?.items ?? []) as DashboardActivityEntry[],
+    loading: isLoading,
+    error: error ? (error instanceof Error ? error.message : "Failed to load activity") : null,
+    refresh: () => { refetch(); },
+  };
 }

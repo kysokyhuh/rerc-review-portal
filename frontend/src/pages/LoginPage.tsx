@@ -2,6 +2,7 @@ import { useState, useEffect, FormEvent, KeyboardEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { BRAND } from '@/config/branding';
+import { useAuth } from '@/contexts/AuthContext';
 import '../styles/login.css';
 
 const API_BASE_URL =
@@ -27,6 +28,7 @@ function getGreeting(): string {
 export default function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { login: authLogin } = useAuth();
   
   // Form state
   const [email, setEmail] = useState('');
@@ -120,18 +122,11 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
-        email,
-        password,
-      });
+      await authLogin(email, password);
 
-      // Store access token and user info
-      localStorage.setItem('rerc_access_token', response.data.accessToken);
-      localStorage.setItem('lastLogin', new Date().toISOString());
-      
       // Show success animation
       setSuccess(true);
-      
+
       // Wait for animation then redirect
       await new Promise((resolve) => setTimeout(resolve, 1500));
       const doNavigate = () =>

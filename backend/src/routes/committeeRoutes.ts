@@ -2,6 +2,7 @@
  * Committee and panel routes
  */
 import { Router, type NextFunction, type Request, type Response } from "express";
+import { requireUser } from "../middleware/auth";
 import prisma from "../config/prismaClient";
 
 const requireApiKey = (req: Request, res: Response, next: NextFunction) => {
@@ -18,7 +19,7 @@ const router = Router();
 router.use(requireApiKey);
 
 // List committees with panels and members (including user info)
-router.get("/committees", async (_req, res) => {
+router.get("/committees", requireUser, async (_req, res, next) => {
   try {
     const committees = await prisma.committee.findMany({
       include: {
@@ -40,13 +41,12 @@ router.get("/committees", async (_req, res) => {
 
     res.json(committees);
   } catch (error) {
-    console.error("Error fetching committees:", error);
-    res.status(500).json({ message: "Failed to fetch committees" });
+    next(error);
   }
 });
 
 // Get a panel with its members
-router.get("/panels/:id/members", async (req, res) => {
+router.get("/panels/:id/members", requireUser, async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     if (Number.isNaN(id)) {
@@ -99,13 +99,12 @@ router.get("/panels/:id/members", async (req, res) => {
       })),
     });
   } catch (error) {
-    console.error("Error fetching panel members:", error);
-    res.status(500).json({ message: "Failed to fetch panel members" });
+    next(error);
   }
 });
 
 // Get all panels for a committee including members
-router.get("/committees/:code/panels", async (req, res) => {
+router.get("/committees/:code/panels", requireUser, async (req, res, next) => {
   try {
     const committee = await prisma.committee.findUnique({
       where: { code: req.params.code },
@@ -156,8 +155,7 @@ router.get("/committees/:code/panels", async (req, res) => {
       })),
     });
   } catch (error) {
-    console.error("Error fetching committee panels:", error);
-    res.status(500).json({ message: "Failed to fetch committee panels" });
+    next(error);
   }
 });
 

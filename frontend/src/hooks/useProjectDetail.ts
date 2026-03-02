@@ -1,28 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { ProjectDetail } from "@/types";
 import { fetchProjectDetail } from "@/services/api";
 
 export function useProjectDetail(projectId: number) {
-  const [project, setProject] = useState<ProjectDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["project", projectId],
+    queryFn: () => fetchProjectDetail(projectId),
+    enabled: Number.isFinite(projectId) && projectId > 0,
+  });
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await fetchProjectDetail(projectId);
-      setProject(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load project");
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  return { project, loading, error, reload: load };
+  return {
+    project: (data ?? null) as ProjectDetail | null,
+    loading: isLoading,
+    error: error ? (error instanceof Error ? error.message : "Failed to load project") : null,
+    reload: () => { refetch(); },
+  };
 }

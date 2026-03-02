@@ -2,6 +2,8 @@ import { Router } from "express";
 import prisma from "../config/prismaClient";
 import { RoleType } from "../generated/prisma/client";
 import { requireRoles } from "../middleware/auth";
+import { validate } from "../middleware/validate";
+import { createHolidaySchema, updateHolidaySchema } from "../schemas/holiday";
 import {
   normalizeHolidayName,
   parseHolidayDateInput,
@@ -15,7 +17,7 @@ const HOLIDAY_ROLES = [
   RoleType.RESEARCH_ASSOCIATE,
 ];
 
-router.get("/holidays", requireRoles(HOLIDAY_ROLES), async (req, res) => {
+router.get("/holidays", requireRoles(HOLIDAY_ROLES), async (req, res, next) => {
   try {
     const { year, from, to } = req.query as Record<string, string | undefined>;
     const where: Record<string, unknown> = {};
@@ -74,12 +76,11 @@ router.get("/holidays", requireRoles(HOLIDAY_ROLES), async (req, res) => {
       })),
     });
   } catch (error) {
-    console.error("Error listing holidays:", error);
-    return res.status(500).json({ message: "Failed to list holidays" });
+    next(error);
   }
 });
 
-router.post("/holidays", requireRoles(HOLIDAY_ROLES), async (req, res) => {
+router.post("/holidays", requireRoles(HOLIDAY_ROLES), validate(createHolidaySchema), async (req, res, next) => {
   try {
     const date = parseHolidayDateInput(req.body?.date);
     const name = normalizeHolidayName(req.body?.name);
@@ -113,12 +114,11 @@ router.post("/holidays", requireRoles(HOLIDAY_ROLES), async (req, res) => {
       createdAt: holiday.createdAt.toISOString(),
     });
   } catch (error) {
-    console.error("Error creating holiday:", error);
-    return res.status(500).json({ message: "Failed to create holiday" });
+    next(error);
   }
 });
 
-router.patch("/holidays/:id", requireRoles(HOLIDAY_ROLES), async (req, res) => {
+router.patch("/holidays/:id", requireRoles(HOLIDAY_ROLES), validate(updateHolidaySchema), async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isInteger(id)) {
@@ -177,12 +177,11 @@ router.patch("/holidays/:id", requireRoles(HOLIDAY_ROLES), async (req, res) => {
       createdAt: updated.createdAt.toISOString(),
     });
   } catch (error) {
-    console.error("Error updating holiday:", error);
-    return res.status(500).json({ message: "Failed to update holiday" });
+    next(error);
   }
 });
 
-router.delete("/holidays/:id", requireRoles(HOLIDAY_ROLES), async (req, res) => {
+router.delete("/holidays/:id", requireRoles(HOLIDAY_ROLES), async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isInteger(id)) {
@@ -197,8 +196,7 @@ router.delete("/holidays/:id", requireRoles(HOLIDAY_ROLES), async (req, res) => 
     await prisma.holiday.delete({ where: { id } });
     return res.json({ success: true });
   } catch (error) {
-    console.error("Error deleting holiday:", error);
-    return res.status(500).json({ message: "Failed to delete holiday" });
+    next(error);
   }
 });
 
