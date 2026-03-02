@@ -1,535 +1,352 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Breadcrumbs } from "@/components";
 import {
-  fetchAcademicYearSummary,
+  AnalyticsCharts,
+  ReportFiltersBar,
+  ReportSection,
+  ProponentComparativeTables,
+  ReportSummaryCards,
+  ReportViewSwitch,
+  SubmissionRecordsTable,
+  type ReportView,
+  type ReportsDraftFilters,
+} from "@/components/reports";
+import {
+  fetchAnnualReportSubmissions,
+  fetchAnnualReportSummary,
   fetchCommittees,
   fetchReportAcademicYears,
+  type AnnualReportSubmissionsResponse,
+  type AnnualReportSummaryResponse,
   type CommitteeSummary,
   type ReportsAcademicYearOption,
-  type ReportsSummaryResponse,
 } from "@/services/api";
 import "../styles/reports.css";
 
-const TERM_OPTIONS: Array<{ label: string; value: "ALL" | number }> = [
-  { label: "All Terms", value: "ALL" },
-  { label: "Term 1", value: 1 },
-  { label: "Term 2", value: 2 },
-  { label: "Term 3", value: 3 },
-];
-const ALL_ACADEMIC_YEARS = "ALL";
-
-const formatNumber = (value: number | null | undefined) =>
-  value == null ? "-" : value.toLocaleString("en-US");
-
-const downloadTextFile = (filename: string, text: string) => {
-  const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
+const parseTerm = (value: string | null): "ALL" | 1 | 2 | 3 => {
+  if (!value || value.toUpperCase() === "ALL") return "ALL";
+  const parsed = Number(value);
+  return parsed === 1 || parsed === 2 || parsed === 3 ? parsed : "ALL";
 };
 
-const toCsvCell = (value: string | number | null | undefined) => {
-  const raw = String(value ?? "");
-  if (/[",\n]/.test(raw)) {
-    return `"${raw.replace(/"/g, '""')}"`;
+const parseView = (value: string | null): ReportView =>
+  value === "analytics" || value === "records" ? value : "summary";
+
+const toSearchParams = (
+  view: ReportView,
+  filters: ReportsDraftFilters,
+  extra?: Record<string, string>
+) => {
+  const next = new URLSearchParams();
+  next.set("view", view);
+  next.set("ay", filters.ay);
+  next.set("term", String(filters.term));
+  next.set("committee", filters.committee);
+  next.set("category", filters.category);
+  if (filters.reviewType !== "ALL") next.set("reviewType", filters.reviewType);
+  if (filters.q.trim()) next.set("q", filters.q.trim());
+  if (extra) {
+    Object.entries(extra).forEach(([key, value]) => next.set(key, value));
   }
-  return raw;
+  return next;
 };
 
 export default function ReportsPage() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [years, setYears] = useState<ReportsAcademicYearOption[]>([]);
   const [committees, setCommittees] = useState<CommitteeSummary[]>([]);
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
-  const [selectedTerm, setSelectedTerm] = useState<"ALL" | number>("ALL");
-  const [selectedCommittee, setSelectedCommittee] = useState("");
-  const [selectedCollege, setSelectedCollege] = useState("ALL");
-  const [loading, setLoading] = useState(false);
+  const [summary, setSummary] = useState<AnnualReportSummaryResponse | null>(null);
+  const [records, setRecords] = useState<AnnualReportSubmissionsResponse | null>(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [loadingRecords, setLoadingRecords] = useState(false);
+  const [loadingOptions, setLoadingOptions] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [report, setReport] = useState<ReportsSummaryResponse | null>(null);
+
+  const defaultAy = years[0]?.academicYear ?? "ALL";
+  const defaultCommittee = committees[0]?.code ?? "ALL";
+
+  const appliedView = parseView(searchParams.get("view"));
+  const page = Math.max(1, Number(searchParams.get("page") ?? "1") || 1);
+  const pageSize = Math.min(100, Math.max(1, Number(searchParams.get("pageSize") ?? "20") || 20));
+  const sort = searchParams.get("sort") || "receivedDate:desc";
+
+  const appliedFilters = useMemo<ReportsDraftFilters>(
+    () => ({
+      ay: searchParams.get("ay") || defaultAy,
+      term: parseTerm(searchParams.get("term")),
+      committee: searchParams.get("committee") || defaultCommittee,
+      college: "ALL",
+      category:
+        (searchParams.get("category") as ReportsDraftFilters["category"]) || "ALL",
+      reviewType:
+        (searchParams.get("reviewType") as ReportsDraftFilters["reviewType"]) || "ALL",
+      status: "ALL",
+      q: searchParams.get("q") || "",
+    }),
+    [searchParams, defaultAy, defaultCommittee]
+  );
+
+  const [draftFilters, setDraftFilters] = useState<ReportsDraftFilters>(appliedFilters);
+
+  useEffect(() => {
+    setDraftFilters(appliedFilters);
+  }, [appliedFilters]);
+
+  useEffect(() => {
+    document.title = `URERB Portal — ${
+      appliedView === "summary"
+        ? "Report Summary"
+        : appliedView === "analytics"
+        ? "Visual Analytics"
+        : "Submission Records"
+    }`;
+  }, [appliedView]);
 
   useEffect(() => {
     const loadOptions = async () => {
       try {
+        setLoadingOptions(true);
+        setError(null);
         const [yearsResponse, committeesResponse] = await Promise.all([
           fetchReportAcademicYears(),
           fetchCommittees(),
         ]);
         setYears(yearsResponse.items);
         setCommittees(committeesResponse);
-        if (yearsResponse.items.length > 0) {
-          setSelectedAcademicYear(yearsResponse.items[0].academicYear);
-        }
-        if (committeesResponse.length > 0) {
-          setSelectedCommittee(committeesResponse[0].code);
-        }
-      } catch (loadError: any) {
-        setError(loadError?.message || "Failed to load report options");
+      } catch (e: any) {
+        setError(e?.message || "Failed to load report filter options.");
+      } finally {
+        setLoadingOptions(false);
       }
     };
-
     loadOptions();
   }, []);
 
-  const availableTermValues = useMemo(() => {
-    if (selectedAcademicYear === ALL_ACADEMIC_YEARS) {
-      return new Set<number>([1, 2, 3]);
+  useEffect(() => {
+    if (loadingOptions) return;
+    if (!searchParams.get("ay") || !searchParams.get("committee")) {
+      const initialized = {
+        ay: defaultAy,
+        term: "ALL" as const,
+        committee: defaultCommittee,
+        college: "ALL",
+        category: "ALL" as const,
+        reviewType: "ALL" as const,
+        status: "ALL",
+        q: "",
+      };
+      setSearchParams(toSearchParams("summary", initialized), { replace: true });
     }
-    const match = years.find((item) => item.academicYear === selectedAcademicYear);
-    if (!match) return new Set<number>();
-    return new Set<number>(match.terms);
-  }, [years, selectedAcademicYear]);
+  }, [loadingOptions, searchParams, setSearchParams, defaultAy, defaultCommittee]);
 
-  const visibleBreakdown = useMemo(() => {
-    if (!report) return [];
-    if (selectedCollege === "ALL") return report.breakdownByCollegeOrUnit;
-    return report.breakdownByCollegeOrUnit.filter(
-      (item) => item.collegeOrUnit === selectedCollege
-    );
-  }, [report, selectedCollege]);
-
-  const classificationTotals = useMemo(() => {
-    const base = {
-      undergrad: { exempted: 0, expedited: 0, fullReview: 0 },
-      grad: { exempted: 0, expedited: 0, fullReview: 0 },
-      faculty: { exempted: 0, expedited: 0, fullReview: 0 },
-      other: { exempted: 0, expedited: 0, fullReview: 0 },
-      unknown: { exempted: 0, expedited: 0, fullReview: 0 },
-    };
-
-    for (const item of visibleBreakdown) {
-      for (const group of Object.keys(base) as Array<keyof typeof base>) {
-        base[group].exempted += item.byProponentTypeAndReviewType[group].exempted;
-        base[group].expedited += item.byProponentTypeAndReviewType[group].expedited;
-        base[group].fullReview += item.byProponentTypeAndReviewType[group].fullReview;
+  useEffect(() => {
+    if (!appliedFilters.ay || !appliedFilters.committee) return;
+    const loadSummary = async () => {
+      try {
+        setLoadingSummary(true);
+        const response = await fetchAnnualReportSummary({
+          ay: appliedFilters.ay,
+          term: appliedFilters.term as "ALL" | 1 | 2 | 3,
+          committee: appliedFilters.committee,
+          college: appliedFilters.college,
+          category: appliedFilters.category,
+          reviewType: appliedFilters.reviewType,
+          status: appliedFilters.status,
+          q: appliedFilters.q,
+        });
+        setSummary(response);
+      } catch (e: any) {
+        setSummary(null);
+        setError(e?.response?.data?.message || e?.message || "Failed to load annual summary.");
+      } finally {
+        setLoadingSummary(false);
       }
-    }
+    };
+    loadSummary();
+  }, [appliedFilters]);
 
-    return base;
-  }, [visibleBreakdown]);
+  useEffect(() => {
+    if (appliedView !== "records") return;
+    if (!appliedFilters.ay || !appliedFilters.committee) return;
+    const loadRecords = async () => {
+      try {
+        setLoadingRecords(true);
+        const response = await fetchAnnualReportSubmissions({
+          ay: appliedFilters.ay,
+          term: appliedFilters.term as "ALL" | 1 | 2 | 3,
+          committee: appliedFilters.committee,
+          college: appliedFilters.college,
+          category: appliedFilters.category,
+          reviewType: appliedFilters.reviewType,
+          status: appliedFilters.status,
+          q: appliedFilters.q,
+          page,
+          pageSize,
+          sort,
+        });
+        setRecords(response);
+      } catch (e: any) {
+        setRecords(null);
+        setError(e?.response?.data?.message || e?.message || "Failed to load submission records.");
+      } finally {
+        setLoadingRecords(false);
+      }
+    };
+    loadRecords();
+  }, [appliedView, appliedFilters, page, pageSize, sort]);
 
-  const withdrawnVisibleCount = useMemo(
-    () => visibleBreakdown.reduce((sum, item) => sum + item.withdrawn, 0),
-    [visibleBreakdown]
-  );
-
-  const handleGenerateReport = async () => {
-    if (!selectedAcademicYear) {
-      setError("Choose an academic year first");
-      return;
-    }
-
-    if (selectedTerm !== "ALL" && !availableTermValues.has(selectedTerm)) {
-      setError("Selected term is not configured for this academic year");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetchAcademicYearSummary({
-        academicYear: selectedAcademicYear,
-        term: selectedTerm,
-        committeeCode: selectedCommittee || undefined,
-      });
-      setReport(response);
-      setSelectedCollege("ALL");
-    } catch (loadError: any) {
-      setError(loadError?.response?.data?.message || loadError?.message || "Failed to generate report");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDownloadCsv = () => {
-    if (!report) return;
-
-    const summaryRows = [
-      ["Metric", "Value"],
-      ["Academic Year", report.academicYear],
-      ["Term", String(report.term)],
-      ["Committee", report.committeeCode || "All"],
-      ["Date Range Start", report.dateRange.startDate],
-      ["Date Range End", report.dateRange.endDate],
-      ["Proposals Received", report.totals.received],
-      ["Exempted", report.totals.exempted],
-      ["Expedited", report.totals.expedited],
-      ["Full Review", report.totals.fullReview],
-      ["Withdrawn", report.totals.withdrawn],
-      ["Avg Days to Results (Expedited)", report.averages.avgDaysToResults.expedited],
-      ["Avg Days to Results (Full Review)", report.averages.avgDaysToResults.fullReview],
-      ["Avg Days to Resubmit", report.averages.avgDaysToResubmit],
-      ["Avg Days to Clearance (Expedited)", report.averages.avgDaysToClearance.expedited],
-      ["Avg Days to Clearance (Full Review)", report.averages.avgDaysToClearance.fullReview],
-      [],
-      [
-        "College/Unit",
-        "Received",
-        "Withdrawn",
-        "Exempted",
-        "Expedited",
-        "Full Review",
-        "Undergrad",
-        "Grad",
-        "Faculty",
-        "Other",
-        "Unknown",
-      ],
-      ...visibleBreakdown.map((item) => [
-        item.collegeOrUnit,
-        item.received,
-        item.withdrawn,
-        item.exempted,
-        item.expedited,
-        item.fullReview,
-        item.byProponentType.undergrad,
-        item.byProponentType.grad,
-        item.byProponentType.faculty,
-        item.byProponentType.other,
-        item.byProponentType.unknown,
-      ]),
-    ];
-
-    const csv = summaryRows
-      .map((row) => row.map((cell) => toCsvCell(cell as any)).join(","))
-      .join("\n");
-
-    downloadTextFile(
-      `report_${report.academicYear}_term-${report.term}.csv`,
-      csv
+  const availableTermValues = useMemo(() => {
+    if (draftFilters.ay === "ALL") return new Set<number>([1, 2, 3]);
+    return new Set<number>(
+      years.find((item) => item.academicYear === draftFilters.ay)?.terms ?? []
     );
+  }, [draftFilters.ay, years]);
+
+  const selectionSummary = useMemo(() => {
+    const termLabel = draftFilters.term === "ALL" ? "All Terms" : `Term ${draftFilters.term}`;
+    return `AY ${draftFilters.ay} • ${termLabel} • Committee ${draftFilters.committee} • Category ${draftFilters.category}`;
+  }, [draftFilters]);
+
+  const onFilterChange = (key: keyof ReportsDraftFilters, value: string | number) => {
+    setDraftFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  const isAllAcademicYears = report?.academicYear === ALL_ACADEMIC_YEARS;
+  const onApply = () => {
+    setSearchParams(toSearchParams(appliedView, draftFilters, { page: "1", pageSize: String(pageSize), sort }));
+  };
 
-  const overviewRows = useMemo(() => {
-    if (!report) return [] as Array<{ label: string; received: number; key: string }>;
-    if (isAllAcademicYears && report.academicYearVolume) {
-      return report.academicYearVolume.map((row) => ({
-        label: row.academicYear,
-        received: row.received,
-        key: row.academicYear,
-      }));
-    }
-    return report.termVolume.map((row) => ({
-      label: `Term ${row.term}`,
-      received: row.received,
-      key: String(row.term),
-    }));
-  }, [report, isAllAcademicYears]);
+  const onReset = () => {
+    const reset: ReportsDraftFilters = {
+      ay: defaultAy,
+      term: "ALL",
+      committee: defaultCommittee,
+      college: "ALL",
+      category: "ALL",
+      reviewType: "ALL",
+      status: "ALL",
+      q: "",
+    };
+    setDraftFilters(reset);
+    setSearchParams(toSearchParams(appliedView, reset, { page: "1", pageSize: "20", sort: "receivedDate:desc" }));
+  };
 
-  const chartMax = useMemo(() => {
-    if (overviewRows.length === 0) return 1;
-    return Math.max(...overviewRows.map((item) => item.received), 1);
-  }, [overviewRows]);
+  const onViewChange = (view: ReportView) => {
+    setSearchParams(toSearchParams(view, appliedFilters, { page: "1", pageSize: String(pageSize), sort }));
+  };
 
-  const chartBarMaxHeightPx = 120;
+  const onDrilldown = (filters: {
+    college?: string;
+    category?: "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
+    reviewType?: "EXEMPT" | "EXPEDITED" | "FULL_BOARD";
+  }) => {
+    const next: ReportsDraftFilters = {
+      ...appliedFilters,
+      college: filters.college ?? appliedFilters.college,
+      category: filters.category ?? appliedFilters.category,
+      reviewType: filters.reviewType ?? appliedFilters.reviewType,
+    };
+    setSearchParams(toSearchParams("records", next, { page: "1", pageSize: String(pageSize), sort }));
+  };
 
   return (
     <div className="reports-page">
-      <Breadcrumbs
-        items={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Reports" },
-        ]}
-      />
+      <Breadcrumbs items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Reports" }]} />
 
       <header className="reports-header">
         <div className="reports-header-content">
           <Link to="/dashboard" className="back-link">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             Back to Dashboard
           </Link>
-          <h1>Reports</h1>
-          <p>Generate term and academic-year statistics for research proposals.</p>
-        </div>
-        <div className="reports-header-actions">
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={handleDownloadCsv}
-            disabled={!report}
-          >
-            Download CSV
-          </button>
+          <h1>Annual Reports</h1>
+          <p>Spreadsheet-style reporting with summary, analytics, and submission records.</p>
         </div>
       </header>
 
-      <section className="reports-filters" aria-label="Report filters">
-        <label>
-          Academic Year
-          <select
-            value={selectedAcademicYear}
-            onChange={(event) => setSelectedAcademicYear(event.target.value)}
+      <ReportViewSwitch active={appliedView} onChange={onViewChange} />
+
+      <ReportFiltersBar
+        years={years}
+        committees={committees}
+        filters={draftFilters}
+        availableTermValues={availableTermValues}
+        loading={loadingOptions || loadingSummary || loadingRecords}
+        selectionSummary={selectionSummary}
+        onChange={onFilterChange}
+        onApply={onApply}
+        onReset={onReset}
+      />
+
+      {error ? <div className="reports-error">{error}</div> : null}
+
+      <div className="reports-sheet">
+        {appliedView === "summary" && summary ? (
+          <>
+          <ReportSummaryCards
+            received={summary.summaryCounts.received}
+            exempted={summary.summaryCounts.exempted}
+            expedited={summary.summaryCounts.expedited}
+            fullReview={summary.summaryCounts.fullReview}
+            withdrawn={summary.summaryCounts.withdrawn}
+            byCategory={summary.summaryCounts.byProponentCategory}
+          />
+
+          <ReportSection
+            title="Comparative Tables by Proponent Category"
+            subtitle="Sheet-style layout by proponent category, grouped by review type and academic year."
           >
-            <option value={ALL_ACADEMIC_YEARS}>All Academic Years</option>
-            {years.map((item) => (
-              <option key={item.academicYear} value={item.academicYear}>
-                {item.academicYear}
-              </option>
-            ))}
-          </select>
-        </label>
+            {summary.comparativeByProponent?.length ? (
+              <ProponentComparativeTables
+                tables={summary.comparativeByProponent}
+                selectedAy={appliedFilters.ay}
+                selectedCategory={appliedFilters.category}
+                selectedReviewType={appliedFilters.reviewType}
+              />
+            ) : (
+              <section className="report-empty">
+                Comparative table data is unavailable from the backend response.
+              </section>
+            )}
+          </ReportSection>
+          </>
+        ) : null}
 
-        <label>
-          Term
-          <select
-            value={String(selectedTerm)}
-            onChange={(event) => {
-              const value = event.target.value;
-              setSelectedTerm(value === "ALL" ? "ALL" : Number(value));
-            }}
-          >
-            {TERM_OPTIONS.map((item) => (
-              <option
-                key={String(item.value)}
-                value={String(item.value)}
-                disabled={
-                  item.value !== "ALL" && !availableTermValues.has(item.value as number)
-                }
-              >
-                {item.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        {appliedView === "analytics" && summary ? (
+          <ReportSection title="Visual Analytics" subtitle="Charts reflect the same active filters.">
+            <AnalyticsCharts charts={summary.charts} onDrilldown={onDrilldown} />
+          </ReportSection>
+        ) : null}
 
-        <label>
-          Committee
-          <select
-            value={selectedCommittee}
-            onChange={(event) => setSelectedCommittee(event.target.value)}
-          >
-            {committees.map((committee) => (
-              <option key={committee.id} value={committee.code}>
-                {committee.code} - {committee.name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          College / Unit
-          <select
-            value={selectedCollege}
-            onChange={(event) => setSelectedCollege(event.target.value)}
-            disabled={!report}
-          >
-            <option value="ALL">All</option>
-            {(report?.breakdownByCollegeOrUnit ?? []).map((item) => (
-              <option key={item.collegeOrUnit} value={item.collegeOrUnit}>
-                {item.collegeOrUnit}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={handleGenerateReport}
-          disabled={loading || !selectedAcademicYear}
-        >
-          {loading ? "Generating..." : "Generate Report"}
-        </button>
-      </section>
-
-      {error && <div className="reports-error">{error}</div>}
-
-      {report && (
-        <>
-          <section className="reports-cards" aria-label="Summary cards">
-            <article className="report-card">
-              <h2>Proposals Received</h2>
-              <strong>{formatNumber(report.totals.received)}</strong>
-            </article>
-            <article className="report-card">
-              <h2>Exempted</h2>
-              <strong>{formatNumber(report.totals.exempted)}</strong>
-            </article>
-            <article className="report-card">
-              <h2>Expedited</h2>
-              <strong>{formatNumber(report.totals.expedited)}</strong>
-            </article>
-            <article className="report-card">
-              <h2>Full Review</h2>
-              <strong>{formatNumber(report.totals.fullReview)}</strong>
-            </article>
-            <article className="report-card">
-              <h2>Withdrawn</h2>
-              <strong>{formatNumber(report.totals.withdrawn)}</strong>
-            </article>
-          </section>
-
-          <section className="reports-section">
-            <h3>Overview of Proposals Received</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>{isAllAcademicYears ? "Academic Year" : "Term"}</th>
-                  <th>Received</th>
-                </tr>
-              </thead>
-              <tbody>
-                {overviewRows.map((row) => (
-                  <tr key={row.key}>
-                    <td>{row.label}</td>
-                    <td>{formatNumber(row.received)}</td>
-                  </tr>
-                ))}
-                <tr className="totals-row">
-                  <td>{isAllAcademicYears ? "All Academic Years Total" : "Academic Year Total"}</td>
-                  <td>{formatNumber(report.totals.received)}</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <div
-              className="term-chart"
-              aria-label={isAllAcademicYears ? "Academic year proposal chart" : "Term proposal chart"}
-            >
-              {overviewRows.map((row) => (
-                <div className="term-bar-group" key={`bar-${row.key}`}>
-                  {/*
-                    Use px heights instead of percentages so bars scale reliably
-                    even when parent layout height is auto.
-                  */}
-                  <div
-                    className="term-bar"
-                    style={{
-                      height: `${Math.max(
-                        6,
-                        Math.round((row.received / chartMax) * chartBarMaxHeightPx)
-                      )}px`,
-                    }}
-                    title={`${row.label}: ${row.received}`}
-                  />
-                  <span>{row.label}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="reports-section">
-            <h3>Classification of Applications</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Proponent Type</th>
-                  <th>Exempted</th>
-                  <th>Expedited</th>
-                  <th>Full Review</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(classificationTotals).map(([key, value]) => (
-                  <tr key={key}>
-                    <td>{key}</td>
-                    <td>{formatNumber(value.exempted)}</td>
-                    <td>{formatNumber(value.expedited)}</td>
-                    <td>{formatNumber(value.fullReview)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-
-          <section className="reports-section">
-            <h3>Withdrawn Applications</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>College / Unit</th>
-                  <th>Withdrawn Count</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleBreakdown.map((item) => (
-                  <tr key={`withdrawn-${item.collegeOrUnit}`}>
-                    <td>{item.collegeOrUnit}</td>
-                    <td>{formatNumber(item.withdrawn)}</td>
-                  </tr>
-                ))}
-                <tr className="totals-row">
-                  <td>Total</td>
-                  <td>{formatNumber(withdrawnVisibleCount)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
-
-          <section className="reports-section">
-            <h3>Breakdown by College / Unit</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>College / Unit</th>
-                  <th>Received</th>
-                  <th>Withdrawn</th>
-                  <th>Exempted</th>
-                  <th>Expedited</th>
-                  <th>Full Review</th>
-                  <th>Undergrad</th>
-                  <th>Grad</th>
-                  <th>Faculty</th>
-                  <th>Other</th>
-                  <th>Unknown</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleBreakdown.map((item) => (
-                  <tr key={`college-${item.collegeOrUnit}`}>
-                    <td>{item.collegeOrUnit}</td>
-                    <td>{formatNumber(item.received)}</td>
-                    <td>{formatNumber(item.withdrawn)}</td>
-                    <td>{formatNumber(item.exempted)}</td>
-                    <td>{formatNumber(item.expedited)}</td>
-                    <td>{formatNumber(item.fullReview)}</td>
-                    <td>{formatNumber(item.byProponentType.undergrad)}</td>
-                    <td>{formatNumber(item.byProponentType.grad)}</td>
-                    <td>{formatNumber(item.byProponentType.faculty)}</td>
-                    <td>{formatNumber(item.byProponentType.other)}</td>
-                    <td>{formatNumber(item.byProponentType.unknown)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-
-          <section className="reports-section">
-            <h3>Averages (Working Days)</h3>
-            <table>
-              <tbody>
-                <tr>
-                  <th>Submission received to review results (Expedited)</th>
-                  <td>{formatNumber(report.averages.avgDaysToResults.expedited)}</td>
-                </tr>
-                <tr>
-                  <th>Submission received to review results (Full Review)</th>
-                  <td>{formatNumber(report.averages.avgDaysToResults.fullReview)}</td>
-                </tr>
-                <tr>
-                  <th>Notification to resubmission</th>
-                  <td>{formatNumber(report.averages.avgDaysToResubmit)}</td>
-                </tr>
-                <tr>
-                  <th>Submission received to ethics clearance (Expedited)</th>
-                  <td>{formatNumber(report.averages.avgDaysToClearance.expedited)}</td>
-                </tr>
-                <tr>
-                  <th>Submission received to ethics clearance (Full Review)</th>
-                  <td>{formatNumber(report.averages.avgDaysToClearance.fullReview)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
-        </>
-      )}
+        {appliedView === "records" ? (
+          <ReportSection title="Submission Records" subtitle="Underlying records for current filters.">
+            <SubmissionRecordsTable
+              data={records}
+              loading={loadingRecords}
+              sort={sort}
+              onSort={(nextSort) =>
+                setSearchParams(toSearchParams("records", appliedFilters, { page: "1", pageSize: String(pageSize), sort: nextSort }))
+              }
+              onPageChange={(nextPage) =>
+                setSearchParams(
+                  toSearchParams("records", appliedFilters, {
+                    page: String(Math.max(1, nextPage)),
+                    pageSize: String(pageSize),
+                    sort,
+                  })
+                )
+              }
+              onRowClick={(item) => {
+                if (item.submissionId) navigate(`/submissions/${item.submissionId}`);
+                else if (item.projectId) navigate(`/projects/${item.projectId}`);
+              }}
+            />
+          </ReportSection>
+        ) : null}
+      </div>
     </div>
   );
 }

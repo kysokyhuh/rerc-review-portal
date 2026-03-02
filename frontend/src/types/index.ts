@@ -557,6 +557,116 @@ export interface ReportsAcademicYearOption {
   terms: number[];
 }
 
+export interface AnnualReportSummaryResponse {
+  selection: {
+    ay: string;
+    term: "ALL" | 1 | 2 | 3;
+    committee: string;
+    college: string;
+    category: "ALL" | "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
+    reviewType: "ALL" | "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | "UNCLASSIFIED" | "WITHDRAWN";
+    status: "ALL" | string;
+    q: string | null;
+    dateRange: {
+      startDate: string;
+      endDate: string;
+    };
+  };
+  summaryCounts: {
+    received: number;
+    exempted: number;
+    expedited: number;
+    fullReview: number;
+    withdrawn: number;
+    byProponentCategory: {
+      UNDERGRAD: number;
+      GRAD: number;
+      FACULTY: number;
+      NON_TEACHING: number;
+    };
+  };
+  overviewTable: {
+    rows: Array<{
+      label: string;
+      received: number;
+      exempted: number;
+      expedited: number;
+      fullReview: number;
+      withdrawn: number;
+    }>;
+    totals: {
+      received: number;
+      exempted: number;
+      expedited: number;
+      fullReview: number;
+      withdrawn: number;
+    };
+  };
+  classificationMatrix: {
+    UNDERGRAD: { exempted: number; expedited: number; fullReview: number; withdrawn: number; total: number };
+    GRAD: { exempted: number; expedited: number; fullReview: number; withdrawn: number; total: number };
+    FACULTY: { exempted: number; expedited: number; fullReview: number; withdrawn: number; total: number };
+    NON_TEACHING: { exempted: number; expedited: number; fullReview: number; withdrawn: number; total: number };
+    TOTAL: { exempted: number; expedited: number; fullReview: number; withdrawn: number; total: number };
+  };
+  breakdownByCollege: Array<{
+    college: string;
+    received: number;
+    exempted: number;
+    expedited: number;
+    fullReview: number;
+    withdrawn: number;
+    categories: {
+      UNDERGRAD: { received: number; exempted: number; expedited: number; fullReview: number; withdrawn: number };
+      GRAD: { received: number; exempted: number; expedited: number; fullReview: number; withdrawn: number };
+      FACULTY: { received: number; exempted: number; expedited: number; fullReview: number; withdrawn: number };
+      NON_TEACHING: { received: number; exempted: number; expedited: number; fullReview: number; withdrawn: number };
+    };
+  }>;
+  comparativeByProponent: Array<{
+    category: "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
+    years: string[];
+    rows: Array<{
+      college: string;
+      exempted: Record<string, number>;
+      expedited: Record<string, number>;
+      fullReview: Record<string, number>;
+      withdrawn: Record<string, number>;
+    }>;
+    totals: {
+      college: string;
+      exempted: Record<string, number>;
+      expedited: Record<string, number>;
+      fullReview: Record<string, number>;
+      withdrawn: Record<string, number>;
+    };
+  }>;
+  charts: {
+    proposalsPerTerm: Array<{ label: string; count: number }>;
+    reviewTypeDistribution: Array<{ label: string; count: number }>;
+    topColleges: Array<{ label: string; count: number }>;
+  };
+}
+
+export interface AnnualReportSubmissionsResponse {
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  items: Array<{
+    submissionId: number;
+    projectId: number | null;
+    projectCode: string;
+    title: string;
+    proponent: string;
+    college: string;
+    department: string;
+    proponentCategory: "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING" | "UNKNOWN";
+    reviewType: "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | "UNCLASSIFIED";
+    status: string;
+    receivedDate: string | null;
+  }>;
+}
+
 export interface ReportsSummaryResponse {
   academicYear: string;
   term: "ALL" | number;
@@ -576,9 +686,25 @@ export interface ReportsSummaryResponse {
     term: number;
     received: number;
   }>;
+  termSummaryRows?: Array<{
+    term: number;
+    received: number;
+    exempted: number;
+    expedited: number;
+    fullReview: number;
+    withdrawn: number;
+  }>;
   academicYearVolume?: Array<{
     academicYear: string;
     received: number;
+  }>;
+  academicYearSummaryRows?: Array<{
+    academicYear: string;
+    received: number;
+    exempted: number;
+    expedited: number;
+    fullReview: number;
+    withdrawn: number;
   }>;
   breakdownByCollegeOrUnit: Array<{
     collegeOrUnit: string;
@@ -594,6 +720,13 @@ export interface ReportsSummaryResponse {
       other: number;
       unknown: number;
     };
+    byProponentTypeWithdrawn?: {
+      undergrad: number;
+      grad: number;
+      faculty: number;
+      other: number;
+      unknown: number;
+    };
     byProponentTypeAndReviewType: {
       undergrad: { exempted: number; expedited: number; fullReview: number };
       grad: { exempted: number; expedited: number; fullReview: number };
@@ -602,6 +735,21 @@ export interface ReportsSummaryResponse {
       unknown: { exempted: number; expedited: number; fullReview: number };
     };
   }>;
+  classificationMatrix?: {
+    undergrad: { exempted: number; expedited: number; fullReview: number; withdrawn: number; total: number };
+    grad: { exempted: number; expedited: number; fullReview: number; withdrawn: number; total: number };
+    faculty: { exempted: number; expedited: number; fullReview: number; withdrawn: number; total: number };
+    other: { exempted: number; expedited: number; fullReview: number; withdrawn: number; total: number };
+    unknown: { exempted: number; expedited: number; fullReview: number; withdrawn: number; total: number };
+    total: { exempted: number; expedited: number; fullReview: number; withdrawn: number; total: number };
+  };
+  withdrawnByProponentType?: {
+    undergrad: number;
+    grad: number;
+    faculty: number;
+    other: number;
+    unknown: number;
+  };
   averages: {
     avgDaysToResults: {
       expedited: number | null;

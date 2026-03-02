@@ -27,6 +27,8 @@ export type {
   ArchivedProjectsResponse,
   ReportsAcademicYearOption,
   ReportsSummaryResponse,
+  AnnualReportSummaryResponse,
+  AnnualReportSubmissionsResponse,
   HolidayItem,
   CreateHolidayPayload,
   UpdateHolidayPayload,
@@ -54,6 +56,8 @@ import type {
   ArchivedProjectsResponse,
   ReportsAcademicYearOption,
   ReportsSummaryResponse,
+  AnnualReportSummaryResponse,
+  AnnualReportSubmissionsResponse,
   HolidayItem,
   CreateHolidayPayload,
   UpdateHolidayPayload,
@@ -559,6 +563,62 @@ export async function fetchAcademicYearSummary(params: {
     `/reports/academic-year-summary?${searchParams.toString()}`
   );
   return response.data as ReportsSummaryResponse;
+}
+
+export async function fetchAnnualReportSummary(params: {
+  ay: string;
+  term: "ALL" | 1 | 2 | 3;
+  committee: string;
+  college: string;
+  category: "ALL" | "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
+  reviewType?: "ALL" | "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | "UNCLASSIFIED" | "WITHDRAWN";
+  status?: "ALL" | string;
+  q?: string;
+}) {
+  const search = new URLSearchParams({
+    ay: params.ay,
+    term: String(params.term),
+    committee: params.committee,
+    college: params.college,
+    category: params.category,
+  });
+  if (params.reviewType && params.reviewType !== "ALL") search.set("reviewType", params.reviewType);
+  if (params.status && params.status !== "ALL") search.set("status", params.status);
+  if (params.q) search.set("q", params.q);
+
+  const response = await api.get(`/reports/annual-summary?${search.toString()}`);
+  return response.data as AnnualReportSummaryResponse;
+}
+
+export async function fetchAnnualReportSubmissions(params: {
+  ay: string;
+  term: "ALL" | 1 | 2 | 3;
+  committee: string;
+  college: string;
+  category: "ALL" | "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
+  reviewType?: "ALL" | "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | "UNCLASSIFIED" | "WITHDRAWN";
+  status?: "ALL" | string;
+  q?: string;
+  page: number;
+  pageSize: number;
+  sort: string;
+}) {
+  const search = new URLSearchParams({
+    ay: params.ay,
+    term: String(params.term),
+    committee: params.committee,
+    college: params.college,
+    category: params.category,
+    page: String(params.page),
+    pageSize: String(params.pageSize),
+    sort: params.sort,
+  });
+  if (params.reviewType && params.reviewType !== "ALL") search.set("reviewType", params.reviewType);
+  if (params.status && params.status !== "ALL") search.set("status", params.status);
+  if (params.q) search.set("q", params.q);
+
+  const response = await api.get(`/reports/submissions?${search.toString()}`);
+  return response.data as AnnualReportSubmissionsResponse;
 }
 
 export default api;

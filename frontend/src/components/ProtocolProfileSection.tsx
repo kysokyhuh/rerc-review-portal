@@ -20,6 +20,19 @@ type ProfileGroup = {
   hasWithdrawn?: boolean;
 };
 
+const COLLEGE_OPTIONS = ["BAGCED", "CCS", "CLA", "COS", "GCOE", "RVRCOB", "OTHERS"];
+const TYPE_OF_REVIEW_OPTIONS = ["EXEMPT", "EXPEDITED", "FULL_BOARD"];
+const PROPONENT_OPTIONS = ["UNDERGRADUATE", "GRADUATE", "FACULTY", "NON-TEACHING/STAFF"];
+const DEPARTMENT_OPTIONS = [
+  "AdRIC",
+  "CENSER",
+  "CLT-SOE",
+  "CPS",
+  "IBEHT",
+  "School of Innovation and Sustainability",
+  "SOE",
+];
+
 const PROFILE_GROUPS: ProfileGroup[] = [
   {
     name: "Core Information",
@@ -28,12 +41,12 @@ const PROFILE_GROUPS: ProfileGroup[] = [
     fields: [
       { key: "title", label: "Title", type: "text" },
       { key: "projectLeader", label: "Project Leader", type: "text" },
-      { key: "college", label: "College", type: "text" },
-      { key: "department", label: "Department", type: "text" },
+      { key: "college", label: "College", type: "select", options: COLLEGE_OPTIONS },
+      { key: "department", label: "Department", type: "select", options: DEPARTMENT_OPTIONS },
       { key: "dateOfSubmission", label: "Date of Submission", type: "date" },
       { key: "monthOfSubmission", label: "Month of Submission", type: "text" },
-      { key: "typeOfReview", label: "Type of Review", type: "text" },
-      { key: "proponent", label: "Proponent", type: "text" },
+      { key: "typeOfReview", label: "Type of Review", type: "select", options: TYPE_OF_REVIEW_OPTIONS },
+      { key: "proponent", label: "Proponent", type: "select", options: PROPONENT_OPTIONS },
       { key: "funding", label: "Funding", type: "text" },
       { key: "typeOfResearchPhreb", label: "Type of Research PHREB", type: "text" },
       { key: "typeOfResearchPhrebOther", label: "Type of Research PHREB (Other)", type: "text" },
@@ -326,18 +339,26 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
                           <label className="pp-field-label">{field.label}</label>
                           {editing ? (
                             field.type === "select" ? (
+                              (() => {
+                                const currentValue = profileForm[field.key] ?? "";
+                                const options = field.options ?? [];
+                                const hasCurrent = currentValue !== "" && options.includes(currentValue);
+                                return (
                               <select
                                 className="pp-field-input"
-                                value={profileForm[field.key] ?? ""}
+                                value={currentValue}
                                 onChange={(e) =>
                                   setProfileForm((prev) => ({ ...prev, [field.key]: e.target.value }))
                                 }
                               >
                                 <option value="">Select...</option>
+                                {!hasCurrent ? <option value={currentValue}>{currentValue}</option> : null}
                                 {field.options?.map((opt) => (
                                   <option key={opt} value={opt}>{opt}</option>
                                 ))}
                               </select>
+                                );
+                              })()
                             ) : (
                               <input
                                 className="pp-field-input"

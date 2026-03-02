@@ -1,8 +1,8 @@
 # RERC Review Portal — Project Context Pack
 
-**Generated:** March 1, 2026  
+**Generated:** March 2, 2026  
 **Repository:** `rerc-review-portal`  
-**Version:** 0.2.1
+**Version:** 0.3.0
 
 ---
 
@@ -19,24 +19,23 @@ The **RERC Review Portal** is a web-based Research Ethics Review Committee (RERC
 | **Backend**   | Node.js 18+, Express 5.x, TypeScript 5.x              |
 | **Frontend**  | React 18, Vite 5.x, TypeScript, React Router 6         |
 | **Database**  | PostgreSQL (via Prisma ORM 7.x)                       |
-| **Libraries** | Axios, docx (Word generation), json2csv, csv-parse    |
-| **Infra**     | Local development (no CI/CD or containerization yet)  |
+| **Libraries** | Axios, docx, json2csv, csv-parse, zod, jsonwebtoken, express-rate-limit, pino |
+| **Infra**     | Local + GitHub Actions CI (`.github/workflows/ci.yml`) + Render/Cloudflare deploy config |
 
 ### Highest-Risk Areas / Bottlenecks
 
-- **Authentication is stub-only**: Header-based auth (`X-User-*` headers) is for development only—no production-ready JWT/session implementation exists.
-- **Hardcoded user IDs**: Several endpoints use `createdById: 1` or `changedById: 1` instead of actual authenticated user.
-- **No rate limiting**: API has no protection against abuse or DoS.
+- **Dual auth mode complexity**: JWT auth is implemented, but development header/env fallback (`X-User-*`, `DEV_USER_*`) still exists and can hide auth bugs if overused.
+- **Client-side login lockout mismatch risk**: Frontend lockout UI tracks attempts locally while backend enforces independent server-side rate limits.
+- **Hardcoded user IDs still present in selected write paths**: Some routes still write with fixed user IDs, reducing audit quality.
 - **CSV/file import security**: Seed script parses external CSV without comprehensive sanitization.
-- **No automated tests running in CI**: Tests exist but no CI/CD pipeline.
-- **Large monolithic route files**: Some route files exceed 800 lines.
+- **Large legacy modules remain**: Several older modules are still dense despite recent refactors.
 
 ### Where to Start Reading the Code (Top 5 Files)
 
 1. `backend/src/server.ts` — Express app entry point, middleware setup, route mounting
 2. `backend/prisma/schema.prisma` — Complete data model (781 lines) with all enums and relationships
-3. `backend/src/routes/dashboardRoutes.ts` — Dashboard queues, activity, and filter endpoints (595 lines)
-4. `frontend/src/pages/DashboardPageNew.tsx` — Main dashboard UI with route-driven queues (1,515 lines)
+3. `backend/src/routes/authRoutes.ts` — JWT login/refresh/logout/me flow, cookie handling, and auth lifecycle
+4. `frontend/src/pages/QueuePage.tsx` — Route-driven dedicated queue views (`/queues/:queueKey`) with focused KPI/filter/table UX
 5. `docs/SECURITY.md` — RBAC design and audit logging approach
 
 ---
@@ -68,12 +67,13 @@ rerc-review-portal/
 │       │   ├── seedReportsDemo.ts     # Reports demo data seeder (469 lines)
 │       │   └── importCSV.ts           # CSV import utilities
 │       ├── routes/
-│       │   ├── index.ts               # Route barrel exports (9 route modules)
+│       │   ├── index.ts               # Route barrel exports (core route modules)
+│       │   ├── authRoutes.ts          # JWT login/refresh/logout/me endpoints
 │       │   ├── healthRoutes.ts        # Health check endpoints (33 lines)
 │       │   ├── committeeRoutes.ts     # Committee/panel endpoints (164 lines)
 │       │   ├── dashboardRoutes.ts     # Dashboard queues & filters (595 lines)
-│       │   ├── projectRoutes.ts       # Project CRUD & archives (840 lines)
-│       │   ├── submissionRoutes.ts    # Submissions/reviews (916 lines)
+│       │   ├── projectRoutes.ts       # Project CRUD, profile, and archives
+│       │   ├── submissionRoutes.ts    # Submission/review operations
 │       │   ├── mailMergeRoutes.ts     # Letter generation (605 lines)
 │       │   ├── importRoutes.ts        # CSV import endpoints (435 lines)
 │       │   ├── reportRoutes.ts        # Academic year reports (266 lines)
@@ -96,7 +96,7 @@ rerc-review-portal/
 │       │   ├── slaUtils.ts            # Working days calculator
 │       │   └── workingDays.ts         # Business day calculations (58 lines)
 │       ├── middleware/
-│       │   └── auth.ts                # Auth middleware (stub)
+│       │   └── auth.ts                # JWT auth + dev header/env fallback
 │       └── generated/prisma/          # Generated Prisma client
 │
 ├── frontend/                          # React SPA
@@ -137,7 +137,7 @@ rerc-review-portal/
 │       │   ├── useProjectDetail.ts
 │       │   └── useSubmissionDetail.ts
 │       ├── pages/
-│       │   ├── DashboardPageNew.tsx   # Main dashboard (1,515 lines)
+│       │   ├── DashboardPageNew.tsx   # Dashboard overview page (modularized)
 │       │   ├── DashboardPage.tsx      # Legacy dashboard (359 lines, unused)
 │       │   ├── QueuePage.tsx          # Route-driven queue page (137 lines)
 │       │   ├── HolidaysPage.tsx       # Calendar-based holiday mgmt (629 lines)
@@ -146,9 +146,9 @@ rerc-review-portal/
 │       │   ├── NewProtocolPage.tsx    # Create protocol form, 24 fields (580 lines)
 │       │   ├── ArchivesPage.tsx       # Archived projects with filters (321 lines)
 │       │   ├── ProjectDetailPage.tsx  # Project detail & letters (528 lines)
-│       │   ├── SubmissionDetailPage.tsx # Submission detail & editing (1,042 lines)
-│       │   ├── LoginPage.tsx          # Login page (stub) (395 lines)
-│       │   └── ForgotPasswordPage.tsx # Password reset (stub) (131 lines)
+│       │   ├── SubmissionDetailPage.tsx # Submission detail/editing workflow page
+│       │   ├── LoginPage.tsx          # Login page wired to backend /auth/login
+│       │   └── ForgotPasswordPage.tsx # Password reset placeholder UI
 │       ├── services/
 │       │   └── api.ts                 # API client (437 lines, 28+ functions)
 │       ├── styles/
@@ -196,9 +196,9 @@ rerc-review-portal/
 
 | Requirement    | Version       | How to Check         |
 | -------------- | ------------- | -------------------- |
-| Node.js        | 18+ (LTS)     | `node -v`            |
-| npm            | 9+            | `npm -v`             |
-| PostgreSQL     | 14+           | `psql --version`     |
+| Node.js        | 20+           | `node -v`            |
+| npm            | 10+           | `npm -v`             |
+| PostgreSQL     | 15+           | `psql --version`     |
 
 ### Environment Variables
 
@@ -207,6 +207,8 @@ rerc-review-portal/
 | Variable       | Required | Description                                |
 | -------------- | -------- | ------------------------------------------ |
 | `DATABASE_URL` | Yes      | PostgreSQL connection string               |
+| `JWT_ACCESS_SECRET` | Yes | Access-token signing secret (hex)          |
+| `JWT_REFRESH_SECRET` | Yes | Refresh-token signing secret (hex)         |
 | `PORT`         | No       | Server port (default: 3000)                |
 | `CORS_ORIGINS` | No       | Allowed origins (default: localhost:5173)  |
 | `FRONTEND_URL` | No       | Frontend URL for CORS                      |
@@ -285,7 +287,7 @@ npm run dev
 │                    EXPRESS.JS SERVER (port 3000)                    │
 │  ┌────────────────────────────────────────────────────────────────┐ │
 │  │                        Middleware                              │ │
-│  │   CORS → JSON Parser → (Future: Auth Middleware)               │ │
+│  │   CORS → JSON/COOKIE parser → rate-limit → auth → error handler│ │
 │  └────────────────────────────────────────────────────────────────┘ │
 │                             │                                       │
 │  ┌──────────────────────────┼──────────────────────────────────┐   │
@@ -332,26 +334,34 @@ npm run dev
 9. React state updates, component re-renders
 ```
 
-### Auth Lifecycle (Development Mode)
-
-**Current Implementation (Stub):**
+### Auth Lifecycle (Current)
 
 ```
-┌─────────────┐     ┌───────────────────────────────────────────┐
-│   Client    │────▶│  Include headers in each request:          │
-│             │     │  X-User-ID, X-User-Email, X-User-Roles     │
-└─────────────┘     └───────────────────────────────────────────┘
+┌─────────────┐     POST /auth/login(email,password)     ┌───────────────────┐
+│   Client    │──────────────────────────────────────────▶│ authService.login │
+└─────────────┘                                           └───────────────────┘
+        │                                                           │
+        │                                                           ├─ verifies bcrypt passwordHash
+        │                                                           ├─ builds roles + committeeRoles
+        │                                                           └─ returns access + refresh tokens
+        ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ Server response                                                               │
+│ - JSON: accessToken                                                           │
+│ - httpOnly cookie: refreshToken (path=/auth/refresh, sameSite=strict)        │
+└───────────────────────────────────────────────────────────────────────────────┘
         │
         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  authenticateUser middleware (planned but not fully wired)      │
-│  - Extracts user info from headers                              │
-│  - Attaches req.user object                                     │
-│  - Role-based authorization on specific endpoints               │
-└─────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ Subsequent API calls                                                          │
+│ - Authorization: Bearer <accessToken>                                         │
+│ - authenticateUser middleware validates JWT and attaches req.user             │
+│ - requireUser / requireRoles protect endpoints                                │
+│ - /auth/refresh rotates refresh token when access token expires               │
+└───────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Production Recommendation:** Replace with JWT tokens or session cookies with proper login flow.
+Dev convenience fallback still exists in non-production: `X-User-*` headers and `DEV_USER_*` env vars.
 
 ---
 
@@ -616,21 +626,20 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 ```typescript
 // frontend/src/App.tsx
 <Routes>
-  <Route path="/" element={<Navigate to="/login" />} />
+  <Route path="/" element={<Navigate to="/login" replace />} />
   <Route path="/login" element={<LoginPage />} />
   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-  {/* DashboardShell provides sidebar + layout wrapper */}
-  <Route element={<DashboardShell />}>
-    <Route path="/dashboard" element={<DashboardPageNew />} />
-    <Route path="/queues/:queueKey" element={<QueuePage />} />
+  <Route element={<ProtectedRoute><DashboardShell /></ProtectedRoute>}>
+    <Route path="/dashboard" element={<DashboardPage />} />
+    <Route path="/queues/:queueKey" element={<QueuePage />} /> // classification / under-review / revisions
     <Route path="/holidays" element={<HolidaysPage />} />
   </Route>
-  <Route path="/projects/new" element={<NewProtocolPage />} />
-  <Route path="/imports/projects" element={<ImportProjectsPage />} />
-  <Route path="/reports" element={<ReportsPage />} />
-  <Route path="/archives" element={<ArchivesPage />} />
-  <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
-  <Route path="/submissions/:submissionId" element={<SubmissionDetailPage />} />
+  <Route path="/projects/new" element={<ProtectedRoute><NewProtocolPage /></ProtectedRoute>} />
+  <Route path="/imports/projects" element={<ProtectedRoute><ImportProjectsPage /></ProtectedRoute>} />
+  <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+  <Route path="/archives" element={<ProtectedRoute><ArchivesPage /></ProtectedRoute>} />
+  <Route path="/projects/:projectId" element={<ProtectedRoute><ProjectDetailPage /></ProtectedRoute>} />
+  <Route path="/submissions/:submissionId" element={<ProtectedRoute><SubmissionDetailPage /></ProtectedRoute>} />
 </Routes>
 ```
 
@@ -638,15 +647,15 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 
 | Page                    | Purpose                              | API Endpoints Used                              |
 | ----------------------- | ------------------------------------ | ----------------------------------------------- |
-| `LoginPage`             | User authentication (stub)           | None (TODO: add auth endpoint)                  |
-| `ForgotPasswordPage`    | Password reset (stub)                | None (TODO: add reset endpoint)                 |
+| `LoginPage`             | User authentication                  | `POST /auth/login`, `POST /auth/refresh`, `GET /auth/me`, `POST /auth/logout` |
+| `ForgotPasswordPage`    | Password reset placeholder           | None yet                                         |
 | `NewProtocolPage`       | Create new project with submission (24 fields, 2-step flow) | `POST /projects/with-submission`, `GET /committees` |
 | `ImportProjectsPage`    | Bulk CSV project/submission import   | `POST /api/imports/projects/preview`, `POST /api/imports/projects`, `GET /api/imports/projects/template` |
 | `ArchivesPage`          | View archived/completed projects (3 filters: Status, Review Type, College) | `GET /projects/archived`, `GET /dashboard/colleges` |
-| `DashboardPageNew`      | Main RA dashboard with route-driven queues | `/dashboard/queues`, `/dashboard/activity`, `/dashboard/overdue`, `/dashboard/colleges`, `/projects/search` |
+| `DashboardPageNew`      | Dashboard overview page              | `/dashboard/queues`, `/dashboard/activity`, `/dashboard/overdue`, `/dashboard/colleges`, `/projects/search` |
 | `QueuePage`             | Individual queue view                | `/dashboard/queues` (filtered by queue key) |
 | `HolidaysPage`          | Calendar-based holiday management    | `GET/POST/PATCH/DELETE /holidays` |
-| `ReportsPage`           | Academic year summary reports        | `/reports/academic-years`, `/reports/academic-year-summary` |
+| `ReportsPage`           | Academic year summary reports (`All Academic Years` supported) | `/reports/academic-years`, `/reports/academic-year-summary` |
 | `ProjectDetailPage`     | Project details, protocol profile & letter export | `/projects/:id/full`, `/projects/:id/profile`, `/mail-merge/*`, `/letters/*` |
 | `SubmissionDetailPage`  | Submission details, editing, timeline| `/submissions/:id`, `/submissions/:id/sla-summary`, `/committees`, `PATCH /submissions/:id/overview` |
 
@@ -672,16 +681,16 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 
 | Aspect               | Current State                                            | Risk Level |
 | -------------------- | -------------------------------------------------------- | ---------- |
-| Auth mechanism       | **Header-based stub** (`X-User-*` headers)               | HIGH       |
-| Session management   | Not implemented                                          | HIGH       |
-| Password storage     | `passwordHash` field exists, unused                      | MEDIUM     |
-| Token refresh        | Not implemented                                          | HIGH       |
+| Auth mechanism       | JWT access token (`Authorization: Bearer`) + refresh token cookie | MEDIUM     |
+| Session management   | Stateless access token + rotating refresh token endpoint | MEDIUM     |
+| Password storage     | `passwordHash` actively validated via bcryptjs           | LOW        |
+| Token refresh        | Implemented at `POST /auth/refresh`                      | LOW        |
 
 ### RBAC/Authorization Approach
 
-- **Middleware exists** (`authenticateUser`) but not consistently applied
+- **Middleware implemented**: `authenticateUser`, `requireUser`, `requireRoles`
 - **Role definitions**: 6 roles defined in enum (CHAIR, MEMBER, RA, RA_ASST, REVIEWER, ADMIN)
-- **Endpoint protection**: Designed but partially implemented (see SECURITY.md)
+- **Endpoint protection**: Applied on sensitive/report endpoints; verify route-by-route during hardening
 - **Field-level access**: Utility functions exist but not fully wired
 
 ### Input Validation & Sanitization
@@ -704,10 +713,9 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 
 ### Logging/Auditing Approach
 
-- **Audit log model designed** in SECURITY.md but **not fully implemented**
-- **Console logging**: `console.error` on all catch blocks
-- **No centralized logging** (no Winston, Pino, or log aggregation)
-- **No request logging middleware**
+- **Structured request logging** with `pino-http` + request IDs
+- **Central error middleware** (`errorHandler`) normalizes API errors
+- **Audit log model designed** in SECURITY.md but business-level audit trails are still partial
 
 ### Obvious Secret Exposure Risks
 
@@ -756,7 +764,7 @@ npm run test:api      # API tests
 1. **No frontend tests**: No test files in `frontend/src`
 2. **No E2E tests**: No Playwright, Cypress, or similar
 3. **Limited API test coverage**: Only security tests found
-4. **No CI pipeline**: Tests not automated in GitHub Actions/similar
+4. **CI exists, but scope is still limited**: GitHub Actions runs backend/frontend checks, but no E2E suite yet
 
 ---
 
@@ -766,32 +774,28 @@ npm run test:api      # API tests
 
 | File                              | Line | Comment                                              |
 | --------------------------------- | ---- | ---------------------------------------------------- |
-| `projectRoutes.ts`                | 59   | `TODO: replace with real logged-in user later`       |
-| `submissionRoutes.ts`             | 201  | `TODO: replace with authenticated user later`        |
-| `submissionRoutes.ts`             | 511  | `TODO: replace with authenticated user later`        |
-| `LoginPage.tsx`                   | 121  | `TODO: Replace with actual API call once backend auth is implemented` |
 | `ForgotPasswordPage.tsx`          | 20   | `TODO: Replace with actual API call`                 |
 
 ### Likely Fragile Modules
 
 | Module                    | Reason                                          | File Reference                    |
 | ------------------------- | ----------------------------------------------- | --------------------------------- |
-| `DashboardPageNew.tsx`    | 1,515 lines, complex state, should be split     | `frontend/src/pages/DashboardPageNew.tsx` |
-| `SubmissionDetailPage.tsx`| 1,042 lines, heavy editing logic                | `frontend/src/pages/SubmissionDetailPage.tsx` |
-| `submissionRoutes.ts`     | 916 lines, multiple responsibilities            | `backend/src/routes/submissionRoutes.ts` |
-| `projectRoutes.ts`        | 840 lines, project + archive + profile routes   | `backend/src/routes/projectRoutes.ts` |
+| `DashboardPageNew.tsx`    | Still carries overview orchestration; further extraction possible | `frontend/src/pages/DashboardPageNew.tsx` |
+| `SubmissionDetailPage.tsx`| High-density editing UI + workflow transitions  | `frontend/src/pages/SubmissionDetailPage.tsx` |
+| `dashboardRoutes.ts`      | Route contains queue/activity/overdue/college concerns | `backend/src/routes/dashboardRoutes.ts` |
+| `mailMergeRoutes.ts`      | Multiple endpoints + formatting/export logic    | `backend/src/routes/mailMergeRoutes.ts` |
 | `seed.ts`                 | 1,423 lines, complex CSV parsing                | `backend/src/config/seed.ts`     |
-| Auth middleware           | Exists but not consistently wired               | `docs/SECURITY.md` describes design |
-| SLA calculations          | Simple working-days only, holiday table exists but unused in SLA | `backend/src/utils/slaUtils.ts`  |
+| Dev auth fallback         | Header/env bypass can diverge from production auth behavior | `backend/src/middleware/auth.ts` |
+| SLA/report date mapping   | Date source inference is nuanced and easy to regress | `backend/src/services/reports/reportMetrics.ts` |
 
 ### Technical Debt Observations
 
 1. **Large files**: Multiple files exceed 500 lines, violating single-responsibility
-2. **Auth incomplete**: Header-based auth is insecure, needs production implementation
-3. **Hardcoded IDs**: `createdById: 1` used throughout
+2. **Dual auth paths**: JWT path and dev fallback path both exist and must be tested separately
+3. **Hardcoded IDs**: `createdById: 1` style writes still exist in selected handlers
 4. **No API versioning**: Routes at root, no `/api/v1` prefix
 5. **Mixed concerns**: Route files contain business logic, should extract to services
-6. **No error handling middleware**: Individual try/catch in each handler
+6. **Partial testing depth**: CI runs now exist, but frontend + E2E coverage is still missing
 
 ---
 
@@ -799,11 +803,11 @@ npm run test:api      # API tests
 
 ### High Priority (Security/Architecture)
 
-1. **What authentication provider will production use?** (LDAP, OAuth, custom JWT?)
+1. **Should dev auth fallback be disabled in staging/prod-like environments?** (`X-User-*`, `DEV_USER_*`)
 2. **What is the user provisioning process?** (Manual creation, SSO sync?)
 3. **Are there compliance requirements?** (Data retention, audit trail mandates?)
 4. **What is the expected concurrent user load?** (Sizing for database/server)
-5. **Is there an existing deployment infrastructure?** (On-prem, cloud, containerized?)
+5. **What is the rollout/rotation policy for JWT secrets?**
 
 ### Medium Priority (Functionality)
 
@@ -899,6 +903,76 @@ cd backend && npm test
 | `backend/src/routes/dashboardRoutes.ts` | Added `GET /dashboard/colleges` endpoint |
 | `backend/src/routes/projectRoutes.ts` | Archive filters: status, reviewType, college |
 | `backend/src/utils/dashboardFilters.ts` | Case-insensitive college filter |
+
+---
+
+### March 2, 2026
+
+#### Authentication + Security Hardening
+- JWT auth flow is now active end-to-end:
+- `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`
+- `AuthContext` stores/refreshes access token and uses refresh cookie fallback on expiry
+- `authenticateUser` now validates bearer tokens first; dev header/env fallback remains non-production only
+- Added rate limiting:
+- Global limiter on all requests
+- Strict auth limiter (`/auth/*`: 5 attempts per 60 seconds)
+- Added structured request logging via `pino-http` and request IDs
+- Added centralized error middleware (`errorHandler`)
+
+#### Queue Navigation UX (Route-Driven)
+- Sidebar queue tabs now route to dedicated queue pages:
+- `/queues/classification`
+- `/queues/under-review`
+- `/queues/revisions`
+- Each queue page has focused header, KPIs, queue-scoped filters, URL-persisted filter state, and dedicated table context (`You are viewing: ...`)
+- Browser document title updates per queue page for clearer context
+
+#### Reports Enhancements
+- Added **All Academic Years** filter option to Reports page
+- For `academicYear=ALL`, overview table/chart now aggregates **by academic year** (not by term)
+- `reportRoutes.ts` now returns `academicYearVolume` for cross-year mode
+- Seeded academic terms now cover a rolling 10-year span with explicit term windows:
+- Term 1: September–December
+- Term 2: January–April
+- Term 3: May–August
+
+#### Developer Experience / CI
+- Added GitHub Actions CI pipeline (`.github/workflows/ci.yml`)
+- Backend job: generate Prisma client, typecheck, build, unit tests
+- Frontend job: typecheck, lint, production build
+- README updated with default seeded credentials (`ra@example.com / changeme123` and demo users)
+
+---
+
+### March 3, 2026
+
+#### Reports and Submission Detail Updates
+- Reports backend aggregation moved to `backend/src/services/reports/reportService.ts` and routes now consume the service for summary/records payload generation.
+- Comparative tables by proponent category were expanded and standardized:
+- For `All Academic Years`, the table shows the configured cross-year matrix layout.
+- For specific academic year filters, row coverage is now aligned with the all-years baseline college/service-unit rows so tables do not collapse to sparse subsets.
+- Reports filter and summary card cleanup:
+- Removed `UNCLASSIFIED` option from Type of Review filter.
+- Removed `UNCLASSIFIED: n` subline under Total Proposals Received card.
+- Submission records table updates:
+- Added/retained `Department` column.
+- Removed duplicate proponent category display to avoid redundant columns.
+
+#### Protocol Profile Editing Enhancements
+- In Protocol Profile edit mode, the following fields are now dropdowns:
+- `Type of Review`
+- `Proponent`
+- `College`
+- `Department`
+- College dropdown is constrained to: `BAGCED`, `CCS`, `CLA`, `COS`, `GCOE`, `RVRCOB`, `OTHERS`.
+
+#### UI Text Rendering Cleanup
+- Fixed multiple UI locations where escaped unicode strings were being shown literally (e.g., `\u2013`, `\u2190`, `\u270e`, `\ud83d...`).
+- Cleaned affected dashboard/submission screens:
+- Pagination labels (`Showing 1–15`, `← Previous`, `Next →`)
+- Empty-state icons for reviewer assignments/documents/edit history
+- Submission Overview action label (`✎ Edit overview`)
+- Various separators and fallback glyphs (`—`, `•`, `→`, `⚠`)
 
 ---
 
@@ -1105,4 +1179,4 @@ cd backend && npm test
 
 ---
 
-*Document updated March 1, 2026 by analyzing repository structure, source files, git history, and documentation. Some details are inferred where explicit documentation was incomplete.*
+*Document updated March 2, 2026 by analyzing repository structure, source files, git history, and documentation. Some details are inferred where explicit documentation was incomplete.*

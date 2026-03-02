@@ -214,12 +214,32 @@ const parseResearchType = (value: string): ResearchTypePHREB | null => {
 };
 
 const parseProponentCategory = (value: string): ProponentCategory | null => {
-  const normalized = value.trim().toUpperCase().replace(/\s+/g, "_");
+  const raw = value.trim();
+  const normalized = raw.toUpperCase().replace(/\s+/g, "_");
   if (!normalized) return null;
   if (normalized in ProponentCategory) {
     return ProponentCategory[normalized as keyof typeof ProponentCategory];
   }
+  const compact = normalized.replace(/[^A-Z]/g, "");
+  if (compact.includes("UNDERGRAD")) return ProponentCategory.UNDERGRAD;
+  if (compact === "GRAD" || compact.includes("GRADUATE")) return ProponentCategory.GRAD;
+  if (compact.includes("FACULTY")) return ProponentCategory.FACULTY;
+  if (compact.includes("NONTEACH") || compact.includes("STAFF") || compact.includes("OTHER")) {
+    return ProponentCategory.OTHER;
+  }
   return null;
+};
+
+const getRawByCandidates = (raw: Record<string, string>, candidates: string[]) => {
+  const byNormalized = new Map<string, string>();
+  for (const [header, value] of Object.entries(raw)) {
+    byNormalized.set(normalizeHeaderKey(header), normalizeValue(value));
+  }
+  for (const candidate of candidates) {
+    const matched = byNormalized.get(normalizeHeaderKey(candidate));
+    if (matched) return matched;
+  }
+  return "";
 };
 
 export const parseProjectCsvUnknownFormat = (
@@ -521,8 +541,16 @@ export const validateMappedProjectRows = ({
       rowErrors.push({ row: row.rowNumber, field: "researchTypePHREB", message: "Invalid researchTypePHREB." });
     }
 
-    const researchTypeOther = normalizeValue(row.raw.researchTypePHREBOther) || null;
-    const proponentCategoryRaw = normalizeValue(row.raw.proponentCategory);
+    const researchTypeOther =
+      getRawByCandidates(row.raw, [
+        "researchTypePHREBOther",
+        "Type of Research PHREB (Specific for Others)",
+      ]) || null;
+    const proponentCategoryRaw = getRawByCandidates(row.raw, [
+      "proponentCategory",
+      "Proponent Category",
+      "Proponent",
+    ]);
     const proponentCategory = parseProponentCategory(proponentCategoryRaw);
     if (proponentCategoryRaw && !proponentCategory) {
       rowErrors.push({
@@ -550,14 +578,34 @@ export const validateMappedProjectRows = ({
       projectCode,
       title: title || null,
       piName: piName || null,
-      piAffiliation: normalizeValue(row.raw.piAffiliation) || null,
+      piAffiliation:
+        getRawByCandidates(row.raw, [
+          "piAffiliation",
+          "PI Affiliation",
+          "Affiliation",
+          "College",
+          "College / Service Unit",
+          "College/Service Unit",
+          "College/Unit",
+        ]) || null,
       collegeOrUnit:
-        normalizeValue(row.raw.collegeOrUnit) ||
-        normalizeValue(row.raw.piAffiliation) ||
+        getRawByCandidates(row.raw, [
+          "collegeOrUnit",
+          "collegeOrserviceUnit",
+          "College",
+          "College / Service Unit",
+          "College/Service Unit",
+          "College/Unit",
+          "Service Unit",
+          "Unit",
+        ]) ||
+        getRawByCandidates(row.raw, ["piAffiliation", "PI Affiliation", "Affiliation"]) ||
         null,
       proponentCategory: proponentCategory ?? null,
-      department: normalizeValue(row.raw.department) || null,
-      proponent: normalizeValue(row.raw.proponent) || null,
+      department:
+        getRawByCandidates(row.raw, ["department", "Department"]) || null,
+      proponent:
+        getRawByCandidates(row.raw, ["proponent", "Proponent"]) || null,
       fundingType: fundingType ?? null,
       researchTypePHREB: researchType ?? null,
       researchTypePHREBOther: researchTypeOther,

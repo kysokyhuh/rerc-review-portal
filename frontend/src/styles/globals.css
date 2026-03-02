@@ -186,6 +186,28 @@ a:hover {
   color: var(--neutral-600);
 }
 
+/* Shared back-to-dashboard link style */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary-green);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  margin-bottom: 12px;
+  transition: color var(--motion-fast) ease;
+}
+
+.back-link:hover {
+  color: var(--primary-green-hover);
+  text-decoration: none;
+}
+
+.back-link svg {
+  flex-shrink: 0;
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;

@@ -53,6 +53,14 @@ export interface ProponentTypeReviewTypeBreakdown {
   fullReview: number;
 }
 
+export interface ProponentTypeWithdrawnBreakdown {
+  undergrad: number;
+  grad: number;
+  faculty: number;
+  other: number;
+  unknown: number;
+}
+
 export interface BreakdownByCollege {
   collegeOrUnit: string;
   received: number;
@@ -61,6 +69,7 @@ export interface BreakdownByCollege {
   expedited: number;
   fullReview: number;
   byProponentType: BreakdownByProponentType;
+  byProponentTypeWithdrawn: ProponentTypeWithdrawnBreakdown;
   byProponentTypeAndReviewType: {
     undergrad: ProponentTypeReviewTypeBreakdown;
     grad: ProponentTypeReviewTypeBreakdown;
@@ -80,6 +89,51 @@ export interface ReportSummary {
   };
   termVolume: ReportTermVolume[];
   breakdownByCollegeOrUnit: BreakdownByCollege[];
+  classificationMatrix: {
+    undergrad: {
+      exempted: number;
+      expedited: number;
+      fullReview: number;
+      withdrawn: number;
+      total: number;
+    };
+    grad: {
+      exempted: number;
+      expedited: number;
+      fullReview: number;
+      withdrawn: number;
+      total: number;
+    };
+    faculty: {
+      exempted: number;
+      expedited: number;
+      fullReview: number;
+      withdrawn: number;
+      total: number;
+    };
+    other: {
+      exempted: number;
+      expedited: number;
+      fullReview: number;
+      withdrawn: number;
+      total: number;
+    };
+    unknown: {
+      exempted: number;
+      expedited: number;
+      fullReview: number;
+      withdrawn: number;
+      total: number;
+    };
+    total: {
+      exempted: number;
+      expedited: number;
+      fullReview: number;
+      withdrawn: number;
+      total: number;
+    };
+  };
+  withdrawnByProponentType: ProponentTypeWithdrawnBreakdown;
   averages: {
     avgDaysToResults: {
       expedited: number | null;
@@ -114,6 +168,13 @@ const initCollegeBreakdown = (collegeOrUnit: string): BreakdownByCollege => ({
   expedited: 0,
   fullReview: 0,
   byProponentType: {
+    undergrad: 0,
+    grad: 0,
+    faculty: 0,
+    other: 0,
+    unknown: 0,
+  },
+  byProponentTypeWithdrawn: {
     undergrad: 0,
     grad: 0,
     faculty: 0,
@@ -268,6 +329,14 @@ export const buildAcademicYearSummary = ({
   );
 
   const byCollege = new Map<string, BreakdownByCollege>();
+  const classificationMatrix = {
+    undergrad: { exempted: 0, expedited: 0, fullReview: 0, withdrawn: 0, total: 0 },
+    grad: { exempted: 0, expedited: 0, fullReview: 0, withdrawn: 0, total: 0 },
+    faculty: { exempted: 0, expedited: 0, fullReview: 0, withdrawn: 0, total: 0 },
+    other: { exempted: 0, expedited: 0, fullReview: 0, withdrawn: 0, total: 0 },
+    unknown: { exempted: 0, expedited: 0, fullReview: 0, withdrawn: 0, total: 0 },
+    total: { exempted: 0, expedited: 0, fullReview: 0, withdrawn: 0, total: 0 },
+  };
 
   const resultsExpedited: number[] = [];
   const resultsFull: number[] = [];
@@ -293,6 +362,8 @@ export const buildAcademicYearSummary = ({
 
     college.received += 1;
     college.byProponentType[proponentBucket] += 1;
+    classificationMatrix[proponentBucket].total += 1;
+    classificationMatrix.total.total += 1;
 
     const isWithdrawn =
       submission.status === SubmissionStatus.WITHDRAWN ||
@@ -302,19 +373,28 @@ export const buildAcademicYearSummary = ({
     if (isWithdrawn) {
       withdrawn += 1;
       college.withdrawn += 1;
+      college.byProponentTypeWithdrawn[proponentBucket] += 1;
+      classificationMatrix[proponentBucket].withdrawn += 1;
+      classificationMatrix.total.withdrawn += 1;
     }
 
     if (breakdownKey === "exempted") {
       exempted += 1;
       college.exempted += 1;
+      classificationMatrix[proponentBucket].exempted += 1;
+      classificationMatrix.total.exempted += 1;
     }
     if (breakdownKey === "expedited") {
       expedited += 1;
       college.expedited += 1;
+      classificationMatrix[proponentBucket].expedited += 1;
+      classificationMatrix.total.expedited += 1;
     }
     if (breakdownKey === "fullReview") {
       fullReview += 1;
       college.fullReview += 1;
+      classificationMatrix[proponentBucket].fullReview += 1;
+      classificationMatrix.total.fullReview += 1;
     }
 
     if (breakdownKey) {
@@ -391,6 +471,14 @@ export const buildAcademicYearSummary = ({
     breakdownByCollegeOrUnit: Array.from(byCollege.values()).sort((a, b) =>
       a.collegeOrUnit.localeCompare(b.collegeOrUnit)
     ),
+    classificationMatrix,
+    withdrawnByProponentType: {
+      undergrad: classificationMatrix.undergrad.withdrawn,
+      grad: classificationMatrix.grad.withdrawn,
+      faculty: classificationMatrix.faculty.withdrawn,
+      other: classificationMatrix.other.withdrawn,
+      unknown: classificationMatrix.unknown.withdrawn,
+    },
     averages: {
       avgDaysToResults: {
         expedited: mean(resultsExpedited),

@@ -27,6 +27,7 @@ export function DocumentsCard({ documents }: DocumentsCardProps) {
       </div>
       {documents.length === 0 ? (
         <div className="empty-history">
+          <span className="empty-history-icon">📎</span>
           <p>No documents logged yet.</p>
         </div>
       ) : (

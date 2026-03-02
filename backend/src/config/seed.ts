@@ -580,7 +580,7 @@ const seedAcademicTerms = async () => {
   const currentYear = now.getUTCFullYear();
   // AY starts in September (Term 1), so Jan-Aug belongs to previous AY start year.
   const startYear = now.getUTCMonth() >= 8 ? currentYear : currentYear - 1;
-  const firstStartYear = startYear - 10;
+  const firstStartYear = startYear - 4;
   const terms: Array<{
     academicYear: string;
     term: number;
