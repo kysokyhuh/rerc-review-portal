@@ -5,7 +5,9 @@
  */
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import path from "path";
+import rateLimit from "express-rate-limit";
 import "dotenv/config";
 
 // Import route modules
@@ -20,6 +22,7 @@ import {
   reportRoutes,
   holidayRoutes,
 } from "./routes";
+import authRoutes from "./routes/authRoutes";
 import { authenticateUser } from "./middleware/auth";
 
 const app = express();
@@ -49,12 +52,37 @@ app.use(
 );
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "../public")));
-app.use(authenticateUser);
+
+// Rate limiting — strict on auth, relaxed globally
+const authLimiter = rateLimit({
+  windowMs: 60_000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many attempts, please try again later" },
+});
+
+const globalLimiter = rateLimit({
+  windowMs: 60_000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(globalLimiter);
 
 // =============================================================================
 // Routes
 // =============================================================================
+
+// Auth routes — BEFORE authenticateUser middleware (login doesn't need auth)
+app.use("/auth", authLimiter);
+app.use(authRoutes);
+
+// Attach user from JWT (or dev fallback) for all subsequent routes
+app.use(authenticateUser);
 
 // Health & status routes (/, /health)
 app.use(healthRoutes);

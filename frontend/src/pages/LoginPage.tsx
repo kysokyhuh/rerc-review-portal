@@ -1,7 +1,13 @@
 import { useState, useEffect, FormEvent, KeyboardEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import axios from 'axios';
 import { BRAND } from '@/config/branding';
 import '../styles/login.css';
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (typeof process !== "undefined" ? process.env?.VITE_API_URL : undefined) ||
+  "http://localhost:3000";
 
 // Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -76,22 +82,16 @@ export default function LoginPage() {
     }
   }, [email]);
 
-  const emailDomainValid =
-    email.length === 0 ? null : email.toLowerCase().endsWith("@dlsu.edu.ph");
   const isLocked = lockedUntil !== null && Date.now() < lockedUntil;
-  const showEmailError =
-    emailTouched && (!emailValid || emailDomainValid === false);
-  const emailErrorText = !emailValid
-    ? "Enter a valid email address."
-    : `Please use your assigned ${BRAND.name} email address.`;
+  const showEmailError = emailTouched && !emailValid;
+  const emailErrorText = "Enter a valid email address.";
   const showPasswordError = passwordTouched && password.length === 0;
   const canSubmit =
     !loading &&
     !isLocked &&
     email.length > 0 &&
     password.length > 0 &&
-    emailValid === true &&
-    emailDomainValid === true;
+    emailValid === true;
 
   // Detect Caps Lock
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -110,7 +110,7 @@ export default function LoginPage() {
       return;
     }
 
-    if (!emailValid || emailDomainValid === false || password.length === 0) {
+    if (!emailValid || password.length === 0) {
       setError("Please check the highlighted fields.");
       setShake(true);
       setTimeout(() => setShake(false), 500);
@@ -119,17 +119,14 @@ export default function LoginPage() {
 
     setLoading(true);
 
-    // TODO: Replace with actual API call once backend auth is implemented
     try {
-      // Simulate login - remove this when backend is ready
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      
-      // Simulate validation (for demo, accept any @dlsu.edu.ph email)
-      if (!email.endsWith('@dlsu.edu.ph')) {
-        throw new Error('Invalid credentials');
-      }
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+        email,
+        password,
+      });
 
-      // Store last login time
+      // Store access token and user info
+      localStorage.setItem('rerc_access_token', response.data.accessToken);
       localStorage.setItem('lastLogin', new Date().toISOString());
       
       // Show success animation

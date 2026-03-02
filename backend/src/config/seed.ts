@@ -2,6 +2,7 @@ import "dotenv/config";
 import fs from "fs";
 import path from "path";
 import { parse } from "csv-parse/sync";
+import bcrypt from "bcryptjs";
 import prisma from "./prismaClient";
 import {
   ClassificationType,
@@ -633,6 +634,9 @@ const seedAcademicTerms = async () => {
 };
 
 async function main() {
+  // Hash a default password for seeded users
+  const defaultHash = await bcrypt.hash("changeme123", 12);
+
   // 1) Ensure a Research Associate user exists
   const raUser = await prisma.user.upsert({
     where: { email: "ra@example.com" },
@@ -640,6 +644,7 @@ async function main() {
     create: {
       email: "ra@example.com",
       fullName: "Research Associate",
+      passwordHash: defaultHash,
     },
   });
 
@@ -995,6 +1000,7 @@ async function main() {
     create: {
       email: "staff@rerc.demo",
       fullName: "Dashboard Staff",
+      passwordHash: defaultHash,
     },
   });
 
@@ -1006,6 +1012,7 @@ async function main() {
       fullName: "Dr. Mira Cruz",
       isCommonReviewer: true,
       reviewerExpertise: ["biomedical", "clinical"],
+      passwordHash: defaultHash,
     },
   });
 
@@ -1017,6 +1024,7 @@ async function main() {
       fullName: "Josefina Reyes",
       isCommonReviewer: true,
       reviewerExpertise: ["community", "qualitative"],
+      passwordHash: defaultHash,
     },
   });
 
@@ -1028,6 +1036,7 @@ async function main() {
       fullName: "Dr. Paulo Santos",
       isCommonReviewer: true,
       reviewerExpertise: ["statistics"],
+      passwordHash: defaultHash,
     },
   });
 

@@ -1,5 +1,10 @@
 import type { NextFunction, Request, Response } from "express";
 import { RoleType } from "../generated/prisma/client";
+import { verifyAccessToken } from "../utils/jwt";
+
+// =============================================================================
+// Helpers for dev-only header/env fallback
+// =============================================================================
 
 const parseRoleList = (value?: string | null): RoleType[] => {
   if (!value) return [];
@@ -17,7 +22,9 @@ const parseRoleList = (value?: string | null): RoleType[] => {
   return Array.from(roleSet);
 };
 
-const parseCommitteeRoles = (value?: string | null): Record<number, RoleType> => {
+const parseCommitteeRoles = (
+  value?: string | null,
+): Record<number, RoleType> => {
   if (!value) return {};
   try {
     const parsed = JSON.parse(value) as Record<string, string>;
@@ -44,16 +51,9 @@ const buildUserFromHeaders = (req: Request) => {
   const fullName = req.header("x-user-name") || undefined;
   const roles = parseRoleList(req.header("x-user-roles"));
   const committeeRoles = parseCommitteeRoles(
-    req.header("x-user-committee-roles")
+    req.header("x-user-committee-roles"),
   );
-
-  return {
-    id,
-    email,
-    fullName,
-    roles,
-    committeeRoles,
-  };
+  return { id, email, fullName, roles, committeeRoles };
 };
 
 const buildUserFromEnv = () => {
@@ -63,38 +63,65 @@ const buildUserFromEnv = () => {
   const email = process.env.DEV_USER_EMAIL || undefined;
   const fullName = process.env.DEV_USER_NAME || undefined;
   const roles = parseRoleList(process.env.DEV_USER_ROLES);
-  return {
-    id,
-    email,
-    fullName,
-    roles,
-    committeeRoles: {},
-  };
+  return { id, email, fullName, roles, committeeRoles: {} };
 };
+
+// =============================================================================
+// Main auth middleware — JWT first, dev fallback second
+// =============================================================================
 
 export const authenticateUser = (
   req: Request,
   _res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
-  const headerUser = buildUserFromHeaders(req);
-  if (headerUser) {
-    req.user = headerUser;
-    return next();
+  // 1. Try JWT Bearer token
+  const authHeader = req.header("authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7);
+    try {
+      const payload = verifyAccessToken(token);
+      req.user = {
+        id: payload.sub,
+        email: payload.email,
+        fullName: payload.fullName,
+        roles: payload.roles,
+        committeeRoles: payload.committeeRoles,
+      };
+      return next();
+    } catch {
+      // Invalid token — don't fall through to dev bypass, just leave user unset
+      return next();
+    }
   }
 
-  const envUser = buildUserFromEnv();
-  if (envUser) {
-    req.user = envUser;
+  // 2. Dev-only fallback: header-based or env-based user
+  if (process.env.NODE_ENV !== "production") {
+    const headerUser = buildUserFromHeaders(req);
+    if (headerUser) {
+      req.user = headerUser;
+      return next();
+    }
+
+    const envUser = buildUserFromEnv();
+    if (envUser) {
+      req.user = envUser;
+      return next();
+    }
   }
 
+  // 3. No auth — leave req.user undefined (requireUser will catch)
   return next();
 };
+
+// =============================================================================
+// Guard middleware
+// =============================================================================
 
 export const requireUser = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
