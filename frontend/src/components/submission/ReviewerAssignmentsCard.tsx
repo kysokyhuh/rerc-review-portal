@@ -30,7 +30,6 @@ export function ReviewerAssignmentsCard({ reviewerRows }: ReviewerAssignmentsCar
       </div>
       {reviewerRows.length === 0 ? (
         <div className="empty-history">
-          <span className="empty-history-icon">\ud83d\udc65</span>
           <p>No reviewers assigned yet.</p>
         </div>
       ) : (

@@ -486,7 +486,6 @@ export const ProjectDetailPage: React.FC = () => {
         </div>
         {!project.changeLog || project.changeLog.length === 0 ? (
           <div className="empty-history">
-            <span className="empty-history-icon">📝</span>
             <p>No edits logged yet.</p>
           </div>
         ) : (

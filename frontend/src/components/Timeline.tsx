@@ -16,7 +16,6 @@ export const Timeline: React.FC<TimelineProps> = ({ entries }) => {
       </div>
       {entries.length === 0 ? (
         <div className="empty-history">
-          <span className="empty-history-icon">📋</span>
           <p>No status history available.</p>
         </div>
       ) : (

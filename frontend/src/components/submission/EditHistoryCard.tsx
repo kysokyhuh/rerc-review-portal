@@ -29,7 +29,6 @@ export function EditHistoryCard({ changeHistory, committees }: EditHistoryCardPr
       </div>
       {changeHistory.length === 0 ? (
         <div className="empty-history">
-          <span className="empty-history-icon">\ud83d\udcdd</span>
           <p>No edits logged yet.</p>
         </div>
       ) : (
