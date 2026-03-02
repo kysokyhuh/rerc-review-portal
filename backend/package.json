@@ -41,6 +41,9 @@
     "prisma": "^7.1.0",
     "zod": "^4.3.6"
   },
+  "prisma": {
+    "seed": "tsx src/config/seed.ts"
+  },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.10",

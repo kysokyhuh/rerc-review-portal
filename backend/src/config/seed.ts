@@ -2,7 +2,6 @@ import "dotenv/config";
 import fs from "fs";
 import path from "path";
 import { parse } from "csv-parse/sync";
-import bcrypt from "bcryptjs";
 import prisma from "./prismaClient";
 import {
   ClassificationType,
@@ -634,8 +633,8 @@ const seedAcademicTerms = async () => {
 };
 
 async function main() {
-  // Hash a default password for seeded users
-  const defaultHash = await bcrypt.hash("changeme123", 12);
+  // Pre-computed bcrypt hash for "changeme123" (12 rounds) — deterministic across all environments
+  const defaultHash = "$2b$12$iHGvrmC9vIEMBmFrpiD8AOGUx4LAv1S49KVDgb.KyXxu3uriY/dFm";
 
   // 1) Ensure a Research Associate user exists
   const raUser = await prisma.user.upsert({
