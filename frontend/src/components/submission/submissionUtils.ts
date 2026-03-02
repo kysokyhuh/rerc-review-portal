@@ -37,14 +37,14 @@ export function toInputDate(value?: string | Date | null): string {
 }
 
 export function humanizeEnum(value?: string | null): string {
-  if (!value) return "\u2014";
+  if (!value) return "—";
   return value.replace(/_/g, " ");
 }
 
 export function formatDateTimeDisplay(value?: string | null): string {
-  if (!value) return "\u2014";
+  if (!value) return "—";
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return "\u2014";
+  if (Number.isNaN(parsed.getTime())) return "—";
   return parsed.toLocaleString("en-US", {
     month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit",
   });
@@ -52,7 +52,7 @@ export function formatDateTimeDisplay(value?: string | null): string {
 
 export function formatHistoryDate(value: string): string {
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return "\u2014";
+  if (Number.isNaN(parsed.getTime())) return "—";
   return parsed.toLocaleString("en-US", {
     month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit",
   });
@@ -75,10 +75,10 @@ export function formatChangeValue(
   value: string | null,
   committees: CommitteeSummary[]
 ): string {
-  if (!value) return "\u2014";
+  if (!value) return "—";
   if (fieldName === "committeeId") {
     const match = committees.find((c) => String(c.id) === value);
-    return match ? `${match.code} \u2013 ${match.name}` : value;
+    return match ? `${match.code} – ${match.name}` : value;
   }
   if (fieldName.toLowerCase().includes("date")) return formatDateDisplay(value);
   return value;

@@ -56,7 +56,7 @@ export function DocumentsCard({ documents }: DocumentsCardProps) {
                   <td>{humanizeEnum(doc.type)}</td>
                   <td><span className="table-chip due-neutral">{humanizeEnum(doc.status)}</span></td>
                   <td>{formatDateDisplay(doc.receivedAt)}</td>
-                  <td className="table-note">{doc.notes || "\u2014"}</td>
+                  <td className="table-note">{doc.notes || "—"}</td>
                 </tr>
               ))}
             </tbody>

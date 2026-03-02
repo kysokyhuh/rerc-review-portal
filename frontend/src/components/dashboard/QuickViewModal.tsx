@@ -42,13 +42,13 @@ export function QuickViewModal({
         {/* Header */}
         <div className="quick-view-header">
           <div className="quick-view-header-left">
-            <span className="quick-view-code">{summary?.projectCode ?? "\u2014"}</span>
-            <h3>{summary?.projectTitle ?? "\u2014"}</h3>
+            <span className="quick-view-code">{summary?.projectCode ?? "—"}</span>
+            <h3>{summary?.projectTitle ?? "—"}</h3>
             <div className="quick-view-header-meta">
-              <span>{summary?.piName ?? "\u2014"}</span>
+              <span>{summary?.piName ?? "—"}</span>
               {summary?.staffInChargeName && (
                 <>
-                  <span className="quick-view-sep">\u2022</span>
+                  <span className="quick-view-sep">•</span>
                   <span>Assigned to {summary.staffInChargeName}</span>
                 </>
               )}
@@ -110,7 +110,7 @@ export function QuickViewModal({
             <div className="quick-view-details">
               <div className="qv-detail-item">
                 <span className="qv-detail-label">Submission type</span>
-                <span className="qv-detail-value">{detail?.submissionType ?? "\u2014"}</span>
+                <span className="qv-detail-value">{detail?.submissionType ?? "—"}</span>
               </div>
               <div className="qv-detail-item">
                 <span className="qv-detail-label">Received</span>
@@ -141,7 +141,7 @@ export function QuickViewModal({
                           <div className="quick-view-event-title">{formatStatusLabel(entry.newStatus)}</div>
                           <div className="quick-view-event-meta">
                             {formatShortDate(entry.effectiveDate)}
-                            {entry.changedBy?.fullName && ` \u2014 ${entry.changedBy.fullName}`}
+                            {entry.changedBy?.fullName && ` — ${entry.changedBy.fullName}`}
                           </div>
                         </div>
                       </div>
@@ -159,7 +159,7 @@ export function QuickViewModal({
           <button className="ghost-btn" type="button" onClick={onClose}>Close</button>
           {submissionId && (
             <button className="primary-btn" type="button" onClick={() => onNavigate(`/submissions/${submissionId}`)}>
-              Open full record \u2192
+              Open full record →
             </button>
           )}
         </div>

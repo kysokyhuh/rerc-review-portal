@@ -54,7 +54,7 @@ export function SubmissionOverviewCard({
             </>
           ) : (
             <button className="btn btn-secondary btn-sm" onClick={onEditStart}>
-              \u270e Edit overview
+              ✎ Edit overview
             </button>
           )}
         </div>
@@ -66,7 +66,7 @@ export function SubmissionOverviewCard({
             <input className="field-input" value={formState.piName}
               onChange={(e) => updateField("piName", e.target.value)} placeholder="Principal investigator name" />
           ) : (
-            <p>{submission.project?.piName ?? "\u2014"}</p>
+            <p>{submission.project?.piName ?? "—"}</p>
           )}
         </div>
         <div className="field">
@@ -75,10 +75,10 @@ export function SubmissionOverviewCard({
             <select className="field-input" value={formState.committeeId}
               onChange={(e) => updateField("committeeId", e.target.value)}>
               <option value="">Select committee</option>
-              {committees.map((c) => <option key={c.id} value={c.id}>{c.code} \u2013 {c.name}</option>)}
+              {committees.map((c) => <option key={c.id} value={c.id}>{c.code} – {c.name}</option>)}
             </select>
           ) : (
-            <p>{submission.project?.committee?.name ?? "\u2014"}</p>
+            <p>{submission.project?.committee?.name ?? "—"}</p>
           )}
         </div>
         <div className="field">
@@ -119,11 +119,11 @@ export function SubmissionOverviewCard({
               {isEditing ? (
                 <select className="field-input" value={formState.finalDecision}
                   onChange={(e) => updateField("finalDecision", e.target.value)}>
-                  <option value="">\u2014</option>
+                  <option value="">—</option>
                   {FINAL_DECISION_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
                 </select>
               ) : (
-                <p>{submission.finalDecision ?? "\u2014"}</p>
+                <p>{submission.finalDecision ?? "—"}</p>
               )}
             </div>
             <div className="field">

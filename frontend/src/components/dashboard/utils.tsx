@@ -34,9 +34,9 @@ export function formatStatusLabel(status: string | null): string {
 }
 
 export function formatShortDate(value?: string | Date | null): string {
-  if (!value) return "\u2014";
+  if (!value) return "—";
   const date = typeof value === "string" ? new Date(value) : value;
-  if (Number.isNaN(date.getTime())) return "\u2014";
+  if (Number.isNaN(date.getTime())) return "—";
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
@@ -47,31 +47,31 @@ export const OWNER_BADGE_META: Record<
 > = {
   PROJECT_LEADER_RESEARCHER_PROPONENT: {
     label: "Researcher",
-    icon: "\u25CE",
+    icon: "◎",
     cssClass: "researcher",
     reason: "Waiting on project leader/researcher/proponent action",
   },
   REVIEWER_GROUP: {
     label: "Reviewer",
-    icon: "\u2611",
+    icon: "☑",
     cssClass: "reviewer",
     reason: "Waiting on reviewer or consultant action",
   },
   RESEARCH_ASSOCIATE_PROCESSING_STAFF: {
     label: "Staff",
-    icon: "\u25A3",
+    icon: "▣",
     cssClass: "staff",
     reason: "Waiting on staff processing/routing",
   },
   COMMITTEE_CHAIRPERSON_DESIGNATE: {
     label: "Chairperson",
-    icon: "\u2713",
+    icon: "✓",
     cssClass: "chairperson",
     reason: "Waiting on chairperson decision/finalization",
   },
   UNASSIGNED_PROCESS_GAP: {
     label: "Unassigned",
-    icon: "\u26A0",
+    icon: "⚠",
     cssClass: "unassigned",
     reason: "Missing actionable assignee or routing metadata",
   },
@@ -97,7 +97,7 @@ export const isPaused = (item: any) =>
   ["WITHDRAWN", "CLOSED"].includes(item.status);
 
 export function blockReasonFor(item: any): string {
-  if (!item.missingFields || item.missingFields.length === 0) return "\u2014";
+  if (!item.missingFields || item.missingFields.length === 0) return "—";
   const preview = item.missingFields.slice(0, 2).join(", ");
   return item.missingFields.length > 2
     ? `Missing: ${preview} +${item.missingFields.length - 2}`

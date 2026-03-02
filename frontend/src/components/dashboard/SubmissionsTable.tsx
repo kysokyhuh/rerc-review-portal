@@ -168,7 +168,7 @@ export function SubmissionsTable({
                 <div className="filter-tabs">
                   {[
                     { key: "all", label: "All", count: allItems.length },
-                    { key: "due-soon", label: "Due \u22643 days", count: dueSoonSubmissions.length },
+                    { key: "due-soon", label: "Due ≤3 days", count: dueSoonSubmissions.length },
                     { key: "overdue", label: "Overdue", count: overdueSubmissions.length },
                     { key: "blocked", label: "Blocked", count: allItems.filter(isBlocked).length },
                     { key: "classification", label: "Awaiting classification", count: classificationQueue.length },
@@ -204,7 +204,7 @@ export function SubmissionsTable({
                 {activeFilters.map((chip) => (
                   <button key={chip.id} type="button" className="filter-chip" onClick={chip.onClear}>
                     {chip.label}
-                    <span aria-hidden="true">\u00d7</span>
+                    <span aria-hidden="true">×</span>
                   </button>
                 ))}
               </div>
@@ -283,7 +283,7 @@ export function SubmissionsTable({
                   <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <h3>No submissions match this view</h3>
-                <p>Clear filters or switch to \u201cAll\u201d to see more.</p>
+                <p>Clear filters or switch to “All” to see more.</p>
                 <button className="ghost-btn" type="button" onClick={() => { onQueueFilterChange("all"); onSearchTermChange(""); }}>
                   Reset filters
                 </button>
@@ -321,7 +321,7 @@ export function SubmissionsTable({
                         <div className="table-title">
                           {item.projectCode}
                           {isBlocked(item) && (
-                            <span className="blocked-indicator" title={blockReasonFor(item)} aria-label="Blocked">\u26a0</span>
+                            <span className="blocked-indicator" title={blockReasonFor(item)} aria-label="Blocked">⚠</span>
                           )}
                         </div>
                         <div className="table-subtitle" title={item.projectTitle}>{item.projectTitle}</div>
@@ -371,14 +371,14 @@ export function SubmissionsTable({
             {/* Pagination */}
             {totalFiltered > 0 && (
               <div className="table-pagination">
-                <span className="pagination-info">Showing {startIdx + 1}\u2013{endIdx} of {totalFiltered}</span>
+                <span className="pagination-info">Showing {startIdx + 1}–{endIdx} of {totalFiltered}</span>
                 <div className="pagination-controls">
                   <button type="button" className="pagination-btn" disabled={safePage <= 1} onClick={() => onPageChange(safePage - 1)} aria-label="Previous page">
-                    \u2190 Previous
+                    ← Previous
                   </button>
                   <span className="pagination-current">Page {safePage} of {totalPages}</span>
                   <button type="button" className="pagination-btn" disabled={safePage >= totalPages} onClick={() => onPageChange(safePage + 1)} aria-label="Next page">
-                    Next \u2192
+                    Next →
                   </button>
                 </div>
               </div>

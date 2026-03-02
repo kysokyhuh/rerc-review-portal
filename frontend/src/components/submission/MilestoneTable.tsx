@@ -48,9 +48,9 @@ export function MilestoneTable({
               <tr key={m.id} style={{ opacity: isDone ? 1 : 0.75 }}>
                 <td style={{ textAlign: "center" }}>
                   {isDone ? (
-                    <span title="Completed" style={{ color: "var(--color-positive, #22c55e)", fontSize: 16 }}>\u2713</span>
+                    <span title="Completed" style={{ color: "var(--color-positive, #22c55e)", fontSize: 16 }}>✓</span>
                   ) : (
-                    <span title="Pending" style={{ color: "var(--color-neutral, #94a3b8)", fontSize: 16 }}>\u25cb</span>
+                    <span title="Pending" style={{ color: "var(--color-neutral, #94a3b8)", fontSize: 16 }}>○</span>
                   )}
                 </td>
                 <td><input type="text" value={m.label} onChange={(e) => updateField(m.id, "label", e.target.value)} /></td>

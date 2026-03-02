@@ -37,11 +37,11 @@ export function EditHistoryCard({ changeHistory, committees }: EditHistoryCardPr
             <div key={`${entry.source}-${entry.id}`} className="history-item">
               <div className="history-header">
                 <span className="history-field-badge">{formatFieldName(entry.fieldName)}</span>
-                <span className="history-meta">{entry.source} \u2022 {formatHistoryDate(entry.createdAt)}</span>
+                <span className="history-meta">{entry.source} • {formatHistoryDate(entry.createdAt)}</span>
               </div>
               <div className="history-change">
                 <span className="history-old">{formatChangeValue(entry.fieldName, entry.oldValue, committees)}</span>
-                <span className="history-arrow">\u2192</span>
+                <span className="history-arrow">→</span>
                 <span className="history-new">{formatChangeValue(entry.fieldName, entry.newValue, committees)}</span>
               </div>
               {entry.changedBy && <div className="history-user">by {entry.changedBy.fullName}</div>}

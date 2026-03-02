@@ -36,7 +36,7 @@ export function StatsGrid({ counts, attention, onFilterChange, tableRef }: Stats
           </div>
         </div>
         <div className="stat-value">{attention?.dueSoon ?? 0}</div>
-        <div className="stat-label">Due in \u22643 days</div>
+        <div className="stat-label">Due in ≤3 days</div>
       </div>
 
       <div className="stat-card success" onClick={() => onFilterChange("classification")}>

@@ -55,27 +55,27 @@ const OWNER_ROLE_META: Record<
 > = {
   PROJECT_LEADER_RESEARCHER_PROPONENT: {
     label: "Researcher",
-    icon: "\u25CE",
+    icon: "◎",
     reason: "Waiting on project leader/researcher/proponent action",
   },
   REVIEWER_GROUP: {
     label: "Reviewer",
-    icon: "\u2611",
+    icon: "☑",
     reason: "Waiting on reviewer or consultant action",
   },
   RESEARCH_ASSOCIATE_PROCESSING_STAFF: {
     label: "Staff",
-    icon: "\u25A3",
+    icon: "▣",
     reason: "Waiting on staff processing/routing",
   },
   COMMITTEE_CHAIRPERSON_DESIGNATE: {
     label: "Chairperson",
-    icon: "\u2713",
+    icon: "✓",
     reason: "Waiting on chairperson decision/finalization",
   },
   UNASSIGNED_PROCESS_GAP: {
     label: "Unassigned",
-    icon: "\u26A0",
+    icon: "⚠",
     reason: "Missing actionable assignee or routing metadata",
   },
 };

@@ -204,7 +204,7 @@ export const SubmissionDetailPage: React.FC = () => {
     if (submission.reviewAssignments && submission.reviewAssignments.length > 0) {
       return submission.reviewAssignments.map((item) => ({
         id: `assign-${item.id}`, name: item.reviewer?.fullName ?? "Unknown reviewer",
-        email: item.reviewer?.email ?? "\u2014", role: item.reviewerRole,
+        email: item.reviewer?.email ?? "—", role: item.reviewerRole,
         assignedAt: item.assignedAt, dueDate: item.dueDate,
         submittedAt: item.submittedAt, decision: item.decision,
         endorsementStatus: item.endorsementStatus, isActive: item.isActive,
@@ -212,7 +212,7 @@ export const SubmissionDetailPage: React.FC = () => {
     }
     return (submission.reviews ?? []).map((item) => ({
       id: `review-${item.id}`, name: item.reviewer?.fullName ?? "Unknown reviewer",
-      email: item.reviewer?.email ?? "\u2014", role: item.reviewerRole,
+      email: item.reviewer?.email ?? "—", role: item.reviewerRole,
       assignedAt: item.assignedAt ?? null, dueDate: item.dueDate ?? null,
       submittedAt: item.respondedAt ?? null, decision: item.decision ?? null,
       endorsementStatus: item.endorsementStatus ?? null, isActive: true,

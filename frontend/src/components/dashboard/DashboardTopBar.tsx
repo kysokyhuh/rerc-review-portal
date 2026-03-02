@@ -57,7 +57,7 @@ export function DashboardTopBar({
           </svg>
           <input
             type="text"
-            placeholder="Search submissions (\u2318/Ctrl + K)"
+            placeholder="Search submissions (⌘/Ctrl + K)"
             value={searchTerm}
             onChange={(e) => onSearchTermChange(e.target.value)}
             ref={searchInputRef}

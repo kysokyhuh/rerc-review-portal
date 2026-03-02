@@ -29,7 +29,7 @@ export function SlaTrackingCard({ slaSummary }: SlaTrackingCardProps) {
                 <span className="sla-track-label">{label}</span>
                 {status !== "pending" && (
                   <span className={`sla-track-badge sla-badge-${status}`}>
-                    {status === "on-track" ? "\u2713 On track" : status === "due-soon" ? "\u26a0 Due soon" : "\u2715 Overdue"}
+                    {status === "on-track" ? "✓ On track" : status === "due-soon" ? "⚠ Due soon" : "✕ Overdue"}
                   </span>
                 )}
               </div>
@@ -37,8 +37,8 @@ export function SlaTrackingCard({ slaSummary }: SlaTrackingCardProps) {
                 <div className={`sla-track-bar sla-bar-${status}`} style={{ width: `${hasDays ? pct : 0}%` }} />
               </div>
               <div className="sla-track-numbers">
-                <span className="sla-track-actual">{data.actualWorkingDays ?? "\u2014"} <small>wd actual</small></span>
-                <span className="sla-track-target">{data.configuredWorkingDays ?? "\u2014"} <small>wd target</small></span>
+                <span className="sla-track-actual">{data.actualWorkingDays ?? "—"} <small>wd actual</small></span>
+                <span className="sla-track-target">{data.configuredWorkingDays ?? "—"} <small>wd target</small></span>
               </div>
             </div>
           );

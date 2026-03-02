@@ -80,7 +80,7 @@ export const DashboardPage: React.FC = () => {
   const fromLogin = Boolean((location.state as { fromLogin?: boolean } | null)?.fromLogin);
 
   // ── Effects ────────────────────────────────────────────
-  useEffect(() => { document.title = "URERB Portal \u2014 Dashboard Overview"; }, []);
+  useEffect(() => { document.title = "URERB Portal — Dashboard Overview"; }, []);
   useEffect(() => { if (queueFilter !== "overdue" && queueFilter !== "due-soon") setOverdueOwnerFilter("all"); }, [queueFilter]);
   useEffect(() => { setCurrentPage(1); }, [queueFilter, searchTerm, overdueOwnerFilter]);
 
@@ -176,7 +176,7 @@ export const DashboardPage: React.FC = () => {
     if (queueFilter !== "all") {
       const m: Record<string, string> = {
         classification: "Awaiting classification", review: "Under review", revision: "Awaiting revisions",
-        "due-soon": "Due \u22643 days", overdue: "Overdue", blocked: "Blocked", unassigned: "Unassigned",
+        "due-soon": "Due ≤3 days", overdue: "Overdue", blocked: "Blocked", unassigned: "Unassigned",
       };
       chips.push({ id: "queue", label: m[queueFilter] ?? queueFilter, onClear: () => setQueueFilter("all") });
     }
