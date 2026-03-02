@@ -55,16 +55,26 @@ This starts:
 ```bash
 # 1. Backend
 cd backend && npm install
-npx prisma generate
-npx prisma migrate deploy
-npm run seed          # optional: seed demo data
+npm run setup          # pushes DB schema + seeds demo users
 
 # 2. Frontend
 cd ../frontend && npm install
 
-# 3. Shared package
+# 3. Shared package (optional)
 cd ../packages/shared && npm install
 ```
+
+### Default login credentials
+
+After running `npm run setup`, the following accounts are seeded:
+
+| Email | Password | Role |
+| --- | --- | --- |
+| ra@example.com | changeme123 | Research Associate |
+| staff@rerc.demo | changeme123 | Dashboard Staff |
+| reviewer.scientist@rerc.demo | changeme123 | Reviewer (Scientist) |
+| reviewer.lay@rerc.demo | changeme123 | Reviewer (Lay) |
+| reviewer.consultant@rerc.demo | changeme123 | Reviewer (Consultant) |
 
 ## Development
 
