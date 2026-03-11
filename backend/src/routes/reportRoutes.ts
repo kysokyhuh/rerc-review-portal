@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { Router } from "express";
-import { requireUser } from "../middleware/auth";
+import { requireAnyRole } from "../middleware/auth";
+import { RoleType } from "../generated/prisma/client";
 import {
   buildAnnualSummaryPayload,
   buildSubmissionRecordsPayload,
@@ -57,8 +58,20 @@ export const getReportSubmissionsHandler = async (req: Request, res: Response, n
 // Backward-compatible alias for existing tests/integrations
 export const getAcademicYearSummaryHandler = getAnnualSummaryHandler;
 
-router.get("/reports/academic-years", requireUser, getAcademicYearsHandler);
-router.get("/reports/annual-summary", requireUser, getAnnualSummaryHandler);
-router.get("/reports/submissions", requireUser, getReportSubmissionsHandler);
+router.get(
+  "/reports/academic-years",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  getAcademicYearsHandler
+);
+router.get(
+  "/reports/annual-summary",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  getAnnualSummaryHandler
+);
+router.get(
+  "/reports/submissions",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  getReportSubmissionsHandler
+);
 
 export default router;

@@ -20,6 +20,7 @@ export type StageFilter =
 export interface QueueCounts {
   forClassification: number;
   forReview: number;
+  forExempted?: number;
   awaitingRevisions: number;
   completed: number;
   dueSoon?: number;

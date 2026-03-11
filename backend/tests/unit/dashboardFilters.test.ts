@@ -33,7 +33,7 @@ describe("buildDashboardFiltersWhere", () => {
   it("builds project-level filters for college", () => {
     const where = buildDashboardFiltersWhere({ college: "CLA" });
     expect(where).toEqual({
-      project: { piAffiliation: "CLA" },
+      project: { piAffiliation: { equals: "CLA", mode: "insensitive" } },
     });
   });
 
@@ -74,7 +74,7 @@ describe("buildDashboardFiltersWhere", () => {
       status: "RECEIVED",
     });
     expect(where).toEqual({
-      project: { piAffiliation: "COS" },
+      project: { piAffiliation: { equals: "COS", mode: "insensitive" } },
       classification: { reviewType: "EXPEDITED" },
       status: "RECEIVED",
     });

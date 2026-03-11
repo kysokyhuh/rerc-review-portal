@@ -1,83 +1,69 @@
 import { Router } from "express";
-import { login, refresh, AuthError } from "../services/auth/authService";
 import { validate } from "../middleware/validate";
-import { loginSchema } from "../schemas/auth";
+import { requireAuth, AUTH_COOKIE_NAME } from "../middleware/auth";
+import { loginSchema, signupSchema } from "../schemas/auth";
+import { AuthError, getMeById, login, signup } from "../services/auth/authService";
 
 const router = Router();
 
-// POST /auth/login
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  maxAge: 24 * 60 * 60 * 1000,
+  path: "/",
+};
+
+router.post("/auth/signup", validate(signupSchema), async (req, res, next) => {
+  try {
+    const { fullName, email, password } = req.body;
+    await signup({ fullName, email, password });
+    return res.status(201).json({
+      ok: true,
+      message: "Signup submitted for approval.",
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
+    return next(error);
+  }
+});
+
 router.post("/auth/login", validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const result = await login(email, password);
-
-    // Set refresh token as httpOnly cookie
-    res.cookie("refreshToken", result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      path: "/auth/refresh",
-    });
-
-    return res.json({
-      accessToken: result.accessToken,
-      user: result.user,
-    });
+    res.cookie(AUTH_COOKIE_NAME, result.accessToken, cookieOptions);
+    return res.json({ user: result.user });
   } catch (error) {
     if (error instanceof AuthError) {
       return res.status(error.statusCode).json({ message: error.message });
     }
-    next(error);
+    return next(error);
   }
 });
 
-// POST /auth/refresh
-router.post("/auth/refresh", async (req, res, next) => {
+router.get("/auth/me", requireAuth, async (req, res, next) => {
   try {
-    const token = req.cookies?.refreshToken || req.body.refreshToken;
-
-    if (!token) {
-      return res.status(401).json({ message: "Refresh token required" });
-    }
-
-    const result = await refresh(token);
-
-    // Rotate the cookie
-    res.cookie("refreshToken", result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: "/auth/refresh",
-    });
-
-    return res.json({ accessToken: result.accessToken });
+    const user = await getMeById(req.user!.id);
+    return res.json({ user });
   } catch (error) {
     if (error instanceof AuthError) {
       return res.status(error.statusCode).json({ message: error.message });
     }
-    return res.status(401).json({ message: "Invalid or expired refresh token" });
+    return next(error);
   }
 });
 
-// POST /auth/logout
 router.post("/auth/logout", (_req, res) => {
-  res.clearCookie("refreshToken", {
+  res.clearCookie(AUTH_COOKIE_NAME, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    path: "/auth/refresh",
+    sameSite: "lax",
+    path: "/",
   });
-  return res.json({ message: "Logged out" });
-});
-
-// GET /auth/me — returns current user from JWT (requires auth middleware)
-router.get("/auth/me", (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ message: "Not authenticated" });
-  }
-  return res.json({ user: req.user });
+  return res.json({ ok: true });
 });
 
 export default router;

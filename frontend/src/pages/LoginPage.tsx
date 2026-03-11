@@ -1,14 +1,8 @@
 import { useState, useEffect, FormEvent, KeyboardEvent } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { BRAND } from '@/config/branding';
 import { useAuth } from '@/contexts/AuthContext';
 import '../styles/login.css';
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  (typeof process !== "undefined" ? process.env?.VITE_API_URL : undefined) ||
-  "http://localhost:3000";
 
 // Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -122,15 +116,20 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await authLogin(email, password);
+      const user = await authLogin(email, password);
 
       // Show success animation
       setSuccess(true);
 
       // Wait for animation then redirect
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      const doNavigate = () =>
+      const doNavigate = () => {
+        if (user.roles.includes("CHAIR")) {
+          navigate("/admin/users", { replace: true, state: { fromLogin: true } });
+          return;
+        }
         navigate("/dashboard", { replace: true, state: { fromLogin: true } });
+      };
 
       const anyDocument = document as unknown as {
         startViewTransition?: (callback: () => void) => void;
@@ -140,7 +139,8 @@ export default function LoginPage() {
       } else {
         doNavigate();
       }
-    } catch (err) {
+    } catch (err: any) {
+      const apiMessage = err?.response?.data?.message as string | undefined;
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
       
@@ -148,7 +148,11 @@ export default function LoginPage() {
         setLockedUntil(Date.now() + LOCKOUT_DURATION);
         setError(`Too many failed attempts. Please try again in 1 minute.`);
       } else {
-        setError(`Invalid email or password. ${MAX_ATTEMPTS - newAttempts} attempts remaining.`);
+        setError(
+          apiMessage
+            ? `${apiMessage} ${MAX_ATTEMPTS - newAttempts} attempts remaining.`
+            : `Invalid email or password. ${MAX_ATTEMPTS - newAttempts} attempts remaining.`
+        );
       }
       
       // Trigger shake animation
@@ -352,6 +356,9 @@ export default function LoginPage() {
                 'Log in'
               )}
             </button>
+            <p className="login-signup">
+              No account yet? <Link to="/signup">Sign up</Link>
+            </p>
 
             <div className="login-divider" role="separator" aria-hidden="true"></div>
             <div className="login-footnote">

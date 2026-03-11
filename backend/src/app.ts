@@ -22,6 +22,7 @@ import {
   importRoutes,
   reportRoutes,
   holidayRoutes,
+  adminUserRoutes,
 } from "./routes";
 import authRoutes from "./routes/authRoutes";
 import { authenticateUser } from "./middleware/auth";
@@ -101,12 +102,12 @@ app.use(globalLimiter);
 // Routes
 // =============================================================================
 
-// Auth routes — BEFORE authenticateUser middleware (login doesn't need auth)
+// Attach user from JWT/cookie (or explicit dev header adapter when enabled)
+app.use(authenticateUser);
+
+// Auth routes
 app.use("/auth", authLimiter);
 app.use(authRoutes);
-
-// Attach user from JWT (or dev fallback) for all subsequent routes
-app.use(authenticateUser);
 
 // Health & status routes (/, /health)
 app.use(healthRoutes);
@@ -134,6 +135,9 @@ app.use(reportRoutes);
 
 // Holiday routes (/holidays)
 app.use(holidayRoutes);
+
+// Chair-only admin user management routes
+app.use(adminUserRoutes);
 
 // =============================================================================
 // Error handler — MUST be last

@@ -18,6 +18,7 @@ interface DashboardQueuesResult {
   counts: QueueCounts | null;
   classificationQueue: DecoratedQueueItem[];
   reviewQueue: DecoratedQueueItem[];
+  exemptedQueue: DecoratedQueueItem[];
   revisionQueue: DecoratedQueueItem[];
   letterReadiness: LetterTemplateReadiness[];
   attention: AttentionMetrics;
@@ -47,6 +48,7 @@ export function useDashboardQueues(
         counts: null,
         classificationQueue: [] as DecoratedQueueItem[],
         reviewQueue: [] as DecoratedQueueItem[],
+        exemptedQueue: [] as DecoratedQueueItem[],
         revisionQueue: [] as DecoratedQueueItem[],
         letterReadiness: [] as LetterTemplateReadiness[],
         attention: { overdue: 0, dueSoon: 0, classificationWait: 0, missingLetterFields: 0 },
@@ -60,11 +62,19 @@ export function useDashboardQueues(
     const decoratedReview = data.reviewQueue.map((item: any) =>
       decorateQueueItem(item, "review", now)
     );
+    const decoratedExempted = data.exemptedQueue.map((item: any) =>
+      decorateQueueItem(item, "review", now)
+    );
     const decoratedRevision = data.revisionQueue.map((item: any) =>
       decorateQueueItem(item, "revision", now)
     );
 
-    const allItems = [...decoratedClassification, ...decoratedReview, ...decoratedRevision];
+    const allItems = [
+      ...decoratedClassification,
+      ...decoratedReview,
+      ...decoratedExempted,
+      ...decoratedRevision,
+    ];
     const overdue = allItems.filter((i) => i.slaStatus === "OVERDUE").length;
     const dueSoon = allItems.filter(
       (i) => i.workingDaysRemaining <= DUE_SOON_THRESHOLD && i.workingDaysRemaining >= 0
@@ -78,6 +88,7 @@ export function useDashboardQueues(
       counts: { ...data.counts, dueSoon, overdue, classificationStuck: classificationWait, missingLetterFields },
       classificationQueue: decoratedClassification,
       reviewQueue: decoratedReview,
+      exemptedQueue: decoratedExempted,
       revisionQueue: decoratedRevision,
       letterReadiness: buildLetterReadiness(allItems),
       attention: { overdue, dueSoon, classificationWait, missingLetterFields },
@@ -85,8 +96,18 @@ export function useDashboardQueues(
   }, [data]);
 
   const allItems = useMemo(
-    () => [...processed.classificationQueue, ...processed.reviewQueue, ...processed.revisionQueue],
-    [processed.classificationQueue, processed.reviewQueue, processed.revisionQueue]
+    () => [
+      ...processed.classificationQueue,
+      ...processed.reviewQueue,
+      ...processed.exemptedQueue,
+      ...processed.revisionQueue,
+    ],
+    [
+      processed.classificationQueue,
+      processed.reviewQueue,
+      processed.exemptedQueue,
+      processed.revisionQueue,
+    ]
   );
 
   return {

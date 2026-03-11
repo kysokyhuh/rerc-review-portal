@@ -2,7 +2,8 @@
  * Mail merge and letter generation routes
  */
 import { Router } from "express";
-import { requireUser } from "../middleware/auth";
+import { requireAnyRole } from "../middleware/auth";
+import { RoleType } from "../generated/prisma/client";
 import prisma from "../config/prismaClient";
 import { csvEscape } from "../utils/csvUtils";
 import {
@@ -12,7 +13,7 @@ import {
 import { Parser as Json2CsvParser } from "json2csv";
 
 const router = Router();
-router.use(requireUser);
+router.use(requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]));
 
 // Mail-merge CSV export for initial submission acknowledgment letters
 router.get("/mail-merge/initial-ack.csv", async (req, res, next) => {

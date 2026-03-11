@@ -39,6 +39,8 @@ export type UserMinAggregateOutputType = {
   email: string | null
   fullName: string | null
   passwordHash: string | null
+  status: $Enums.UserStatus | null
+  statusNote: string | null
   passwordResetToken: string | null
   passwordResetExpiresAt: Date | null
   lastLoginAt: Date | null
@@ -54,6 +56,8 @@ export type UserMaxAggregateOutputType = {
   email: string | null
   fullName: string | null
   passwordHash: string | null
+  status: $Enums.UserStatus | null
+  statusNote: string | null
   passwordResetToken: string | null
   passwordResetExpiresAt: Date | null
   lastLoginAt: Date | null
@@ -69,6 +73,9 @@ export type UserCountAggregateOutputType = {
   email: number
   fullName: number
   passwordHash: number
+  status: number
+  roles: number
+  statusNote: number
   passwordResetToken: number
   passwordResetExpiresAt: number
   lastLoginAt: number
@@ -95,6 +102,8 @@ export type UserMinAggregateInputType = {
   email?: true
   fullName?: true
   passwordHash?: true
+  status?: true
+  statusNote?: true
   passwordResetToken?: true
   passwordResetExpiresAt?: true
   lastLoginAt?: true
@@ -110,6 +119,8 @@ export type UserMaxAggregateInputType = {
   email?: true
   fullName?: true
   passwordHash?: true
+  status?: true
+  statusNote?: true
   passwordResetToken?: true
   passwordResetExpiresAt?: true
   lastLoginAt?: true
@@ -125,6 +136,9 @@ export type UserCountAggregateInputType = {
   email?: true
   fullName?: true
   passwordHash?: true
+  status?: true
+  roles?: true
+  statusNote?: true
   passwordResetToken?: true
   passwordResetExpiresAt?: true
   lastLoginAt?: true
@@ -228,6 +242,9 @@ export type UserGroupByOutputType = {
   email: string
   fullName: string
   passwordHash: string | null
+  status: $Enums.UserStatus
+  roles: $Enums.RoleType[]
+  statusNote: string | null
   passwordResetToken: string | null
   passwordResetExpiresAt: Date | null
   lastLoginAt: Date | null
@@ -267,6 +284,9 @@ export type UserWhereInput = {
   email?: Prisma.StringFilter<"User"> | string
   fullName?: Prisma.StringFilter<"User"> | string
   passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
+  status?: Prisma.EnumUserStatusFilter<"User"> | $Enums.UserStatus
+  roles?: Prisma.EnumRoleTypeNullableListFilter<"User">
+  statusNote?: Prisma.StringNullableFilter<"User"> | string | null
   passwordResetToken?: Prisma.StringNullableFilter<"User"> | string | null
   passwordResetExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   lastLoginAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -292,6 +312,7 @@ export type UserWhereInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionListRelationFilter
   reviewAssignments?: Prisma.ReviewAssignmentListRelationFilter
   projectStatusHistories?: Prisma.ProjectStatusHistoryListRelationFilter
+  auditLogs?: Prisma.AuditLogListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -299,6 +320,9 @@ export type UserOrderByWithRelationInput = {
   email?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
+  roles?: Prisma.SortOrder
+  statusNote?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordResetToken?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordResetExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -324,6 +348,7 @@ export type UserOrderByWithRelationInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionOrderByRelationAggregateInput
   reviewAssignments?: Prisma.ReviewAssignmentOrderByRelationAggregateInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryOrderByRelationAggregateInput
+  auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -334,6 +359,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   fullName?: Prisma.StringFilter<"User"> | string
   passwordHash?: Prisma.StringNullableFilter<"User"> | string | null
+  status?: Prisma.EnumUserStatusFilter<"User"> | $Enums.UserStatus
+  roles?: Prisma.EnumRoleTypeNullableListFilter<"User">
+  statusNote?: Prisma.StringNullableFilter<"User"> | string | null
   passwordResetToken?: Prisma.StringNullableFilter<"User"> | string | null
   passwordResetExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   lastLoginAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -359,6 +387,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionListRelationFilter
   reviewAssignments?: Prisma.ReviewAssignmentListRelationFilter
   projectStatusHistories?: Prisma.ProjectStatusHistoryListRelationFilter
+  auditLogs?: Prisma.AuditLogListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -366,6 +395,9 @@ export type UserOrderByWithAggregationInput = {
   email?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
+  roles?: Prisma.SortOrder
+  statusNote?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordResetToken?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordResetExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -390,6 +422,9 @@ export type UserScalarWhereWithAggregatesInput = {
   email?: Prisma.StringWithAggregatesFilter<"User"> | string
   fullName?: Prisma.StringWithAggregatesFilter<"User"> | string
   passwordHash?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  status?: Prisma.EnumUserStatusWithAggregatesFilter<"User"> | $Enums.UserStatus
+  roles?: Prisma.EnumRoleTypeNullableListFilter<"User">
+  statusNote?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   passwordResetToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   passwordResetExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   lastLoginAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
@@ -405,6 +440,9 @@ export type UserCreateInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -430,6 +468,7 @@ export type UserCreateInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -437,6 +476,9 @@ export type UserUncheckedCreateInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -462,12 +504,16 @@ export type UserUncheckedCreateInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -493,6 +539,7 @@ export type UserUpdateInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -500,6 +547,9 @@ export type UserUncheckedUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -525,6 +575,7 @@ export type UserUncheckedUpdateInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -532,6 +583,9 @@ export type UserCreateManyInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -547,6 +601,9 @@ export type UserUpdateManyMutationInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -563,6 +620,9 @@ export type UserUncheckedUpdateManyInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -572,6 +632,14 @@ export type UserUncheckedUpdateManyInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type EnumRoleTypeNullableListFilter<$PrismaModel = never> = {
+  equals?: $Enums.RoleType[] | Prisma.ListEnumRoleTypeFieldRefInput<$PrismaModel> | null
+  has?: $Enums.RoleType | Prisma.EnumRoleTypeFieldRefInput<$PrismaModel> | null
+  hasEvery?: $Enums.RoleType[] | Prisma.ListEnumRoleTypeFieldRefInput<$PrismaModel>
+  hasSome?: $Enums.RoleType[] | Prisma.ListEnumRoleTypeFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
 }
 
 export type StringNullableListFilter<$PrismaModel = never> = {
@@ -587,6 +655,9 @@ export type UserCountOrderByAggregateInput = {
   email?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  roles?: Prisma.SortOrder
+  statusNote?: Prisma.SortOrder
   passwordResetToken?: Prisma.SortOrder
   passwordResetExpiresAt?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
@@ -607,6 +678,8 @@ export type UserMaxOrderByAggregateInput = {
   email?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  statusNote?: Prisma.SortOrder
   passwordResetToken?: Prisma.SortOrder
   passwordResetExpiresAt?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
@@ -622,6 +695,8 @@ export type UserMinOrderByAggregateInput = {
   email?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  statusNote?: Prisma.SortOrder
   passwordResetToken?: Prisma.SortOrder
   passwordResetExpiresAt?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
@@ -636,14 +711,18 @@ export type UserSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
 }
 
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null
+  isNot?: Prisma.UserWhereInput | null
+}
+
 export type UserScalarRelationFilter = {
   is?: Prisma.UserWhereInput
   isNot?: Prisma.UserWhereInput
 }
 
-export type UserNullableScalarRelationFilter = {
-  is?: Prisma.UserWhereInput | null
-  isNot?: Prisma.UserWhereInput | null
+export type UserCreaterolesInput = {
+  set: $Enums.RoleType[]
 }
 
 export type UserCreatereviewerExpertiseInput = {
@@ -656,6 +735,15 @@ export type StringFieldUpdateOperationsInput = {
 
 export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
+}
+
+export type EnumUserStatusFieldUpdateOperationsInput = {
+  set?: $Enums.UserStatus
+}
+
+export type UserUpdaterolesInput = {
+  set?: $Enums.RoleType[]
+  push?: $Enums.RoleType | $Enums.RoleType[]
 }
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
@@ -681,6 +769,22 @@ export type IntFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type UserCreateNestedOneWithoutAuditLogsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAuditLogsInput, Prisma.UserUncheckedCreateWithoutAuditLogsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuditLogsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutAuditLogsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAuditLogsInput, Prisma.UserUncheckedCreateWithoutAuditLogsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuditLogsInput
+  upsert?: Prisma.UserUpsertWithoutAuditLogsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuditLogsInput, Prisma.UserUpdateWithoutAuditLogsInput>, Prisma.UserUncheckedUpdateWithoutAuditLogsInput>
 }
 
 export type UserCreateNestedOneWithoutCommitteeMembershipsInput = {
@@ -931,10 +1035,167 @@ export type UserUpdateOneRequiredWithoutPanelMembershipsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPanelMembershipsInput, Prisma.UserUpdateWithoutPanelMembershipsInput>, Prisma.UserUncheckedUpdateWithoutPanelMembershipsInput>
 }
 
+export type UserCreateWithoutAuditLogsInput = {
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
+  submissionsCreated?: Prisma.SubmissionCreateNestedManyWithoutCreatedByInput
+  classificationsMade?: Prisma.ClassificationCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftCreateNestedManyWithoutApprovedByInput
+  projectSnapshotsChanged?: Prisma.ProjectSnapshotCreateNestedManyWithoutChangedByInput
+  classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
+  reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
+  projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+}
+
+export type UserUncheckedCreateWithoutAuditLogsInput = {
+  id?: number
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
+  passwordResetToken?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
+  submissionsCreated?: Prisma.SubmissionUncheckedCreateNestedManyWithoutCreatedByInput
+  classificationsMade?: Prisma.ClassificationUncheckedCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewUncheckedCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutApprovedByInput
+  projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutChangedByInput
+  classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
+  reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
+  projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+}
+
+export type UserCreateOrConnectWithoutAuditLogsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAuditLogsInput, Prisma.UserUncheckedCreateWithoutAuditLogsInput>
+}
+
+export type UserUpsertWithoutAuditLogsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAuditLogsInput, Prisma.UserUncheckedUpdateWithoutAuditLogsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAuditLogsInput, Prisma.UserUncheckedCreateWithoutAuditLogsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAuditLogsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAuditLogsInput, Prisma.UserUncheckedUpdateWithoutAuditLogsInput>
+}
+
+export type UserUpdateWithoutAuditLogsInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUpdateManyWithoutCreatedByNestedInput
+  classificationsMade?: Prisma.ClassificationUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUpdateManyWithoutChangedByNestedInput
+  panelMemberships?: Prisma.PanelMemberUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUpdateManyWithoutApprovedByNestedInput
+  projectSnapshotsChanged?: Prisma.ProjectSnapshotUpdateManyWithoutChangedByNestedInput
+  classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
+  reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
+  projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAuditLogsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  classificationsMade?: Prisma.ClassificationUncheckedUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedUpdateManyWithoutApprovedByNestedInput
+  projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutChangedByNestedInput
+  classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
+  reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
+  projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+}
+
 export type UserCreateWithoutCommitteeMembershipsInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -959,6 +1220,7 @@ export type UserCreateWithoutCommitteeMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutCommitteeMembershipsInput = {
@@ -966,6 +1228,9 @@ export type UserUncheckedCreateWithoutCommitteeMembershipsInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -990,6 +1255,7 @@ export type UserUncheckedCreateWithoutCommitteeMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutCommitteeMembershipsInput = {
@@ -1012,6 +1278,9 @@ export type UserUpdateWithoutCommitteeMembershipsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1036,6 +1305,7 @@ export type UserUpdateWithoutCommitteeMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCommitteeMembershipsInput = {
@@ -1043,6 +1313,9 @@ export type UserUncheckedUpdateWithoutCommitteeMembershipsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1067,12 +1340,16 @@ export type UserUncheckedUpdateWithoutCommitteeMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutProjectsCreatedInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -1097,6 +1374,7 @@ export type UserCreateWithoutProjectsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutProjectsCreatedInput = {
@@ -1104,6 +1382,9 @@ export type UserUncheckedCreateWithoutProjectsCreatedInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -1128,6 +1409,7 @@ export type UserUncheckedCreateWithoutProjectsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutProjectsCreatedInput = {
@@ -1150,6 +1432,9 @@ export type UserUpdateWithoutProjectsCreatedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1174,6 +1459,7 @@ export type UserUpdateWithoutProjectsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectsCreatedInput = {
@@ -1181,6 +1467,9 @@ export type UserUncheckedUpdateWithoutProjectsCreatedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1205,12 +1494,16 @@ export type UserUncheckedUpdateWithoutProjectsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutProjectChangesInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -1235,6 +1528,7 @@ export type UserCreateWithoutProjectChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutProjectChangesInput = {
@@ -1242,6 +1536,9 @@ export type UserUncheckedCreateWithoutProjectChangesInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -1266,6 +1563,7 @@ export type UserUncheckedCreateWithoutProjectChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutProjectChangesInput = {
@@ -1288,6 +1586,9 @@ export type UserUpdateWithoutProjectChangesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1312,6 +1613,7 @@ export type UserUpdateWithoutProjectChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectChangesInput = {
@@ -1319,6 +1621,9 @@ export type UserUncheckedUpdateWithoutProjectChangesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1343,12 +1648,16 @@ export type UserUncheckedUpdateWithoutProjectChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutProjectSnapshotsChangedInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -1373,6 +1682,7 @@ export type UserCreateWithoutProjectSnapshotsChangedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutProjectSnapshotsChangedInput = {
@@ -1380,6 +1690,9 @@ export type UserUncheckedCreateWithoutProjectSnapshotsChangedInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -1404,6 +1717,7 @@ export type UserUncheckedCreateWithoutProjectSnapshotsChangedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutProjectSnapshotsChangedInput = {
@@ -1426,6 +1740,9 @@ export type UserUpdateWithoutProjectSnapshotsChangedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1450,6 +1767,7 @@ export type UserUpdateWithoutProjectSnapshotsChangedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectSnapshotsChangedInput = {
@@ -1457,6 +1775,9 @@ export type UserUncheckedUpdateWithoutProjectSnapshotsChangedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1481,12 +1802,16 @@ export type UserUncheckedUpdateWithoutProjectSnapshotsChangedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutSubmissionsCreatedInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -1511,6 +1836,7 @@ export type UserCreateWithoutSubmissionsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutSubmissionsCreatedInput = {
@@ -1518,6 +1844,9 @@ export type UserUncheckedCreateWithoutSubmissionsCreatedInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -1542,6 +1871,7 @@ export type UserUncheckedCreateWithoutSubmissionsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutSubmissionsCreatedInput = {
@@ -1553,6 +1883,9 @@ export type UserCreateWithoutAssignedSubmissionsInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -1577,6 +1910,7 @@ export type UserCreateWithoutAssignedSubmissionsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutAssignedSubmissionsInput = {
@@ -1584,6 +1918,9 @@ export type UserUncheckedCreateWithoutAssignedSubmissionsInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -1608,6 +1945,7 @@ export type UserUncheckedCreateWithoutAssignedSubmissionsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutAssignedSubmissionsInput = {
@@ -1630,6 +1968,9 @@ export type UserUpdateWithoutSubmissionsCreatedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1654,6 +1995,7 @@ export type UserUpdateWithoutSubmissionsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubmissionsCreatedInput = {
@@ -1661,6 +2003,9 @@ export type UserUncheckedUpdateWithoutSubmissionsCreatedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1685,6 +2030,7 @@ export type UserUncheckedUpdateWithoutSubmissionsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserUpsertWithoutAssignedSubmissionsInput = {
@@ -1702,6 +2048,9 @@ export type UserUpdateWithoutAssignedSubmissionsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1726,6 +2075,7 @@ export type UserUpdateWithoutAssignedSubmissionsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAssignedSubmissionsInput = {
@@ -1733,6 +2083,9 @@ export type UserUncheckedUpdateWithoutAssignedSubmissionsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1757,12 +2110,16 @@ export type UserUncheckedUpdateWithoutAssignedSubmissionsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutSubmissionChangesInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -1787,6 +2144,7 @@ export type UserCreateWithoutSubmissionChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutSubmissionChangesInput = {
@@ -1794,6 +2152,9 @@ export type UserUncheckedCreateWithoutSubmissionChangesInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -1818,6 +2179,7 @@ export type UserUncheckedCreateWithoutSubmissionChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutSubmissionChangesInput = {
@@ -1840,6 +2202,9 @@ export type UserUpdateWithoutSubmissionChangesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1864,6 +2229,7 @@ export type UserUpdateWithoutSubmissionChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubmissionChangesInput = {
@@ -1871,6 +2237,9 @@ export type UserUncheckedUpdateWithoutSubmissionChangesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1895,12 +2264,16 @@ export type UserUncheckedUpdateWithoutSubmissionChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutClassificationsMadeInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -1925,6 +2298,7 @@ export type UserCreateWithoutClassificationsMadeInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutClassificationsMadeInput = {
@@ -1932,6 +2306,9 @@ export type UserUncheckedCreateWithoutClassificationsMadeInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -1956,6 +2333,7 @@ export type UserUncheckedCreateWithoutClassificationsMadeInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutClassificationsMadeInput = {
@@ -1978,6 +2356,9 @@ export type UserUpdateWithoutClassificationsMadeInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2002,6 +2383,7 @@ export type UserUpdateWithoutClassificationsMadeInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClassificationsMadeInput = {
@@ -2009,6 +2391,9 @@ export type UserUncheckedUpdateWithoutClassificationsMadeInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2033,12 +2418,16 @@ export type UserUncheckedUpdateWithoutClassificationsMadeInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutClassificationDecisionsRecordedInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -2063,6 +2452,7 @@ export type UserCreateWithoutClassificationDecisionsRecordedInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotCreateNestedManyWithoutChangedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutClassificationDecisionsRecordedInput = {
@@ -2070,6 +2460,9 @@ export type UserUncheckedCreateWithoutClassificationDecisionsRecordedInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -2094,6 +2487,7 @@ export type UserUncheckedCreateWithoutClassificationDecisionsRecordedInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutChangedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutClassificationDecisionsRecordedInput = {
@@ -2116,6 +2510,9 @@ export type UserUpdateWithoutClassificationDecisionsRecordedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2140,6 +2537,7 @@ export type UserUpdateWithoutClassificationDecisionsRecordedInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUpdateManyWithoutChangedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClassificationDecisionsRecordedInput = {
@@ -2147,6 +2545,9 @@ export type UserUncheckedUpdateWithoutClassificationDecisionsRecordedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2171,12 +2572,16 @@ export type UserUncheckedUpdateWithoutClassificationDecisionsRecordedInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutChangedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutStatusChangesInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -2201,6 +2606,7 @@ export type UserCreateWithoutStatusChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutStatusChangesInput = {
@@ -2208,6 +2614,9 @@ export type UserUncheckedCreateWithoutStatusChangesInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -2232,6 +2641,7 @@ export type UserUncheckedCreateWithoutStatusChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutStatusChangesInput = {
@@ -2254,6 +2664,9 @@ export type UserUpdateWithoutStatusChangesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2278,6 +2691,7 @@ export type UserUpdateWithoutStatusChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutStatusChangesInput = {
@@ -2285,6 +2699,9 @@ export type UserUncheckedUpdateWithoutStatusChangesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2309,12 +2726,16 @@ export type UserUncheckedUpdateWithoutStatusChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutProjectStatusHistoriesInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -2339,6 +2760,7 @@ export type UserCreateWithoutProjectStatusHistoriesInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotCreateNestedManyWithoutChangedByInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutProjectStatusHistoriesInput = {
@@ -2346,6 +2768,9 @@ export type UserUncheckedCreateWithoutProjectStatusHistoriesInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -2370,6 +2795,7 @@ export type UserUncheckedCreateWithoutProjectStatusHistoriesInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutChangedByInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutProjectStatusHistoriesInput = {
@@ -2392,6 +2818,9 @@ export type UserUpdateWithoutProjectStatusHistoriesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2416,6 +2845,7 @@ export type UserUpdateWithoutProjectStatusHistoriesInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUpdateManyWithoutChangedByNestedInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectStatusHistoriesInput = {
@@ -2423,6 +2853,9 @@ export type UserUncheckedUpdateWithoutProjectStatusHistoriesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2447,12 +2880,16 @@ export type UserUncheckedUpdateWithoutProjectStatusHistoriesInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutChangedByNestedInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutReviewsAssignedInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -2477,6 +2914,7 @@ export type UserCreateWithoutReviewsAssignedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutReviewsAssignedInput = {
@@ -2484,6 +2922,9 @@ export type UserUncheckedCreateWithoutReviewsAssignedInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -2508,6 +2949,7 @@ export type UserUncheckedCreateWithoutReviewsAssignedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutReviewsAssignedInput = {
@@ -2530,6 +2972,9 @@ export type UserUpdateWithoutReviewsAssignedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2554,6 +2999,7 @@ export type UserUpdateWithoutReviewsAssignedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewsAssignedInput = {
@@ -2561,6 +3007,9 @@ export type UserUncheckedUpdateWithoutReviewsAssignedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2585,12 +3034,16 @@ export type UserUncheckedUpdateWithoutReviewsAssignedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutReviewAssignmentsInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -2615,6 +3068,7 @@ export type UserCreateWithoutReviewAssignmentsInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotCreateNestedManyWithoutChangedByInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutReviewAssignmentsInput = {
@@ -2622,6 +3076,9 @@ export type UserUncheckedCreateWithoutReviewAssignmentsInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -2646,6 +3103,7 @@ export type UserUncheckedCreateWithoutReviewAssignmentsInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutChangedByInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutReviewAssignmentsInput = {
@@ -2668,6 +3126,9 @@ export type UserUpdateWithoutReviewAssignmentsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2692,6 +3153,7 @@ export type UserUpdateWithoutReviewAssignmentsInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUpdateManyWithoutChangedByNestedInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewAssignmentsInput = {
@@ -2699,6 +3161,9 @@ export type UserUncheckedUpdateWithoutReviewAssignmentsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2723,12 +3188,16 @@ export type UserUncheckedUpdateWithoutReviewAssignmentsInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutChangedByNestedInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutLetterDraftsGeneratedInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -2753,6 +3222,7 @@ export type UserCreateWithoutLetterDraftsGeneratedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutLetterDraftsGeneratedInput = {
@@ -2760,6 +3230,9 @@ export type UserUncheckedCreateWithoutLetterDraftsGeneratedInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -2784,6 +3257,7 @@ export type UserUncheckedCreateWithoutLetterDraftsGeneratedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutLetterDraftsGeneratedInput = {
@@ -2795,6 +3269,9 @@ export type UserCreateWithoutLetterDraftsApprovedInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -2819,6 +3296,7 @@ export type UserCreateWithoutLetterDraftsApprovedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutLetterDraftsApprovedInput = {
@@ -2826,6 +3304,9 @@ export type UserUncheckedCreateWithoutLetterDraftsApprovedInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -2850,6 +3331,7 @@ export type UserUncheckedCreateWithoutLetterDraftsApprovedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutLetterDraftsApprovedInput = {
@@ -2872,6 +3354,9 @@ export type UserUpdateWithoutLetterDraftsGeneratedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2896,6 +3381,7 @@ export type UserUpdateWithoutLetterDraftsGeneratedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLetterDraftsGeneratedInput = {
@@ -2903,6 +3389,9 @@ export type UserUncheckedUpdateWithoutLetterDraftsGeneratedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2927,6 +3416,7 @@ export type UserUncheckedUpdateWithoutLetterDraftsGeneratedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserUpsertWithoutLetterDraftsApprovedInput = {
@@ -2944,6 +3434,9 @@ export type UserUpdateWithoutLetterDraftsApprovedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2968,6 +3461,7 @@ export type UserUpdateWithoutLetterDraftsApprovedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLetterDraftsApprovedInput = {
@@ -2975,6 +3469,9 @@ export type UserUncheckedUpdateWithoutLetterDraftsApprovedInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2999,12 +3496,16 @@ export type UserUncheckedUpdateWithoutLetterDraftsApprovedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutPanelMembershipsInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -3029,6 +3530,7 @@ export type UserCreateWithoutPanelMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutPanelMembershipsInput = {
@@ -3036,6 +3538,9 @@ export type UserUncheckedCreateWithoutPanelMembershipsInput = {
   email: string
   fullName: string
   passwordHash?: string | null
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
   passwordResetToken?: string | null
   passwordResetExpiresAt?: Date | string | null
   lastLoginAt?: Date | string | null
@@ -3060,6 +3565,7 @@ export type UserUncheckedCreateWithoutPanelMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutPanelMembershipsInput = {
@@ -3082,6 +3588,9 @@ export type UserUpdateWithoutPanelMembershipsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3106,6 +3615,7 @@ export type UserUpdateWithoutPanelMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPanelMembershipsInput = {
@@ -3113,6 +3623,9 @@ export type UserUncheckedUpdateWithoutPanelMembershipsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3137,6 +3650,7 @@ export type UserUncheckedUpdateWithoutPanelMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
 }
 
 
@@ -3161,6 +3675,7 @@ export type UserCountOutputType = {
   classificationDecisionsRecorded: number
   reviewAssignments: number
   projectStatusHistories: number
+  auditLogs: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3180,6 +3695,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   classificationDecisionsRecorded?: boolean | UserCountOutputTypeCountClassificationDecisionsRecordedArgs
   reviewAssignments?: boolean | UserCountOutputTypeCountReviewAssignmentsArgs
   projectStatusHistories?: boolean | UserCountOutputTypeCountProjectStatusHistoriesArgs
+  auditLogs?: boolean | UserCountOutputTypeCountAuditLogsArgs
 }
 
 /**
@@ -3304,12 +3820,22 @@ export type UserCountOutputTypeCountProjectStatusHistoriesArgs<ExtArgs extends r
   where?: Prisma.ProjectStatusHistoryWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAuditLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AuditLogWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   email?: boolean
   fullName?: boolean
   passwordHash?: boolean
+  status?: boolean
+  roles?: boolean
+  statusNote?: boolean
   passwordResetToken?: boolean
   passwordResetExpiresAt?: boolean
   lastLoginAt?: boolean
@@ -3335,6 +3861,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   classificationDecisionsRecorded?: boolean | Prisma.User$classificationDecisionsRecordedArgs<ExtArgs>
   reviewAssignments?: boolean | Prisma.User$reviewAssignmentsArgs<ExtArgs>
   projectStatusHistories?: boolean | Prisma.User$projectStatusHistoriesArgs<ExtArgs>
+  auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -3343,6 +3870,9 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   email?: boolean
   fullName?: boolean
   passwordHash?: boolean
+  status?: boolean
+  roles?: boolean
+  statusNote?: boolean
   passwordResetToken?: boolean
   passwordResetExpiresAt?: boolean
   lastLoginAt?: boolean
@@ -3359,6 +3889,9 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   email?: boolean
   fullName?: boolean
   passwordHash?: boolean
+  status?: boolean
+  roles?: boolean
+  statusNote?: boolean
   passwordResetToken?: boolean
   passwordResetExpiresAt?: boolean
   lastLoginAt?: boolean
@@ -3375,6 +3908,9 @@ export type UserSelectScalar = {
   email?: boolean
   fullName?: boolean
   passwordHash?: boolean
+  status?: boolean
+  roles?: boolean
+  statusNote?: boolean
   passwordResetToken?: boolean
   passwordResetExpiresAt?: boolean
   lastLoginAt?: boolean
@@ -3386,7 +3922,7 @@ export type UserSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "fullName" | "passwordHash" | "passwordResetToken" | "passwordResetExpiresAt" | "lastLoginAt" | "lastLoginIp" | "isCommonReviewer" | "reviewerExpertise" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "fullName" | "passwordHash" | "status" | "roles" | "statusNote" | "passwordResetToken" | "passwordResetExpiresAt" | "lastLoginAt" | "lastLoginIp" | "isCommonReviewer" | "reviewerExpertise" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   committeeMemberships?: boolean | Prisma.User$committeeMembershipsArgs<ExtArgs>
   projectsCreated?: boolean | Prisma.User$projectsCreatedArgs<ExtArgs>
@@ -3404,6 +3940,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   classificationDecisionsRecorded?: boolean | Prisma.User$classificationDecisionsRecordedArgs<ExtArgs>
   reviewAssignments?: boolean | Prisma.User$reviewAssignmentsArgs<ExtArgs>
   projectStatusHistories?: boolean | Prisma.User$projectStatusHistoriesArgs<ExtArgs>
+  auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -3428,12 +3965,16 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     classificationDecisionsRecorded: Prisma.$ClassificationDecisionPayload<ExtArgs>[]
     reviewAssignments: Prisma.$ReviewAssignmentPayload<ExtArgs>[]
     projectStatusHistories: Prisma.$ProjectStatusHistoryPayload<ExtArgs>[]
+    auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     email: string
     fullName: string
     passwordHash: string | null
+    status: $Enums.UserStatus
+    roles: $Enums.RoleType[]
+    statusNote: string | null
     passwordResetToken: string | null
     passwordResetExpiresAt: Date | null
     lastLoginAt: Date | null
@@ -3853,6 +4394,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   classificationDecisionsRecorded<T extends Prisma.User$classificationDecisionsRecordedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$classificationDecisionsRecordedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassificationDecisionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviewAssignments<T extends Prisma.User$reviewAssignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReviewAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projectStatusHistories<T extends Prisma.User$projectStatusHistoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectStatusHistoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectStatusHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  auditLogs<T extends Prisma.User$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3886,6 +4428,9 @@ export interface UserFieldRefs {
   readonly email: Prisma.FieldRef<"User", 'String'>
   readonly fullName: Prisma.FieldRef<"User", 'String'>
   readonly passwordHash: Prisma.FieldRef<"User", 'String'>
+  readonly status: Prisma.FieldRef<"User", 'UserStatus'>
+  readonly roles: Prisma.FieldRef<"User", 'RoleType[]'>
+  readonly statusNote: Prisma.FieldRef<"User", 'String'>
   readonly passwordResetToken: Prisma.FieldRef<"User", 'String'>
   readonly passwordResetExpiresAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly lastLoginAt: Prisma.FieldRef<"User", 'DateTime'>
@@ -4664,6 +5209,30 @@ export type User$projectStatusHistoriesArgs<ExtArgs extends runtime.Types.Extens
   take?: number
   skip?: number
   distinct?: Prisma.ProjectStatusHistoryScalarFieldEnum | Prisma.ProjectStatusHistoryScalarFieldEnum[]
+}
+
+/**
+ * User.auditLogs
+ */
+export type User$auditLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AuditLog
+   */
+  select?: Prisma.AuditLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AuditLog
+   */
+  omit?: Prisma.AuditLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AuditLogInclude<ExtArgs> | null
+  where?: Prisma.AuditLogWhereInput
+  orderBy?: Prisma.AuditLogOrderByWithRelationInput | Prisma.AuditLogOrderByWithRelationInput[]
+  cursor?: Prisma.AuditLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AuditLogScalarFieldEnum | Prisma.AuditLogScalarFieldEnum[]
 }
 
 /**

@@ -584,6 +584,23 @@
   cursor: not-allowed;
 }
 
+.login-signup {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: rgba(11, 42, 28, 0.72);
+  text-align: center;
+}
+
+.login-signup a {
+  color: var(--green-deep);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.login-signup a:hover {
+  text-decoration: underline;
+}
+
 /* Show password toggle */
 .login-toggle {
   border: 1px solid rgba(7, 108, 57, 0.2);
@@ -1302,5 +1319,97 @@
   .login-loading-bar {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+/* Signup page refinements */
+.signup-shell {
+  grid-template-columns: 1fr 1fr;
+  gap: 52px;
+}
+
+.signup-intro {
+  padding: 20px 10px;
+  max-width: 560px;
+}
+
+.signup-intro h1 {
+  margin: 20px 0 10px;
+  font-size: 40px;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+.signup-intro p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.88);
+  max-width: 48ch;
+}
+
+.signup-card {
+  max-width: 620px;
+  width: 100%;
+  justify-self: end;
+}
+
+.signup-card-header {
+  padding: 30px 34px 14px;
+}
+
+.signup-form {
+  padding: 16px 34px 30px;
+}
+
+.signup-field {
+  margin-top: 20px;
+}
+
+.signup-name-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.signup-btn {
+  margin-top: 24px;
+}
+
+.signup-support {
+  padding: 0 34px 26px;
+}
+
+@media (max-width: 980px) {
+  .signup-shell {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .signup-card {
+    max-width: 680px;
+    justify-self: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .signup-name-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .signup-intro {
+    display: none;
+  }
+
+  .signup-card {
+    width: min(620px, 100%);
+  }
+
+  .signup-card-header,
+  .signup-form,
+  .signup-support {
+    padding-left: 24px;
+    padding-right: 24px;
   }
 }

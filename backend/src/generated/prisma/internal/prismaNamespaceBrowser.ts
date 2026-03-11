@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  AuditLog: 'AuditLog',
   Committee: 'Committee',
   Panel: 'Panel',
   CommitteeMember: 'CommitteeMember',
@@ -104,6 +105,9 @@ export const UserScalarFieldEnum = {
   email: 'email',
   fullName: 'fullName',
   passwordHash: 'passwordHash',
+  status: 'status',
+  roles: 'roles',
+  statusNote: 'statusNote',
   passwordResetToken: 'passwordResetToken',
   passwordResetExpiresAt: 'passwordResetExpiresAt',
   lastLoginAt: 'lastLoginAt',
@@ -116,6 +120,19 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const AuditLogScalarFieldEnum = {
+  id: 'id',
+  actorId: 'actorId',
+  action: 'action',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  metadataJson: 'metadataJson',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
 
 
 export const CommitteeScalarFieldEnum = {

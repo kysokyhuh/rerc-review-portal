@@ -12,92 +12,57 @@ const API_BASE_URL =
   (typeof import.meta !== "undefined"
     ? import.meta.env?.VITE_API_URL
     : undefined) || "http://localhost:3000";
+const authApi = axios.create({ baseURL: API_BASE_URL, withCredentials: true });
 
 export interface AuthUser {
   id: number;
   email: string;
   fullName: string;
   roles: string[];
-  committeeRoles: Record<number, string>;
+  status?: string;
 }
 
 interface AuthState {
   user: AuthUser | null;
-  accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
 
 interface AuthContextValue extends AuthState {
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<AuthUser>;
   logout: () => void;
-  getAccessToken: () => string | null;
+  refreshMe: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const TOKEN_KEY = "rerc_access_token";
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
     user: null,
-    accessToken: null,
     isAuthenticated: false,
     isLoading: true,
   });
 
-  // Try to restore session on mount
-  useEffect(() => {
-    const stored = localStorage.getItem(TOKEN_KEY);
-    if (!stored) {
-      setState((s) => ({ ...s, isLoading: false }));
-      return;
-    }
-
-    // Validate token by calling /auth/me
-    const authApi = axios.create({ baseURL: API_BASE_URL });
-    authApi
-      .get("/auth/me", {
-        headers: { Authorization: `Bearer ${stored}` },
-      })
-      .then((res) => {
-        setState({
-          user: res.data.user,
-          accessToken: stored,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-      })
-      .catch(() => {
-        // Token invalid/expired — try refresh
-        return authApi
-          .post("/auth/refresh", {}, { withCredentials: true })
-          .then((res) => {
-            const newToken = res.data.accessToken;
-            localStorage.setItem(TOKEN_KEY, newToken);
-            return authApi.get("/auth/me", {
-              headers: { Authorization: `Bearer ${newToken}` },
-            });
-          })
-          .then((res) => {
-            setState({
-              user: res.data.user,
-              accessToken: localStorage.getItem(TOKEN_KEY),
-              isAuthenticated: true,
-              isLoading: false,
-            });
-          })
-          .catch(() => {
-            localStorage.removeItem(TOKEN_KEY);
-            setState({
-              user: null,
-              accessToken: null,
-              isAuthenticated: false,
-              isLoading: false,
-            });
-          });
+  const refreshMe = useCallback(async () => {
+    try {
+      const res = await authApi.get("/auth/me");
+      setState({
+        user: res.data.user,
+        isAuthenticated: true,
+        isLoading: false,
       });
+    } catch {
+      setState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
+    }
   }, []);
+
+  useEffect(() => {
+    void refreshMe();
+  }, [refreshMe]);
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await axios.post(
@@ -106,39 +71,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       { withCredentials: true }
     );
 
-    const { accessToken, user } = res.data;
-    localStorage.setItem(TOKEN_KEY, accessToken);
+    const { user } = res.data;
 
     setState({
       user,
-      accessToken,
       isAuthenticated: true,
       isLoading: false,
     });
+    return user as AuthUser;
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    // Fire-and-forget server logout to clear httpOnly cookie
     axios
       .post(`${API_BASE_URL}/auth/logout`, {}, { withCredentials: true })
       .catch(() => {});
 
     setState({
       user: null,
-      accessToken: null,
       isAuthenticated: false,
       isLoading: false,
     });
   }, []);
 
-  const getAccessToken = useCallback(() => {
-    return state.accessToken;
-  }, [state.accessToken]);
-
   return (
     <AuthContext.Provider
-      value={{ ...state, login, logout, getAccessToken }}
+      value={{ ...state, login, logout, refreshMe }}
     >
       {children}
     </AuthContext.Provider>

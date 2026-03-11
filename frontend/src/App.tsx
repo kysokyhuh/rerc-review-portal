@@ -20,18 +20,25 @@ import ReportsPage from "@/pages/ReportsPage";
 import QueuePage from "@/pages/QueuePage";
 import HolidaysPage from "@/pages/HolidaysPage";
 import LoginPage from "@/pages/LoginPage";
+import SignupPage from "@/pages/SignupPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import AdminUsersPage from "@/pages/AdminUsersPage";
+import AdminAccountManagementPage from "@/pages/AdminAccountManagementPage";
+import NotAuthorizedPage from "@/pages/NotAuthorizedPage";
 import DashboardShell from "@/components/DashboardShell";
 
 // Layout wrapper that conditionally shows nav/footer
 function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const isAuthPage =
-    location.pathname === "/login" || location.pathname === "/forgot-password";
+    location.pathname === "/login" ||
+    location.pathname === "/signup" ||
+    location.pathname === "/forgot-password";
   const isDashboardShell =
     location.pathname === "/dashboard" ||
     location.pathname.startsWith("/queues/") ||
-    location.pathname.startsWith("/holidays");
+    location.pathname.startsWith("/holidays") ||
+    location.pathname.startsWith("/admin/");
 
   if (isAuthPage || isDashboardShell) {
     return <>{children}</>;
@@ -58,10 +65,12 @@ function App() {
               {/* Public routes */}
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
               <Route
                 path="/forgot-password"
                 element={<ForgotPasswordPage />}
               />
+              <Route path="/not-authorized" element={<NotAuthorizedPage />} />
 
               {/* Protected: Dashboard shell */}
               <Route
@@ -74,6 +83,22 @@ function App() {
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/queues/:queueKey" element={<QueuePage />} />
                 <Route path="/holidays" element={<HolidaysPage />} />
+                <Route
+                  path="/admin/users"
+                  element={
+                    <ProtectedRoute allowedRoles={["CHAIR"]}>
+                      <AdminUsersPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/account-management"
+                  element={
+                    <ProtectedRoute allowedRoles={["CHAIR"]}>
+                      <AdminAccountManagementPage />
+                    </ProtectedRoute>
+                  }
+                />
               </Route>
 
               {/* Protected: standalone pages */}
@@ -88,7 +113,7 @@ function App() {
               <Route
                 path="/imports/projects"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}>
                     <ImportProjectsPage />
                   </ProtectedRoute>
                 }
@@ -96,7 +121,7 @@ function App() {
               <Route
                 path="/reports"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}>
                     <ReportsPage />
                   </ProtectedRoute>
                 }

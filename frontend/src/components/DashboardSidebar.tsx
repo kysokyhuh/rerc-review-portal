@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import type { QueueCounts } from "@/types";
 import { BRAND } from "@/config/branding";
+import { useAuth } from "@/contexts/AuthContext";
+import api from "@/services/api";
 
 type DashboardSidebarProps = {
   counts: QueueCounts | null;
@@ -12,6 +14,56 @@ const navClassName = ({ isActive }: { isActive: boolean }) =>
 
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const [pendingApprovalCount, setPendingApprovalCount] = useState(0);
+
+  const roles = user?.roles ?? [];
+  const canOperate = roles.includes("CHAIR") || roles.includes("RESEARCH_ASSOCIATE");
+  const isChair = roles.includes("CHAIR");
+  const primaryRole = roles[0] || "";
+
+  const roleLabelMap: Record<string, string> = {
+    CHAIR: "Chair",
+    RESEARCH_ASSOCIATE: "Research Associate",
+    RESEARCH_ASSISTANT: "Research Assistant",
+  };
+
+  const roleLabel = roleLabelMap[primaryRole] || "User";
+  const firstName = user?.fullName?.trim().split(/\s+/)[0] || "User";
+
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Good Morning" : hour < 18 ? "Good Afternoon" : "Good Evening";
+
+  useEffect(() => {
+    if (!isChair) {
+      setPendingApprovalCount(0);
+      return;
+    }
+
+    let mounted = true;
+    const loadPendingApprovals = async () => {
+      try {
+        const res = await api.get("/admin/users", {
+          params: { _t: Date.now() },
+        });
+        const users = Array.isArray(res.data?.users) ? res.data.users : [];
+        const pending = users.filter((item: { status?: string }) => item.status === "PENDING").length;
+        if (mounted) {
+          setPendingApprovalCount(pending);
+        }
+      } catch {
+        if (mounted) {
+          setPendingApprovalCount(0);
+        }
+      }
+    };
+
+    void loadPendingApprovals();
+    return () => {
+      mounted = false;
+    };
+  }, [isChair]);
 
   return (
     <aside className="dashboard-sidebar">
@@ -19,8 +71,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">R</div>
           <div>
-                <h1>{BRAND.name} Portal</h1>
-                <span>{BRAND.tagline}</span>
+            <h1>{BRAND.name} Portal</h1>
+            <span>{BRAND.tagline}</span>
           </div>
         </div>
       </div>
@@ -37,6 +89,18 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
             </svg>
             Dashboard
           </NavLink>
+          {isChair ? (
+            <NavLink to="/admin/account-management" className={navClassName}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21c0-4.418 3.582-8 8-8s8 3.582 8 8" />
+              </svg>
+              Account Management
+              {pendingApprovalCount > 0 ? (
+                <span className="nav-item-badge">{pendingApprovalCount}</span>
+              ) : null}
+            </NavLink>
+          ) : null}
         </div>
 
         <div className="nav-section">
@@ -55,9 +119,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
               <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
             Under Review
-            {(counts?.forReview ?? 0) > 0 && (
-              <span className="nav-item-badge">{counts?.forReview}</span>
-            )}
+            {(counts?.forReview ?? 0) > 0 && <span className="nav-item-badge">{counts?.forReview}</span>}
           </NavLink>
           <NavLink to="/queues/revisions" className={navClassName}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -73,28 +135,34 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
 
         <div className="nav-section">
           <div className="nav-section-title">Tools</div>
-          <button className="nav-item" type="button" onClick={() => navigate("/projects/new")}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 5v14" />
-              <path d="M5 12h14" />
-            </svg>
-            New Protocol
-          </button>
-          <NavLink to="/imports/projects" className={navClassName}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 3v12" />
-              <path d="M7 8l5-5 5 5" />
-              <path d="M5 21h14a2 2 0 002-2v-5" />
-              <path d="M3 14v5a2 2 0 002 2" />
-            </svg>
-            Import CSV
-          </NavLink>
-          <NavLink to="/reports" className={navClassName}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
-            </svg>
-            Reports
-          </NavLink>
+          {canOperate ? (
+            <button className="nav-item" type="button" onClick={() => navigate("/projects/new")}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 5v14" />
+                <path d="M5 12h14" />
+              </svg>
+              New Protocol
+            </button>
+          ) : null}
+          {canOperate ? (
+            <NavLink to="/imports/projects" className={navClassName}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 3v12" />
+                <path d="M7 8l5-5 5 5" />
+                <path d="M5 21h14a2 2 0 002-2v-5" />
+                <path d="M3 14v5a2 2 0 002 2" />
+              </svg>
+              Import CSV
+            </NavLink>
+          ) : null}
+          {canOperate ? (
+            <NavLink to="/reports" className={navClassName}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+              Reports
+            </NavLink>
+          ) : null}
           <NavLink to="/archives" className={navClassName}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 8v13H3V8" />
@@ -115,12 +183,29 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
 
       <div className="sidebar-footer">
         <div className="sidebar-user">
-          <div className="sidebar-avatar">RA</div>
+          <div className="sidebar-avatar">{user?.fullName?.[0]?.toUpperCase() ?? "U"}</div>
           <div className="sidebar-user-info">
-            <div className="sidebar-user-name">Research Associate</div>
-            <div className="sidebar-user-role">{BRAND.defaultCommitteeCode}</div>
+            <div className="sidebar-user-name">
+              {greeting}, {firstName}
+            </div>
+            <div className="sidebar-user-role">({roleLabel})</div>
           </div>
         </div>
+        <button
+          className="nav-item sidebar-logout"
+          type="button"
+          onClick={() => {
+            logout();
+            navigate("/login", { replace: true });
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Logout
+        </button>
       </div>
     </aside>
   );

@@ -5,6 +5,7 @@ import prisma from "../../config/prismaClient";
 import { SubmissionStatus, ReviewType, ReviewDecision } from "../../generated/prisma/client";
 import { workingDaysBetween } from "../../utils/slaUtils";
 import { AppError } from "../../middleware/errorHandler";
+import { logAuditEvent } from "../audit/auditService";
 
 /* ------------------------------------------------------------------ */
 /*  Classify                                                           */
@@ -24,24 +25,59 @@ export async function classifySubmission(
   });
   if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
 
-  return prisma.classification.upsert({
-    where: { submissionId },
-    update: {
-      reviewType: data.reviewType,
-      classificationDate: new Date(data.classificationDate),
-      panelId: data.panelId ?? null,
-      rationale: data.rationale,
-      classifiedById,
-    },
-    create: {
-      submissionId,
-      reviewType: data.reviewType,
-      classificationDate: new Date(data.classificationDate),
-      panelId: data.panelId ?? null,
-      rationale: data.rationale,
-      classifiedById,
-    },
+  const classificationDate = new Date(data.classificationDate);
+  if (Number.isNaN(classificationDate.getTime())) {
+    throw new AppError(400, "INVALID_DATE", "Invalid classificationDate");
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    const classification = await tx.classification.upsert({
+      where: { submissionId },
+      update: {
+        reviewType: data.reviewType,
+        classificationDate,
+        panelId: data.panelId ?? null,
+        rationale: data.rationale,
+        classifiedById,
+      },
+      create: {
+        submissionId,
+        reviewType: data.reviewType,
+        classificationDate,
+        panelId: data.panelId ?? null,
+        rationale: data.rationale,
+        classifiedById,
+      },
+    });
+
+    const previousStatus = submission.status;
+    if (previousStatus !== SubmissionStatus.CLASSIFIED) {
+      await tx.submission.update({
+        where: { id: submissionId },
+        data: { status: SubmissionStatus.CLASSIFIED },
+      });
+      await tx.submissionStatusHistory.create({
+        data: {
+          submissionId,
+          oldStatus: previousStatus,
+          newStatus: SubmissionStatus.CLASSIFIED,
+          reason: `Classified as ${data.reviewType}`,
+          changedById: classifiedById,
+        },
+      });
+    }
+    return classification;
   });
+
+  await logAuditEvent({
+    actorId: classifiedById,
+    action: "SUBMISSION_CLASSIFIED",
+    entityType: "Submission",
+    entityId: submissionId,
+    metadata: { reviewType: data.reviewType, panelId: data.panelId ?? null },
+  });
+
+  return result;
 }
 
 /* ------------------------------------------------------------------ */
@@ -83,7 +119,7 @@ export async function getSubmissionById(id: number) {
 export async function updateSubmissionOverview(
   id: number,
   body: Record<string, any>,
-  changedById?: number
+  changedById: number
 ) {
   const {
     submissionType, receivedDate, status, finalDecision,
@@ -284,7 +320,7 @@ export async function updateSubmissionStatus(
   id: number,
   newStatus: SubmissionStatus,
   reason: string | undefined,
-  changedById?: number
+  changedById: number
 ) {
   const submission = await prisma.submission.findUnique({
     where: { id }, select: { status: true },
@@ -306,7 +342,8 @@ export async function updateSubmissionStatus(
 export async function assignReviewer(
   submissionId: number,
   reviewerId: number,
-  isPrimary: boolean
+  isPrimary: boolean,
+  actorId: number
 ) {
   const submission = await prisma.submission.findUnique({ where: { id: submissionId } });
   if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
@@ -314,9 +351,17 @@ export async function assignReviewer(
   const reviewer = await prisma.user.findUnique({ where: { id: reviewerId } });
   if (!reviewer) throw new AppError(404, "NOT_FOUND", "Reviewer not found");
 
-  return prisma.review.create({
+  const review = await prisma.review.create({
     data: { submissionId, reviewerId, isPrimary },
   });
+  await logAuditEvent({
+    actorId,
+    action: "REVIEWER_ASSIGNED",
+    entityType: "Submission",
+    entityId: submissionId,
+    metadata: { reviewerId, isPrimary },
+  });
+  return review;
 }
 
 /* ------------------------------------------------------------------ */
@@ -325,15 +370,24 @@ export async function assignReviewer(
 export async function recordReviewDecision(
   reviewId: number,
   decision: ReviewDecision,
+  actorId: number,
   remarks?: string
 ) {
   const existing = await prisma.review.findUnique({ where: { id: reviewId } });
   if (!existing) throw new AppError(404, "NOT_FOUND", "Review not found");
 
-  return prisma.review.update({
+  const updated = await prisma.review.update({
     where: { id: reviewId },
     data: { decision, remarks, respondedAt: new Date() },
   });
+  await logAuditEvent({
+    actorId,
+    action: "REVIEW_DECISION_SUBMITTED",
+    entityType: "Review",
+    entityId: reviewId,
+    metadata: { decision },
+  });
+  return updated;
 }
 
 /* ------------------------------------------------------------------ */
@@ -346,7 +400,8 @@ export async function recordFinalDecision(
     finalDecisionDate?: string;
     approvalStartDate?: string;
     approvalEndDate?: string;
-  }
+  },
+  actorId: number
 ) {
   const decisionDate = data.finalDecisionDate ? new Date(data.finalDecisionDate) : new Date();
   if (Number.isNaN(decisionDate.getTime())) {
@@ -363,7 +418,7 @@ export async function recordFinalDecision(
     throw new AppError(400, "INVALID_DATE", "Invalid approvalEndDate");
   }
 
-  return prisma.submission.update({
+  const updated = await prisma.submission.update({
     where: { id: submissionId },
     data: {
       finalDecision: data.finalDecision as any,
@@ -374,6 +429,14 @@ export async function recordFinalDecision(
     },
     include: { project: true },
   });
+  await logAuditEvent({
+    actorId,
+    action: "FINAL_DECISION_RECORDED",
+    entityType: "Submission",
+    entityId: submissionId,
+    metadata: { finalDecision: data.finalDecision },
+  });
+  return updated;
 }
 
 /* ------------------------------------------------------------------ */

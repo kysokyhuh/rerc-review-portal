@@ -23,9 +23,13 @@ cp .env.example backend/.env
 | `JWT_REFRESH_SECRET` | **Yes** | — | 48-byte hex string for refresh tokens |
 | `PORT` | No | `3000` | Backend HTTP port |
 | `NODE_ENV` | No | `development` | `development` or `production` |
+| `DEV_HEADER_AUTH` | No | `false` | Enables `x-user-*` debug headers only in development |
 | `CORS_ORIGINS` | No | `http://localhost:5173` | Comma-separated allowed origins |
 | `FRONTEND_URL` | No | `http://localhost:5173` | Used in letter links |
 | `VITE_API_URL` | No | `http://localhost:3000` | Frontend → API base URL (build-time) |
+| `SEED_CHAIR_PASSWORD` | No | `changeme123` | Seed password for `chair@urerb.com` |
+| `SEED_ASSOC_PASSWORD` | No | `changeme123` | Seed password for `assoc@urerb.com` |
+| `SEED_ASSIST_PASSWORD` | No | `changeme123` | Seed password for `assist@urerb.com` |
 
 Generate JWT secrets:
 
@@ -68,13 +72,11 @@ cd ../packages/shared && npm install
 
 After running `npm run setup`, the following accounts are seeded:
 
-| Email | Password | Role |
+| Email | Password Env | Role |
 | --- | --- | --- |
-| ra@example.com | changeme123 | Research Associate |
-| staff@rerc.demo | changeme123 | Dashboard Staff |
-| reviewer.scientist@rerc.demo | changeme123 | Reviewer (Scientist) |
-| reviewer.lay@rerc.demo | changeme123 | Reviewer (Lay) |
-| reviewer.consultant@rerc.demo | changeme123 | Reviewer (Consultant) |
+| chair@urerb.com | `SEED_CHAIR_PASSWORD` | Chair |
+| assoc@urerb.com | `SEED_ASSOC_PASSWORD` | Research Associate |
+| assist@urerb.com | `SEED_ASSIST_PASSWORD` | Research Assistant |
 
 ## Development
 

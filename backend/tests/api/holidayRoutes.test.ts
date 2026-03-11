@@ -94,7 +94,7 @@ describe("holiday routes", () => {
     const response = await request(app)
       .post("/holidays")
       .set("X-User-ID", "9")
-      .set("X-User-Roles", "ADMIN")
+      .set("X-User-Roles", "CHAIR")
       .send({
         date: "2026-12-25",
         name: "Christmas Day",
@@ -135,19 +135,22 @@ describe("holiday routes", () => {
   });
 
   it("rejects update when target date already exists", async () => {
-    prisma.holiday.findUnique
-      .mockResolvedValueOnce({
-        id: 11,
-        date: new Date("2026-11-01T00:00:00.000Z"),
-        name: "Old Name",
-        createdAt: new Date("2026-01-01T00:00:00.000Z"),
-      })
-      .mockResolvedValueOnce({
+    prisma.holiday.findUnique.mockImplementation(({ where }: { where: { id?: number; date?: Date } }) => {
+      if (where?.id === 11) {
+        return Promise.resolve({
+          id: 11,
+          date: new Date("2026-11-01T00:00:00.000Z"),
+          name: "Old Name",
+          createdAt: new Date("2026-01-01T00:00:00.000Z"),
+        });
+      }
+      return Promise.resolve({
         id: 12,
         date: new Date("2026-11-02T00:00:00.000Z"),
         name: "Existing",
         createdAt: new Date("2026-01-01T00:00:00.000Z"),
       });
+    });
 
     const response = await request(app)
       .patch("/holidays/11")
@@ -171,7 +174,7 @@ describe("holiday routes", () => {
     const response = await request(app)
       .delete("/holidays/90")
       .set("X-User-ID", "9")
-      .set("X-User-Roles", "ADMIN");
+      .set("X-User-Roles", "CHAIR");
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ success: true });

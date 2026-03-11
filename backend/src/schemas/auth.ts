@@ -5,6 +5,8 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-export const refreshSchema = z.object({
-  refreshToken: z.string().optional(),
+export const signupSchema = z.object({
+  fullName: z.string().trim().min(2, "Full name is required"),
+  email: z.string().trim().email(),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });

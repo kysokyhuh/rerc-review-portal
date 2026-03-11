@@ -981,14 +981,6 @@ export type EnumProjectStatusFieldUpdateOperationsInput = {
   set?: $Enums.ProjectStatus
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type ProjectCreateNestedOneWithoutProtocolProfileInput = {
   create?: Prisma.XOR<Prisma.ProjectCreateWithoutProtocolProfileInput, Prisma.ProjectUncheckedCreateWithoutProtocolProfileInput>
   connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutProtocolProfileInput

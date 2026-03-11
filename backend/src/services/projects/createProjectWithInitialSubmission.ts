@@ -139,7 +139,7 @@ const parseDate = (value?: string | Date | null): Date | null => {
 
 export async function createProjectWithInitialSubmission(
   input: CreateProjectWithInitialSubmissionInput,
-  actorId?: number
+  actorId: number
 ) {
   const fieldErrors: ProjectCreateFieldError[] = [];
 

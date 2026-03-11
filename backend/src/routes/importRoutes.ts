@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer, { MulterError } from "multer";
 import prisma from "../config/prismaClient";
 import { RoleType } from "../generated/prisma/client";
-import { requireRoles } from "../middleware/auth";
+import { requireAnyRole } from "../middleware/auth";
 import {
   CsvImportError,
   DEFAULT_IMPORT_CONFIG,
@@ -132,7 +132,7 @@ const getUploadFileOrThrow = (req: any) => {
 
 router.post(
   "/imports/projects/preview",
-  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   uploadSingleFile,
   async (req, res, next) => {
   try {
@@ -154,7 +154,7 @@ router.post(
 
 router.post(
   "/imports/projects/commit",
-  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   uploadSingleFile,
   async (req, res, next) => {
   try {
@@ -236,7 +236,7 @@ router.post(
                 receivedDate: row.receivedDate,
                 notes: row.remarks,
               },
-              req.user?.id
+              req.user!.id
             );
             if (created?.projectId) {
               await prisma.protocolProfile.upsert({
@@ -419,7 +419,7 @@ router.post(
 
 router.get(
   "/api/imports/projects/template",
-  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireAnyRole([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   (_req, res) => {
     const header = PROJECT_IMPORT_HEADERS.join(",");
     res.setHeader("Content-Type", "text/csv; charset=utf-8");

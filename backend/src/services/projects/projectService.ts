@@ -243,7 +243,7 @@ export async function getProjectProfile(projectId: number) {
 export async function upsertProjectProfile(
   projectId: number,
   payload: Record<string, any>,
-  userId?: number | null
+  userId: number
 ) {
   const project = await prisma.project.findUnique({
     where: { id: projectId }, select: { id: true },
@@ -253,7 +253,7 @@ export async function upsertProjectProfile(
   const changeReason = asNullableString(payload._meta?.changeReason);
   const sourceSubmissionId = payload._meta?.sourceSubmissionId
     ? Number(payload._meta.sourceSubmissionId) : null;
-  const changedById = userId ?? null;
+  const changedById = userId;
 
   const data = {
     title: asNullableString(payload.title),
@@ -419,7 +419,7 @@ export async function createSubmissionForProject(
     completenessStatus?: string;
     completenessRemarks?: string;
   },
-  userId?: number
+  userId: number
 ) {
   const allowedSubmissionTypes = [
     "INITIAL", "AMENDMENT", "CONTINUING_REVIEW", "FINAL_REPORT",

@@ -3,8 +3,12 @@
  */
 import { Router } from "express";
 import { RoleType } from "../generated/prisma/client";
-import { requireUser, requireRoles } from "../middleware/auth";
+import { requireAnyRole, requireRole, requireUser } from "../middleware/auth";
 import { validate } from "../middleware/validate";
+import {
+  requireAssignedReviewerByReviewId,
+  requireSubmissionAccess,
+} from "../middleware/reviewerScope";
 import {
   classifySubmissionSchema,
   updateSubmissionOverviewSchema,
@@ -29,7 +33,7 @@ const router = Router();
 // Classify a submission (EXEMPT / EXPEDITED / FULL_BOARD)
 router.post(
   "/submissions/:submissionId/classifications",
-  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   validate(classifySubmissionSchema),
   async (req, res, next) => {
     try {
@@ -46,7 +50,7 @@ router.post(
 );
 
 // Get a submission with its classification
-router.get("/submissions/:id", requireUser, async (req, res, next) => {
+router.get("/submissions/:id", requireUser, requireSubmissionAccess, async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     if (Number.isNaN(id)) {
@@ -62,7 +66,7 @@ router.get("/submissions/:id", requireUser, async (req, res, next) => {
 // Update submission overview fields and log changes
 router.patch(
   "/submissions/:id/overview",
-  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   validate(updateSubmissionOverviewSchema),
   async (req, res, next) => {
     try {
@@ -70,7 +74,7 @@ router.patch(
       if (Number.isNaN(id)) {
         return res.status(400).json({ message: "Invalid submission id" });
       }
-      const result = await updateSubmissionOverview(id, req.body, req.user?.id);
+      const result = await updateSubmissionOverview(id, req.body, req.user!.id);
       res.json(result);
     } catch (error) {
       next(error);
@@ -81,7 +85,7 @@ router.patch(
 // Change submission status and log history
 router.patch(
   "/submissions/:id/status",
-  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   validate(updateSubmissionStatusSchema),
   async (req, res, next) => {
     try {
@@ -89,7 +93,7 @@ router.patch(
       if (Number.isNaN(id)) {
         return res.status(400).json({ message: "Invalid submission id" });
       }
-      const result = await updateSubmissionStatus(id, req.body.newStatus, req.body.reason, req.user?.id);
+      const result = await updateSubmissionStatus(id, req.body.newStatus, req.body.reason, req.user!.id);
       res.json(result);
     } catch (error) {
       next(error);
@@ -100,7 +104,7 @@ router.patch(
 // Assign a reviewer to a submission
 router.post(
   "/submissions/:submissionId/reviews",
-  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   validate(createReviewSchema),
   async (req, res, next) => {
     try {
@@ -108,7 +112,12 @@ router.post(
       if (Number.isNaN(submissionId)) {
         return res.status(400).json({ message: "Invalid submissionId" });
       }
-      const result = await assignReviewer(submissionId, req.body.reviewerId, Boolean(req.body.isPrimary));
+      const result = await assignReviewer(
+        submissionId,
+        req.body.reviewerId,
+        Boolean(req.body.isPrimary),
+        req.user!.id
+      );
       res.status(201).json(result);
     } catch (error) {
       next(error);
@@ -119,7 +128,8 @@ router.post(
 // Record a decision for a review
 router.post(
   "/reviews/:reviewId/decision",
-  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireRole(RoleType.RESEARCH_ASSISTANT),
+  requireAssignedReviewerByReviewId,
   validate(reviewDecisionSchema),
   async (req, res, next) => {
     try {
@@ -127,7 +137,12 @@ router.post(
       if (Number.isNaN(reviewId)) {
         return res.status(400).json({ message: "Invalid reviewId" });
       }
-      const result = await recordReviewDecision(reviewId, req.body.decision, req.body.remarks);
+      const result = await recordReviewDecision(
+        reviewId,
+        req.body.decision,
+        req.user!.id,
+        req.body.remarks
+      );
       res.json(result);
     } catch (error) {
       next(error);
@@ -138,7 +153,7 @@ router.post(
 // Record final decision for a submission and update project approvals
 router.post(
   "/submissions/:id/final-decision",
-  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   validate(finalDecisionSchema),
   async (req, res, next) => {
     try {
@@ -146,7 +161,7 @@ router.post(
       if (Number.isNaN(submissionId)) {
         return res.status(400).json({ message: "Invalid submission id" });
       }
-      const result = await recordFinalDecision(submissionId, req.body);
+      const result = await recordFinalDecision(submissionId, req.body, req.user!.id);
       res.json(result);
     } catch (error) {
       next(error);
@@ -155,7 +170,7 @@ router.post(
 );
 
 // Summarize SLA compliance for a submission
-router.get("/submissions/:id/sla-summary", requireUser, async (req, res, next) => {
+router.get("/submissions/:id/sla-summary", requireUser, requireSubmissionAccess, async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     if (Number.isNaN(id)) {

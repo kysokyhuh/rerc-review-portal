@@ -128,90 +128,6 @@ api.interceptors.response.use(
   }
 );
 
-// ---------------------------------------------------------------------------
-// Auth interceptors — Bearer token injection + 401 refresh retry
-// ---------------------------------------------------------------------------
-
-const TOKEN_KEY = "rerc_access_token";
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_KEY);
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-let isRefreshing = false;
-let refreshQueue: Array<{
-  resolve: (token: string) => void;
-  reject: (err: unknown) => void;
-}> = [];
-
-function processQueue(error: unknown, token: string | null) {
-  for (const { resolve, reject } of refreshQueue) {
-    if (error) reject(error);
-    else resolve(token!);
-  }
-  refreshQueue = [];
-}
-
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const original = error.config;
-
-    // Only retry once, and only for 401s (not login itself)
-    if (
-      error.response?.status === 401 &&
-      !original._retry &&
-      !original.url?.startsWith("/auth/")
-    ) {
-      if (isRefreshing) {
-        // Queue this request until refresh completes
-        return new Promise((resolve, reject) => {
-          refreshQueue.push({
-            resolve: (token: string) => {
-              original.headers.Authorization = `Bearer ${token}`;
-              resolve(api(original));
-            },
-            reject,
-          });
-        });
-      }
-
-      original._retry = true;
-      isRefreshing = true;
-
-      try {
-        const res = await axios.post(
-          `${API_BASE_URL}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        );
-        const newToken = res.data.accessToken;
-        localStorage.setItem(TOKEN_KEY, newToken);
-        original.headers.Authorization = `Bearer ${newToken}`;
-        processQueue(null, newToken);
-        return api(original);
-      } catch (refreshErr) {
-        processQueue(refreshErr, null);
-        localStorage.removeItem(TOKEN_KEY);
-        // Redirect to login with expired flag
-        if (typeof window !== "undefined") {
-          window.location.href = "/login?expired=true";
-        }
-        return Promise.reject(refreshErr);
-      } finally {
-        isRefreshing = false;
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
-
-
 /**
  * Fetch distinct college values for filter dropdowns
  */
@@ -261,11 +177,13 @@ export async function fetchDashboardQueues(
     counts: {
       forClassification: data.counts?.classification || 0,
       forReview: data.counts?.review || 0,
+      forExempted: data.counts?.exempted || 0,
       awaitingRevisions: data.counts?.revision || 0,
       completed: data.counts?.completed || 0,
     },
     classificationQueue: transformQueue(data.classificationQueue || [], "classification"),
     reviewQueue: transformQueue(data.reviewQueue || [], "review"),
+    exemptedQueue: transformQueue(data.exemptedQueue || [], "review"),
     revisionQueue: transformQueue(data.revisionQueue || [], "revision"),
   };
 }

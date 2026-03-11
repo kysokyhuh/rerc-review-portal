@@ -2,9 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { RoleType } from "../generated/prisma/client";
 import { verifyAccessToken } from "../utils/jwt";
 
-// =============================================================================
-// Helpers for dev-only header/env fallback
-// =============================================================================
+const AUTH_COOKIE_NAME = "authToken";
 
 const parseRoleList = (value?: string | null): RoleType[] => {
   if (!value) return [];
@@ -23,7 +21,7 @@ const parseRoleList = (value?: string | null): RoleType[] => {
 };
 
 const parseCommitteeRoles = (
-  value?: string | null,
+  value?: string | null
 ): Record<number, RoleType> => {
   if (!value) return {};
   try {
@@ -43,85 +41,62 @@ const parseCommitteeRoles = (
   }
 };
 
-const buildUserFromHeaders = (req: Request) => {
+const tryDevHeaderUser = (req: Request) => {
+  const isDevHeaderEnabled =
+    process.env.NODE_ENV === "development" &&
+    process.env.DEV_HEADER_AUTH === "true";
+  if (!isDevHeaderEnabled) {
+    return null;
+  }
   const idRaw = req.header("x-user-id");
   const id = idRaw ? Number(idRaw) : Number.NaN;
   if (!Number.isFinite(id)) return null;
-  const email = req.header("x-user-email") || undefined;
-  const fullName = req.header("x-user-name") || undefined;
-  const roles = parseRoleList(req.header("x-user-roles"));
-  const committeeRoles = parseCommitteeRoles(
-    req.header("x-user-committee-roles"),
-  );
-  return { id, email, fullName, roles, committeeRoles };
-};
 
-const buildUserFromEnv = () => {
-  const idRaw = process.env.DEV_USER_ID;
-  const id = idRaw ? Number(idRaw) : Number.NaN;
-  if (!Number.isFinite(id)) return null;
-  const email = process.env.DEV_USER_EMAIL || undefined;
-  const fullName = process.env.DEV_USER_NAME || undefined;
-  const roles = parseRoleList(process.env.DEV_USER_ROLES);
-  return { id, email, fullName, roles, committeeRoles: {} };
+  return {
+    id,
+    email: req.header("x-user-email") || undefined,
+    fullName: req.header("x-user-name") || undefined,
+    roles: parseRoleList(req.header("x-user-roles")),
+    committeeRoles: parseCommitteeRoles(req.header("x-user-committee-roles")),
+  };
 };
-
-// =============================================================================
-// Main auth middleware — JWT first, dev fallback second
-// =============================================================================
 
 export const authenticateUser = (
   req: Request,
   _res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
-  // 1. Try JWT Bearer token
-  const authHeader = req.header("authorization");
-  if (authHeader?.startsWith("Bearer ")) {
-    const token = authHeader.slice(7);
-    try {
-      const payload = verifyAccessToken(token);
-      req.user = {
-        id: payload.sub,
-        email: payload.email,
-        fullName: payload.fullName,
-        roles: payload.roles,
-        committeeRoles: payload.committeeRoles,
-      };
-      return next();
-    } catch {
-      // Invalid token — don't fall through to dev bypass, just leave user unset
-      return next();
-    }
+  const devUser = tryDevHeaderUser(req);
+  if (devUser) {
+    req.user = devUser;
+    return next();
   }
 
-  // 2. Dev-only fallback: header-based or env-based user
-  if (process.env.NODE_ENV !== "production") {
-    const headerUser = buildUserFromHeaders(req);
-    if (headerUser) {
-      req.user = headerUser;
-      return next();
-    }
+  const cookieToken = req.cookies?.[AUTH_COOKIE_NAME] as string | undefined;
+  const token = cookieToken;
 
-    const envUser = buildUserFromEnv();
-    if (envUser) {
-      req.user = envUser;
-      return next();
-    }
+  if (!token) return next();
+
+  try {
+    const payload = verifyAccessToken(token);
+    req.user = {
+      id: payload.sub,
+      email: payload.email,
+      fullName: payload.fullName,
+      roles: payload.roles,
+      committeeRoles: payload.committeeRoles,
+    };
+  } catch {
+    // Keep req.user undefined for guards to handle.
   }
 
-  // 3. No auth — leave req.user undefined (requireUser will catch)
   return next();
 };
 
-// =============================================================================
-// Guard middleware
-// =============================================================================
-
-export const requireUser = (
+export const requireAuth = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
@@ -129,17 +104,21 @@ export const requireUser = (
   return next();
 };
 
-export const requireRoles = (allowed: RoleType[]) => {
+export const requireRole = (role: RoleType) =>
+  requireAnyRole([role]);
+
+export const requireAnyRole = (allowed: RoleType[]) => {
   const allowedSet = new Set(allowed);
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    const roles = req.user.roles || [];
-    const hasRole = roles.some((role) => allowedSet.has(role));
-    if (!hasRole) {
-      return res.status(403).json({ message: "Forbidden" });
-    }
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+    const hasRole = (req.user.roles || []).some((role) => allowedSet.has(role));
+    if (!hasRole) return res.status(403).json({ message: "Forbidden" });
     return next();
   };
 };
+
+// Backward-compatible aliases while routes are being migrated.
+export const requireUser = requireAuth;
+export const requireRoles = requireAnyRole;
+
+export { AUTH_COOKIE_NAME };

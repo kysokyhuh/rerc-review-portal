@@ -21,6 +21,12 @@ enum RoleType {
   ADMIN
 }
 
+enum UserStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+}
+
 enum FundingType {
   INTERNAL
   EXTERNAL
@@ -208,6 +214,9 @@ model User {
   email                  String    @unique
   fullName               String
   passwordHash           String?
+  status                 UserStatus @default(PENDING)
+  roles                  RoleType[] @default([])
+  statusNote             String?
   passwordResetToken     String?
   passwordResetExpiresAt DateTime?
   lastLoginAt            DateTime?
@@ -235,6 +244,22 @@ model User {
   classificationDecisionsRecorded ClassificationDecision[]  @relation("ClassificationDecisionRecordedBy")
   reviewAssignments               ReviewAssignment[]        @relation("AssignmentReviewer")
   projectStatusHistories          ProjectStatusHistory[]
+  auditLogs                       AuditLog[]                @relation("AuditActor")
+}
+
+model AuditLog {
+  id           Int      @id @default(autoincrement())
+  actorId      Int?
+  action       String
+  entityType   String
+  entityId     String
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId, createdAt])
 }
 
 model Committee {

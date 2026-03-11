@@ -5,6 +5,7 @@ import { Router } from "express";
 import { requireUser } from "../middleware/auth";
 import prisma from "../config/prismaClient";
 import { BRAND } from "../config/branding";
+import { RoleType } from "../generated/prisma/client";
 import {
   parseDashboardFilterParams,
   buildDashboardFiltersWhere,
@@ -29,14 +30,19 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
     const filterWhere = buildDashboardFiltersWhere(filterParams);
 
     const baseProject = { committee: { code: committeeCode } };
+    const isAssistant = req.user?.roles.includes(RoleType.RESEARCH_ASSISTANT);
+    const roleScope = isAssistant
+      ? { reviews: { some: { reviewerId: req.user!.id } } }
+      : {};
 
     const classificationQueue = await prisma.submission.findMany({
       where: mergeDashboardWhere(
         {
           status: filterParams.status
             ? filterParams.status as any
-            : { in: ["RECEIVED", "UNDER_CLASSIFICATION"] },
+            : { in: ["RECEIVED", "AWAITING_CLASSIFICATION"] },
           project: baseProject,
+          ...roleScope,
         },
         // Don't override status if the user explicitly passed one
         filterParams.status ? (() => { const { status, ...rest } = filterWhere; return rest; })() : filterWhere
@@ -54,8 +60,14 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
     const reviewQueue = await prisma.submission.findMany({
       where: mergeDashboardWhere(
         {
-          status: filterParams.status ? filterParams.status as any : "UNDER_REVIEW",
+          status: filterParams.status
+            ? filterParams.status as any
+            : { in: ["CLASSIFIED", "UNDER_REVIEW"] },
           project: baseProject,
+          classification: {
+            reviewType: { in: ["EXPEDITED", "FULL_BOARD"] },
+          },
+          ...roleScope,
         },
         filterParams.status ? (() => { const { status, ...rest } = filterWhere; return rest; })() : filterWhere
       ),
@@ -74,8 +86,38 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
         {
           status: filterParams.status ? filterParams.status as any : "AWAITING_REVISIONS",
           project: baseProject,
+          ...roleScope,
         },
         filterParams.status ? (() => { const { status, ...rest } = filterWhere; return rest; })() : filterWhere
+      ),
+      include: {
+        project: true,
+        classification: true,
+        staffInCharge: true,
+      },
+      orderBy: {
+        receivedDate: "asc",
+      },
+    });
+
+    const exemptedQueue = await prisma.submission.findMany({
+      where: mergeDashboardWhere(
+        {
+          status: filterParams.status
+            ? filterParams.status as any
+            : { in: ["CLASSIFIED", "UNDER_REVIEW"] },
+          project: baseProject,
+          classification: {
+            reviewType: "EXEMPT",
+          },
+          ...roleScope,
+        },
+        filterParams.status
+          ? (() => {
+              const { status, ...rest } = filterWhere;
+              return rest;
+            })()
+          : filterWhere
       ),
       include: {
         project: true,
@@ -92,10 +134,12 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
       counts: {
         classification: classificationQueue.length,
         review: reviewQueue.length,
+        exempted: exemptedQueue.length,
         revision: revisionQueue.length,
       },
       classificationQueue,
       reviewQueue,
+      exemptedQueue,
       revisionQueue,
     });
   } catch (error) {

@@ -21,6 +21,15 @@ export const RoleType = {
 export type RoleType = (typeof RoleType)[keyof typeof RoleType]
 
 
+export const UserStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  REJECTED: 'REJECTED'
+} as const
+
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
+
+
 export const FundingType = {
   INTERNAL: 'INTERNAL',
   EXTERNAL: 'EXTERNAL',

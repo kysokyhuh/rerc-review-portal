@@ -2,6 +2,7 @@ import "dotenv/config";
 import fs from "fs";
 import path from "path";
 import { parse } from "csv-parse/sync";
+import bcrypt from "bcryptjs";
 import prisma from "./prismaClient";
 import {
   ClassificationType,
@@ -22,6 +23,7 @@ import {
   SubmissionDocumentType,
   SubmissionStatus,
   SubmissionType,
+  UserStatus,
 } from "../generated/prisma/client";
 
 const CSV_FILENAME =
@@ -633,8 +635,78 @@ const seedAcademicTerms = async () => {
 };
 
 async function main() {
-  // Pre-computed bcrypt hash for "changeme123" (12 rounds) — deterministic across all environments
-  const defaultHash = "$2b$12$iHGvrmC9vIEMBmFrpiD8AOGUx4LAv1S49KVDgb.KyXxu3uriY/dFm";
+  const chairPassword = process.env.SEED_CHAIR_PASSWORD || "changeme123";
+  const assocPassword = process.env.SEED_ASSOC_PASSWORD || "changeme123";
+  const assistPassword = process.env.SEED_ASSIST_PASSWORD || "changeme123";
+  const defaultHash = await bcrypt.hash("changeme123", 12);
+
+  console.log(
+    "Seeded auth accounts are using SEED_CHAIR_PASSWORD/SEED_ASSOC_PASSWORD/SEED_ASSIST_PASSWORD (change defaults outside local dev)."
+  );
+
+  const chairHash = await bcrypt.hash(chairPassword, 12);
+  const assocHash = await bcrypt.hash(assocPassword, 12);
+  const assistHash = await bcrypt.hash(assistPassword, 12);
+
+  const chairUser = await prisma.user.upsert({
+    where: { email: "chair@urerb.com" },
+    update: {
+      fullName: "URERB Chair",
+      passwordHash: chairHash,
+      status: UserStatus.ACTIVE,
+      isActive: true,
+      roles: [RoleType.CHAIR],
+      statusNote: null,
+    },
+    create: {
+      email: "chair@urerb.com",
+      fullName: "URERB Chair",
+      passwordHash: chairHash,
+      status: UserStatus.ACTIVE,
+      isActive: true,
+      roles: [RoleType.CHAIR],
+    },
+  });
+
+  const assocUser = await prisma.user.upsert({
+    where: { email: "assoc@urerb.com" },
+    update: {
+      fullName: "URERB Associate",
+      passwordHash: assocHash,
+      status: UserStatus.ACTIVE,
+      isActive: true,
+      roles: [RoleType.RESEARCH_ASSOCIATE],
+      statusNote: null,
+    },
+    create: {
+      email: "assoc@urerb.com",
+      fullName: "URERB Associate",
+      passwordHash: assocHash,
+      status: UserStatus.ACTIVE,
+      isActive: true,
+      roles: [RoleType.RESEARCH_ASSOCIATE],
+    },
+  });
+
+  const assistUser = await prisma.user.upsert({
+    where: { email: "assist@urerb.com" },
+    update: {
+      fullName: "URERB Assistant",
+      passwordHash: assistHash,
+      status: UserStatus.ACTIVE,
+      isActive: true,
+      roles: [RoleType.RESEARCH_ASSISTANT],
+      statusNote: null,
+    },
+    create: {
+      email: "assist@urerb.com",
+      fullName: "URERB Assistant",
+      passwordHash: assistHash,
+      status: UserStatus.ACTIVE,
+      isActive: true,
+      roles: [RoleType.RESEARCH_ASSISTANT],
+    },
+  });
 
   // 1) Ensure a Research Associate user exists
   const raUser = await prisma.user.upsert({
@@ -691,6 +763,60 @@ async function main() {
       userId: raUser.id,
       role: RoleType.RESEARCH_ASSOCIATE,
       isPrimary: true,
+    },
+  });
+
+  await prisma.committeeMember.upsert({
+    where: {
+      committeeId_userId_role: {
+        committeeId: committee.id,
+        userId: chairUser.id,
+        role: RoleType.CHAIR,
+      },
+    },
+    update: { isPrimary: true, isActive: true },
+    create: {
+      committeeId: committee.id,
+      userId: chairUser.id,
+      role: RoleType.CHAIR,
+      isPrimary: true,
+      isActive: true,
+    },
+  });
+
+  await prisma.committeeMember.upsert({
+    where: {
+      committeeId_userId_role: {
+        committeeId: committee.id,
+        userId: assocUser.id,
+        role: RoleType.RESEARCH_ASSOCIATE,
+      },
+    },
+    update: { isPrimary: true, isActive: true },
+    create: {
+      committeeId: committee.id,
+      userId: assocUser.id,
+      role: RoleType.RESEARCH_ASSOCIATE,
+      isPrimary: true,
+      isActive: true,
+    },
+  });
+
+  await prisma.committeeMember.upsert({
+    where: {
+      committeeId_userId_role: {
+        committeeId: committee.id,
+        userId: assistUser.id,
+        role: RoleType.RESEARCH_ASSISTANT,
+      },
+    },
+    update: { isPrimary: true, isActive: true },
+    create: {
+      committeeId: committee.id,
+      userId: assistUser.id,
+      role: RoleType.RESEARCH_ASSISTANT,
+      isPrimary: true,
+      isActive: true,
     },
   });
 

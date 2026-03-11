@@ -129,20 +129,19 @@ describe("GET /reports/academic-year-summary", () => {
     expect(res.json).toHaveBeenCalledTimes(1);
 
     const body = res.json.mock.calls[0][0];
-    expect(body).toHaveProperty("dateRange");
-    expect(body).toHaveProperty("totals");
-    expect(body).toHaveProperty("breakdownByCollegeOrUnit");
-    expect(body).toHaveProperty("averages");
+    expect(body).toHaveProperty("selection");
+    expect(body).toHaveProperty("summaryCounts");
+    expect(body).toHaveProperty("breakdownByCollege");
 
-    expect(body.totals.received).toBe(2);
-    expect(body.totals.withdrawn).toBe(1);
-    expect(body.totals.expedited).toBe(1);
-    expect(body.totals.fullReview).toBe(1);
+    expect(body.summaryCounts.received).toBe(2);
+    expect(body.summaryCounts.withdrawn).toBe(1);
+    expect(body.summaryCounts.expedited).toBe(0);
+    expect(body.summaryCounts.fullReview).toBe(0);
 
-    const breakdownTotal = body.breakdownByCollegeOrUnit.reduce(
+    const breakdownTotal = body.breakdownByCollege.reduce(
       (sum: number, row: { received: number }) => sum + row.received,
       0
     );
-    expect(breakdownTotal).toBe(body.totals.received);
+    expect(breakdownTotal).toBe(body.summaryCounts.received);
   });
 });

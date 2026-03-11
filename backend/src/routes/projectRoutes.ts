@@ -4,7 +4,8 @@
 import { Router } from "express";
 import prisma from "../config/prismaClient";
 import { RoleType } from "../generated/prisma/client";
-import { requireUser, requireRoles } from "../middleware/auth";
+import { requireAnyRole, requireUser } from "../middleware/auth";
+import { requireProjectAccess } from "../middleware/reviewerScope";
 import {
   createProjectWithInitialSubmission,
   DuplicateProjectCodeError,
@@ -29,10 +30,10 @@ const router = Router();
 // Create project + initial submission via individual entry form
 router.post(
   "/projects",
-  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   async (req, res, next) => {
     try {
-      const created = await createProjectWithInitialSubmission(req.body, req.user?.id);
+      const created = await createProjectWithInitialSubmission(req.body, req.user!.id);
       return res.status(201).json(created);
     } catch (error: any) {
       if (error instanceof ProjectCreateValidationError) {
@@ -103,7 +104,7 @@ router.get("/projects/archived", requireUser, async (req, res, next) => {
 });
 
 // Get a single project
-router.get("/projects/:id", requireUser, async (req, res, next) => {
+router.get("/projects/:id", requireUser, requireProjectAccess, async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     if (Number.isNaN(id)) return res.status(400).json({ message: "Invalid project id" });
@@ -115,7 +116,7 @@ router.get("/projects/:id", requireUser, async (req, res, next) => {
 });
 
 // Full project lifecycle
-router.get("/projects/:id/full", requireUser, async (req, res, next) => {
+router.get("/projects/:id/full", requireUser, requireProjectAccess, async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     if (Number.isNaN(id)) return res.status(400).json({ message: "Invalid project id" });
@@ -127,7 +128,7 @@ router.get("/projects/:id/full", requireUser, async (req, res, next) => {
 });
 
 // Protocol profile + milestones
-router.get("/projects/:id/profile", requireUser, async (req, res, next) => {
+router.get("/projects/:id/profile", requireUser, requireProjectAccess, async (req, res, next) => {
   try {
     const projectId = Number(req.params.id);
     if (Number.isNaN(projectId)) return res.status(400).json({ message: "Invalid project id" });
@@ -141,12 +142,12 @@ router.get("/projects/:id/profile", requireUser, async (req, res, next) => {
 // Upsert profile
 router.put(
   "/projects/:id/profile",
-  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   async (req, res, next) => {
     try {
       const projectId = Number(req.params.id);
       if (Number.isNaN(projectId)) return res.status(400).json({ message: "Invalid project id" });
-      const profile = await upsertProjectProfile(projectId, req.body ?? {}, req.user?.id);
+      const profile = await upsertProjectProfile(projectId, req.body ?? {}, req.user!.id);
       res.json(profile);
     } catch (error) {
       next(error);
@@ -157,7 +158,7 @@ router.put(
 // Create milestone
 router.post(
   "/projects/:id/profile/milestones",
-  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   async (req, res, next) => {
     try {
       const projectId = Number(req.params.id);
@@ -173,7 +174,7 @@ router.post(
 // Update milestone
 router.patch(
   "/projects/:id/profile/milestones/:milestoneId",
-  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   async (req, res, next) => {
     try {
       const projectId = Number(req.params.id);
@@ -192,7 +193,7 @@ router.patch(
 // Delete milestone
 router.delete(
   "/projects/:id/profile/milestones/:milestoneId",
-  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   async (req, res, next) => {
     try {
       const projectId = Number(req.params.id);
@@ -211,12 +212,12 @@ router.delete(
 // Create a submission for a project
 router.post(
   "/projects/:projectId/submissions",
-  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   async (req, res, next) => {
     try {
       const projectId = Number(req.params.projectId);
       if (Number.isNaN(projectId)) return res.status(400).json({ message: "Invalid projectId" });
-      const result = await createSubmissionForProject(projectId, req.body, req.user?.id);
+      const result = await createSubmissionForProject(projectId, req.body, req.user!.id);
       res.status(201).json(result);
     } catch (error) {
       next(error);
