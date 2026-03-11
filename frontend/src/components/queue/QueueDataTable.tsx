@@ -15,6 +15,8 @@ type QueueDataTableProps = {
   emptyMessage: string;
   loading: boolean;
   error: string | null;
+  showHeader?: boolean;
+  showReviewType?: boolean;
 };
 
 export const QueueDataTable: React.FC<QueueDataTableProps> = ({
@@ -23,17 +25,21 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
   emptyMessage,
   loading,
   error,
+  showHeader = true,
+  showReviewType = false,
 }) => {
   const navigate = useNavigate();
 
   return (
     <section className="panel queue-focused-table">
-      <div className="panel-header">
-        <div>
-          <h2 className="panel-title">{title}</h2>
-          <p className="panel-subtitle">Only submissions relevant to this queue are shown.</p>
+      {showHeader ? (
+        <div className="panel-header">
+          <div>
+            <h2 className="panel-title">{title}</h2>
+            <p className="panel-subtitle">Only submissions relevant to this queue are shown.</p>
+          </div>
         </div>
-      </div>
+      ) : null}
       <div className="panel-body no-padding">
         {loading ? (
           <div className="queue-focused-state">Loading queue data...</div>
@@ -48,7 +54,7 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                 <tr>
                   <th>Project</th>
                   <th>Principal Investigator</th>
-                  <th>Status</th>
+                  <th>{showReviewType ? "Review Type" : "Status"}</th>
                   <th>Received</th>
                   <th>SLA</th>
                 </tr>
@@ -61,7 +67,11 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                       <div>{item.projectTitle}</div>
                     </td>
                     <td>{item.piName}</td>
-                    <td>{item.status.replace(/_/g, " ")}</td>
+                    <td>
+                      {showReviewType
+                        ? (item.reviewType || "UNCLASSIFIED").replace(/_/g, " ")
+                        : item.status.replace(/_/g, " ")}
+                    </td>
                     <td>{toDate(item.receivedDate)}</td>
                     <td>
                       <span className={`queue-sla-chip ${item.slaStatus.toLowerCase()}`}>

@@ -40,7 +40,7 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
         {
           status: filterParams.status
             ? filterParams.status as any
-            : { in: ["RECEIVED", "AWAITING_CLASSIFICATION"] },
+            : { in: ["AWAITING_CLASSIFICATION", "UNDER_CLASSIFICATION"] },
           project: baseProject,
           ...roleScope,
         },
@@ -151,7 +151,7 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
 router.get("/dashboard/colleges", requireUser, async (req, res, next) => {
   try {
     const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
-    const colleges = await prisma.project.findMany({
+    const byAffiliation = await prisma.project.findMany({
       where: {
         committee: { code: committeeCode },
         piAffiliation: { not: null },
@@ -160,7 +160,63 @@ router.get("/dashboard/colleges", requireUser, async (req, res, next) => {
       distinct: ["piAffiliation"],
       orderBy: { piAffiliation: "asc" },
     });
-    res.json(colleges.map((c) => c.piAffiliation).filter(Boolean));
+
+    const byCollegeOrUnit = await prisma.project.findMany({
+      where: {
+        committee: { code: committeeCode },
+        collegeOrUnit: { not: null },
+      },
+      select: { collegeOrUnit: true },
+      distinct: ["collegeOrUnit"],
+      orderBy: { collegeOrUnit: "asc" },
+    });
+
+    const merged = Array.from(
+      new Set([
+        ...byAffiliation.map((c) => c.piAffiliation?.trim()).filter(Boolean),
+        ...byCollegeOrUnit.map((c) => c.collegeOrUnit?.trim()).filter(Boolean),
+      ])
+    ).sort((a, b) => String(a).localeCompare(String(b)));
+
+    res.json(merged);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Distinct department values for dropdowns
+router.get("/dashboard/departments", requireUser, async (req, res, next) => {
+  try {
+    const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
+    const departments = await prisma.project.findMany({
+      where: {
+        committee: { code: committeeCode },
+        department: { not: null },
+      },
+      select: { department: true },
+      distinct: ["department"],
+      orderBy: { department: "asc" },
+    });
+    res.json(departments.map((d) => d.department).filter(Boolean));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Distinct proponent values for dropdowns
+router.get("/dashboard/proponents", requireUser, async (req, res, next) => {
+  try {
+    const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
+    const proponents = await prisma.project.findMany({
+      where: {
+        committee: { code: committeeCode },
+        proponent: { not: null },
+      },
+      select: { proponent: true },
+      distinct: ["proponent"],
+      orderBy: { proponent: "asc" },
+    });
+    res.json(proponents.map((p) => p.proponent).filter(Boolean));
   } catch (error) {
     next(error);
   }

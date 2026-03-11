@@ -58,6 +58,10 @@ export default function QueuePage() {
   const meta = QUEUE_META[queueKey];
   const search = searchParams.get("search") ?? "";
   const segment = searchParams.get("segment") ?? "ALL";
+  const effectiveSegment =
+    queueKey === "under-review" && !["ALL", "EXPEDITED", "FULL_BOARD"].includes(segment)
+      ? "ALL"
+      : segment;
   const sla = (searchParams.get("sla") ?? "all") as
     | "all"
     | "on-track"
@@ -82,17 +86,22 @@ export default function QueuePage() {
   const filteredItems = useMemo(() => {
     return queueItems.filter((item: any) => {
       if (!matchesSearch(item, search)) return false;
-      if (segment !== "ALL") {
+      if (effectiveSegment !== "ALL") {
         if (queueKey === "classification") {
-          if (segment === "RECEIVED" && item.status !== "RECEIVED") return false;
           if (
-            segment === "AWAITING_CLASSIFICATION" &&
+            effectiveSegment === "AWAITING_CLASSIFICATION" &&
             item.status !== "AWAITING_CLASSIFICATION"
           ) {
             return false;
           }
+          if (
+            effectiveSegment === "UNDER_CLASSIFICATION" &&
+            item.status !== "UNDER_CLASSIFICATION"
+          ) {
+            return false;
+          }
         }
-        if (queueKey === "under-review" && item.reviewType !== segment) return false;
+        if (queueKey === "under-review" && item.reviewType !== effectiveSegment) return false;
       }
       if (sla === "all") return true;
       if (sla === "on-track") return item.slaStatus === "ON_TRACK";
@@ -100,7 +109,7 @@ export default function QueuePage() {
       if (sla === "overdue") return item.slaStatus === "OVERDUE";
       return item.missingFields.length > 0;
     });
-  }, [queueItems, search, sla, queueKey, segment]);
+  }, [queueItems, search, sla, queueKey, effectiveSegment]);
 
   const kpis = useMemo(() => {
     const overdue = queueItems.filter((item) => item.slaStatus === "OVERDUE").length;
@@ -128,15 +137,14 @@ export default function QueuePage() {
     queueKey === "classification"
       ? [
           { value: "ALL", label: "View All" },
-          { value: "RECEIVED", label: "Received" },
           { value: "AWAITING_CLASSIFICATION", label: "Awaiting Classification" },
+          { value: "UNDER_CLASSIFICATION", label: "Under Classification" },
         ]
       : queueKey === "under-review"
       ? [
           { value: "ALL", label: "View All" },
           { value: "EXPEDITED", label: "Expedited" },
           { value: "FULL_BOARD", label: "Full Review" },
-          { value: "WITHDRAWN", label: "Withdrawn" },
         ]
       : null;
 
@@ -167,7 +175,7 @@ export default function QueuePage() {
               <button
                 key={tab.value}
                 type="button"
-                className={`queue-segment ${segment === tab.value ? "active" : ""}`}
+                className={`queue-segment ${effectiveSegment === tab.value ? "active" : ""}`}
                 onClick={() => {
                   const next = new URLSearchParams(searchParams);
                   if (tab.value === "ALL") next.delete("segment");
@@ -187,6 +195,8 @@ export default function QueuePage() {
           emptyMessage={meta.empty}
           loading={loading}
           error={error}
+          showHeader={!["classification", "under-review"].includes(queueKey)}
+          showReviewType={queueKey === "under-review"}
         />
     </div>
   );

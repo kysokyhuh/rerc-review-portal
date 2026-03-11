@@ -3,6 +3,7 @@ import {
   FundingType,
   ProponentCategory,
   ResearchTypePHREB,
+  SubmissionStatus,
   SubmissionType,
 } from "../../generated/prisma/client";
 import { parseReceivedDate } from "../imports/projectCsvImport";
@@ -62,6 +63,8 @@ export interface CreateProjectWithInitialSubmissionInput {
 
 const normalizeProjectCode = (value: string) => value.trim().toUpperCase();
 const normalizeString = (value: unknown) => String(value ?? "").trim();
+const toMonthLabel = (value: Date) =>
+  value.toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
 
 const parseFundingType = (value?: string | null): FundingType | null => {
   const raw = normalizeString(value);
@@ -151,10 +154,6 @@ export async function createProjectWithInitialSubmission(
   if (!projectCode) {
     fieldErrors.push({ field: "projectCode", message: "projectCode is required." });
   }
-  if (!committeeCode && !input.committeeId) {
-    fieldErrors.push({ field: "committeeCode", message: "committeeCode is required." });
-  }
-
   if (fieldErrors.length) {
     throw new ProjectCreateValidationError(fieldErrors);
   }
@@ -174,12 +173,18 @@ export async function createProjectWithInitialSubmission(
   let committeeId = input.committeeId;
   if (!committeeId) {
     const committee = await prisma.committee.findFirst({
-      where: { code: { equals: committeeCode, mode: "insensitive" } },
+      where: committeeCode
+        ? { code: { equals: committeeCode, mode: "insensitive" } }
+        : { isActive: true },
+      orderBy: { id: "asc" },
       select: { id: true },
     });
     if (!committee) {
       throw new ProjectCreateValidationError([
-        { field: "committeeCode", message: "committeeCode does not exist." },
+        {
+          field: "committeeCode",
+          message: committeeCode ? "committeeCode does not exist." : "No active committee found.",
+        },
       ]);
     }
     committeeId = committee.id;
@@ -222,6 +227,7 @@ export async function createProjectWithInitialSubmission(
         projectId: project.id,
         sequenceNumber: 1,
         submissionType,
+        status: SubmissionStatus.AWAITING_CLASSIFICATION,
         receivedDate,
         remarks: notes,
         createdById: actorId,
@@ -244,17 +250,18 @@ export async function createProjectWithInitialSubmission(
         college: collegeOrUnit,
         department,
         dateOfSubmission: receivedDate,
-        monthOfSubmission:
-          normalizeString(input.monthOfSubmission || '') ||
-          (receivedDate ? receivedDate.toISOString().slice(0, 7) : null),
+        monthOfSubmission: receivedDate ? toMonthLabel(receivedDate) : null,
         typeOfReview: submissionType ?? null,
         proponent,
         funding: fundingType ?? null,
         typeOfResearchPhreb: researchTypePHREB ?? null,
         typeOfResearchPhrebOther: researchTypePHREBOther,
-        status: normalizeString(input.status || '') || null,
+        status: SubmissionStatus.AWAITING_CLASSIFICATION,
         finishDate: profileFinishDate && !Number.isNaN(profileFinishDate.getTime()) ? profileFinishDate : null,
-        monthOfClearance: normalizeString(input.monthOfClearance || '') || null,
+        monthOfClearance:
+          profileFinishDate && !Number.isNaN(profileFinishDate.getTime())
+            ? toMonthLabel(profileFinishDate)
+            : null,
         remarks: notes,
         panel: normalizeString(input.panel || '') || null,
         scientistReviewer: normalizeString(input.scientistReviewer || '') || null,

@@ -55,6 +55,7 @@ export type SubmissionMinAggregateOutputType = {
   revisionDueDate: Date | null
   continuingReviewDueDate: Date | null
   finalReportDueDate: Date | null
+  resultsNotifiedAt: Date | null
   finalDecision: $Enums.ReviewDecision | null
   finalDecisionDate: Date | null
   remarks: string | null
@@ -77,6 +78,7 @@ export type SubmissionMaxAggregateOutputType = {
   revisionDueDate: Date | null
   continuingReviewDueDate: Date | null
   finalReportDueDate: Date | null
+  resultsNotifiedAt: Date | null
   finalDecision: $Enums.ReviewDecision | null
   finalDecisionDate: Date | null
   remarks: string | null
@@ -99,6 +101,7 @@ export type SubmissionCountAggregateOutputType = {
   revisionDueDate: number
   continuingReviewDueDate: number
   finalReportDueDate: number
+  resultsNotifiedAt: number
   finalDecision: number
   finalDecisionDate: number
   remarks: number
@@ -139,6 +142,7 @@ export type SubmissionMinAggregateInputType = {
   revisionDueDate?: true
   continuingReviewDueDate?: true
   finalReportDueDate?: true
+  resultsNotifiedAt?: true
   finalDecision?: true
   finalDecisionDate?: true
   remarks?: true
@@ -161,6 +165,7 @@ export type SubmissionMaxAggregateInputType = {
   revisionDueDate?: true
   continuingReviewDueDate?: true
   finalReportDueDate?: true
+  resultsNotifiedAt?: true
   finalDecision?: true
   finalDecisionDate?: true
   remarks?: true
@@ -183,6 +188,7 @@ export type SubmissionCountAggregateInputType = {
   revisionDueDate?: true
   continuingReviewDueDate?: true
   finalReportDueDate?: true
+  resultsNotifiedAt?: true
   finalDecision?: true
   finalDecisionDate?: true
   remarks?: true
@@ -292,6 +298,7 @@ export type SubmissionGroupByOutputType = {
   revisionDueDate: Date | null
   continuingReviewDueDate: Date | null
   finalReportDueDate: Date | null
+  resultsNotifiedAt: Date | null
   finalDecision: $Enums.ReviewDecision | null
   finalDecisionDate: Date | null
   remarks: string | null
@@ -337,6 +344,7 @@ export type SubmissionWhereInput = {
   revisionDueDate?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
   continuingReviewDueDate?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
   finalReportDueDate?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
+  resultsNotifiedAt?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
   finalDecision?: Prisma.EnumReviewDecisionNullableFilter<"Submission"> | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
   remarks?: Prisma.StringNullableFilter<"Submission"> | string | null
@@ -374,6 +382,7 @@ export type SubmissionOrderByWithRelationInput = {
   revisionDueDate?: Prisma.SortOrderInput | Prisma.SortOrder
   continuingReviewDueDate?: Prisma.SortOrderInput | Prisma.SortOrder
   finalReportDueDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  resultsNotifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   finalDecision?: Prisma.SortOrderInput | Prisma.SortOrder
   finalDecisionDate?: Prisma.SortOrderInput | Prisma.SortOrder
   remarks?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -415,6 +424,7 @@ export type SubmissionWhereUniqueInput = Prisma.AtLeast<{
   revisionDueDate?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
   continuingReviewDueDate?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
   finalReportDueDate?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
+  resultsNotifiedAt?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
   finalDecision?: Prisma.EnumReviewDecisionNullableFilter<"Submission"> | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
   remarks?: Prisma.StringNullableFilter<"Submission"> | string | null
@@ -452,6 +462,7 @@ export type SubmissionOrderByWithAggregationInput = {
   revisionDueDate?: Prisma.SortOrderInput | Prisma.SortOrder
   continuingReviewDueDate?: Prisma.SortOrderInput | Prisma.SortOrder
   finalReportDueDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  resultsNotifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   finalDecision?: Prisma.SortOrderInput | Prisma.SortOrder
   finalDecisionDate?: Prisma.SortOrderInput | Prisma.SortOrder
   remarks?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -482,6 +493,7 @@ export type SubmissionScalarWhereWithAggregatesInput = {
   revisionDueDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Submission"> | Date | string | null
   continuingReviewDueDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Submission"> | Date | string | null
   finalReportDueDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Submission"> | Date | string | null
+  resultsNotifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Submission"> | Date | string | null
   finalDecision?: Prisma.EnumReviewDecisionNullableWithAggregatesFilter<"Submission"> | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Submission"> | Date | string | null
   remarks?: Prisma.StringNullableWithAggregatesFilter<"Submission"> | string | null
@@ -502,6 +514,7 @@ export type SubmissionCreateInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -537,6 +550,7 @@ export type SubmissionUncheckedCreateInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -569,6 +583,7 @@ export type SubmissionUpdateInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -604,6 +619,7 @@ export type SubmissionUncheckedUpdateInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -638,6 +654,7 @@ export type SubmissionCreateManyInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -658,6 +675,7 @@ export type SubmissionUpdateManyMutationInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -678,6 +696,7 @@ export type SubmissionUncheckedUpdateManyInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -720,6 +739,7 @@ export type SubmissionCountOrderByAggregateInput = {
   revisionDueDate?: Prisma.SortOrder
   continuingReviewDueDate?: Prisma.SortOrder
   finalReportDueDate?: Prisma.SortOrder
+  resultsNotifiedAt?: Prisma.SortOrder
   finalDecision?: Prisma.SortOrder
   finalDecisionDate?: Prisma.SortOrder
   remarks?: Prisma.SortOrder
@@ -750,6 +770,7 @@ export type SubmissionMaxOrderByAggregateInput = {
   revisionDueDate?: Prisma.SortOrder
   continuingReviewDueDate?: Prisma.SortOrder
   finalReportDueDate?: Prisma.SortOrder
+  resultsNotifiedAt?: Prisma.SortOrder
   finalDecision?: Prisma.SortOrder
   finalDecisionDate?: Prisma.SortOrder
   remarks?: Prisma.SortOrder
@@ -772,6 +793,7 @@ export type SubmissionMinOrderByAggregateInput = {
   revisionDueDate?: Prisma.SortOrder
   continuingReviewDueDate?: Prisma.SortOrder
   finalReportDueDate?: Prisma.SortOrder
+  resultsNotifiedAt?: Prisma.SortOrder
   finalDecision?: Prisma.SortOrder
   finalDecisionDate?: Prisma.SortOrder
   remarks?: Prisma.SortOrder
@@ -1117,6 +1139,7 @@ export type SubmissionCreateWithoutCreatedByInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -1151,6 +1174,7 @@ export type SubmissionUncheckedCreateWithoutCreatedByInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -1192,6 +1216,7 @@ export type SubmissionCreateWithoutStaffInChargeInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -1226,6 +1251,7 @@ export type SubmissionUncheckedCreateWithoutStaffInChargeInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -1288,6 +1314,7 @@ export type SubmissionScalarWhereInput = {
   revisionDueDate?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
   continuingReviewDueDate?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
   finalReportDueDate?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
+  resultsNotifiedAt?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
   finalDecision?: Prisma.EnumReviewDecisionNullableFilter<"Submission"> | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.DateTimeNullableFilter<"Submission"> | Date | string | null
   remarks?: Prisma.StringNullableFilter<"Submission"> | string | null
@@ -1324,6 +1351,7 @@ export type SubmissionCreateWithoutProjectInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -1357,6 +1385,7 @@ export type SubmissionUncheckedCreateWithoutProjectInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -1415,6 +1444,7 @@ export type SubmissionCreateWithoutProjectChangeLogsInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -1449,6 +1479,7 @@ export type SubmissionUncheckedCreateWithoutProjectChangeLogsInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -1496,6 +1527,7 @@ export type SubmissionUpdateWithoutProjectChangeLogsInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1530,6 +1562,7 @@ export type SubmissionUncheckedUpdateWithoutProjectChangeLogsInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1561,6 +1594,7 @@ export type SubmissionCreateWithoutChangeLogsInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -1595,6 +1629,7 @@ export type SubmissionUncheckedCreateWithoutChangeLogsInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -1642,6 +1677,7 @@ export type SubmissionUpdateWithoutChangeLogsInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1676,6 +1712,7 @@ export type SubmissionUncheckedUpdateWithoutChangeLogsInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1707,6 +1744,7 @@ export type SubmissionCreateWithoutClassificationInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -1741,6 +1779,7 @@ export type SubmissionUncheckedCreateWithoutClassificationInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -1788,6 +1827,7 @@ export type SubmissionUpdateWithoutClassificationInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1822,6 +1862,7 @@ export type SubmissionUncheckedUpdateWithoutClassificationInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1853,6 +1894,7 @@ export type SubmissionCreateWithoutClassificationDecisionInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -1887,6 +1929,7 @@ export type SubmissionUncheckedCreateWithoutClassificationDecisionInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -1934,6 +1977,7 @@ export type SubmissionUpdateWithoutClassificationDecisionInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1968,6 +2012,7 @@ export type SubmissionUncheckedUpdateWithoutClassificationDecisionInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1999,6 +2044,7 @@ export type SubmissionCreateWithoutClassificationVotesInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -2033,6 +2079,7 @@ export type SubmissionUncheckedCreateWithoutClassificationVotesInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -2080,6 +2127,7 @@ export type SubmissionUpdateWithoutClassificationVotesInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2114,6 +2162,7 @@ export type SubmissionUncheckedUpdateWithoutClassificationVotesInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2145,6 +2194,7 @@ export type SubmissionCreateWithoutStatusHistoryInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -2179,6 +2229,7 @@ export type SubmissionUncheckedCreateWithoutStatusHistoryInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -2226,6 +2277,7 @@ export type SubmissionUpdateWithoutStatusHistoryInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2260,6 +2312,7 @@ export type SubmissionUncheckedUpdateWithoutStatusHistoryInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2291,6 +2344,7 @@ export type SubmissionCreateWithoutReviewsInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -2325,6 +2379,7 @@ export type SubmissionUncheckedCreateWithoutReviewsInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -2372,6 +2427,7 @@ export type SubmissionUpdateWithoutReviewsInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2406,6 +2462,7 @@ export type SubmissionUncheckedUpdateWithoutReviewsInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2437,6 +2494,7 @@ export type SubmissionCreateWithoutReviewAssignmentsInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -2471,6 +2529,7 @@ export type SubmissionUncheckedCreateWithoutReviewAssignmentsInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -2518,6 +2577,7 @@ export type SubmissionUpdateWithoutReviewAssignmentsInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2552,6 +2612,7 @@ export type SubmissionUncheckedUpdateWithoutReviewAssignmentsInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2583,6 +2644,7 @@ export type SubmissionCreateWithoutDocumentsInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -2617,6 +2679,7 @@ export type SubmissionUncheckedCreateWithoutDocumentsInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -2664,6 +2727,7 @@ export type SubmissionUpdateWithoutDocumentsInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2698,6 +2762,7 @@ export type SubmissionUncheckedUpdateWithoutDocumentsInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2729,6 +2794,7 @@ export type SubmissionCreateWithoutDecisionInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -2763,6 +2829,7 @@ export type SubmissionUncheckedCreateWithoutDecisionInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -2810,6 +2877,7 @@ export type SubmissionUpdateWithoutDecisionInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2844,6 +2912,7 @@ export type SubmissionUncheckedUpdateWithoutDecisionInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2875,6 +2944,7 @@ export type SubmissionCreateWithoutLetterDraftsInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -2909,6 +2979,7 @@ export type SubmissionUncheckedCreateWithoutLetterDraftsInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -2956,6 +3027,7 @@ export type SubmissionUpdateWithoutLetterDraftsInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2990,6 +3062,7 @@ export type SubmissionUncheckedUpdateWithoutLetterDraftsInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3021,6 +3094,7 @@ export type SubmissionCreateWithoutWorkflowEventsInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -3055,6 +3129,7 @@ export type SubmissionUncheckedCreateWithoutWorkflowEventsInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -3102,6 +3177,7 @@ export type SubmissionUpdateWithoutWorkflowEventsInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3136,6 +3212,7 @@ export type SubmissionUncheckedUpdateWithoutWorkflowEventsInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3169,6 +3246,7 @@ export type SubmissionCreateManyCreatedByInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -3190,6 +3268,7 @@ export type SubmissionCreateManyStaffInChargeInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -3209,6 +3288,7 @@ export type SubmissionUpdateWithoutCreatedByInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3243,6 +3323,7 @@ export type SubmissionUncheckedUpdateWithoutCreatedByInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3276,6 +3357,7 @@ export type SubmissionUncheckedUpdateManyWithoutCreatedByInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3295,6 +3377,7 @@ export type SubmissionUpdateWithoutStaffInChargeInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3329,6 +3412,7 @@ export type SubmissionUncheckedUpdateWithoutStaffInChargeInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3362,6 +3446,7 @@ export type SubmissionUncheckedUpdateManyWithoutStaffInChargeInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3382,6 +3467,7 @@ export type SubmissionCreateManyProjectInput = {
   revisionDueDate?: Date | string | null
   continuingReviewDueDate?: Date | string | null
   finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
   finalDecision?: $Enums.ReviewDecision | null
   finalDecisionDate?: Date | string | null
   remarks?: string | null
@@ -3402,6 +3488,7 @@ export type SubmissionUpdateWithoutProjectInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3435,6 +3522,7 @@ export type SubmissionUncheckedUpdateWithoutProjectInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3468,6 +3556,7 @@ export type SubmissionUncheckedUpdateManyWithoutProjectInput = {
   revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
   finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3593,6 +3682,7 @@ export type SubmissionSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   revisionDueDate?: boolean
   continuingReviewDueDate?: boolean
   finalReportDueDate?: boolean
+  resultsNotifiedAt?: boolean
   finalDecision?: boolean
   finalDecisionDate?: boolean
   remarks?: boolean
@@ -3631,6 +3721,7 @@ export type SubmissionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   revisionDueDate?: boolean
   continuingReviewDueDate?: boolean
   finalReportDueDate?: boolean
+  resultsNotifiedAt?: boolean
   finalDecision?: boolean
   finalDecisionDate?: boolean
   remarks?: boolean
@@ -3656,6 +3747,7 @@ export type SubmissionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   revisionDueDate?: boolean
   continuingReviewDueDate?: boolean
   finalReportDueDate?: boolean
+  resultsNotifiedAt?: boolean
   finalDecision?: boolean
   finalDecisionDate?: boolean
   remarks?: boolean
@@ -3681,6 +3773,7 @@ export type SubmissionSelectScalar = {
   revisionDueDate?: boolean
   continuingReviewDueDate?: boolean
   finalReportDueDate?: boolean
+  resultsNotifiedAt?: boolean
   finalDecision?: boolean
   finalDecisionDate?: boolean
   remarks?: boolean
@@ -3690,7 +3783,7 @@ export type SubmissionSelectScalar = {
   staffInChargeId?: boolean
 }
 
-export type SubmissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "submissionType" | "sequenceNumber" | "receivedDate" | "documentLink" | "completenessStatus" | "completenessRemarks" | "status" | "revisionDueDate" | "continuingReviewDueDate" | "finalReportDueDate" | "finalDecision" | "finalDecisionDate" | "remarks" | "createdAt" | "updatedAt" | "createdById" | "staffInChargeId", ExtArgs["result"]["submission"]>
+export type SubmissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "submissionType" | "sequenceNumber" | "receivedDate" | "documentLink" | "completenessStatus" | "completenessRemarks" | "status" | "revisionDueDate" | "continuingReviewDueDate" | "finalReportDueDate" | "resultsNotifiedAt" | "finalDecision" | "finalDecisionDate" | "remarks" | "createdAt" | "updatedAt" | "createdById" | "staffInChargeId", ExtArgs["result"]["submission"]>
 export type SubmissionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.Submission$projectArgs<ExtArgs>
   createdBy?: boolean | Prisma.Submission$createdByArgs<ExtArgs>
@@ -3752,6 +3845,7 @@ export type $SubmissionPayload<ExtArgs extends runtime.Types.Extensions.Internal
     revisionDueDate: Date | null
     continuingReviewDueDate: Date | null
     finalReportDueDate: Date | null
+    resultsNotifiedAt: Date | null
     finalDecision: $Enums.ReviewDecision | null
     finalDecisionDate: Date | null
     remarks: string | null
@@ -4209,6 +4303,7 @@ export interface SubmissionFieldRefs {
   readonly revisionDueDate: Prisma.FieldRef<"Submission", 'DateTime'>
   readonly continuingReviewDueDate: Prisma.FieldRef<"Submission", 'DateTime'>
   readonly finalReportDueDate: Prisma.FieldRef<"Submission", 'DateTime'>
+  readonly resultsNotifiedAt: Prisma.FieldRef<"Submission", 'DateTime'>
   readonly finalDecision: Prisma.FieldRef<"Submission", 'ReviewDecision'>
   readonly finalDecisionDate: Prisma.FieldRef<"Submission", 'DateTime'>
   readonly remarks: Prisma.FieldRef<"Submission", 'String'>

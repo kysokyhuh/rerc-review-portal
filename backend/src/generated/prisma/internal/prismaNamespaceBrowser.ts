@@ -379,6 +379,7 @@ export const SubmissionScalarFieldEnum = {
   revisionDueDate: 'revisionDueDate',
   continuingReviewDueDate: 'continuingReviewDueDate',
   finalReportDueDate: 'finalReportDueDate',
+  resultsNotifiedAt: 'resultsNotifiedAt',
   finalDecision: 'finalDecision',
   finalDecisionDate: 'finalDecisionDate',
   remarks: 'remarks',

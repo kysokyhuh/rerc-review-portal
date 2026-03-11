@@ -10,6 +10,7 @@
 
 .new-protocol-card {
   padding: 24px 28px;
+  background: #fcfcfc;
 }
 
 /* ── Step Indicator ────────────────────────────────────────────── */
@@ -101,6 +102,10 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: #edf6f1;
+  border: 1px solid #d6e8dd;
 }
 
 .np-section-header h2 {
@@ -116,6 +121,71 @@
 .np-required {
   color: var(--danger-red);
   font-weight: 700;
+}
+
+.np-optional-details {
+  border: 1px solid #cfe2d6;
+  border-radius: var(--radius-md);
+  background: #f3faf6;
+  margin-top: 18px;
+}
+
+.np-optional-details > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f4f36;
+  user-select: none;
+  background: #e4f2e9;
+}
+
+.np-optional-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.np-optional-details > summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 8px;
+  color: #2e6b4a;
+  transition: transform var(--motion-base) ease;
+}
+
+.np-optional-details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.np-optional-details[open] > summary {
+  border-bottom: 1px solid #cfe2d6;
+}
+
+.np-section-optional {
+  margin: 0;
+  padding: 14px;
+}
+
+.np-optional-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.np-optional-group {
+  border: 1px solid #dbe9df;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  padding: 12px;
+}
+
+.np-optional-group h3 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #2e6b4a;
 }
 
 /* ── Grid & Fields ─────────────────────────────────────────────── */

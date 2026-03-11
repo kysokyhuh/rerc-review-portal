@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const classifySubmissionSchema = z.object({
-  reviewType: z.enum(["EXEMPT", "EXPEDITED", "FULL_BOARD"]),
-  classificationDate: z.string().min(1),
+  reviewType: z.enum(["EXEMPT", "EXPEDITED", "FULL_BOARD"]).nullable(),
+  classificationDate: z.string().min(1).optional(),
   panelId: z.number().int().positive().nullable().optional(),
   rationale: z.string().nullable().optional(),
 });
@@ -31,10 +31,15 @@ const submissionStatusEnum = z.enum([
   "WITHDRAWN",
 ]);
 
+const workflowStageEnum = z.enum([
+  "AWAITING_CLASSIFICATION",
+  "UNDER_CLASSIFICATION",
+  "CLASSIFIED",
+]);
+
 export const updateSubmissionOverviewSchema = z.object({
   submissionType: submissionTypeEnum.optional(),
   receivedDate: z.string().nullable().optional(),
-  status: submissionStatusEnum.optional(),
   finalDecision: z.string().nullable().optional(),
   finalDecisionDate: z.string().nullable().optional(),
   piName: z.string().nullable().optional(),
@@ -46,7 +51,7 @@ export const updateSubmissionOverviewSchema = z.object({
 );
 
 export const updateSubmissionStatusSchema = z.object({
-  newStatus: submissionStatusEnum,
+  newStatus: workflowStageEnum,
   reason: z.string().nullable().optional(),
 });
 
@@ -80,3 +85,9 @@ export const finalDecisionSchema = z.object({
   approvalStartDate: z.string().nullable().optional(),
   approvalEndDate: z.string().nullable().optional(),
 });
+
+export const issueExemptionSchema = z.object({
+  resultsNotifiedAt: z.string().min(1),
+});
+
+export const startReviewSchema = z.object({}).strict();

@@ -1,45 +1,30 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   createProjectWithInitialSubmission,
   fetchCommittees,
+  fetchColleges,
   type CommitteeSummary,
 } from "@/services/api";
 import { Breadcrumbs } from "@/components";
+import { BRAND } from "@/config/branding";
 import "../styles/new-protocol.css";
 
-/* ── Form state shape ─────────────────────────────────────────────── */
-
 type FormState = {
-  // Core
   projectCode: string;
   title: string;
-  piName: string;
+  projectLeader: string;
   committeeCode: string;
-  submissionType: string;
-  receivedDate: string;
-  // Details
   collegeOrUnit: string;
   department: string;
+  submissionType: string;
+  dateOfSubmission: string;
   proponent: string;
   proponentCategory: string;
   fundingType: string;
   researchTypePHREB: string;
   researchTypePHREBOther: string;
-  // Review & Panel
-  panel: string;
-  scientistReviewer: string;
-  layReviewer: string;
-  independentConsultant: string;
-  honorariumStatus: string;
-  // Dates & Status
-  classificationDate: string;
-  finishDate: string;
-  monthOfSubmission: string;
-  monthOfClearance: string;
-  status: string;
-  // Notes
-  notes: string;
+  remarks: string;
 };
 
 type FieldErrors = Partial<Record<keyof FormState, string>>;
@@ -47,31 +32,19 @@ type FieldErrors = Partial<Record<keyof FormState, string>>;
 const INITIAL_FORM: FormState = {
   projectCode: "",
   title: "",
-  piName: "",
+  projectLeader: "",
   committeeCode: "",
-  submissionType: "",
-  receivedDate: "",
   collegeOrUnit: "",
   department: "",
+  submissionType: "",
+  dateOfSubmission: "",
   proponent: "",
   proponentCategory: "",
   fundingType: "",
   researchTypePHREB: "",
   researchTypePHREBOther: "",
-  panel: "",
-  scientistReviewer: "",
-  layReviewer: "",
-  independentConsultant: "",
-  honorariumStatus: "",
-  classificationDate: "",
-  finishDate: "",
-  monthOfSubmission: "",
-  monthOfClearance: "",
-  status: "",
-  notes: "",
+  remarks: "",
 };
-
-/* ── Option lists ─────────────────────────────────────────────────── */
 
 const SUBMISSION_TYPES = [
   "INITIAL",
@@ -82,10 +55,10 @@ const SUBMISSION_TYPES = [
   "WITHDRAWAL",
   "SAFETY_REPORT",
   "PROTOCOL_DEVIATION",
-];
+] as const;
 
-const FUNDING_TYPES = ["INTERNAL", "EXTERNAL", "SELF_FUNDED", "NO_FUNDING"];
-const PROPONENT_CATEGORIES = ["UNDERGRAD", "GRAD", "FACULTY", "OTHER"];
+const FUNDING_TYPES = ["INTERNAL", "EXTERNAL", "SELF_FUNDED", "NO_FUNDING"] as const;
+const PROPONENT_CATEGORIES = ["UNDERGRAD", "GRAD", "FACULTY", "OTHER"] as const;
 const RESEARCH_TYPES = [
   "BIOMEDICAL",
   "SOCIAL_BEHAVIORAL",
@@ -93,12 +66,7 @@ const RESEARCH_TYPES = [
   "CLINICAL_TRIAL",
   "EPIDEMIOLOGICAL",
   "OTHER",
-];
-const REVIEW_TYPES = ["EXEMPT", "EXPEDITED", "FULL_BOARD"];
-const STATUS_OPTIONS = ["RECEIVED", "CLEARED", "EXEMPTED", "WITHDRAWN"];
-const HONORARIUM_OPTIONS = ["PAID", "PROCESSING", "PENDING", "NOT_APPLICABLE"];
-
-/* ── Helpers ──────────────────────────────────────────────────────── */
+] as const;
 
 const formatLabel = (value: string) =>
   value
@@ -107,119 +75,91 @@ const formatLabel = (value: string) =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 
+const monthLabelFromDate = (value: string) => {
+  if (!value) return "";
+  const date = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+};
+
 const validateForm = (form: FormState): FieldErrors => {
   const errors: FieldErrors = {};
   if (!form.projectCode.trim()) errors.projectCode = "Project code is required.";
-  if (!form.committeeCode.trim()) errors.committeeCode = "Committee is required.";
-  if (form.receivedDate.trim() && Number.isNaN(new Date(form.receivedDate).getTime())) {
-    errors.receivedDate = "Received date is invalid.";
+  if (!form.title.trim()) errors.title = "Title is required.";
+  if (!form.projectLeader.trim()) errors.projectLeader = "Project Leader is required.";
+  if (form.dateOfSubmission && Number.isNaN(new Date(form.dateOfSubmission).getTime())) {
+    errors.dateOfSubmission = "Date of Submission is invalid.";
   }
-  if (form.classificationDate.trim() && Number.isNaN(new Date(form.classificationDate).getTime())) {
-    errors.classificationDate = "Invalid date.";
-  }
-  if (form.finishDate.trim() && Number.isNaN(new Date(form.finishDate).getTime())) {
-    errors.finishDate = "Invalid date.";
+  if (form.researchTypePHREB === "OTHER" && !form.researchTypePHREBOther.trim()) {
+    errors.researchTypePHREBOther = "Please specify the research type.";
   }
   return errors;
 };
 
-/* ── Section definitions for preview ──────────────────────────────── */
-
-type SectionDef = {
-  title: string;
-  fields: Array<{ key: keyof FormState; label: string }>;
-};
-
-const PREVIEW_SECTIONS: SectionDef[] = [
-  {
-    title: "Core Information",
-    fields: [
-      { key: "projectCode", label: "Project Code" },
-      { key: "title", label: "Project Title" },
-      { key: "piName", label: "Project Leader / PI" },
-      { key: "committeeCode", label: "Committee" },
-      { key: "submissionType", label: "Submission Type" },
-      { key: "receivedDate", label: "Date Received" },
-    ],
-  },
-  {
-    title: "Institution & Proponent",
-    fields: [
-      { key: "collegeOrUnit", label: "College / Service Unit" },
-      { key: "department", label: "Department" },
-      { key: "proponent", label: "Proponent" },
-      { key: "proponentCategory", label: "Proponent Category" },
-      { key: "fundingType", label: "Funding Type" },
-      { key: "researchTypePHREB", label: "Research Type (PHREB)" },
-      { key: "researchTypePHREBOther", label: "Research Type (Specify)" },
-    ],
-  },
-  {
-    title: "Panel & Reviewers",
-    fields: [
-      { key: "panel", label: "Panel" },
-      { key: "scientistReviewer", label: "Scientist Reviewer" },
-      { key: "layReviewer", label: "Lay Reviewer" },
-      { key: "independentConsultant", label: "Independent Consultant" },
-      { key: "honorariumStatus", label: "Honorarium Status" },
-    ],
-  },
-  {
-    title: "Status & Dates",
-    fields: [
-      { key: "status", label: "Status" },
-      { key: "classificationDate", label: "Classification Date" },
-      { key: "finishDate", label: "Finish Date" },
-      { key: "monthOfSubmission", label: "Month of Submission" },
-      { key: "monthOfClearance", label: "Month of Clearance" },
-    ],
-  },
-  {
-    title: "Notes",
-    fields: [{ key: "notes", label: "Remarks / Notes" }],
-  },
-];
-
-/* ── Component ────────────────────────────────────────────────────── */
-
-type Step = "form" | "preview";
-
 export default function NewProtocolPage() {
+  const navigate = useNavigate();
   const [form, setForm] = useState<FormState>({ ...INITIAL_FORM });
   const [errors, setErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [committees, setCommittees] = useState<CommitteeSummary[]>([]);
   const [committeeLoading, setCommitteeLoading] = useState(true);
-  const [committeeError, setCommitteeError] = useState<string | null>(null);
-  const [created, setCreated] = useState<{ projectId: number; submissionId: number } | null>(null);
-  const [step, setStep] = useState<Step>("form");
+  const [collegeOptions, setCollegeOptions] = useState<string[]>([]);
+
+  const monthOfSubmission = useMemo(
+    () => monthLabelFromDate(form.dateOfSubmission),
+    [form.dateOfSubmission]
+  );
+
+  // Finish Date is intentionally not set during Add Protocol.
+  const finishDate = "";
+  const monthOfClearance = useMemo(() => monthLabelFromDate(finishDate), [finishDate]);
+  const systemStatus = "AWAITING_CLASSIFICATION";
 
   useEffect(() => {
+    let active = true;
     const loadCommittees = async () => {
       try {
         setCommitteeLoading(true);
         const result = await fetchCommittees();
-        setCommittees(result);
-        if (!form.committeeCode && result.length > 0) {
-          setForm((prev) => ({ ...prev, committeeCode: result[0].code }));
+        if (active) {
+          setCommittees(result);
+          if (result.length > 0) {
+            setForm((prev) => ({
+              ...prev,
+              committeeCode: prev.committeeCode || result[0].code,
+            }));
+          }
         }
-      } catch (error: any) {
-        setCommitteeError(error?.message || "Failed to load committees.");
+      } catch {
+        if (active) setCommittees([]);
       } finally {
-        setCommitteeLoading(false);
+        if (active) setCommitteeLoading(false);
       }
     };
-    loadCommittees();
+    void loadCommittees();
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const canSubmit = useMemo(() => Object.keys(validateForm(form)).length === 0 && !loading, [form, loading]);
-
-  const filledCount = useMemo(() => {
-    return (Object.keys(form) as (keyof FormState)[]).filter(
-      (k) => k !== "committeeCode" && form[k].trim() !== ""
-    ).length;
-  }, [form]);
+  useEffect(() => {
+    let active = true;
+    const loadOptions = async () => {
+      try {
+        const colleges = await fetchColleges(BRAND.defaultCommitteeCode);
+        if (!active) return;
+        setCollegeOptions(colleges);
+      } catch {
+        if (!active) return;
+        setCollegeOptions([]);
+      }
+    };
+    void loadOptions();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const setField = <K extends keyof FormState>(field: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -232,67 +172,61 @@ export default function NewProtocolPage() {
     }
   };
 
-  const handlePreview = () => {
+  const handleSubmit = async () => {
     const nextErrors = validateForm(form);
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
-    setStep("preview");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleSubmit = async () => {
     setSubmitError(null);
+    if (Object.keys(nextErrors).length > 0) return;
+
     try {
       setLoading(true);
       const response = await createProjectWithInitialSubmission({
-        projectCode: form.projectCode,
-        title: form.title || undefined,
-        piName: form.piName || undefined,
-        committeeCode: form.committeeCode,
-        submissionType: form.submissionType || undefined,
-        receivedDate: form.receivedDate || undefined,
-        fundingType: form.fundingType || undefined,
+        projectCode: form.projectCode.trim(),
+        title: form.title.trim(),
+        piName: form.projectLeader.trim(),
+        committeeCode: form.committeeCode || undefined,
         collegeOrUnit: form.collegeOrUnit || undefined,
         department: form.department || undefined,
+        submissionType: form.submissionType || undefined,
+        receivedDate: form.dateOfSubmission || undefined,
         proponent: form.proponent || undefined,
-        researchTypePHREB: form.researchTypePHREB || undefined,
-        researchTypePHREBOther: form.researchTypePHREBOther || undefined,
         proponentCategory: (form.proponentCategory || undefined) as
-          | "UNDERGRAD" | "GRAD" | "FACULTY" | "OTHER" | undefined,
-        notes: form.notes || undefined,
-        panel: form.panel || undefined,
-        scientistReviewer: form.scientistReviewer || undefined,
-        layReviewer: form.layReviewer || undefined,
-        independentConsultant: form.independentConsultant || undefined,
-        honorariumStatus: form.honorariumStatus || undefined,
-        classificationDate: form.classificationDate || undefined,
-        finishDate: form.finishDate || undefined,
-        status: form.status || undefined,
-        monthOfSubmission: form.monthOfSubmission || undefined,
-        monthOfClearance: form.monthOfClearance || undefined,
+          | "UNDERGRAD"
+          | "GRAD"
+          | "FACULTY"
+          | "OTHER"
+          | undefined,
+        fundingType: form.fundingType || undefined,
+        researchTypePHREB: form.researchTypePHREB || undefined,
+        researchTypePHREBOther:
+          form.researchTypePHREB === "OTHER" ? form.researchTypePHREBOther || undefined : undefined,
+        notes: form.remarks || undefined,
       });
-      setCreated(response);
+
+      navigate(`/submissions/${response.submissionId}`, {
+        replace: true,
+        state: {
+          createdProtocol: true,
+          projectCode: form.projectCode.trim(),
+          banner: "Protocol created. Next: classify the review type.",
+        },
+      });
     } catch (error: any) {
       if (error?.response?.status === 400) {
-        const fieldErrors = error?.response?.data?.errors as Array<{ field: string; message: string }> | undefined;
+        const fieldErrors = error?.response?.data?.errors as
+          | Array<{ field: string; message: string }>
+          | undefined;
         if (fieldErrors?.length) {
           const mapped: FieldErrors = {};
           fieldErrors.forEach((fe) => {
             const key = fe.field as keyof FormState;
             if (key in INITIAL_FORM) mapped[key] = fe.message;
+            if (fe.field === "piName") mapped.projectLeader = fe.message;
           });
           setErrors(mapped);
-          setStep("form");
           return;
         }
       }
-
-      if (error?.response?.status === 409 && error?.response?.data?.projectId) {
-        setSubmitError("Project code already exists. You can open the existing project.");
-        setCreated({ projectId: error.response.data.projectId, submissionId: 0 });
-        return;
-      }
-
       setSubmitError(error?.response?.data?.message || error?.message || "Failed to create protocol.");
     } finally {
       setLoading(false);
@@ -300,135 +234,10 @@ export default function NewProtocolPage() {
   };
 
   const resetForm = () => {
-    setForm({ ...INITIAL_FORM, committeeCode: committees[0]?.code || "" });
+    setForm({ ...INITIAL_FORM });
     setErrors({});
     setSubmitError(null);
-    setCreated(null);
-    setStep("form");
   };
-
-  /* ── Render helpers ─────────────────────────────────────────────── */
-
-  const renderSelect = (
-    field: keyof FormState,
-    label: string,
-    options: string[],
-    placeholder = "Select…"
-  ) => (
-    <label>
-      {label}
-      <select value={form[field]} onChange={(e) => setField(field, e.target.value)}>
-        <option value="">{placeholder}</option>
-        {options.map((opt) => (
-          <option key={opt} value={opt}>{formatLabel(opt)}</option>
-        ))}
-      </select>
-      {errors[field] && <small className="field-error">{errors[field]}</small>}
-    </label>
-  );
-
-  const renderInput = (
-    field: keyof FormState,
-    label: string,
-    placeholder = "",
-    type: "text" | "date" = "text"
-  ) => (
-    <label>
-      {label}
-      <input
-        type={type}
-        value={form[field]}
-        onChange={(e) => setField(field, e.target.value)}
-        placeholder={placeholder}
-      />
-      {errors[field] && <small className="field-error">{errors[field]}</small>}
-    </label>
-  );
-
-  /* ── Preview rendering ──────────────────────────────────────────── */
-
-  const renderPreview = () => {
-    const hasValue = (key: keyof FormState) => form[key].trim() !== "";
-
-    return (
-      <div className="np-preview">
-        <div className="np-preview-header">
-          <div className="np-preview-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
-              <rect x="9" y="3" width="6" height="4" rx="1" />
-            </svg>
-          </div>
-          <div>
-            <h2>Review before creating</h2>
-            <p className="np-preview-sub">Please verify the information below. Empty fields will be saved as blank and can be filled later.</p>
-          </div>
-        </div>
-
-        {PREVIEW_SECTIONS.map((section) => {
-          const sectionHasData = section.fields.some((f) => hasValue(f.key));
-          return (
-            <div key={section.title} className="np-preview-section">
-              <h3>{section.title}</h3>
-              <dl className="np-preview-grid">
-                {section.fields.map((f) => (
-                  <div key={f.key} className={`np-preview-item ${!hasValue(f.key) ? "empty" : ""}`}>
-                    <dt>{f.label}</dt>
-                    <dd>{hasValue(f.key) ? (f.key.includes("Date") && form[f.key] ? new Date(form[f.key]).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : formatLabel(form[f.key])) : "—"}</dd>
-                  </div>
-                ))}
-              </dl>
-              {!sectionHasData && (
-                <p className="np-preview-empty">No fields filled in this section.</p>
-              )}
-            </div>
-          );
-        })}
-
-        {submitError && <div className="new-protocol-alert" role="alert">{submitError}</div>}
-
-        <div className="np-preview-actions">
-          <button type="button" className="btn btn-secondary" onClick={() => setStep("form")} disabled={loading}>
-            ← Back to edit
-          </button>
-          <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={loading}>
-            {loading ? "Creating…" : "Confirm & Create Protocol"}
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  /* ── Success state ──────────────────────────────────────────────── */
-
-  if (created) {
-    return (
-      <div className="new-protocol-page detail-v2">
-        <header className="detail-hero">
-          <Breadcrumbs items={[{ label: "Dashboard", href: "/dashboard" }, { label: "New Protocol" }]} />
-          <div className="detail-hero-content">
-            <div className="detail-hero-text">
-              <span className="detail-project-code">NEW PROTOCOL</span>
-              <h1 className="detail-title">Create Protocol</h1>
-            </div>
-          </div>
-        </header>
-        <section className="new-protocol-card card detail-card">
-          <div className="new-protocol-success" role="status" aria-live="polite">
-            <div className="np-success-icon">✓</div>
-            <h2>Protocol created successfully</h2>
-            <p>Project <strong>{form.projectCode}</strong> (#{created.projectId}) is ready.</p>
-            <div className="new-protocol-success-actions">
-              <Link className="btn btn-primary" to={`/projects/${created.projectId}`}>View Project</Link>
-              <button className="btn btn-secondary" type="button" onClick={resetForm}>Create another</button>
-            </div>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
-  /* ── Main render ────────────────────────────────────────────────── */
 
   return (
     <div className="new-protocol-page detail-v2">
@@ -439,141 +248,300 @@ export default function NewProtocolPage() {
             <span className="detail-project-code">NEW PROTOCOL</span>
             <h1 className="detail-title">Create Protocol</h1>
             <span className="detail-subtitle">
-              {step === "form"
-                ? "Fill in the fields below. Only Project Code and Committee are required — everything else is optional."
-                : "Review the details before creating the protocol."}
+              Required at creation: Project Code, Title, Project Leader. Additional fields are optional.
             </span>
           </div>
         </div>
       </header>
 
-      {/* Step indicator */}
-      <div className="np-steps">
-        <div className={`np-step ${step === "form" ? "active" : "done"}`}>
-          <span className="np-step-num">{step === "preview" ? "✓" : "1"}</span>
-          <span>Fill details</span>
-        </div>
-        <div className="np-step-line" />
-        <div className={`np-step ${step === "preview" ? "active" : ""}`}>
-          <span className="np-step-num">2</span>
-          <span>Preview & confirm</span>
-        </div>
-      </div>
-
       <section className="new-protocol-card card detail-card">
-        {step === "preview" ? renderPreview() : (
-          <form onSubmit={(e) => { e.preventDefault(); handlePreview(); }} noValidate>
-
-            {/* Section 1: Core */}
-            <section className="np-section">
-              <div className="np-section-header">
-                <h2>Core Information</h2>
-                <span className="np-section-hint">Only Project Code and Committee are required</span>
-              </div>
-              <div className="new-protocol-grid">
-                <label>
-                  Project Code <span className="np-required">*</span>
-                  <input
-                    type="text"
-                    value={form.projectCode}
-                    onChange={(e) => setField("projectCode", e.target.value)}
-                    placeholder="e.g. 2026-001"
-                  />
-                  {errors.projectCode && <small className="field-error">{errors.projectCode}</small>}
-                </label>
-
-                {renderInput("title", "Project Title", "Enter project title")}
-                {renderInput("piName", "Project Leader / PI", "Dr. Jane Doe")}
-
-                <label>
-                  Committee <span className="np-required">*</span>
-                  <select
-                    value={form.committeeCode}
-                    onChange={(e) => setField("committeeCode", e.target.value)}
-                    disabled={committeeLoading || committees.length === 0}
-                  >
-                    {committees.map((c) => (
-                      <option key={c.id} value={c.code}>{c.code} – {c.name}</option>
-                    ))}
-                  </select>
-                  {committeeError && <small className="field-error">{committeeError}</small>}
-                  {errors.committeeCode && <small className="field-error">{errors.committeeCode}</small>}
-                </label>
-
-                {renderSelect("submissionType", "Submission Type", SUBMISSION_TYPES)}
-                {renderInput("receivedDate", "Date of Submission", "", "date")}
-              </div>
-            </section>
-
-            {/* Section 2: Institution & Proponent */}
-            <section className="np-section">
-              <h2>Institution & Proponent</h2>
-              <div className="new-protocol-grid">
-                {renderInput("collegeOrUnit", "College / Service Unit", "e.g. College of Science")}
-                {renderInput("department", "Department", "e.g. Psychology")}
-                {renderInput("proponent", "Proponent", "Name of proponent")}
-                {renderSelect("proponentCategory", "Proponent Category", PROPONENT_CATEGORIES)}
-                {renderSelect("fundingType", "Funding Type", FUNDING_TYPES)}
-                {renderSelect("researchTypePHREB", "Type of Research (PHREB)", RESEARCH_TYPES)}
-                {form.researchTypePHREB === "OTHER" &&
-                  renderInput("researchTypePHREBOther", "Research Type (Specify)", "Specify research type")}
-              </div>
-            </section>
-
-            {/* Section 3: Panel & Reviewers */}
-            <section className="np-section">
-              <h2>Panel & Reviewers</h2>
-              <div className="new-protocol-grid">
-                {renderInput("panel", "Panel", "e.g. Panel 1")}
-                {renderInput("scientistReviewer", "Scientist Reviewer", "Full name")}
-                {renderInput("layReviewer", "Lay Reviewer", "Full name")}
-                {renderInput("independentConsultant", "Independent Consultant", "Full name (if applicable)")}
-                {renderSelect("honorariumStatus", "Honorarium Status", HONORARIUM_OPTIONS)}
-              </div>
-            </section>
-
-            {/* Section 4: Status & Dates */}
-            <section className="np-section">
-              <h2>Status & Dates</h2>
-              <div className="new-protocol-grid">
-                {renderSelect("status", "Status", STATUS_OPTIONS)}
-                {renderInput("classificationDate", "Classification Date", "", "date")}
-                {renderInput("finishDate", "Finish Date", "", "date")}
-                {renderInput("monthOfSubmission", "Month of Submission", "e.g. January 2026")}
-                {renderInput("monthOfClearance", "Month of Clearance", "e.g. March 2026")}
-              </div>
-            </section>
-
-            {/* Section 5: Notes */}
-            <section className="np-section">
-              <h2>Remarks</h2>
-              <div className="new-protocol-grid">
-                <label className="notes-field">
-                  Notes / Remarks
-                  <textarea
-                    value={form.notes}
-                    onChange={(e) => setField("notes", e.target.value)}
-                    placeholder="Optional remarks, observations, or context"
-                    rows={3}
-                  />
-                  {errors.notes && <small className="field-error">{errors.notes}</small>}
-                </label>
-              </div>
-            </section>
-
-            {submitError && <div className="new-protocol-alert" role="alert">{submitError}</div>}
-
-            <div className="new-protocol-actions">
-              <span className="np-field-count">{filledCount} of {Object.keys(INITIAL_FORM).length - 1} fields filled</span>
-              <button className="btn btn-secondary" type="button" onClick={resetForm} disabled={loading}>
-                Reset
-              </button>
-              <button className="btn btn-primary" type="submit" disabled={!canSubmit}>
-                Preview →
-              </button>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleSubmit();
+          }}
+          noValidate
+        >
+          <section className="np-section">
+            <div className="np-section-header">
+              <h2>Core Information</h2>
+              <span className="np-section-hint">Only 3 required at creation</span>
             </div>
-          </form>
-        )}
+            <div className="new-protocol-grid">
+              <label>
+                <span className="np-label-row">
+                  <span>Project Code</span>
+                  <span className="np-required">*</span>
+                </span>
+                <input
+                  type="text"
+                  value={form.projectCode}
+                  onChange={(e) => setField("projectCode", e.target.value)}
+                  placeholder="e.g. 2026-001"
+                />
+                {errors.projectCode && <small className="field-error">{errors.projectCode}</small>}
+              </label>
+
+              <label>
+                <span className="np-label-row">
+                  <span>Title</span>
+                  <span className="np-required">*</span>
+                </span>
+                <input
+                  type="text"
+                  value={form.title}
+                  onChange={(e) => setField("title", e.target.value)}
+                  placeholder="Enter project title"
+                />
+                {errors.title && <small className="field-error">{errors.title}</small>}
+              </label>
+
+              <label>
+                <span className="np-label-row">
+                  <span>Project Leader</span>
+                  <span className="np-required">*</span>
+                </span>
+                <input
+                  type="text"
+                  value={form.projectLeader}
+                  onChange={(e) => setField("projectLeader", e.target.value)}
+                  placeholder="Full name"
+                />
+                {errors.projectLeader && <small className="field-error">{errors.projectLeader}</small>}
+              </label>
+
+              <label>
+                Status
+                <input type="text" value={systemStatus} readOnly />
+              </label>
+            </div>
+          </section>
+
+          <details className="np-optional-details">
+            <summary>Additional Details</summary>
+            <section className="np-section np-section-optional">
+              <div className="np-optional-groups">
+                <div className="np-optional-group">
+                  <h3>Institution</h3>
+                  <div className="new-protocol-grid">
+                    <label>
+                      College
+                      <select
+                        value={form.collegeOrUnit}
+                        onChange={(e) => setField("collegeOrUnit", e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        {collegeOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label>
+                      Department
+                      <input
+                        type="text"
+                        value={form.department}
+                        onChange={(e) => setField("department", e.target.value)}
+                        placeholder="e.g. Psychology"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="np-optional-group">
+                  <h3>Submission Setup</h3>
+                  <div className="new-protocol-grid">
+                    <label>
+                      Submission Type
+                      <select
+                        value={form.submissionType}
+                        onChange={(e) => setField("submissionType", e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        {SUBMISSION_TYPES.map((option) => (
+                          <option key={option} value={option}>
+                            {formatLabel(option)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label>
+                      Committee
+                      <select
+                        value={form.committeeCode}
+                        onChange={(e) => setField("committeeCode", e.target.value)}
+                        disabled={committeeLoading}
+                      >
+                        {committees.map((committee) => (
+                          <option key={committee.id} value={committee.code}>
+                            {committee.code} - {committee.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label>
+                      Date of Submission
+                      <input
+                        type="date"
+                        value={form.dateOfSubmission}
+                        onChange={(e) => setField("dateOfSubmission", e.target.value)}
+                      />
+                      {errors.dateOfSubmission && (
+                        <small className="field-error">{errors.dateOfSubmission}</small>
+                      )}
+                    </label>
+
+                    <label>
+                      Month of Submission
+                      <input
+                        type="text"
+                        value={monthOfSubmission}
+                        readOnly
+                        placeholder="Auto-derived from Date of Submission"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="np-optional-group">
+                  <h3>Proponent</h3>
+                  <div className="new-protocol-grid">
+                    <label>
+                      Proponent
+                      <input
+                        type="text"
+                        value={form.proponent}
+                        onChange={(e) => setField("proponent", e.target.value)}
+                        placeholder="Name of proponent"
+                      />
+                    </label>
+
+                    <label>
+                      Proponent Category
+                      <select
+                        value={form.proponentCategory}
+                        onChange={(e) => setField("proponentCategory", e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        {PROPONENT_CATEGORIES.map((option) => (
+                          <option key={option} value={option}>
+                            {formatLabel(option)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="np-optional-group">
+                  <h3>Research</h3>
+                  <div className="new-protocol-grid">
+                    <label>
+                      Funding Type
+                      <select
+                        value={form.fundingType}
+                        onChange={(e) => setField("fundingType", e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        {FUNDING_TYPES.map((option) => (
+                          <option key={option} value={option}>
+                            {formatLabel(option)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label>
+                      Type of Research PHREB
+                      <select
+                        value={form.researchTypePHREB}
+                        onChange={(e) => setField("researchTypePHREB", e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        {RESEARCH_TYPES.map((option) => (
+                          <option key={option} value={option}>
+                            {formatLabel(option)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    {form.researchTypePHREB === "OTHER" ? (
+                      <label>
+                        Type of Research PHREB (Specific for Others)
+                        <input
+                          type="text"
+                          value={form.researchTypePHREBOther}
+                          onChange={(e) => setField("researchTypePHREBOther", e.target.value)}
+                          placeholder="Specify"
+                        />
+                        {errors.researchTypePHREBOther && (
+                          <small className="field-error">{errors.researchTypePHREBOther}</small>
+                        )}
+                      </label>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="np-optional-group">
+                  <h3>Clearance</h3>
+                  <div className="new-protocol-grid">
+                    <label>
+                      Finish Date
+                      <input
+                        type="text"
+                        value=""
+                        readOnly
+                        placeholder="Set when protocol is cleared/closed"
+                      />
+                    </label>
+
+                    <label>
+                      Month of Clearance
+                      <input
+                        type="text"
+                        value={monthOfClearance}
+                        readOnly
+                        placeholder="Auto-derived from Finish Date"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="np-optional-group">
+                  <h3>Notes</h3>
+                  <div className="new-protocol-grid">
+                    <label className="notes-field">
+                      Remarks
+                      <textarea
+                        value={form.remarks}
+                        onChange={(e) => setField("remarks", e.target.value)}
+                        placeholder="Optional remarks"
+                        rows={3}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </details>
+
+          {submitError ? <div className="new-protocol-alert" role="alert">{submitError}</div> : null}
+
+          <div className="new-protocol-actions">
+            <button className="btn btn-secondary" type="button" onClick={resetForm} disabled={loading}>
+              Reset
+            </button>
+            <button className="btn btn-primary" type="submit" disabled={loading}>
+              {loading ? "Creating..." : "Create Protocol"}
+            </button>
+          </div>
+        </form>
       </section>
     </div>
   );

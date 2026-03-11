@@ -1,14 +1,13 @@
 import React from "react";
 import { formatDateDisplay } from "@/utils/dateUtils";
 import type { CommitteeSummary, SubmissionDetail } from "@/types";
-import { SUBMISSION_TYPE_OPTIONS, STATUS_OPTIONS, FINAL_DECISION_OPTIONS } from "./submissionUtils";
+import { SUBMISSION_TYPE_OPTIONS, FINAL_DECISION_OPTIONS } from "./submissionUtils";
 
 interface OverviewFormState {
   piName: string;
   committeeId: string;
   submissionType: string;
   receivedDate: string;
-  status: string;
   finalDecision: string;
   finalDecisionDate: string;
   changeReason: string;
@@ -102,15 +101,8 @@ export function SubmissionOverviewCard({
           )}
         </div>
         <div className="field">
-          <label>Status</label>
-          {isEditing ? (
-            <select className="field-input" value={formState.status}
-              onChange={(e) => updateField("status", e.target.value)}>
-              {STATUS_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-            </select>
-          ) : (
-            <p>{submission.status}</p>
-          )}
+          <label>Current status</label>
+          <p>{submission.status}</p>
         </div>
         {(isEditing || submission.finalDecision) && (
           <>

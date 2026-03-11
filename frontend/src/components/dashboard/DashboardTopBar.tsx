@@ -1,6 +1,7 @@
 import React, { type RefObject } from "react";
 import { formatTimeAgo } from "./utils";
 import type { ProjectSearchResult } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardTopBarProps {
   greeting: string;
@@ -33,11 +34,24 @@ export function DashboardTopBar({
   onRefresh,
   onNavigate,
 }: DashboardTopBarProps) {
+  const { user } = useAuth();
+  const firstName = user?.fullName?.trim().split(/\s+/)[0] || "User";
+  const primaryRole = user?.roles?.[0] || "";
+  const roleLabelMap: Record<string, string> = {
+    CHAIR: "Chair",
+    RESEARCH_ASSOCIATE: "Research Associate",
+    RESEARCH_ASSISTANT: "Research Assistant",
+  };
+  const roleLabel = roleLabelMap[primaryRole] || "User";
+
   return (
     <div className="dashboard-topbar">
       <div className="topbar-left">
         <div className="topbar-greeting">
-          <h2>{greeting}, Research Associate</h2>
+          <h2>
+            {greeting}, {firstName}{" "}
+            <span className="topbar-role-muted">({roleLabel})</span>
+          </h2>
           <p>
             {lastUpdated
               ? `Last synced ${formatTimeAgo(lastUpdated)}`

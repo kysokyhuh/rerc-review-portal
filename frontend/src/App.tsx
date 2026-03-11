@@ -15,9 +15,11 @@ import { ProjectDetailPage } from "@/pages/ProjectDetailPage";
 import { SubmissionDetailPage } from "@/pages/SubmissionDetailPage";
 import ImportProjectsPage from "@/pages/ImportProjectsPage";
 import NewProtocolPage from "@/pages/NewProtocolPage";
+import NewProtocolClassicPage from "@/pages/NewProtocolClassicPage";
 import ArchivesPage from "@/pages/ArchivesPage";
 import ReportsPage from "@/pages/ReportsPage";
 import QueuePage from "@/pages/QueuePage";
+import ExemptedPage from "@/pages/ExemptedPage";
 import HolidaysPage from "@/pages/HolidaysPage";
 import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
@@ -81,6 +83,14 @@ function App() {
                 }
               >
                 <Route path="/dashboard" element={<DashboardPage />} />
+                <Route
+                  path="/queues/exempted"
+                  element={
+                    <ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}>
+                      <ExemptedPage />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="/queues/:queueKey" element={<QueuePage />} />
                 <Route path="/holidays" element={<HolidaysPage />} />
                 <Route
@@ -107,6 +117,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <NewProtocolPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/projects/new-classic"
+                element={
+                  <ProtectedRoute>
+                    <NewProtocolClassicPage />
                   </ProtectedRoute>
                 }
               />

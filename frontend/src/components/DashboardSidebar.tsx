@@ -29,11 +29,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
   };
 
   const roleLabel = roleLabelMap[primaryRole] || "User";
-  const firstName = user?.fullName?.trim().split(/\s+/)[0] || "User";
-
-  const hour = new Date().getHours();
-  const greeting =
-    hour < 12 ? "Good Morning" : hour < 18 ? "Good Afternoon" : "Good Evening";
+  const displayName = user?.fullName?.trim() || "User";
+  const sidebarTagline = BRAND.tagline.replace(/\s+Portal$/i, "");
 
   useEffect(() => {
     if (!isChair) {
@@ -71,8 +68,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">R</div>
           <div>
-            <h1>{BRAND.name} Portal</h1>
-            <span>{BRAND.tagline}</span>
+            <h1>{BRAND.name}</h1>
+            <span>{sidebarTagline}</span>
           </div>
         </div>
       </div>
@@ -121,6 +118,18 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
             Under Review
             {(counts?.forReview ?? 0) > 0 && <span className="nav-item-badge">{counts?.forReview}</span>}
           </NavLink>
+          {canOperate ? (
+            <NavLink to="/queues/exempted" className={navClassName}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 12l2 2 4-4" />
+                <path d="M21 12c-2 4-5 7-9 7s-7-3-9-7c2-4 5-7 9-7s7 3 9 7z" />
+              </svg>
+              Exempted
+              {(counts?.forExempted ?? 0) > 0 && (
+                <span className="nav-item-badge nav-item-badge-success">{counts?.forExempted}</span>
+              )}
+            </NavLink>
+          ) : null}
           <NavLink to="/queues/revisions" className={navClassName}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
@@ -186,9 +195,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
           <div className="sidebar-avatar">{user?.fullName?.[0]?.toUpperCase() ?? "U"}</div>
           <div className="sidebar-user-info">
             <div className="sidebar-user-name">
-              {greeting}, {firstName}
+              {displayName} <span className="sidebar-user-role">({roleLabel})</span>
             </div>
-            <div className="sidebar-user-role">({roleLabel})</div>
           </div>
         </div>
         <button

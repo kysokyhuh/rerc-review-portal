@@ -275,7 +275,7 @@ export interface CreateProjectPayload {
   projectCode: string;
   title?: string;
   piName?: string;
-  committeeCode: string;
+  committeeCode?: string;
   submissionType?: string;
   receivedDate?: string;
   fundingType?: string;
@@ -551,6 +551,25 @@ export interface ArchivedProjectsResponse {
   total: number;
   limit: number;
   offset: number;
+}
+
+export interface ExemptedQueueItem {
+  id: number;
+  projectId: number | null;
+  projectCode: string;
+  title: string;
+  proponentOrLeader: string;
+  college: string;
+  dateReceived: string | null;
+  status: string;
+  resultsNotifiedAt: string | null;
+}
+
+export interface ExemptedQueueResponse {
+  totalCount: number;
+  items: ExemptedQueueItem[];
+  page: number;
+  pageSize: number;
 }
 
 export interface ReportsAcademicYearOption {

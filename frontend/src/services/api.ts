@@ -25,6 +25,8 @@ export type {
   CreateProjectResponse,
   ArchivedProject,
   ArchivedProjectsResponse,
+  ExemptedQueueItem,
+  ExemptedQueueResponse,
   ReportsAcademicYearOption,
   ReportsSummaryResponse,
   AnnualReportSummaryResponse,
@@ -54,6 +56,7 @@ import type {
   CreateProjectPayload,
   CreateProjectResponse,
   ArchivedProjectsResponse,
+  ExemptedQueueResponse,
   ReportsAcademicYearOption,
   ReportsSummaryResponse,
   AnnualReportSummaryResponse,
@@ -134,6 +137,20 @@ api.interceptors.response.use(
 export async function fetchColleges(committeeCode: string): Promise<string[]> {
   const response = await api.get(
     `/dashboard/colleges?committeeCode=${encodeURIComponent(committeeCode)}`
+  );
+  return response.data;
+}
+
+export async function fetchDepartments(committeeCode: string): Promise<string[]> {
+  const response = await api.get(
+    `/dashboard/departments?committeeCode=${encodeURIComponent(committeeCode)}`
+  );
+  return response.data;
+}
+
+export async function fetchProponents(committeeCode: string): Promise<string[]> {
+  const response = await api.get(
+    `/dashboard/proponents?committeeCode=${encodeURIComponent(committeeCode)}`
   );
   return response.data;
 }
@@ -301,7 +318,6 @@ export async function updateSubmissionOverview(
   payload: {
     submissionType?: string;
     receivedDate?: string;
-    status?: string;
     finalDecision?: string | null;
     finalDecisionDate?: string | null;
     piName?: string;
@@ -314,6 +330,48 @@ export async function updateSubmissionOverview(
     payload
   );
   return response.data as SubmissionDetail;
+}
+
+export async function updateSubmissionWorkflowStage(
+  submissionId: number,
+  payload: {
+    newStatus:
+      | "AWAITING_CLASSIFICATION"
+      | "UNDER_CLASSIFICATION"
+      | "CLASSIFIED";
+    reason?: string;
+  }
+) {
+  const response = await api.patch(`/submissions/${submissionId}/status`, payload);
+  return response.data as {
+    submission: { id: number; status: string };
+    history: { id: number; newStatus: string; oldStatus?: string | null };
+  };
+}
+
+export async function setSubmissionReviewTrack(
+  submissionId: number,
+  payload: {
+    reviewType: "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | null;
+    classificationDate?: string;
+    rationale?: string;
+  }
+) {
+  const response = await api.post(`/submissions/${submissionId}/classifications`, payload);
+  return response.data as {
+    id: number;
+    submissionId: number;
+    reviewType: string;
+    classificationDate: string;
+  };
+}
+
+export async function startSubmissionReview(submissionId: number) {
+  const response = await api.post(`/submissions/${submissionId}/start-review`, {});
+  return response.data as {
+    submission: { id: number; status: string };
+    history: { id: number; oldStatus: string | null; newStatus: string };
+  };
 }
 
 export async function fetchSubmissionSlaSummary(submissionId: number) {
@@ -444,6 +502,8 @@ export async function fetchArchivedProjects(params?: {
   status?: string;
   reviewType?: string;
   college?: string;
+  sortBy?: "lastModified" | "submitted";
+  sortDir?: "asc" | "desc";
 }) {
   const searchParams = new URLSearchParams();
   if (params?.committeeCode) searchParams.set("committeeCode", params.committeeCode);
@@ -453,11 +513,38 @@ export async function fetchArchivedProjects(params?: {
   if (params?.status) searchParams.set("status", params.status);
   if (params?.reviewType) searchParams.set("reviewType", params.reviewType);
   if (params?.college) searchParams.set("college", params.college);
+  if (params?.sortBy) searchParams.set("sortBy", params.sortBy);
+  if (params?.sortDir) searchParams.set("sortDir", params.sortDir);
   
   const query = searchParams.toString();
   const url = `/projects/archived${query ? `?${query}` : ""}`;
   const response = await api.get(url);
   return response.data as ArchivedProjectsResponse;
+}
+
+export async function fetchExemptedQueue(params?: {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  college?: string;
+  committee?: string;
+}) {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.pageSize) searchParams.set("pageSize", String(params.pageSize));
+  if (params?.q) searchParams.set("q", params.q);
+  if (params?.college) searchParams.set("college", params.college);
+  if (params?.committee) searchParams.set("committee", params.committee);
+
+  const query = searchParams.toString();
+  const url = `/queues/exempted${query ? `?${query}` : ""}`;
+  const response = await api.get(url);
+  return response.data as ExemptedQueueResponse;
+}
+
+export async function issueExemption(submissionId: number, payload: { resultsNotifiedAt: string }) {
+  const response = await api.post(`/submissions/${submissionId}/issue-exemption`, payload);
+  return response.data;
 }
 
 export async function fetchReportAcademicYears() {

@@ -57,6 +57,9 @@ const formatReviewType = (reviewType: string | null) => {
 };
 
 export default function ArchivesPage() {
+  type ArchivePreset = "ALL" | "WITHDRAWN" | "CLOSED_EXEMPT" | "CLOSED_EXPEDITED" | "CLOSED_FULL_BOARD";
+  type ArchiveSort = "lastModifiedDesc" | "lastModifiedAsc" | "submittedDesc" | "submittedAsc";
+
   const navigate = useNavigate();
   const [items, setItems] = useState<ArchivedProject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,6 +71,8 @@ export default function ArchivesPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [reviewTypeFilter, setReviewTypeFilter] = useState("");
   const [collegeFilter, setCollegeFilter] = useState("");
+  const [preset, setPreset] = useState<ArchivePreset>("ALL");
+  const [sort, setSort] = useState<ArchiveSort>("lastModifiedDesc");
   const [collegeOptions, setCollegeOptions] = useState<string[]>([]);
   const limit = 50;
 
@@ -90,7 +95,33 @@ export default function ArchivesPage() {
   // Reset to first page when filters change
   useEffect(() => {
     setOffset(0);
-  }, [statusFilter, reviewTypeFilter, collegeFilter]);
+  }, [statusFilter, reviewTypeFilter, collegeFilter, sort]);
+
+  const applyPreset = (nextPreset: ArchivePreset) => {
+    setPreset(nextPreset);
+    if (nextPreset === "ALL") {
+      setStatusFilter("");
+      setReviewTypeFilter("");
+      return;
+    }
+    if (nextPreset === "WITHDRAWN") {
+      setStatusFilter("WITHDRAWN");
+      setReviewTypeFilter("");
+      return;
+    }
+    setStatusFilter("CLOSED");
+    if (nextPreset === "CLOSED_EXEMPT") setReviewTypeFilter("EXEMPT");
+    if (nextPreset === "CLOSED_EXPEDITED") setReviewTypeFilter("EXPEDITED");
+    if (nextPreset === "CLOSED_FULL_BOARD") setReviewTypeFilter("FULL_BOARD");
+  };
+
+  const sortParams = (() => {
+    if (sort === "submittedAsc") return { sortBy: "submitted" as const, sortDir: "asc" as const };
+    if (sort === "submittedDesc") return { sortBy: "submitted" as const, sortDir: "desc" as const };
+    if (sort === "lastModifiedAsc")
+      return { sortBy: "lastModified" as const, sortDir: "asc" as const };
+    return { sortBy: "lastModified" as const, sortDir: "desc" as const };
+  })();
 
   const loadArchives = useCallback(async () => {
     try {
@@ -104,6 +135,8 @@ export default function ArchivesPage() {
         status: statusFilter || undefined,
         reviewType: reviewTypeFilter || undefined,
         college: collegeFilter || undefined,
+        sortBy: sortParams.sortBy,
+        sortDir: sortParams.sortDir,
       });
       setItems(response.items);
       setTotal(response.total);
@@ -113,7 +146,7 @@ export default function ArchivesPage() {
     } finally {
       setLoading(false);
     }
-  }, [offset, debouncedSearch, statusFilter, reviewTypeFilter, collegeFilter]);
+  }, [offset, debouncedSearch, statusFilter, reviewTypeFilter, collegeFilter, sortParams.sortBy, sortParams.sortDir]);
 
   useEffect(() => {
     loadArchives();
@@ -182,24 +215,24 @@ export default function ArchivesPage() {
         </div>
 
         <div className="archives-filter-row">
-          <label className="archives-filter-field">
-            <span className="archives-filter-label">Status</span>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="">All statuses</option>
-              <option value="CLOSED">Closed</option>
-              <option value="WITHDRAWN">Withdrawn</option>
-            </select>
-          </label>
-
-          <label className="archives-filter-field">
-            <span className="archives-filter-label">Review Type</span>
-            <select value={reviewTypeFilter} onChange={(e) => setReviewTypeFilter(e.target.value)}>
-              <option value="">All review types</option>
-              <option value="EXEMPT">Exempt</option>
-              <option value="EXPEDITED">Expedited</option>
-              <option value="FULL_BOARD">Full Board</option>
-            </select>
-          </label>
+          <div className="archives-subtabs" role="tablist" aria-label="Archive status presets">
+            {[
+              { key: "ALL", label: "All" },
+              { key: "WITHDRAWN", label: "Withdrawn" },
+              { key: "CLOSED_EXEMPT", label: "Closed • Exempted" },
+              { key: "CLOSED_EXPEDITED", label: "Closed • Expedited" },
+              { key: "CLOSED_FULL_BOARD", label: "Closed • Full Board" },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                className={`archives-subtab ${preset === tab.key ? "active" : ""}`}
+                onClick={() => applyPreset(tab.key as ArchivePreset)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
           <label className="archives-filter-field">
             <span className="archives-filter-label">College</span>
@@ -211,11 +244,27 @@ export default function ArchivesPage() {
             </select>
           </label>
 
-          {(statusFilter || reviewTypeFilter || collegeFilter) && (
+          <label className="archives-filter-field">
+            <span className="archives-filter-label">Sort</span>
+            <select value={sort} onChange={(e) => setSort(e.target.value as ArchiveSort)}>
+              <option value="lastModifiedDesc">Date Last Modified (Newest)</option>
+              <option value="lastModifiedAsc">Date Last Modified (Oldest)</option>
+              <option value="submittedDesc">Date Submitted (Newest)</option>
+              <option value="submittedAsc">Date Submitted (Oldest)</option>
+            </select>
+          </label>
+
+          {(preset !== "ALL" || collegeFilter || sort !== "lastModifiedDesc") && (
             <button
               type="button"
               className="archives-clear-btn"
-              onClick={() => { setStatusFilter(""); setReviewTypeFilter(""); setCollegeFilter(""); }}
+              onClick={() => {
+                setPreset("ALL");
+                setStatusFilter("");
+                setReviewTypeFilter("");
+                setCollegeFilter("");
+                setSort("lastModifiedDesc");
+              }}
             >
               Clear filters
             </button>

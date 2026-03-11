@@ -940,6 +940,46 @@ a:hover {
   font-size: 13px;
 }
 
+.project-detail-page .field-helper {
+  margin: 4px 0 8px;
+  font-size: 12px;
+  color: var(--neutral-600);
+}
+
+.project-detail-page .field-success {
+  margin: 8px 0 0;
+  color: var(--primary-green-hover);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.classification-control-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.classification-controls-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.classification-save-cell {
+  display: flex;
+  align-items: flex-end;
+}
+
+.classification-readonly {
+  display: flex;
+  align-items: center;
+  color: var(--neutral-700);
+  background: var(--surface-muted);
+  font-weight: 600;
+}
+
 .project-detail-page .history-list {
   display: flex;
   flex-direction: column;

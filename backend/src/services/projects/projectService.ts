@@ -106,8 +106,20 @@ export async function getArchivedProjects(params: {
   statusFilter?: string | null;
   reviewTypeFilter?: string | null;
   collegeFilter?: string | null;
+  sortBy?: "lastModified" | "submitted";
+  sortDir?: "asc" | "desc";
 }) {
-  const { committeeCode, limit, offset, search, statusFilter, reviewTypeFilter, collegeFilter } = params;
+  const {
+    committeeCode,
+    limit,
+    offset,
+    search,
+    statusFilter,
+    reviewTypeFilter,
+    collegeFilter,
+    sortBy = "lastModified",
+    sortDir = "desc",
+  } = params;
   const terminalStatuses = statusFilter ? [statusFilter] : ["CLOSED", "WITHDRAWN"];
 
   const whereClause: any = {
@@ -142,7 +154,10 @@ export async function getArchivedProjects(params: {
       },
       committee: { select: { code: true, name: true } },
     },
-    orderBy: { updatedAt: "desc" },
+    orderBy:
+      sortBy === "submitted"
+        ? { initialSubmissionDate: sortDir }
+        : { updatedAt: sortDir },
     take: limit,
     skip: offset,
   });

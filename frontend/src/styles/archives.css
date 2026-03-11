@@ -1,8 +1,8 @@
 /* Archives Page Styles */
 .archives-page {
-  max-width: 980px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 20px 24px;
 }
 
 .archives-hero {
@@ -68,13 +68,43 @@
   flex-wrap: wrap;
 }
 
+.archives-subtabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1 1 100%;
+}
+
+.archives-subtab {
+  border: 1px solid var(--neutral-200);
+  background: var(--surface);
+  color: var(--neutral-700);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--motion-fast) ease;
+}
+
+.archives-subtab:hover {
+  border-color: var(--neutral-300);
+  background: var(--surface-muted);
+}
+
+.archives-subtab.active {
+  border-color: var(--primary-green);
+  color: var(--primary-green);
+  background: var(--primary-green-soft);
+}
+
 .archives-filter-field {
   display: flex;
   flex-direction: column;
   gap: 4px;
   flex: 1;
-  min-width: 140px;
-  max-width: 220px;
+  min-width: 180px;
+  max-width: 260px;
 }
 
 .archives-filter-label {
@@ -186,7 +216,7 @@
 }
 
 .title-cell {
-  max-width: 300px;
+  max-width: 460px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -356,6 +386,10 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .archives-page {
+    padding: 16px;
+  }
+
   .archives-toolbar {
     flex-direction: column;
     align-items: stretch;
@@ -367,6 +401,10 @@
 
   .archives-filter-row {
     flex-direction: column;
+  }
+
+  .archives-subtabs {
+    width: 100%;
   }
 
   .archives-filter-field {

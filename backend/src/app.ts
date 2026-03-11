@@ -16,6 +16,7 @@ import {
   healthRoutes,
   committeeRoutes,
   dashboardRoutes,
+  exemptRoutes,
   projectRoutes,
   submissionRoutes,
   mailMergeRoutes,
@@ -117,6 +118,9 @@ app.use(committeeRoutes);
 
 // Dashboard routes (/dashboard/queues, /ra/dashboard, /ra/submissions/:id)
 app.use(dashboardRoutes);
+
+// Exempted queue routes (/queues/exempted)
+app.use(exemptRoutes);
 
 // Project routes (/projects, /projects/:id, /projects/:id/full, /projects/:projectId/submissions)
 app.use(projectRoutes);

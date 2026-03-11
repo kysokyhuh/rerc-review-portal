@@ -532,6 +532,7 @@ model Submission {
   revisionDueDate         DateTime?
   continuingReviewDueDate DateTime?
   finalReportDueDate      DateTime?
+  resultsNotifiedAt       DateTime?
   finalDecision           ReviewDecision?
   finalDecisionDate       DateTime?
   remarks                 String? // General remarks

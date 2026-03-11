@@ -7,14 +7,20 @@ import { workingDaysBetween } from "../../utils/slaUtils";
 import { AppError } from "../../middleware/errorHandler";
 import { logAuditEvent } from "../audit/auditService";
 
+const WORKFLOW_STAGE_ORDER: SubmissionStatus[] = [
+  SubmissionStatus.AWAITING_CLASSIFICATION,
+  SubmissionStatus.UNDER_CLASSIFICATION,
+  SubmissionStatus.CLASSIFIED,
+];
+
 /* ------------------------------------------------------------------ */
 /*  Classify                                                           */
 /* ------------------------------------------------------------------ */
 export async function classifySubmission(
   submissionId: number,
   data: {
-    reviewType: ReviewType;
-    classificationDate: string;
+    reviewType: ReviewType | null;
+    classificationDate?: string;
     panelId?: number | null;
     rationale?: string;
   },
@@ -25,7 +31,57 @@ export async function classifySubmission(
   });
   if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
 
-  const classificationDate = new Date(data.classificationDate);
+  const canClassifyAtStatus =
+    submission.status === SubmissionStatus.RECEIVED ||
+    submission.status === SubmissionStatus.AWAITING_CLASSIFICATION ||
+    submission.status === SubmissionStatus.UNDER_CLASSIFICATION ||
+    submission.status === SubmissionStatus.CLASSIFIED;
+  if (!canClassifyAtStatus) {
+    throw new AppError(
+      400,
+      "INVALID_WORKFLOW_STAGE",
+      "Review type can only be set after classification starts."
+    );
+  }
+
+  if (!data.reviewType) {
+    await prisma.$transaction(async (tx) => {
+      await tx.classification.deleteMany({ where: { submissionId } });
+      const previousStatus = submission.status;
+      const nextStatus =
+        previousStatus === SubmissionStatus.CLASSIFIED
+          ? SubmissionStatus.CLASSIFIED
+          : SubmissionStatus.AWAITING_CLASSIFICATION;
+      if (previousStatus !== nextStatus) {
+        await tx.submission.update({
+          where: { id: submissionId },
+          data: { status: nextStatus },
+        });
+        await tx.submissionStatusHistory.create({
+          data: {
+            submissionId,
+            oldStatus: previousStatus,
+            newStatus: nextStatus,
+            reason: "Classification cleared",
+            changedById: classifiedById,
+          },
+        });
+      }
+    });
+
+    await logAuditEvent({
+      actorId: classifiedById,
+      action: "SUBMISSION_CLASSIFICATION_CLEARED",
+      entityType: "Submission",
+      entityId: submissionId,
+      metadata: {},
+    });
+
+    return { submissionId, reviewType: null };
+  }
+
+  const reviewType = data.reviewType as ReviewType;
+  const classificationDate = new Date(data.classificationDate ?? new Date().toISOString());
   if (Number.isNaN(classificationDate.getTime())) {
     throw new AppError(400, "INVALID_DATE", "Invalid classificationDate");
   }
@@ -34,7 +90,7 @@ export async function classifySubmission(
     const classification = await tx.classification.upsert({
       where: { submissionId },
       update: {
-        reviewType: data.reviewType,
+        reviewType,
         classificationDate,
         panelId: data.panelId ?? null,
         rationale: data.rationale,
@@ -42,7 +98,7 @@ export async function classifySubmission(
       },
       create: {
         submissionId,
-        reviewType: data.reviewType,
+        reviewType,
         classificationDate,
         panelId: data.panelId ?? null,
         rationale: data.rationale,
@@ -56,16 +112,16 @@ export async function classifySubmission(
         where: { id: submissionId },
         data: { status: SubmissionStatus.CLASSIFIED },
       });
-      await tx.submissionStatusHistory.create({
-        data: {
-          submissionId,
-          oldStatus: previousStatus,
-          newStatus: SubmissionStatus.CLASSIFIED,
-          reason: `Classified as ${data.reviewType}`,
-          changedById: classifiedById,
-        },
-      });
     }
+    await tx.submissionStatusHistory.create({
+      data: {
+        submissionId,
+        oldStatus: previousStatus,
+        newStatus: SubmissionStatus.CLASSIFIED,
+        reason: `Classified as ${reviewType}`,
+        changedById: classifiedById,
+      },
+    });
     return classification;
   });
 
@@ -74,7 +130,7 @@ export async function classifySubmission(
     action: "SUBMISSION_CLASSIFIED",
     entityType: "Submission",
     entityId: submissionId,
-    metadata: { reviewType: data.reviewType, panelId: data.panelId ?? null },
+    metadata: { reviewType, panelId: data.panelId ?? null },
   });
 
   return result;
@@ -122,7 +178,7 @@ export async function updateSubmissionOverview(
   changedById: number
 ) {
   const {
-    submissionType, receivedDate, status, finalDecision,
+    submissionType, receivedDate, finalDecision,
     finalDecisionDate, piName, committeeId, changeReason,
   } = body;
 
@@ -133,16 +189,6 @@ export async function updateSubmissionOverview(
   if (submissionType && !allowedSubmissionTypes.includes(String(submissionType))) {
     throw new AppError(400, "INVALID_SUBMISSION_TYPE",
       `Invalid submissionType. Allowed: ${allowedSubmissionTypes.join(", ")}`);
-  }
-
-  const allowedStatuses = [
-    "RECEIVED", "UNDER_COMPLETENESS_CHECK", "AWAITING_CLASSIFICATION",
-    "UNDER_CLASSIFICATION", "CLASSIFIED", "UNDER_REVIEW",
-    "AWAITING_REVISIONS", "REVISION_SUBMITTED", "CLOSED", "WITHDRAWN",
-  ];
-  if (status && !allowedStatuses.includes(String(status))) {
-    throw new AppError(400, "INVALID_STATUS",
-      `Invalid status. Allowed: ${allowedStatuses.join(", ")}`);
   }
 
   const submission = await prisma.submission.findUnique({
@@ -251,35 +297,15 @@ export async function updateSubmissionOverview(
     throw new AppError(400, "INVALID_INPUT", "Submission is not linked to a project");
   }
 
-  const isValidStatus = (value: any): value is SubmissionStatus =>
-    Object.values(SubmissionStatus).includes(value as SubmissionStatus);
-  const statusChanged =
-    status && status !== submission.status && isValidStatus(status)
-      ? (status as SubmissionStatus) : null;
-  if (status && !statusChanged && status !== submission.status) {
-    throw new AppError(400, "INVALID_STATUS", "Invalid status value");
-  }
-  if (statusChanged) submissionUpdate.status = statusChanged;
-
   const hasUpdates =
     Object.keys(submissionUpdate).length > 0 ||
     Object.keys(projectUpdate).length > 0 ||
-    statusChanged || changeLogs.length > 0 || projectChangeLogs.length > 0;
+    changeLogs.length > 0 || projectChangeLogs.length > 0;
   if (!hasUpdates) {
     throw new AppError(400, "NO_CHANGES", "No changes to update");
   }
 
   const operations: any[] = [];
-  if (statusChanged) {
-    operations.push(
-      prisma.submissionStatusHistory.create({
-        data: {
-          submissionId: submission.id, oldStatus: submission.status,
-          newStatus: statusChanged, reason: changeReason ?? null, changedById,
-        },
-      })
-    );
-  }
   if (Object.keys(submissionUpdate).length > 0) {
     operations.push(prisma.submission.update({ where: { id: submission.id }, data: submissionUpdate }));
   }
@@ -326,6 +352,24 @@ export async function updateSubmissionStatus(
     where: { id }, select: { status: true },
   });
   if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
+  if (submission.status === SubmissionStatus.RECEIVED) {
+    await prisma.submission.update({
+      where: { id },
+      data: { status: SubmissionStatus.AWAITING_CLASSIFICATION },
+    });
+    submission.status = SubmissionStatus.AWAITING_CLASSIFICATION;
+  }
+  const currentIndex = WORKFLOW_STAGE_ORDER.indexOf(submission.status);
+  const nextIndex = WORKFLOW_STAGE_ORDER.indexOf(newStatus);
+  if (currentIndex === -1 || nextIndex === -1) {
+    throw new AppError(400, "INVALID_WORKFLOW_STAGE", "Unsupported workflow stage transition.");
+  }
+  if (currentIndex === nextIndex) {
+    throw new AppError(400, "NO_CHANGES", "Submission is already in that workflow stage.");
+  }
+  if (nextIndex < currentIndex) {
+    throw new AppError(400, "INVALID_TRANSITION", "Workflow stage can only move forward.");
+  }
 
   const [history, updated] = await prisma.$transaction([
     prisma.submissionStatusHistory.create({
@@ -345,8 +389,17 @@ export async function assignReviewer(
   isPrimary: boolean,
   actorId: number
 ) {
-  const submission = await prisma.submission.findUnique({ where: { id: submissionId } });
+  const submission = await prisma.submission.findUnique({
+    where: { id: submissionId },
+    include: { classification: true },
+  });
   if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
+  if (!submission.classification) {
+    throw new AppError(400, "NOT_CLASSIFIED", "Submission must be classified before assigning reviewers");
+  }
+  if (submission.classification.reviewType === ReviewType.EXEMPT) {
+    throw new AppError(400, "INVALID_REVIEW_SETUP", "EXEMPT submissions do not require reviewer assignment");
+  }
 
   const reviewer = await prisma.user.findUnique({ where: { id: reviewerId } });
   if (!reviewer) throw new AppError(404, "NOT_FOUND", "Reviewer not found");
@@ -362,6 +415,66 @@ export async function assignReviewer(
     metadata: { reviewerId, isPrimary },
   });
   return review;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Start review                                                      */
+/* ------------------------------------------------------------------ */
+export async function startSubmissionReview(submissionId: number, actorId: number) {
+  const submission = await prisma.submission.findUnique({
+    where: { id: submissionId },
+    include: {
+      classification: true,
+      reviews: true,
+    },
+  });
+  if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
+  if (!submission.classification) {
+    throw new AppError(400, "NOT_CLASSIFIED", "Submission must be classified before starting review");
+  }
+
+  const reviewType = submission.classification.reviewType;
+  if (reviewType === ReviewType.EXEMPT) {
+    throw new AppError(400, "INVALID_REVIEW_SETUP", "EXEMPT submissions cannot be moved to UNDER_REVIEW");
+  }
+  if (reviewType === ReviewType.FULL_BOARD && !submission.classification.panelId) {
+    throw new AppError(400, "PANEL_REQUIRED", "FULL_BOARD requires an assigned panel before starting review");
+  }
+  if ((submission.reviews ?? []).length < 1) {
+    throw new AppError(400, "REVIEWER_REQUIRED", "Assign at least one reviewer before starting review");
+  }
+  if (submission.status === SubmissionStatus.UNDER_REVIEW) {
+    throw new AppError(400, "NO_CHANGES", "Submission is already under review");
+  }
+  if (submission.status !== SubmissionStatus.CLASSIFIED) {
+    throw new AppError(400, "INVALID_WORKFLOW_STAGE", "Only CLASSIFIED submissions can start review");
+  }
+
+  const [history, updated] = await prisma.$transaction([
+    prisma.submissionStatusHistory.create({
+      data: {
+        submissionId,
+        oldStatus: submission.status,
+        newStatus: SubmissionStatus.UNDER_REVIEW,
+        reason: "Review started",
+        changedById: actorId,
+      },
+    }),
+    prisma.submission.update({
+      where: { id: submissionId },
+      data: { status: SubmissionStatus.UNDER_REVIEW },
+    }),
+  ]);
+
+  await logAuditEvent({
+    actorId,
+    action: "SUBMISSION_REVIEW_STARTED",
+    entityType: "Submission",
+    entityId: submissionId,
+    metadata: { reviewType },
+  });
+
+  return { submission: updated, history };
 }
 
 /* ------------------------------------------------------------------ */

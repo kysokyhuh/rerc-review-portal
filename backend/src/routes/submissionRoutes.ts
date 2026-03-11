@@ -16,6 +16,8 @@ import {
   createReviewSchema,
   reviewDecisionSchema,
   finalDecisionSchema,
+  issueExemptionSchema,
+  startReviewSchema,
 } from "../schemas/submission";
 import {
   classifySubmission,
@@ -26,7 +28,9 @@ import {
   recordReviewDecision,
   recordFinalDecision,
   getSlaSummary,
+  startSubmissionReview,
 } from "../services/submissions/submissionService";
+import { issueExemptionAndClose } from "../services/exemptService";
 
 const router = Router();
 
@@ -151,6 +155,46 @@ router.post(
 );
 
 // Record final decision for a submission and update project approvals
+router.post(
+  "/submissions/:id/start-review",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  validate(startReviewSchema),
+  async (req, res, next) => {
+    try {
+      const submissionId = Number(req.params.id);
+      if (Number.isNaN(submissionId)) {
+        return res.status(400).json({ message: "Invalid submission id" });
+      }
+      const result = await startSubmissionReview(submissionId, req.user!.id);
+      return res.json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+router.post(
+  "/submissions/:id/issue-exemption",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  validate(issueExemptionSchema),
+  async (req, res, next) => {
+    try {
+      const submissionId = Number(req.params.id);
+      if (Number.isNaN(submissionId)) {
+        return res.status(400).json({ message: "Invalid submission id" });
+      }
+      const result = await issueExemptionAndClose(
+        submissionId,
+        req.body.resultsNotifiedAt,
+        req.user!.id
+      );
+      return res.json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
 router.post(
   "/submissions/:id/final-decision",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),

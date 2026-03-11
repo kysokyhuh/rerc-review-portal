@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   fetchCommittees,
   fetchSubmissionDetail,
+  updateSubmissionWorkflowStage,
+  setSubmissionReviewTrack,
   updateProtocolProfile,
   updateSubmissionOverview,
   createProtocolMilestone,
@@ -30,12 +32,39 @@ import {
 } from "@/components/submission";
 import type { OverviewFormState } from "@/components/submission";
 import type { CommitteeSummary, ProtocolMilestone, SubmissionDetail } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
+
+const CLASSIFICATION_STATUS_STAGES = [
+  "AWAITING_CLASSIFICATION",
+  "UNDER_CLASSIFICATION",
+  "CLASSIFIED",
+] as const;
+
+const REVIEW_TYPE_OPTIONS = ["", "EXEMPT", "EXPEDITED", "FULL_BOARD"] as const;
+
+const normalizeClassificationStatus = (
+  value: string
+): (typeof CLASSIFICATION_STATUS_STAGES)[number] => {
+  if (value === "RECEIVED") return "AWAITING_CLASSIFICATION";
+  if (
+    value === "AWAITING_CLASSIFICATION" ||
+    value === "UNDER_CLASSIFICATION" ||
+    value === "CLASSIFIED"
+  ) {
+    return value;
+  }
+  return "CLASSIFIED";
+};
 
 export const SubmissionDetailPage: React.FC = () => {
   const { submissionId } = useParams<{ submissionId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
 
+  const { user } = useAuth();
+  const locationState = (location.state as
+    | { createdProtocol?: boolean; banner?: string; projectCode?: string }
+    | null) ?? null;
   /* ── state ── */
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -49,8 +78,20 @@ export const SubmissionDetailPage: React.FC = () => {
   const [newMilestoneLabel, setNewMilestoneLabel] = useState("");
   const [formState, setFormState] = useState<OverviewFormState>({
     piName: "", committeeId: "", submissionType: "", receivedDate: "",
-    status: "", finalDecision: "", finalDecisionDate: "", changeReason: "",
+    finalDecision: "", finalDecisionDate: "", changeReason: "",
   });
+  const [classificationStatusPending, setClassificationStatusPending] = useState<
+    "AWAITING_CLASSIFICATION" | "UNDER_CLASSIFICATION"
+  >("AWAITING_CLASSIFICATION");
+  const [reviewTypePending, setReviewTypePending] = useState<
+    "" | "EXEMPT" | "EXPEDITED" | "FULL_BOARD"
+  >("");
+  const [classificationSaving, setClassificationSaving] = useState(false);
+  const [classificationMessage, setClassificationMessage] = useState<string | null>(null);
+  const [classificationError, setClassificationError] = useState<string | null>(null);
+  const [creationBannerVisible, setCreationBannerVisible] = useState(
+    Boolean(locationState?.createdProtocol)
+  );
 
   const numericId = submissionId ? Number(submissionId) : NaN;
   const { submission, slaSummary, loading, error, setSubmission } =
@@ -65,7 +106,6 @@ export const SubmissionDetailPage: React.FC = () => {
       committeeId: source.project?.committee?.id ? String(source.project.committee.id) : "",
       submissionType: source.submissionType ?? "",
       receivedDate: toInputDate(source.receivedDate),
-      status: source.status ?? "",
       finalDecision: source.finalDecision ?? "",
       finalDecisionDate: toInputDate(source.finalDecisionDate),
       changeReason: "",
@@ -86,6 +126,28 @@ export const SubmissionDetailPage: React.FC = () => {
     resetFormState(submission);
     setProfileForm(profileToFormState(submission.project?.protocolProfile));
     setMilestones((submission.project as any)?.protocolMilestones ?? []);
+    const normalized = normalizeClassificationStatus(submission.status);
+    setClassificationStatusPending(
+      normalized === "UNDER_CLASSIFICATION"
+        ? "UNDER_CLASSIFICATION"
+        : "AWAITING_CLASSIFICATION"
+    );
+    const nextType = REVIEW_TYPE_OPTIONS.includes(
+      (submission.classification?.reviewType ?? "") as
+        | ""
+        | "EXEMPT"
+        | "EXPEDITED"
+        | "FULL_BOARD"
+    )
+      ? ((submission.classification?.reviewType ?? "") as
+          | ""
+          | "EXEMPT"
+          | "EXPEDITED"
+          | "FULL_BOARD")
+      : "";
+    setReviewTypePending(nextType);
+    setClassificationMessage(null);
+    setClassificationError(null);
   }, [submission]);
 
   /* ── handlers ── */
@@ -172,7 +234,6 @@ export const SubmissionDetailPage: React.FC = () => {
       const payload = {
         submissionType: formState.submissionType || undefined,
         receivedDate: formState.receivedDate ? new Date(formState.receivedDate).toISOString() : undefined,
-        status: formState.status || undefined,
         finalDecision: formState.finalDecision || null,
         finalDecisionDate: formState.finalDecisionDate ? new Date(formState.finalDecisionDate).toISOString() : null,
         piName: formState.piName.trim() || undefined,
@@ -186,6 +247,83 @@ export const SubmissionDetailPage: React.FC = () => {
       setSaveError(err instanceof Error ? err.message : "Failed to update submission");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const canManageClassification =
+    Boolean(user?.roles?.includes("CHAIR")) ||
+    Boolean(user?.roles?.includes("RESEARCH_ASSOCIATE"));
+  const currentStatus = normalizeClassificationStatus(submission?.status ?? "CLASSIFIED");
+  const currentReviewType = REVIEW_TYPE_OPTIONS.includes(
+    (submission?.classification?.reviewType ?? "") as
+      | ""
+      | "EXEMPT"
+      | "EXPEDITED"
+      | "FULL_BOARD"
+  )
+    ? ((submission?.classification?.reviewType ?? "") as
+        | ""
+        | "EXEMPT"
+        | "EXPEDITED"
+        | "FULL_BOARD")
+    : "";
+  const reviewTypeEnabled =
+    classificationStatusPending === "UNDER_CLASSIFICATION" ||
+    currentStatus === "CLASSIFIED" ||
+    currentReviewType !== "";
+  const statusDisplay = currentReviewType ? "CLASSIFIED" : classificationStatusPending;
+  const controlsDirty =
+    classificationStatusPending !==
+      (currentStatus === "UNDER_CLASSIFICATION"
+        ? "UNDER_CLASSIFICATION"
+        : "AWAITING_CLASSIFICATION") ||
+    reviewTypePending !== currentReviewType;
+
+  const handleSaveClassificationControls = async () => {
+    setClassificationSaving(true);
+    setClassificationError(null);
+    setClassificationMessage(null);
+    try {
+      if (!reviewTypePending) {
+        if (currentReviewType) {
+          await setSubmissionReviewTrack(numericId, { reviewType: null });
+          if (currentStatus === "CLASSIFIED") {
+            setClassificationMessage(
+              "Type of Review cleared. Classification Status remains CLASSIFIED."
+            );
+          } else {
+            await updateSubmissionWorkflowStage(numericId, {
+              newStatus: "AWAITING_CLASSIFICATION",
+            });
+            setClassificationMessage(
+              "Type of Review cleared. Classification Status set to AWAITING CLASSIFICATION."
+            );
+          }
+        } else {
+          await updateSubmissionWorkflowStage(numericId, {
+            newStatus: classificationStatusPending,
+          });
+          setClassificationMessage(
+            `Classification Status updated to ${classificationStatusPending.replace(/_/g, " ")}.`
+          );
+        }
+      } else {
+        await setSubmissionReviewTrack(numericId, {
+          reviewType: reviewTypePending,
+          classificationDate: new Date().toISOString(),
+        });
+        const trackLabel = reviewTypePending === "FULL_BOARD" ? "FULL REVIEW" : reviewTypePending;
+        setClassificationMessage(
+          `Classified as ${trackLabel}. Status updated to CLASSIFIED.`
+        );
+      }
+      const refreshed = await fetchSubmissionDetail(numericId);
+      setSubmission(refreshed);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to save classification controls.";
+      setClassificationError(message);
+    } finally {
+      setClassificationSaving(false);
     }
   };
 
@@ -247,6 +385,21 @@ export const SubmissionDetailPage: React.FC = () => {
   /* ── render ── */
   return (
     <div className="project-detail-page detail-v2">
+      {creationBannerVisible && locationState?.banner ? (
+        <section className="card detail-card" style={{ borderColor: "var(--primary)", background: "var(--primary-soft)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <strong>{locationState.banner}</strong>
+            <button
+              type="button"
+              className="ghost-btn"
+              onClick={() => setCreationBannerVisible(false)}
+              aria-label="Dismiss creation banner"
+            >
+              Dismiss
+            </button>
+          </div>
+        </section>
+      ) : null}
       <header className="detail-hero">
         <Breadcrumbs items={[{ label: "Dashboard", href: backTarget }, { label: projectCode }]} />
         <div className="detail-hero-content">
@@ -268,6 +421,66 @@ export const SubmissionDetailPage: React.FC = () => {
         committees={committees}
         onEditStart={handleEditStart} onEditCancel={handleEditCancel} onSave={handleSave}
       />
+
+      <section className="card detail-card">
+        <div className="section-title">
+          <div className="section-title-left">
+            <h2>Classification controls</h2>
+          </div>
+        </div>
+        <div className="classification-controls-grid">
+          <div className="field">
+            <label>Classification Status</label>
+            {currentStatus === "CLASSIFIED" ? (
+              <div className="field-input classification-readonly">CLASSIFIED</div>
+            ) : (
+              <select
+                className="field-input"
+                value={classificationStatusPending}
+                onChange={(event) =>
+                  setClassificationStatusPending(
+                    event.target.value as "AWAITING_CLASSIFICATION" | "UNDER_CLASSIFICATION"
+                  )
+                }
+                disabled={!canManageClassification || classificationSaving}
+              >
+                <option value="AWAITING_CLASSIFICATION">Awaiting Classification</option>
+                <option value="UNDER_CLASSIFICATION">Under Classification</option>
+              </select>
+            )}
+          </div>
+          <div className="field">
+            <label>Type of Review</label>
+            <select
+              className="field-input"
+              value={reviewTypePending}
+              onChange={(event) =>
+                setReviewTypePending(
+                  event.target.value as "" | "EXEMPT" | "EXPEDITED" | "FULL_BOARD"
+                )
+              }
+              disabled={!canManageClassification || !reviewTypeEnabled || classificationSaving}
+            >
+              <option value="">—</option>
+              <option value="EXEMPT">Exempted</option>
+              <option value="EXPEDITED">Expedited</option>
+              <option value="FULL_BOARD">Full Review</option>
+            </select>
+          </div>
+          <div className="classification-save-cell">
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={() => void handleSaveClassificationControls()}
+              disabled={!canManageClassification || classificationSaving || !controlsDirty}
+            >
+              {classificationSaving ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+        {classificationMessage ? <p className="field-success">{classificationMessage}</p> : null}
+        {classificationError ? <p className="error-text">{classificationError}</p> : null}
+      </section>
 
       <ProtocolProfileSection
         profile={submission.project?.protocolProfile}
