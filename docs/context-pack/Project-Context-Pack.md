@@ -1,8 +1,8 @@
 # RERC Review Portal — Project Context Pack
 
-**Generated:** March 2, 2026  
+**Generated:** March 11, 2026  
 **Repository:** `rerc-review-portal`  
-**Version:** 0.3.0
+**Version:** 0.5.0
 
 ---
 
@@ -26,7 +26,7 @@ The **RERC Review Portal** is a web-based Research Ethics Review Committee (RERC
 
 - **Dual auth mode complexity**: JWT auth is implemented, but development header/env fallback (`X-User-*`, `DEV_USER_*`) still exists and can hide auth bugs if overused.
 - **Client-side login lockout mismatch risk**: Frontend lockout UI tracks attempts locally while backend enforces independent server-side rate limits.
-- **Hardcoded user IDs still present in selected write paths**: Some routes still write with fixed user IDs, reducing audit quality.
+- **Report endpoint drift risk**: Legacy `academic-year-summary` references still exist in client helpers while active backend routes are `annual-summary` and `submissions`.
 - **CSV/file import security**: Seed script parses external CSV without comprehensive sanitization.
 - **Large legacy modules remain**: Several older modules are still dense despite recent refactors.
 
@@ -34,7 +34,7 @@ The **RERC Review Portal** is a web-based Research Ethics Review Committee (RERC
 
 1. `backend/src/server.ts` — Express app entry point, middleware setup, route mounting
 2. `backend/prisma/schema.prisma` — Complete data model (781 lines) with all enums and relationships
-3. `backend/src/routes/authRoutes.ts` — JWT login/refresh/logout/me flow, cookie handling, and auth lifecycle
+3. `backend/src/routes/authRoutes.ts` — Signup/login/logout/me flow with HttpOnly auth cookie
 4. `frontend/src/pages/QueuePage.tsx` — Route-driven dedicated queue views (`/queues/:queueKey`) with focused KPI/filter/table UX
 5. `docs/SECURITY.md` — RBAC design and audit logging approach
 
@@ -68,7 +68,7 @@ rerc-review-portal/
 │       │   └── importCSV.ts           # CSV import utilities
 │       ├── routes/
 │       │   ├── index.ts               # Route barrel exports (core route modules)
-│       │   ├── authRoutes.ts          # JWT login/refresh/logout/me endpoints
+│       │   ├── authRoutes.ts          # Signup/login/logout/me endpoints (auth cookie)
 │       │   ├── healthRoutes.ts        # Health check endpoints (33 lines)
 │       │   ├── committeeRoutes.ts     # Committee/panel endpoints (164 lines)
 │       │   ├── dashboardRoutes.ts     # Dashboard queues & filters (595 lines)
@@ -96,7 +96,7 @@ rerc-review-portal/
 │       │   ├── slaUtils.ts            # Working days calculator
 │       │   └── workingDays.ts         # Business day calculations (58 lines)
 │       ├── middleware/
-│       │   └── auth.ts                # JWT auth + dev header/env fallback
+│       │   └── auth.ts                # Auth cookie/JWT verify + optional dev header fallback
 │       └── generated/prisma/          # Generated Prisma client
 │
 ├── frontend/                          # React SPA
@@ -337,27 +337,39 @@ npm run dev
 ### Auth Lifecycle (Current)
 
 ```
-┌─────────────┐     POST /auth/login(email,password)     ┌───────────────────┐
-│   Client    │──────────────────────────────────────────▶│ authService.login │
-└─────────────┘                                           └───────────────────┘
-        │                                                           │
-        │                                                           ├─ verifies bcrypt passwordHash
-        │                                                           ├─ builds roles + committeeRoles
-        │                                                           └─ returns access + refresh tokens
+┌─────────────┐      POST /auth/signup(fullName,email,password)      ┌────────────────────┐
+│   Client    │──────────────────────────────────────────────────────▶│ authService.signup │
+└─────────────┘                                                       └────────────────────┘
+        │                                                                       │
+        │                                                                       └─ creates user as PENDING, roles=[]
+        ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ Chair approval flow                                                           │
+│ - GET /admin/users/pending                                                    │
+│ - POST /admin/users/:id/approve (assign CHAIR/RESEARCH_ASSOCIATE/ASSISTANT)  │
+│ - POST /admin/users/:id/reject                                                │
+└───────────────────────────────────────────────────────────────────────────────┘
+        │
+        ▼
+┌─────────────┐           POST /auth/login(email,password)          ┌───────────────────┐
+│   Client    │─────────────────────────────────────────────────────▶│ authService.login │
+└─────────────┘                                                      └───────────────────┘
+        │                                                                       │
+        │                                                                       ├─ verifies bcrypt passwordHash
+        │                                                                       └─ allows login only when status=ACTIVE
         ▼
 ┌───────────────────────────────────────────────────────────────────────────────┐
 │ Server response                                                               │
-│ - JSON: accessToken                                                           │
-│ - httpOnly cookie: refreshToken (path=/auth/refresh, sameSite=strict)        │
+│ - Sets HttpOnly cookie: authToken                                             │
+│ - Returns current user payload (no refresh-token endpoint in active flow)     │
 └───────────────────────────────────────────────────────────────────────────────┘
         │
         ▼
 ┌───────────────────────────────────────────────────────────────────────────────┐
 │ Subsequent API calls                                                          │
-│ - Authorization: Bearer <accessToken>                                         │
-│ - authenticateUser middleware validates JWT and attaches req.user             │
-│ - requireUser / requireRoles protect endpoints                                │
-│ - /auth/refresh rotates refresh token when access token expires               │
+│ - Browser sends authToken cookie                                               │
+│ - authenticateUser validates JWT and attaches req.user                         │
+│ - requireAuth / requireRole / requireAnyRole protect endpoints                 │
 └───────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -423,26 +435,24 @@ Dev convenience fallback still exists in non-production: `X-User-*` headers and 
 ### Key Enumerations
 
 **RoleType** (User permissions):
-- `CHAIR` — Committee chair, full committee access
-- `MEMBER` — Committee/panel member, view-only for assigned
-- `RESEARCH_ASSOCIATE` — RA/Secretariat, manages protocols
-- `RESEARCH_ASSISTANT` — RA support, limited data entry
-- `REVIEWER` — External reviewer, assigned submissions only
-- `ADMIN` — System administrator, full access
+- `CHAIR` — Can approve/reject signups, manage users/roles, and perform all operations
+- `RESEARCH_ASSOCIATE` — Operational access (projects/submissions/classification/reports), but cannot approve users
+- `RESEARCH_ASSISTANT` — Reviewer-scoped access (assigned review work)
+- Legacy enum values (`MEMBER`, `REVIEWER`, `ADMIN`) remain in schema for compatibility but are not assignable in the chair approval UI.
 
 **SubmissionStatus** (Workflow states):
 1. `RECEIVED` — Initial receipt
-2. `UNDER_COMPLETENESS_CHECK` — Documents being verified
-3. `AWAITING_CLASSIFICATION` — Ready for review type decision
-4. `UNDER_CLASSIFICATION` — Classification in progress
-5. `CLASSIFIED` — Review type assigned
-6. `UNDER_REVIEW` — Active reviewer assessment
-7. `AWAITING_REVISIONS` — Revisions requested from PI
-8. `REVISION_SUBMITTED` — PI resubmitted revisions
-9. `CLOSED` — Final decision issued
-10. `WITHDRAWN` — Applicant withdrew
+2. `AWAITING_CLASSIFICATION` — Ready for type-of-review selection
+3. `CLASSIFIED` — Type of review assigned
+4. `UNDER_REVIEW` — Active reviewer assessment
+5. `AWAITING_REVISIONS` — Revisions requested from PI
+6. `REVISION_SUBMITTED` — PI resubmitted revisions
+7. `CLOSED` — Final decision issued
+8. `WITHDRAWN` — Applicant withdrew / archived as inactive
 
-**ReviewType** (Classification outcomes):
+Note: the enum still contains additional legacy states (`UNDER_COMPLETENESS_CHECK`, `UNDER_CLASSIFICATION`) for compatibility, but current UI flow is centered on `RECEIVED -> AWAITING_CLASSIFICATION -> CLASSIFIED`.
+
+**ReviewType** (Classification outcomes / Type of Review):
 - `EXEMPT` — No further review needed
 - `EXPEDITED` — Minimal-risk, expedited review
 - `FULL_BOARD` — Full committee review required
@@ -499,12 +509,22 @@ Dev convenience fallback still exists in non-production: `X-User-*` headers and 
 
 ### Seed Script Notes
 
-The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `[Intern Copy] RERC Protocol Database 2024 - 2024 Submission.csv` at the repo root and creates:
+The seed script (`backend/src/config/seed.ts`) reads CSV data from `[Intern Copy] RERC Protocol Database 2024 - 2024 Submission.csv` at the repo root and creates:
 - Default committee (RERC-HUMAN)
-- Users (RA, Chair, reviewers)
+- Users and placeholder auth accounts
 - Projects with submissions from CSV
 - Classifications (107 records) with review type, panel, and reviewer assignments
 - Populates `piAffiliation` and `researchTypePHREB` for all matched projects (132/133)
+
+Seeded placeholder accounts:
+- `chair@urerb.com` (`CHAIR`, `ACTIVE`)
+- `assoc@urerb.com` (`RESEARCH_ASSOCIATE`, `ACTIVE`)
+- `assist@urerb.com` (`RESEARCH_ASSISTANT`, `ACTIVE`)
+
+Passwords are controlled by:
+- `SEED_CHAIR_PASSWORD`
+- `SEED_ASSOC_PASSWORD`
+- `SEED_ASSIST_PASSWORD`
 
 **Known fix (Feb 15, 2026):** Removed `submissionType: "INITIAL"` filter from `findFirst` query — existing submissions had `null` for that field, causing the upsert to silently skip all records.
 
@@ -513,6 +533,25 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 ## 5. API Surface
 
 ### Route Inventory by Module
+
+#### Authentication
+| Method | Endpoint         | Behavior                                      | Auth |
+| ------ | ---------------- | --------------------------------------------- | ---- |
+| POST   | `/auth/signup`   | Create PENDING user (roles empty)             | None |
+| POST   | `/auth/login`    | Validate credentials, set HttpOnly auth cookie| None |
+| POST   | `/auth/logout`   | Clear auth cookie                             | None |
+| GET    | `/auth/me`       | Return current authenticated user payload     | Auth cookie |
+
+#### Admin User Management (Chair-only)
+| Method | Endpoint                    | Behavior                                       | Auth Required |
+| ------ | --------------------------- | ---------------------------------------------- | ------------- |
+| GET    | `/admin/users`              | List all users (active/inactive/pending)       | CHAIR |
+| GET    | `/admin/users/pending`      | List pending signup requests                   | CHAIR |
+| POST   | `/admin/users/:id/approve`  | Approve pending user + assign allowed roles    | CHAIR |
+| POST   | `/admin/users/:id/reject`   | Reject user (sets REJECTED/inactive)           | CHAIR |
+| PATCH  | `/admin/users/:id`          | Edit user profile/status/roles                 | CHAIR |
+| PATCH  | `/admin/users/:id/roles`    | Update roles directly                          | CHAIR |
+| DELETE | `/admin/users/:id`          | Deactivate user (soft delete)                  | CHAIR |
 
 #### Health & Status
 | Method | Endpoint    | Behavior                      | Auth     |
@@ -523,71 +562,66 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 #### Committee Management
 | Method | Endpoint                   | Behavior                          | Auth          |
 | ------ | -------------------------- | --------------------------------- | ------------- |
-| GET    | `/committees`              | List all committees with panels   | None          |
-| GET    | `/committees/:code/panels` | Get panels for a committee        | None          |
-| GET    | `/panels/:id/members`      | Get panel members                 | None          |
+| GET    | `/committees`              | List all committees with panels   | Any authenticated user |
+| GET    | `/committees/:code/panels` | Get panels for a committee        | Any authenticated user |
+| GET    | `/panels/:id/members`      | Get panel members                 | Any authenticated user |
 
 #### Dashboard
 | Method | Endpoint                 | Behavior                           | Auth |
 | ------ | ------------------------ | ---------------------------------- | ---- |
-| GET    | `/dashboard/queues`      | Submission queues by status        | None |
-| GET    | `/dashboard/activity`    | Recent status change activity      | None |
-| GET    | `/dashboard/overdue`     | Overdue reviews and endorsements   | None |
-| GET    | `/dashboard/upcoming-due`| Submissions with upcoming deadlines| None |
-| GET    | `/dashboard/colleges`    | Distinct piAffiliation values for filter dropdown | None |
-| GET    | `/ra/dashboard`          | RA-specific dashboard data         | None |
-| GET    | `/ra/submissions/:id`    | RA submission detail view          | None |
+| GET    | `/dashboard/queues`      | Submission queues by status        | Any authenticated user |
+| GET    | `/dashboard/activity`    | Recent status change activity      | Any authenticated user |
+| GET    | `/dashboard/overdue`     | Overdue reviews and endorsements   | Any authenticated user |
+| GET    | `/dashboard/colleges`    | Distinct piAffiliation values for filter dropdown | Any authenticated user |
+| GET    | `/ra/dashboard`          | RA-specific dashboard HTML view    | Any authenticated user |
+| GET    | `/ra/submissions/:submissionId` | RA submission detail HTML view | Any authenticated user |
 
 #### Project Management
 | Method | Endpoint                           | Behavior                        | Auth Required         |
 | ------ | ---------------------------------- | ------------------------------- | --------------------- |
-| POST   | `/projects`                        | Create new project              | CHAIR, RA, ADMIN      |
-| GET    | `/projects`                        | List all projects               | None                  |
-| GET    | `/projects/search`                 | Search projects                 | None                  |
-| GET    | `/projects/:id`                    | Get project by ID               | None                  |
-| GET    | `/projects/:id/full`               | Get project with all relations  | None                  |
-| GET    | `/projects/:id/profile`            | Get protocol profile            | None                  |
-| PUT    | `/projects/:id/profile`            | Update protocol profile         | CHAIR, RA, ADMIN      |
-| POST   | `/projects/:id/profile/milestones` | Create protocol milestone       | CHAIR, RA, ADMIN      |
-| PATCH  | `/projects/:id/profile/milestones/:mid` | Update milestone           | CHAIR, RA, ADMIN      |
-| DELETE | `/projects/:id/profile/milestones/:mid` | Delete milestone           | CHAIR, RA, ADMIN      |
-| POST   | `/projects/:projectId/submissions` | Create submission for project   | CHAIR, RA, RA_ASST    |
-
-#### Archives & Archived Projects
-| Method | Endpoint                           | Behavior                                    | Auth Required         |
-| ------ | ---------------------------------- | ------------------------------------------- | --------------------- |
-| GET    | `/projects/archived`               | Fetch archived projects (CLOSED/WITHDRAWN). Filters: `status`, `reviewType`, `college`, `search`, `page`, `pageSize` | None |
-| POST   | `/projects/with-submission`        | Create project with initial submission      | CHAIR, RA, ADMIN      |
+| POST   | `/projects`                        | Create new project              | CHAIR, RESEARCH_ASSOCIATE      |
+| GET    | `/projects`                        | List all projects               | Any authenticated user |
+| GET    | `/projects/search`                 | Search projects                 | Any authenticated user |
+| GET    | `/projects/archived`               | List archived projects + filters| Any authenticated user |
+| GET    | `/projects/:id`                    | Get project by ID               | Any authenticated user |
+| GET    | `/projects/:id/full`               | Get project with all relations  | Any authenticated user |
+| GET    | `/projects/:id/profile`            | Get protocol profile            | Any authenticated user |
+| PUT    | `/projects/:id/profile`            | Update protocol profile         | CHAIR, RESEARCH_ASSOCIATE      |
+| POST   | `/projects/:id/profile/milestones` | Create protocol milestone       | CHAIR, RESEARCH_ASSOCIATE      |
+| PATCH  | `/projects/:id/profile/milestones/:milestoneId` | Update milestone    | CHAIR, RESEARCH_ASSOCIATE      |
+| DELETE | `/projects/:id/profile/milestones/:milestoneId` | Delete milestone    | CHAIR, RESEARCH_ASSOCIATE      |
+| POST   | `/projects/:projectId/submissions` | Create submission for project   | CHAIR, RESEARCH_ASSOCIATE      |
 
 #### Submission & Review
 | Method | Endpoint                                   | Behavior                        | Auth Required     |
 | ------ | ------------------------------------------ | ------------------------------- | ----------------- |
-| GET    | `/submissions/:id`                         | Get submission with relations   | None              |
-| PATCH  | `/submissions/:id/status`                  | Update submission status        | CHAIR, RA, ADMIN  |
-| PATCH  | `/submissions/:id/overview`                | Update submission overview      | CHAIR, RA, ADMIN  |
-| POST   | `/submissions/:submissionId/classifications` | Add/update classification     | CHAIR, ADMIN      |
-| POST   | `/submissions/:submissionId/reviews`       | Add reviewer assignment         | CHAIR, RA, ADMIN  |
-| GET    | `/submissions/:id/sla-summary`             | Get SLA deadline summary        | None              |
-| POST   | `/reviews/:reviewId/decision`              | Submit review decision          | REVIEWER, CHAIR   |
-| POST   | `/submissions/:id/final-decision`          | Record final committee decision | CHAIR, RA, ADMIN  |
+| GET    | `/submissions/:id`                         | Get submission with relations   | Any authenticated user |
+| PATCH  | `/submissions/:id/status`                  | Update workflow/classification status | CHAIR, RESEARCH_ASSOCIATE |
+| PATCH  | `/submissions/:id/overview`                | Update submission overview      | CHAIR, RESEARCH_ASSOCIATE  |
+| POST   | `/submissions/:submissionId/classifications` | Set type of review; sync status to CLASSIFIED | CHAIR, RESEARCH_ASSOCIATE  |
+| DELETE | `/submissions/:submissionId/classifications` | Clear type of review; revert to AWAITING_CLASSIFICATION | CHAIR, RESEARCH_ASSOCIATE  |
+| POST   | `/submissions/:submissionId/reviews`       | Add reviewer assignment         | CHAIR, RESEARCH_ASSOCIATE  |
+| GET    | `/submissions/:id/sla-summary`             | Get SLA deadline summary        | Any authenticated user |
+| POST   | `/reviews/:reviewId/decision`              | Submit review decision          | Assigned reviewer scope / role-guarded |
+| POST   | `/submissions/:id/final-decision`          | Record final committee decision | CHAIR, RESEARCH_ASSOCIATE  |
 
 #### Mail Merge & Letter Generation
 | Method | Endpoint                                      | Behavior                      | Auth |
 | ------ | --------------------------------------------- | ----------------------------- | ---- |
-| GET    | `/mail-merge/initial-ack.csv`                 | Bulk acknowledgment CSV       | None |
-| GET    | `/mail-merge/initial-approval.csv`            | Bulk approval CSV             | None |
-| GET    | `/mail-merge/initial-ack/:submissionId`       | Single ack letter data        | None |
-| GET    | `/mail-merge/initial-ack/:submissionId/csv`   | Single ack CSV                | None |
-| GET    | `/mail-merge/initial-approval/:submissionId`  | Single approval letter data   | None |
-| GET    | `/mail-merge/initial-approval/:submissionId/csv` | Single approval CSV        | None |
-| GET    | `/letters/initial-ack/:submissionId.docx`     | Generate DOCX ack letter      | None |
-| GET    | `/letters/initial-approval/:submissionId.docx`| Generate DOCX approval letter | None |
+| GET    | `/mail-merge/initial-ack.csv`                 | Bulk acknowledgment CSV       | Any authenticated user |
+| GET    | `/mail-merge/initial-approval.csv`            | Bulk approval CSV             | Any authenticated user |
+| GET    | `/mail-merge/initial-ack/:submissionId`       | Single ack letter data        | Any authenticated user |
+| GET    | `/mail-merge/initial-ack/:submissionId/csv`   | Single ack CSV                | Any authenticated user |
+| GET    | `/mail-merge/initial-approval/:submissionId`  | Single approval letter data   | Any authenticated user |
+| GET    | `/mail-merge/initial-approval/:submissionId/csv` | Single approval CSV        | Any authenticated user |
+| GET    | `/letters/initial-ack/:submissionId.docx`     | Generate DOCX ack letter      | Any authenticated user |
+| GET    | `/letters/initial-approval/:submissionId.docx`| Generate DOCX approval letter | Any authenticated user |
 
 #### Project Import
 | Method | Endpoint                           | Behavior                                    | Auth Required         |
 | ------ | ---------------------------------- | ------------------------------------------- | --------------------- |
-| POST   | `/api/imports/projects/preview`    | Preview CSV import mapping & validation     | ADMIN, CHAIR, RA      |
-| POST   | `/api/imports/projects`            | Import projects from CSV file               | ADMIN, CHAIR, RA      |
+| POST   | `/imports/projects/preview`        | Preview CSV import mapping & validation     | ADMIN, CHAIR, RA      |
+| POST   | `/imports/projects/commit`         | Commit mapped CSV import                    | ADMIN, CHAIR, RA      |
 | GET    | `/api/imports/projects/template`   | Download CSV template for import            | ADMIN, CHAIR, RA      |
 
 #### Holiday Management
@@ -601,14 +635,9 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 #### Reports
 | Method | Endpoint                          | Behavior                                    | Auth Required |
 | ------ | --------------------------------- | ------------------------------------------- | ------------- |
-| GET    | `/reports/academic-years`         | List available academic year/term options   | None          |
-| GET    | `/reports/academic-year-summary`  | Aggregated metrics for selected term(s)     | None          |
-
-#### Archives & Archived Projects
-| Method | Endpoint                           | Behavior                                    | Auth Required         |
-| ------ | ---------------------------------- | ------------------------------------------- | --------------------- |
-| GET    | `/projects/archived`               | Fetch archived projects (CLOSED/WITHDRAWN). Filters: `status`, `reviewType`, `college`, `search`, `page`, `pageSize` | None                  |
-| POST   | `/projects/with-submission`        | Create project with initial submission      | CHAIR, RA, ADMIN      |
+| GET    | `/reports/academic-years`         | List available academic year/term options   | Any authenticated user |
+| GET    | `/reports/annual-summary`         | Aggregated summary payload for filters       | Any authenticated user |
+| GET    | `/reports/submissions`            | Submission records table payload             | Any authenticated user |
 
 ### Background Jobs / Cron / Queues
 
@@ -631,7 +660,9 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
   <Route element={<ProtectedRoute><DashboardShell /></ProtectedRoute>}>
     <Route path="/dashboard" element={<DashboardPage />} />
-    <Route path="/queues/:queueKey" element={<QueuePage />} /> // classification / under-review / revisions
+    <Route path="/queues/:queueKey" element={<QueuePage />} /> // classification / under-review / exempted / revisions
+    <Route path="/admin/users/manage" element={<AdminUserManagementPage />} /> // chair-only
+    <Route path="/admin/users" element={<AdminUsersPage />} /> // chair-only pending approvals
     <Route path="/holidays" element={<HolidaysPage />} />
   </Route>
   <Route path="/projects/new" element={<ProtectedRoute><NewProtocolPage /></ProtectedRoute>} />
@@ -647,15 +678,18 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 
 | Page                    | Purpose                              | API Endpoints Used                              |
 | ----------------------- | ------------------------------------ | ----------------------------------------------- |
-| `LoginPage`             | User authentication                  | `POST /auth/login`, `POST /auth/refresh`, `GET /auth/me`, `POST /auth/logout` |
+| `LoginPage`             | User authentication                  | `POST /auth/login`, `GET /auth/me`, `POST /auth/logout` |
+| `SignupPage`            | Self-signup request submission       | `POST /auth/signup` |
+| `AdminUsersPage`        | Chair signup approvals               | `GET /admin/users/pending`, `POST /admin/users/:id/approve`, `POST /admin/users/:id/reject` |
+| `AdminUserManagementPage`| Chair user management (active/inactive/pending views) | `GET /admin/users`, `PATCH /admin/users/:id`, `DELETE /admin/users/:id` |
 | `ForgotPasswordPage`    | Password reset placeholder           | None yet                                         |
-| `NewProtocolPage`       | Create new project with submission (24 fields, 2-step flow) | `POST /projects/with-submission`, `GET /committees` |
-| `ImportProjectsPage`    | Bulk CSV project/submission import   | `POST /api/imports/projects/preview`, `POST /api/imports/projects`, `GET /api/imports/projects/template` |
+| `NewProtocolPage`       | Create new project with submission (24 fields, 2-step flow) | `POST /projects`, `GET /committees` |
+| `ImportProjectsPage`    | Bulk CSV project/submission import   | `POST /imports/projects/preview`, `POST /imports/projects/commit`, `GET /api/imports/projects/template` |
 | `ArchivesPage`          | View archived/completed projects (3 filters: Status, Review Type, College) | `GET /projects/archived`, `GET /dashboard/colleges` |
 | `DashboardPageNew`      | Dashboard overview page              | `/dashboard/queues`, `/dashboard/activity`, `/dashboard/overdue`, `/dashboard/colleges`, `/projects/search` |
-| `QueuePage`             | Individual queue view                | `/dashboard/queues` (filtered by queue key) |
+| `QueuePage`             | Individual queue view (`classification`, `under-review`, `exempted`, `revisions`) with segment tabs | `/dashboard/queues` (filtered by queue key) |
 | `HolidaysPage`          | Calendar-based holiday management    | `GET/POST/PATCH/DELETE /holidays` |
-| `ReportsPage`           | Academic year summary reports (`All Academic Years` supported) | `/reports/academic-years`, `/reports/academic-year-summary` |
+| `ReportsPage`           | Academic year summary reports (`All Academic Years` supported) | `/reports/academic-years`, `/reports/annual-summary`, `/reports/submissions` |
 | `ProjectDetailPage`     | Project details, protocol profile & letter export | `/projects/:id/full`, `/projects/:id/profile`, `/mail-merge/*`, `/letters/*` |
 | `SubmissionDetailPage`  | Submission details, editing, timeline| `/submissions/:id`, `/submissions/:id/sla-summary`, `/committees`, `PATCH /submissions/:id/overview` |
 
@@ -681,23 +715,23 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 
 | Aspect               | Current State                                            | Risk Level |
 | -------------------- | -------------------------------------------------------- | ---------- |
-| Auth mechanism       | JWT access token (`Authorization: Bearer`) + refresh token cookie | MEDIUM     |
-| Session management   | Stateless access token + rotating refresh token endpoint | MEDIUM     |
+| Auth mechanism       | JWT in HttpOnly `authToken` cookie                       | MEDIUM     |
+| Session management   | Cookie-based session token, validated in auth middleware | MEDIUM     |
 | Password storage     | `passwordHash` actively validated via bcryptjs           | LOW        |
-| Token refresh        | Implemented at `POST /auth/refresh`                      | LOW        |
+| Signup approval gate | New users start as `PENDING`; only Chair can activate    | LOW        |
 
 ### RBAC/Authorization Approach
 
-- **Middleware implemented**: `authenticateUser`, `requireUser`, `requireRoles`
-- **Role definitions**: 6 roles defined in enum (CHAIR, MEMBER, RA, RA_ASST, REVIEWER, ADMIN)
-- **Endpoint protection**: Applied on sensitive/report endpoints; verify route-by-route during hardening
-- **Field-level access**: Utility functions exist but not fully wired
+- **Middleware implemented**: `authenticateUser`, `requireAuth`, `requireRole`, `requireAnyRole`
+- **Primary operational roles**: `CHAIR`, `RESEARCH_ASSOCIATE`, `RESEARCH_ASSISTANT`
+- **Chair-only controls**: Signup approval, user management, role assignment, account deactivation
+- **Reviewer scope**: assistant/reviewer actions are role-gated and assignment-scoped on review operations
 
 ### Input Validation & Sanitization
 
 | Location                    | Validation Type                          |
 | --------------------------- | ---------------------------------------- |
-| Route handlers              | Basic required field checks, enum validation |
+| Route handlers              | Zod schema validation (`validate` middleware) + enum/constraint checks |
 | CSV import (seed.ts)        | `safeTrim`, date parsing, enum mapping   |
 | CSV export (mailMergeRoutes)| `csvEscape` for special characters       |
 | Frontend forms              | Controlled inputs, basic validation      |
@@ -706,10 +740,10 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 
 ### File Upload / CSV Import Threat Notes
 
-- **CSV seed parsing**: Reads external file directly, minimal sanitization
-- **Document links**: Stored as URLs (e.g., Google Drive), not file uploads
-- **DOCX generation**: Built server-side with `docx` library, controlled content
-- **No file upload endpoint exists** (future risk if added)
+- **CSV upload endpoints exist**: `/imports/projects/preview` and `/imports/projects/commit` accept multipart uploads via `multer.memoryStorage()`
+- **CSV seed parsing**: Reads external CSV directly during seed, with mapping/normalization safeguards but still trust-boundary sensitive
+- **Document links**: Stored as URLs (e.g., Google Drive), not binary file objects
+- **DOCX generation**: Built server-side with `docx` library from DB-controlled content
 
 ### Logging/Auditing Approach
 
@@ -863,6 +897,46 @@ cd backend && npm test
 
 ## Appendix C: Recent Changes
 
+### March 11, 2026
+
+#### Auth + RBAC Alignment
+- Added real self-signup flow: `POST /auth/signup` creates `PENDING` users with empty roles.
+- Login is cookie-session based: `POST /auth/login` sets HttpOnly `authToken`; `POST /auth/logout` clears it; `GET /auth/me` resolves current session.
+- Chair-only admin routes expanded:
+  - Signup approvals: pending list, approve with role assignment, reject.
+  - User management: list all users, edit status/roles/fullName, deactivate (soft delete).
+- Seed now includes active dev placeholders:
+  - `chair@urerb.com`, `assoc@urerb.com`, `assist@urerb.com` with env-driven passwords.
+
+#### Classification + Type-of-Review UX/Behavior
+- Submission detail split into two controls with one shared save:
+  - `Classification` (status)
+  - `Type of Review`
+- Current operational flow:
+  - Status options used in UI: `RECEIVED`, `AWAITING_CLASSIFICATION`, `WITHDRAWN`
+  - `CLASSIFIED` is displayed as a non-clickable state.
+- Saving a non-empty type of review (`EXEMPT`, `EXPEDITED`, `FULL_REVIEW`) auto-syncs status to `CLASSIFIED`.
+- Clearing type of review resets status to `AWAITING_CLASSIFICATION`.
+
+#### Queue Navigation and Segmentation
+- Added dedicated queue route: `/queues/exempted`.
+- Under Review queue now excludes `EXEMPT`; Exempted queue contains only `EXEMPT`.
+- Queue segment tabs:
+  - Classification: `View All`, `Received`, `Awaiting Classification`
+  - Under Review: `View All` + review-type tabs
+- Queue table column labels clarified by context:
+  - Classification queue column: `CLASSIFICATION`
+  - Under Review/Exempted queue column: `TYPE OF REVIEW`
+
+#### UI and Layout Updates
+- Sidebar now includes Chair-only tabs: `User Management` and `Signup Approvals`.
+- Added fixed bottom logout control in sidebar.
+- Greeting/account display and navigation spacing were tightened for smaller viewport fit.
+
+#### Data Sync/Repair Notes
+- Added service-level support to clear classification and revert status to awaiting classification.
+- Applied one-time local data sync to align existing rows where classification existed but status lagged behind.
+
 ### February 15, 2026
 
 #### Premium UI Overhaul
@@ -910,8 +984,8 @@ cd backend && npm test
 
 #### Authentication + Security Hardening
 - JWT auth flow is now active end-to-end:
-- `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`
-- `AuthContext` stores/refreshes access token and uses refresh cookie fallback on expiry
+- `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`
+- (Historical note) This phase introduced token hardening; the current flow has since been simplified to a cookie-session pattern (see March 11, 2026)
 - `authenticateUser` now validates bearer tokens first; dev header/env fallback remains non-production only
 - Added rate limiting:
 - Global limiter on all requests
@@ -1076,7 +1150,7 @@ cd backend && npm test
 | `frontend/src/types/index.ts` | Added archive and import types |
 | `frontend/src/App.tsx` | Added routes for `/projects/new` and `/archives` |
 | `backend/src/routes/importRoutes.ts` | Added `/preview` endpoint for CSV import |
-| `backend/src/routes/projectRoutes.ts` | Added `/projects/archived` and `/projects/with-submission` |
+| `backend/src/routes/projectRoutes.ts` | Added `/projects/archived` and consolidated create flow under `POST /projects` |
 | `backend/src/services/imports/projectCsvImport.ts` | New CSV import service |
 | `backend/src/services/projects/createProjectWithInitialSubmission.ts` | New project creation service |
 
@@ -1179,4 +1253,4 @@ cd backend && npm test
 
 ---
 
-*Document updated March 2, 2026 by analyzing repository structure, source files, git history, and documentation. Some details are inferred where explicit documentation was incomplete.*
+*Document updated March 11, 2026 by re-auditing live route files, frontend API usage, and current repository state.*
