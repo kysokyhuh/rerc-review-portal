@@ -28,6 +28,10 @@ import {
 
 const CSV_FILENAME =
   "[Intern Copy] RERC Protocol Database 2024 - 2024 Submission.csv";
+const PANEL_DEFINITIONS = Array.from({ length: 4 }, (_, index) => ({
+  name: `Panel ${index + 1}`,
+  code: `P${index + 1}`,
+}));
 
 const safeTrim = (value: unknown) => String(value ?? "").trim();
 
@@ -732,18 +736,40 @@ async function main() {
 
   await seedAcademicTerms();
 
-  // 3) Ensure Panel 1 exists under that committee
-  let panel1 = await prisma.panel.findFirst({
-    where: { code: "P1", committeeId: committee.id },
-  });
-  if (!panel1) {
-    panel1 = await prisma.panel.create({
-      data: {
-        name: "Panel 1",
-        code: "P1",
+  // 3) Ensure Panels 1-4 exist under that committee
+  const panelsByCode = new Map<string, { id: number; name: string; code: string | null }>();
+  for (const panelDefinition of PANEL_DEFINITIONS) {
+    let panel = await prisma.panel.findFirst({
+      where: {
         committeeId: committee.id,
+        OR: [{ code: panelDefinition.code }, { name: panelDefinition.name }],
       },
     });
+
+    if (!panel) {
+      panel = await prisma.panel.create({
+        data: {
+          name: panelDefinition.name,
+          code: panelDefinition.code,
+          committeeId: committee.id,
+        },
+      });
+    } else if (panel.name !== panelDefinition.name || panel.code !== panelDefinition.code) {
+      panel = await prisma.panel.update({
+        where: { id: panel.id },
+        data: {
+          name: panelDefinition.name,
+          code: panelDefinition.code,
+        },
+      });
+    }
+
+    panelsByCode.set(panelDefinition.code, panel);
+  }
+
+  const panel1 = panelsByCode.get("P1");
+  if (!panel1) {
+    throw new Error("Failed to ensure Panel 1 exists");
   }
 
   // 4) Ensure the RA is a member of this committee
@@ -995,10 +1021,12 @@ async function main() {
     },
   });
 
-  console.log("Seed ensured for RA user, committee, panel, membership:", {
+  console.log("Seed ensured for RA user, committee, panels, membership:", {
     raUserId: raUser.id,
     committeeId: committee.id,
-    panelId: panel1.id,
+    panelIds: Object.fromEntries(
+      Array.from(panelsByCode.entries()).map(([code, panel]) => [code, panel.id])
+    ),
   });
 
   const { importedCount } = await importLegacyCsv({
