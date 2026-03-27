@@ -1,22 +1,9 @@
-# Render Blueprint — free-tier frontend + backend for the first Render/Neon test deployment.
+# Render Blueprint — single-origin free-tier backend + frontend on one Web Service.
 # See https://render.com/docs/blueprint-spec for full reference.
 
 services:
   - type: web
-    name: rerc-web
-    runtime: static
-    buildCommand: cd frontend && npm ci && npm run build
-    staticPublishPath: frontend/dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: VITE_API_URL
-        sync: false            # set manually after the backend URL exists
-
-  - type: web
-    name: rerc-api
+    name: rerc-review-portal
     runtime: node
     region: singapore
     plan: free
@@ -25,10 +12,8 @@ services:
     startCommand: cd backend && node dist/server.js
     healthCheckPath: /health
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: DATABASE_URL
-        sync: false            # use the direct Neon connection string for the first test deploy
+        sync: false            # use the direct Neon connection string
       - key: JWT_ACCESS_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET
@@ -37,5 +22,7 @@ services:
         value: urerb-review-portal
       - key: JWT_AUDIENCE
         value: urerb-review-portal-users
+      - key: APP_BASE_URL
+        sync: false            # set to the Web Service public URL for same-origin routing and links
       - key: CORS_ORIGINS
-        sync: false            # set manually after the frontend URL exists
+        sync: false            # set to the same public URL, plus any optional extra callers

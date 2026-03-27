@@ -78,6 +78,13 @@ declare const process: { env?: Record<string, string | undefined> };
 // Guard against `process` being undefined in the browser; rely on Vite env first.
 const API_BASE_URL =
   (typeof import.meta !== "undefined" ? import.meta.env?.VITE_API_URL : undefined) ||
+  (
+    typeof window !== "undefined" &&
+    typeof import.meta !== "undefined" &&
+    import.meta.env?.PROD
+      ? window.location.origin
+      : undefined
+  ) ||
   (typeof process !== "undefined" ? process.env?.VITE_API_URL : undefined) ||
   "http://localhost:3000";
 

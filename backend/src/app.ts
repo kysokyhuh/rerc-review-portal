@@ -6,6 +6,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { existsSync } from "fs";
 import path from "path";
 import helmet from "helmet";
 import pinoHttp from "pino-http";
@@ -36,7 +37,55 @@ import { logger } from "./config/logger";
 import { getAllowedOrigins } from "./config/requestOrigins";
 
 const app = express();
+app.set("trust proxy", process.env.NODE_ENV === "production" ? 1 : "loopback");
+
 const allowedOrigins = getAllowedOrigins();
+const frontendDistDir = path.resolve(__dirname, "../../frontend/dist");
+const frontendIndexPath = path.join(frontendDistDir, "index.html");
+const frontendBundleAvailable = existsSync(frontendIndexPath);
+const SPA_ROUTE_PATTERNS = [
+  /^\/$/,
+  /^\/login$/,
+  /^\/signup$/,
+  /^\/change-password$/,
+  /^\/not-authorized$/,
+  /^\/dashboard$/,
+  /^\/queues\/[^/]+$/,
+  /^\/holidays$/,
+  /^\/admin\/users$/,
+  /^\/admin\/account-management$/,
+  /^\/projects\/new$/,
+  /^\/projects\/new-classic$/,
+  /^\/projects\/[^/]+$/,
+  /^\/imports\/projects$/,
+  /^\/reports$/,
+  /^\/archives$/,
+  /^\/submissions\/[^/]+$/,
+];
+
+function isBrowserNavigationRequest(req: express.Request) {
+  const secFetchDest = req.get("sec-fetch-dest");
+  if (secFetchDest === "document") {
+    return true;
+  }
+  return Boolean(req.accepts("html")) && !req.accepts("json");
+}
+
+function shouldServeFrontendApp(req: express.Request) {
+  if (!frontendBundleAvailable || req.method !== "GET") {
+    return false;
+  }
+
+  if (path.extname(req.path)) {
+    return false;
+  }
+
+  if (!isBrowserNavigationRequest(req)) {
+    return false;
+  }
+
+  return SPA_ROUTE_PATTERNS.some((pattern) => pattern.test(req.path));
+}
 
 // =============================================================================
 // Middleware
@@ -84,7 +133,10 @@ app.use((_req, res, next) => {
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "../public")));
+
+if (frontendBundleAvailable) {
+  app.use(express.static(frontendDistDir, { index: false }));
+}
 
 // Request ID — attaches unique ID to every request
 app.use(requestId);
@@ -107,6 +159,13 @@ app.use(
 );
 
 app.use(globalLimiter);
+
+app.use((req, res, next) => {
+  if (!shouldServeFrontendApp(req)) {
+    return next();
+  }
+  return res.sendFile(frontendIndexPath);
+});
 
 // =============================================================================
 // Routes
