@@ -10,8 +10,30 @@ import {
   parseReportFilters,
   resolveTermWindows,
 } from "../services/reports/reportService";
+import { logAuditEvent } from "../services/audit/auditService";
 
 const router = Router();
+router.use("/reports", requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]));
+router.use("/reports", (req, res, next) => {
+  res.on("finish", () => {
+    if (req.method !== "GET" || res.statusCode >= 400 || !req.user?.id) {
+      return;
+    }
+
+    void logAuditEvent({
+      actorId: req.user.id,
+      action: "REPORT_VIEWED",
+      entityType: "Route",
+      entityId: req.originalUrl,
+      metadata: {
+        method: req.method,
+        path: req.originalUrl,
+        statusCode: res.statusCode,
+      },
+    }).catch(() => {});
+  });
+  next();
+});
 
 export const getAcademicYearsHandler = async (_req: Request, res: Response, next: NextFunction) => {
   try {
@@ -60,17 +82,14 @@ export const getAcademicYearSummaryHandler = getAnnualSummaryHandler;
 
 router.get(
   "/reports/academic-years",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   getAcademicYearsHandler
 );
 router.get(
   "/reports/annual-summary",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   getAnnualSummaryHandler
 );
 router.get(
   "/reports/submissions",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   getReportSubmissionsHandler
 );
 

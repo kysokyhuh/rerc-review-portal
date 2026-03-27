@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  AuthSession: 'AuthSession',
   AuditLog: 'AuditLog',
   Committee: 'Committee',
   Panel: 'Panel',
@@ -105,11 +106,14 @@ export const UserScalarFieldEnum = {
   email: 'email',
   fullName: 'fullName',
   passwordHash: 'passwordHash',
+  forcePasswordChange: 'forcePasswordChange',
   status: 'status',
   roles: 'roles',
   statusNote: 'statusNote',
-  passwordResetToken: 'passwordResetToken',
-  passwordResetExpiresAt: 'passwordResetExpiresAt',
+  approvedById: 'approvedById',
+  approvedAt: 'approvedAt',
+  rejectedById: 'rejectedById',
+  rejectedAt: 'rejectedAt',
   lastLoginAt: 'lastLoginAt',
   lastLoginIp: 'lastLoginIp',
   isCommonReviewer: 'isCommonReviewer',
@@ -120,6 +124,25 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const AuthSessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  refreshTokenHash: 'refreshTokenHash',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  expiresAt: 'expiresAt',
+  absoluteExpiresAt: 'absoluteExpiresAt',
+  idleExpiresAt: 'idleExpiresAt',
+  revokedAt: 'revokedAt',
+  lastSeenAt: 'lastSeenAt',
+  lastReauthenticatedAt: 'lastReauthenticatedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AuthSessionScalarFieldEnum = (typeof AuthSessionScalarFieldEnum)[keyof typeof AuthSessionScalarFieldEnum]
 
 
 export const AuditLogScalarFieldEnum = {

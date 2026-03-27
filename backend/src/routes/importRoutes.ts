@@ -20,6 +20,7 @@ import {
   DuplicateProjectCodeError,
   ProjectCreateValidationError,
 } from "../services/projects/createProjectWithInitialSubmission";
+import { importCommitSchema } from "../schemas/imports";
 
 const MAX_FILE_SIZE_MB = Number(process.env.IMPORT_MAX_FILE_SIZE_MB || 5);
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -127,6 +128,10 @@ const getUploadFileOrThrow = (req: any) => {
   if (!file.size) {
     throw new CsvImportError("CSV file is empty.", 400);
   }
+  const sample = file.buffer.subarray(0, Math.min(file.buffer.length, 1024)).toString("utf8");
+  if (!sample.includes(",") && !sample.includes(";") && !sample.includes("\n")) {
+    throw new CsvImportError("Unsupported file content. Please upload a valid CSV file.", 415);
+  }
   return file;
 };
 
@@ -158,9 +163,20 @@ router.post(
   uploadSingleFile,
   async (req, res, next) => {
   try {
+      const parsedBody = importCommitSchema.safeParse(req.body ?? {});
+      if (!parsedBody.success) {
+        return res.status(400).json({
+          message: "Validation failed.",
+          errors: parsedBody.error.issues.map((issue) => ({
+            field: issue.path.join(".") || "body",
+            message: issue.message,
+          })),
+        });
+      }
+
       const file = getUploadFileOrThrow(req);
       const parsed = parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
-      const rowEdits = parseRowEditsPayload(req.body?.rowEdits);
+      const rowEdits = parseRowEditsPayload(parsedBody.data.rowEdits);
       if (rowEdits.length > 0) {
         const byRow = new Map(parsed.rows.map((row) => [row.rowNumber, row]));
         for (const edit of rowEdits) {
@@ -173,8 +189,8 @@ router.post(
           }
         }
       }
-      const mapping = req.body?.mapping
-        ? normalizeCommitMapping(req.body?.mapping, parsed.detectedHeaders)
+      const mapping = parsedBody.data.mapping
+        ? normalizeCommitMapping(parsedBody.data.mapping, parsed.detectedHeaders)
         : suggestColumnMapping(parsed.detectedHeaders);
 
       const codes = parsed.rows

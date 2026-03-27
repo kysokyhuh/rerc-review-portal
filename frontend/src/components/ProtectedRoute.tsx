@@ -4,11 +4,13 @@ import { useAuth } from "@/contexts/AuthContext";
 interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedRoles?: string[];
+  allowForcedPasswordChange?: boolean;
 }
 
 export default function ProtectedRoute({
   children,
   allowedRoles,
+  allowForcedPasswordChange = false,
 }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
@@ -31,6 +33,10 @@ export default function ProtectedRoute({
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (user?.forcePasswordChange && !allowForcedPasswordChange) {
+    return <Navigate to="/change-password" replace />;
   }
 
   if (allowedRoles && user) {

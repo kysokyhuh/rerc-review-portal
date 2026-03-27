@@ -1,37 +1,71 @@
 import jwt from "jsonwebtoken";
-import type { RoleType } from "../generated/prisma/client";
 
-const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || "dev-access-secret";
-const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "dev-refresh-secret";
+function getSecret(name: "JWT_ACCESS_SECRET" | "JWT_REFRESH_SECRET", fallback: string) {
+  const value = process.env[name];
+  if (value) return value;
+  if (process.env.NODE_ENV === "development") {
+    return fallback;
+  }
+  throw new Error(`${name} must be set outside development`);
+}
 
-const ACCESS_EXPIRES_IN = "15m";
-const REFRESH_EXPIRES_IN = "7d";
+const ACCESS_SECRET = getSecret("JWT_ACCESS_SECRET", "dev-access-secret");
+const REFRESH_SECRET = getSecret("JWT_REFRESH_SECRET", "dev-refresh-secret");
+const JWT_ISSUER = process.env.JWT_ISSUER || "urerb-review-portal";
+const JWT_AUDIENCE = process.env.JWT_AUDIENCE || "urerb-review-portal-users";
 
-export interface AccessTokenPayload {
+export const ACCESS_EXPIRES_IN = "15m";
+export const REFRESH_EXPIRES_IN = "7d";
+export const ACCESS_COOKIE_MAX_AGE_MS = 15 * 60 * 1000;
+export const REFRESH_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
+type BasePayload = {
   sub: number;
-  email: string;
-  fullName: string;
-  roles: RoleType[];
-  committeeRoles: Record<number, RoleType>;
+  sid: string;
+};
+
+export interface AccessTokenPayload extends BasePayload {
+  typ: "access";
 }
 
-export interface RefreshTokenPayload {
-  sub: number;
-  tokenFamily: string;
+export interface RefreshTokenPayload extends BasePayload {
+  typ: "refresh";
 }
 
-export function signAccessToken(payload: AccessTokenPayload): string {
-  return jwt.sign(payload, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
+export function signAccessToken(payload: BasePayload): string {
+  return jwt.sign(
+    { ...payload, typ: "access" },
+    ACCESS_SECRET,
+    {
+      expiresIn: ACCESS_EXPIRES_IN,
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
+    }
+  );
 }
 
-export function signRefreshToken(payload: RefreshTokenPayload): string {
-  return jwt.sign(payload, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRES_IN });
+export function signRefreshToken(payload: BasePayload): string {
+  return jwt.sign(
+    { ...payload, typ: "refresh" },
+    REFRESH_SECRET,
+    {
+      expiresIn: REFRESH_EXPIRES_IN,
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
+    }
+  );
 }
 
 export function verifyAccessToken(token: string): AccessTokenPayload {
-  return jwt.verify(token, ACCESS_SECRET) as unknown as AccessTokenPayload;
+  return jwt.verify(token, ACCESS_SECRET, {
+    issuer: JWT_ISSUER,
+    audience: JWT_AUDIENCE,
+  }) as unknown as AccessTokenPayload;
 }
 
 export function verifyRefreshToken(token: string): RefreshTokenPayload {
-  return jwt.verify(token, REFRESH_SECRET) as unknown as RefreshTokenPayload;
+  return jwt.verify(token, REFRESH_SECRET, {
+    issuer: JWT_ISSUER,
+    audience: JWT_AUDIENCE,
+  }) as unknown as RefreshTokenPayload;
 }

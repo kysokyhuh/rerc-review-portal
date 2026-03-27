@@ -23,8 +23,7 @@ import ExemptedPage from "@/pages/ExemptedPage";
 import HolidaysPage from "@/pages/HolidaysPage";
 import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
-import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
-import AdminUsersPage from "@/pages/AdminUsersPage";
+import ChangePasswordPage from "@/pages/ChangePasswordPage";
 import AdminAccountManagementPage from "@/pages/AdminAccountManagementPage";
 import NotAuthorizedPage from "@/pages/NotAuthorizedPage";
 import DashboardShell from "@/components/DashboardShell";
@@ -35,7 +34,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const isAuthPage =
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
-    location.pathname === "/forgot-password";
+    location.pathname === "/change-password";
   const isDashboardShell =
     location.pathname === "/dashboard" ||
     location.pathname.startsWith("/queues/") ||
@@ -69,8 +68,12 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route
-                path="/forgot-password"
-                element={<ForgotPasswordPage />}
+                path="/change-password"
+                element={
+                  <ProtectedRoute allowForcedPasswordChange>
+                    <ChangePasswordPage />
+                  </ProtectedRoute>
+                }
               />
               <Route path="/not-authorized" element={<NotAuthorizedPage />} />
 
@@ -96,15 +99,15 @@ function App() {
                 <Route
                   path="/admin/users"
                   element={
-                    <ProtectedRoute allowedRoles={["CHAIR"]}>
-                      <AdminUsersPage />
+                    <ProtectedRoute allowedRoles={["CHAIR", "ADMIN"]}>
+                      <Navigate to="/admin/account-management" replace />
                     </ProtectedRoute>
                   }
                 />
                 <Route
                   path="/admin/account-management"
                   element={
-                    <ProtectedRoute allowedRoles={["CHAIR"]}>
+                    <ProtectedRoute allowedRoles={["CHAIR", "ADMIN"]}>
                       <AdminAccountManagementPage />
                     </ProtectedRoute>
                   }

@@ -17,6 +17,11 @@ export function csvEscape(value: unknown): string {
     str = String(value);
   }
 
+  // Neutralize spreadsheet formula injection when CSV is opened in Excel/Sheets.
+  if (/^[=+\-@]/.test(str)) {
+    str = `'${str}`;
+  }
+
   if (/[",\n]/.test(str)) {
     return `"${str.replace(/"/g, '""')}"`;
   }

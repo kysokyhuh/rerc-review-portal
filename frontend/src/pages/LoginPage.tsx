@@ -1,38 +1,30 @@
-import { useState, useEffect, FormEvent, KeyboardEvent } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { BRAND } from '@/config/branding';
-import { useAuth } from '@/contexts/AuthContext';
-import '../styles/login.css';
+import { useState, useEffect, FormEvent, KeyboardEvent } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { BRAND } from "@/config/branding";
+import { useAuth } from "@/contexts/AuthContext";
+import { ensureCsrfCookie, getSafeNextPath } from "@/services/api";
+import "../styles/login.css";
 
-// Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Rate limiting
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_DURATION = 60000; // 1 minute
-
-// Get greeting based on time of day
 function getGreeting(): string {
   const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return 'Good morning';
-  if (hour >= 12 && hour < 17) return 'Good afternoon';
-  return 'Good evening';
+  if (hour >= 5 && hour < 12) return "Good morning";
+  if (hour >= 12 && hour < 17) return "Good afternoon";
+  return "Good evening";
 }
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { login: authLogin } = useAuth();
-  
-  // Form state
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
-  
-  // UI state
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [shake, setShake] = useState(false);
@@ -41,123 +33,106 @@ export default function LoginPage() {
   const [sessionExpired, setSessionExpired] = useState(false);
   const [success, setSuccess] = useState(false);
   const [greeting] = useState(getGreeting());
-  
-  // Rate limiting state
-  const [attempts, setAttempts] = useState(0);
-  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
-  const [lockoutRemaining, setLockoutRemaining] = useState(0);
 
-  // Check for session expired param
   useEffect(() => {
-    if (searchParams.get('expired') === 'true') {
+    void ensureCsrfCookie().catch(() => {});
+    if (searchParams.get("expired") === "true") {
       setSessionExpired(true);
     }
   }, [searchParams]);
 
-  // Lockout countdown timer
-  useEffect(() => {
-    if (lockedUntil) {
-      const interval = setInterval(() => {
-        const remaining = Math.max(0, lockedUntil - Date.now());
-        setLockoutRemaining(Math.ceil(remaining / 1000));
-        if (remaining <= 0) {
-          setLockedUntil(null);
-          setAttempts(0);
-        }
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [lockedUntil]);
-
-  // Email validation
   useEffect(() => {
     if (email.length === 0) {
       setEmailValid(null);
-    } else {
-      setEmailValid(EMAIL_REGEX.test(email));
+      return;
     }
+    setEmailValid(EMAIL_REGEX.test(email));
   }, [email]);
 
-  const isLocked = lockedUntil !== null && Date.now() < lockedUntil;
-  const showEmailError = emailTouched && !emailValid;
-  const emailErrorText = "Enter a valid email address.";
+  const showEmailError = emailTouched && emailValid === false;
   const showPasswordError = passwordTouched && password.length === 0;
+  const showGlobalError = Boolean(error) && !sessionExpired;
+  const emailDescribedBy = showEmailError ? "email-help email-error" : "email-help";
+  const passwordDescribedBy = [
+    "password-help",
+    showPasswordError ? "password-error" : "",
+    capsLock ? "password-caps" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   const canSubmit =
-    !loading &&
-    !isLocked &&
-    email.length > 0 &&
-    password.length > 0 &&
-    emailValid === true;
+    !loading && email.length > 0 && password.length > 0 && emailValid === true;
 
-  // Detect Caps Lock
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    setCapsLock(e.getModifierState('CapsLock'));
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    setCapsLock(event.getModifierState("CapsLock"));
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const triggerShake = () => {
+    setShake(true);
+    setTimeout(() => setShake(false), 500);
+  };
+
+  const navigateAfterAuth = async (
+    user: { roles: string[] },
+    mustChangePassword: boolean
+  ) => {
+    const nextPath = getSafeNextPath(searchParams.get("next"));
+
+    setSuccess(true);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    const doNavigate = () => {
+      if (mustChangePassword) {
+        navigate("/change-password", { replace: true, state: { fromLogin: true } });
+        return;
+      }
+
+      if (nextPath) {
+        navigate(nextPath, { replace: true, state: { fromLogin: true } });
+        return;
+      }
+
+      if (user.roles.includes("CHAIR") || user.roles.includes("ADMIN")) {
+        navigate("/admin/account-management", {
+          replace: true,
+          state: { fromLogin: true },
+        });
+        return;
+      }
+
+      navigate("/dashboard", { replace: true, state: { fromLogin: true } });
+    };
+
+    const anyDocument = document as Document & {
+      startViewTransition?: (callback: () => void) => void;
+    };
+    if (typeof anyDocument.startViewTransition === "function") {
+      anyDocument.startViewTransition(doNavigate);
+    } else {
+      doNavigate();
+    }
+  };
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
     setError(null);
     setSessionExpired(false);
     setEmailTouched(true);
     setPasswordTouched(true);
 
-    // Check lockout
-    if (lockedUntil && Date.now() < lockedUntil) {
-      return;
-    }
-
-    if (!emailValid || password.length === 0) {
-      setError("Please check the highlighted fields.");
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
+    if (emailValid !== true || password.length === 0) {
+      triggerShake();
       return;
     }
 
     setLoading(true);
-
     try {
-      const user = await authLogin(email, password);
-
-      // Show success animation
-      setSuccess(true);
-
-      // Wait for animation then redirect
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      const doNavigate = () => {
-        if (user.roles.includes("CHAIR")) {
-          navigate("/admin/users", { replace: true, state: { fromLogin: true } });
-          return;
-        }
-        navigate("/dashboard", { replace: true, state: { fromLogin: true } });
-      };
-
-      const anyDocument = document as unknown as {
-        startViewTransition?: (callback: () => void) => void;
-      };
-      if (typeof anyDocument.startViewTransition === "function") {
-        anyDocument.startViewTransition(doNavigate);
-      } else {
-        doNavigate();
-      }
+      const result = await authLogin(email, password);
+      await navigateAfterAuth(result.user, result.mustChangePassword);
     } catch (err: any) {
       const apiMessage = err?.response?.data?.message as string | undefined;
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
-      
-      if (newAttempts >= MAX_ATTEMPTS) {
-        setLockedUntil(Date.now() + LOCKOUT_DURATION);
-        setError(`Too many failed attempts. Please try again in 1 minute.`);
-      } else {
-        setError(
-          apiMessage
-            ? `${apiMessage} ${MAX_ATTEMPTS - newAttempts} attempts remaining.`
-            : `Invalid email or password. ${MAX_ATTEMPTS - newAttempts} attempts remaining.`
-        );
-      }
-      
-      // Trigger shake animation
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
+      setError(apiMessage ?? "Invalid email or password.");
+      triggerShake();
     } finally {
       setLoading(false);
     }
@@ -165,28 +140,30 @@ export default function LoginPage() {
 
   return (
     <div className="login-bg">
-      {/* Top loading bar */}
-      {loading && <div className="login-loading-bar" />}
-      
-      {/* Success overlay */}
-      {success && (
+      {loading ? <div className="login-loading-bar" /> : null}
+
+      {success ? (
         <div className="login-success-overlay">
           <div className="login-success-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" className="login-success-circle" />
-              <path d="M8 12l2.5 2.5L16 9" className="login-success-check" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="M8 12l2.5 2.5L16 9"
+                className="login-success-check"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </div>
           <p>Welcome back!</p>
         </div>
-      )}
-      
-      {/* Skip to main content for accessibility */}
-      <a href="#login-form" className="login-skip">Skip to login form</a>
-      
+      ) : null}
+
+      <a href="#login-form" className="login-skip">
+        Skip to login form
+      </a>
+
       <div className="login-grain" aria-hidden="true"></div>
-      
-      {/* Floating particles */}
       <div className="login-particles" aria-hidden="true">
         <span></span><span></span><span></span><span></span><span></span>
         <span></span><span></span><span></span><span></span><span></span>
@@ -194,41 +171,48 @@ export default function LoginPage() {
 
       <div className="login-shell">
         <section className="login-intro">
-          <div className="login-logo">
-            <img src="/urerblogo.png" alt="URERB Portal" className="login-logo-img" />
-          </div>
+          <p className="login-kicker">
+            <span className="login-dot" aria-hidden="true"></span>
+            {BRAND.name}
+          </p>
+          <h1>{BRAND.tagline}</h1>
+          <p className="login-intro-tagline">{BRAND.fullName}</p>
+          <p>
+            Restricted access for protocol intake, review coordination, and committee records.
+          </p>
+          <p className="login-intro-note">
+            Only chair-approved account holders can sign in.
+          </p>
         </section>
 
-        <aside className={`login-card ${shake ? 'shake' : ''}`} role="region" aria-label="Sign in">
+        <aside className={`login-card ${shake ? "shake" : ""}`} role="region" aria-label="Sign in">
           <div className="login-cardHeader">
             <p className="login-greeting">{greeting}.</p>
             <h2>Sign in to {BRAND.name} Portal</h2>
-            <p>Enter your {BRAND.name} email and password.</p>
+            <p>Enter the email and password for your approved URERB account.</p>
           </div>
 
           <form id="login-form" onSubmit={handleSubmit} noValidate>
-            {/* Session expired notice */}
-            {sessionExpired && (
-              <div className="login-warning">
+            {sessionExpired ? (
+              <div className="login-warning" role="status" aria-live="polite">
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
                 </svg>
                 Your session has expired. Please log in again.
               </div>
-            )}
+            ) : null}
 
-            {/* Error message */}
-            {error && (
-              <div className="login-error" role="alert">
+            {showGlobalError ? (
+              <div className="login-error" role="alert" aria-live="assertive">
                 {error}
               </div>
-            )}
+            ) : null}
 
             <div className="login-field">
               <label htmlFor="email">Email</label>
-              <div className={`login-control ${showEmailError ? 'invalid' : ''} ${emailValid === true ? 'valid' : ''}`}>
+              <div className={`login-control ${showEmailError ? "invalid" : ""} ${emailValid === true ? "valid" : ""}`}>
                 <svg className="login-icon" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5L4 8V6l8 5 8-5v2z"/>
+                  <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5L4 8V6l8 5 8-5v2z" />
                 </svg>
                 <input
                   id="email"
@@ -236,53 +220,51 @@ export default function LoginPage() {
                   type="email"
                   autoComplete="username"
                   inputMode="email"
-                  placeholder="name@dlsu.edu.ph"
+                  placeholder="Enter your email"
                   required
                   spellCheck={false}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(event) => setEmail(event.target.value)}
                   onBlur={() => setEmailTouched(true)}
                   aria-invalid={showEmailError}
-                  aria-describedby="email-help email-error"
-                  disabled={isLocked}
+                  aria-describedby={emailDescribedBy}
                 />
-                {emailValid === true && (
+                {emailValid === true ? (
                   <svg className="login-valid-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                   </svg>
-                )}
+                ) : null}
               </div>
               <p id="email-help" className="login-help">
-                Use your assigned {BRAND.name} email (e.g., @dlsu.edu.ph).
+                Use the email address associated with your approved URERB account.
               </p>
-              {showEmailError && (
+              {showEmailError ? (
                 <p id="email-error" className="login-field-error" role="alert">
-                  {emailErrorText}
+                  Enter a valid email address.
                 </p>
-              )}
+              ) : null}
             </div>
 
             <div className="login-field">
               <label htmlFor="password">Password</label>
-              <div className={`login-control ${capsLock ? 'caps-warning' : ''}`}>
+              <div className={`login-control ${capsLock ? "caps-warning" : ""}`}>
                 <svg className="login-icon" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm-3 8V6a3 3 0 0 1 6 0v3H9z"/>
+                  <path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm-3 8V6a3 3 0 0 1 6 0v3H9z" />
                 </svg>
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   placeholder="Enter your password"
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(event) => setPassword(event.target.value)}
                   onBlur={() => setPasswordTouched(true)}
                   onKeyDown={handleKeyDown}
                   onKeyUp={handleKeyDown}
                   aria-invalid={showPasswordError}
-                  aria-describedby="password-error"
-                  disabled={isLocked}
+                  aria-describedby={passwordDescribedBy}
                 />
                 <button
                   className="login-toggle"
@@ -291,7 +273,6 @@ export default function LoginPage() {
                   aria-controls="password"
                   aria-pressed={showPassword}
                   aria-label="Toggle password visibility"
-                  disabled={isLocked}
                 >
                   {showPassword ? (
                     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -308,19 +289,22 @@ export default function LoginPage() {
                   )}
                 </button>
               </div>
-              {capsLock && (
-                <div className="login-caps-warning">
+              <p id="password-help" className="login-help">
+                Enter the password for your approved URERB account. Passwords are case-sensitive.
+              </p>
+              {capsLock ? (
+                <div id="password-caps" className="login-caps-warning">
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2L4 14h6v8h4v-8h6L12 2z"/>
+                    <path d="M12 2L4 14h6v8h4v-8h6L12 2z" />
                   </svg>
                   Caps Lock is on
                 </div>
-              )}
-              {showPasswordError && (
+              ) : null}
+              {showPasswordError ? (
                 <p id="password-error" className="login-field-error" role="alert">
                   Password is required.
                 </p>
-              )}
+              ) : null}
             </div>
 
             <div className="login-row">
@@ -329,66 +313,37 @@ export default function LoginPage() {
                   type="checkbox"
                   name="remember"
                   checked={remember}
-                  onChange={(e) => setRemember(e.target.checked)}
-                  disabled={isLocked}
+                  onChange={(event) => setRemember(event.target.checked)}
                 />
                 Stay signed in on this device
               </label>
-              <a className="login-link" href="/forgot-password">Forgot your password?</a>
             </div>
 
-            <button 
-              className="login-btn" 
-              type="submit" 
-              disabled={!canSubmit}
-            >
+            <button className="login-btn" type="submit" disabled={!canSubmit}>
               {loading ? (
                 <span className="login-spinner">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" opacity="0.25"/>
-                    <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round"/>
+                    <circle cx="12" cy="12" r="10" opacity="0.25" />
+                    <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
                   </svg>
                   Signing in...
                 </span>
-              ) : isLocked ? (
-                `Try again in ${lockoutRemaining}s`
               ) : (
-                'Log in'
+                "Log in"
               )}
             </button>
-            <p className="login-signup">
-              No account yet? <Link to="/signup">Sign up</Link>
+
+            <p className="login-signup login-access-note">
+              Need access? <Link to="/signup">Create an account</Link>
             </p>
 
             <div className="login-divider" role="separator" aria-hidden="true"></div>
             <div className="login-footnote">
-              Authorized users only. Activity may be monitored for compliance and security.
-              If you believe you should have access, contact the {BRAND.name} Secretariat.
+              Authorized users only. Activity may be monitored for security, audit, and compliance.
             </div>
           </form>
-          <div className="login-support">
-            <a href={`mailto:${BRAND.supportEmail}`} className="login-support-link">
-              Need help? Contact the {BRAND.name} admin team
-            </a>
-          </div>
         </aside>
       </div>
-
-      {/* Footer */}
-      <footer className="login-footer">
-        <div className="login-footer-left">
-          <span className="login-footer-status">
-            <span className="login-footer-dot"></span>
-            System Online
-          </span>
-          <span className="login-footer-version">v1.0.0</span>
-        </div>
-        <div className="login-footer-right">
-          <a href={`mailto:${BRAND.supportEmail}`} className="login-footer-link">
-            Contact {BRAND.name} admin
-          </a>
-        </div>
-      </footer>
     </div>
   );
 }

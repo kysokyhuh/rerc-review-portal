@@ -1,33 +1,37 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
 import "@/styles/admin-users.css";
 
-type UserStatus = "PENDING" | "ACTIVE" | "REJECTED";
-type AccountTab = "ACTIVE" | "INACTIVE" | "PENDING";
+type UserStatus = "PENDING" | "APPROVED" | "REJECTED" | "DISABLED";
+type AccountTab = UserStatus;
 
 type UserRow = {
   id: number;
   fullName: string;
   email: string;
   status: UserStatus;
+  isActive: boolean;
+  forcePasswordChange: boolean;
   statusNote: string | null;
   roles: string[];
-  isActive: boolean;
+  approvedAt: string | null;
+  rejectedAt?: string | null;
   createdAt: string;
 };
 
 type UserDraft = {
   fullName: string;
-  status: "ACTIVE" | "INACTIVE";
   selectedRole: string;
   statusNote: string;
 };
 
 const EDITABLE_ROLES = ["CHAIR", "RESEARCH_ASSOCIATE", "RESEARCH_ASSISTANT"];
 const ACCOUNT_TABS: Array<{ key: AccountTab; label: string }> = [
-  { key: "ACTIVE", label: "Active" },
-  { key: "INACTIVE", label: "Inactive" },
-  { key: "PENDING", label: "For Approval" },
+  { key: "PENDING", label: "Pending" },
+  { key: "APPROVED", label: "Approved" },
+  { key: "REJECTED", label: "Rejected" },
+  { key: "DISABLED", label: "Disabled" },
 ];
 
 const ROLE_LABELS: Record<string, string> = {
@@ -36,15 +40,11 @@ const ROLE_LABELS: Record<string, string> = {
   RESEARCH_ASSISTANT: "Research Assistant",
 };
 
-const statusTextClass = (status: string) => {
-  const normalized = status.toUpperCase();
-  if (normalized === "ACTIVE") return "admin-status-text active";
-  if (normalized === "REJECTED") return "admin-status-text inactive";
-  return "admin-status-text pending";
+const ROLE_SORT_ORDER: Record<string, number> = {
+  CHAIR: 0,
+  RESEARCH_ASSOCIATE: 1,
+  RESEARCH_ASSISTANT: 2,
 };
-
-const isInactiveRecord = (user: UserRow) =>
-  user.status === "REJECTED" || (!user.isActive && user.status !== "PENDING");
 
 const firstEditableRole = (roles: string[]) =>
   roles.find((role) => EDITABLE_ROLES.includes(role)) || "";
@@ -52,10 +52,10 @@ const firstEditableRole = (roles: string[]) =>
 const roleText = (role: string | null | undefined) =>
   role ? ROLE_LABELS[role] || role : "Unassigned";
 
-const ROLE_SORT_ORDER: Record<string, number> = {
-  CHAIR: 0,
-  RESEARCH_ASSOCIATE: 1,
-  RESEARCH_ASSISTANT: 2,
+const statusTextClass = (status: UserStatus) => {
+  if (status === "APPROVED") return "admin-status-text active";
+  if (status === "PENDING") return "admin-status-text pending";
+  return "admin-status-text inactive";
 };
 
 const sortByRoleThenName = (a: UserRow, b: UserRow) => {
@@ -68,34 +68,40 @@ const sortByRoleThenName = (a: UserRow, b: UserRow) => {
   return a.fullName.localeCompare(b.fullName, undefined, { sensitivity: "base" });
 };
 
-const formatSignupDate = (value: string) =>
-  new Date(value).toLocaleString("en-US", {
+const formatDateTime = (value: string | null | undefined) => {
+  if (!value) return "-";
+  return new Date(value).toLocaleString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
   });
+};
 
 export default function AdminAccountManagementPage() {
+  const { user } = useAuth();
+  const isChair = user?.roles.includes("CHAIR") ?? false;
+  const canResetPasswords =
+    isChair || (user?.roles.includes("ADMIN") ?? false);
+
   const [users, setUsers] = useState<UserRow[]>([]);
   const [drafts, setDrafts] = useState<Record<number, UserDraft>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<AccountTab>("ACTIVE");
+  const [activeTab, setActiveTab] = useState<AccountTab>("PENDING");
   const [savingId, setSavingId] = useState<number | null>(null);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const hydrateDrafts = (items: UserRow[]) => {
     const next: Record<number, UserDraft> = {};
-    for (const user of items) {
-      next[user.id] = {
-        fullName: user.fullName,
-        status: user.status === "ACTIVE" ? "ACTIVE" : "INACTIVE",
-        selectedRole: firstEditableRole(user.roles),
-        statusNote: user.statusNote || "",
+    for (const item of items) {
+      next[item.id] = {
+        fullName: item.fullName,
+        selectedRole: firstEditableRole(item.roles),
+        statusNote: item.statusNote || "",
       };
     }
     setDrafts(next);
@@ -120,30 +126,42 @@ export default function AdminAccountManagementPage() {
     void load();
   }, []);
 
+  useEffect(() => {
+    if (!isChair && activeTab !== "APPROVED") {
+      setActiveTab("APPROVED");
+    }
+  }, [activeTab, isChair]);
+
   const tabCounts = useMemo(() => {
-    const active = users.filter((user) => user.status === "ACTIVE" && user.isActive).length;
-    const inactive = users.filter((user) => isInactiveRecord(user)).length;
-    const pending = users.filter((user) => user.status === "PENDING").length;
-    return { ACTIVE: active, INACTIVE: inactive, PENDING: pending };
+    return {
+      PENDING: users.filter((entry) => entry.status === "PENDING").length,
+      APPROVED: users.filter((entry) => entry.status === "APPROVED").length,
+      REJECTED: users.filter((entry) => entry.status === "REJECTED").length,
+      DISABLED: users.filter((entry) => entry.status === "DISABLED").length,
+    };
   }, [users]);
 
-  const filteredUsers = useMemo(() => {
-    const filtered = users.filter((user) => {
-      if (activeTab === "ACTIVE" && !(user.status === "ACTIVE" && user.isActive)) return false;
-      if (activeTab === "INACTIVE" && !isInactiveRecord(user)) return false;
-      if (activeTab === "PENDING" && user.status !== "PENDING") return false;
+  const availableTabs = useMemo(
+    () => (isChair ? ACCOUNT_TABS : ACCOUNT_TABS.filter((tab) => tab.key === "APPROVED")),
+    [isChair]
+  );
 
-      const q = search.trim().toLowerCase();
-      if (!q) return true;
-      return `${user.fullName} ${user.email}`.toLowerCase().includes(q);
+  const filteredUsers = useMemo(() => {
+    const filtered = users.filter((entry) => {
+      if (entry.status !== activeTab) return false;
+      const query = search.trim().toLowerCase();
+      if (!query) return true;
+      return `${entry.fullName} ${entry.email}`.toLowerCase().includes(query);
     });
 
-    if (activeTab === "ACTIVE" || activeTab === "INACTIVE") {
+    if (activeTab === "APPROVED") {
       return [...filtered].sort(sortByRoleThenName);
     }
 
-    return filtered;
-  }, [users, search, activeTab]);
+    return [...filtered].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [activeTab, search, users]);
 
   const updateDraft = (userId: number, changes: Partial<UserDraft>) => {
     setDrafts((prev) => ({
@@ -151,7 +169,6 @@ export default function AdminAccountManagementPage() {
       [userId]: {
         ...(prev[userId] || {
           fullName: "",
-          status: "INACTIVE",
           selectedRole: "",
           statusNote: "",
         }),
@@ -160,74 +177,184 @@ export default function AdminAccountManagementPage() {
     }));
   };
 
-  const saveRole = async (user: UserRow) => {
-    const draft = drafts[user.id];
-    if (!draft) return;
-    if (draft.status === "ACTIVE" && !draft.selectedRole) {
-      setError("Role is required for active accounts.");
-      return;
-    }
-
-    const payload: Record<string, unknown> = {};
-    const currentRole = firstEditableRole(user.roles);
-
-    if (draft.fullName.trim() && draft.fullName.trim() !== user.fullName) {
-      payload.fullName = draft.fullName.trim();
-    }
-
-    const currentStatus = user.status === "ACTIVE" ? "ACTIVE" : "INACTIVE";
-    if (draft.status !== currentStatus) {
-      payload.status = draft.status;
-    }
-
-    if (draft.selectedRole !== currentRole) {
-      payload.roles = draft.selectedRole ? [draft.selectedRole] : [];
-    }
-
-    if (activeTab === "INACTIVE" && draft.statusNote.trim() !== (user.statusNote || "")) {
-      payload.statusNote = draft.statusNote.trim() || null;
-    }
-
-    if (Object.keys(payload).length === 0) {
-      return;
-    }
-
-    setSavingId(user.id);
+  const clearMessages = () => {
     setError(null);
+    setNotice(null);
+  };
+
+  const handleApprove = async (entry: UserRow) => {
+    const role = drafts[entry.id]?.selectedRole || "";
+    if (!role) {
+      setError("Select a role before approving the account.");
+      return;
+    }
+
+    setSavingId(entry.id);
+    clearMessages();
     try {
-      await api.patch(`/admin/users/${user.id}`, payload);
-      setEditingId(null);
+      await api.post(`/admin/users/${entry.id}/approve`, { role });
+      setNotice("Account approved.");
       await load();
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to save role.");
+      setError(err?.response?.data?.message || "Failed to approve account.");
     } finally {
       setSavingId(null);
     }
   };
 
-  const deleteUser = async (user: UserRow) => {
-    if (!window.confirm(`Deactivate ${user.email}?`)) return;
+  const handleReject = async (entry: UserRow) => {
+    const defaultNote = drafts[entry.id]?.statusNote || "";
+    const note = window.prompt("Optional rejection note", defaultNote);
+    if (note === null) return;
 
-    setDeletingId(user.id);
-    setError(null);
+    setSavingId(entry.id);
+    clearMessages();
     try {
-      await api.delete(`/admin/users/${user.id}`);
+      await api.post(`/admin/users/${entry.id}/reject`, note.trim() ? { note: note.trim() } : {});
+      setNotice("Account rejected.");
       await load();
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to deactivate user.");
+      setError(err?.response?.data?.message || "Failed to reject account.");
     } finally {
-      setDeletingId(null);
+      setSavingId(null);
     }
+  };
+
+  const handleDisable = async (entry: UserRow) => {
+    const defaultNote = drafts[entry.id]?.statusNote || "Account disabled";
+    const note = window.prompt("Optional disable note", defaultNote);
+    if (note === null) return;
+    if (!window.confirm(`Disable ${entry.email}?`)) return;
+
+    setSavingId(entry.id);
+    clearMessages();
+    try {
+      await api.post(`/admin/users/${entry.id}/disable`, note.trim() ? { note: note.trim() } : {});
+      setEditingId(null);
+      setNotice("Account disabled.");
+      await load();
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Failed to disable account.");
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const handleEnable = async (entry: UserRow) => {
+    const defaultNote = drafts[entry.id]?.statusNote || "";
+    const note = window.prompt("Optional enable note", defaultNote);
+    if (note === null) return;
+    if (!window.confirm(`Enable ${entry.email}?`)) return;
+
+    setSavingId(entry.id);
+    clearMessages();
+    try {
+      await api.post(`/admin/users/${entry.id}/enable`, note.trim() ? { note: note.trim() } : {});
+      setNotice("Account enabled.");
+      await load();
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Failed to enable account.");
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const handleResetPassword = async (entry: UserRow) => {
+    const temporaryPassword = window.prompt(
+      `Enter a temporary password for ${entry.email}`
+    );
+    if (temporaryPassword === null) return;
+    if (!temporaryPassword.trim()) {
+      setError("Temporary password is required.");
+      return;
+    }
+
+    setSavingId(entry.id);
+    clearMessages();
+    try {
+      await api.post(`/admin/users/${entry.id}/reset-password`, {
+        temporaryPassword: temporaryPassword.trim(),
+      });
+      setNotice("Temporary password saved. The user must change it at next sign-in.");
+      await load();
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Failed to reset password.");
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const saveApprovedUser = async (entry: UserRow) => {
+    const draft = drafts[entry.id];
+    if (!draft) return;
+
+    const payload: Record<string, unknown> = {};
+    const currentRole = firstEditableRole(entry.roles);
+
+    if (draft.fullName.trim() && draft.fullName.trim() !== entry.fullName) {
+      payload.fullName = draft.fullName.trim();
+    }
+
+    if (draft.selectedRole && draft.selectedRole !== currentRole) {
+      payload.role = draft.selectedRole;
+    }
+
+    if ((draft.statusNote || "").trim() !== (entry.statusNote || "")) {
+      payload.statusNote = draft.statusNote.trim() || null;
+    }
+
+    if (Object.keys(payload).length === 0) {
+      setEditingId(null);
+      return;
+    }
+
+    setSavingId(entry.id);
+    clearMessages();
+    try {
+      await api.patch(`/admin/users/${entry.id}`, payload);
+      setEditingId(null);
+      setNotice("Account updated.");
+      await load();
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Failed to save account changes.");
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const getDateLabel = () => {
+    if (activeTab === "PENDING") return "Signed up";
+    if (activeTab === "APPROVED") return "Approved";
+    if (activeTab === "REJECTED") return "Rejected";
+    return "Updated";
+  };
+
+  const getDateValue = (entry: UserRow) => {
+    if (activeTab === "APPROVED") return entry.approvedAt || entry.createdAt;
+    if (activeTab === "REJECTED") return entry.rejectedAt || entry.createdAt;
+    return entry.createdAt;
+  };
+
+  const noteText = (entry: UserRow) => {
+    if (entry.statusNote) return entry.statusNote;
+    if (entry.forcePasswordChange) {
+      return "Temporary password issued; password change required.";
+    }
+    return "-";
   };
 
   return (
     <div className="dashboard-content admin-page">
       <header className="queue-page-header admin-soft-header">
         <h1>Account Management</h1>
-        <p>Review role and status carefully before saving changes.</p>
+        <p>
+          {isChair
+            ? "Review pending signups, assign roles, reset passwords, and control access from one screen."
+            : "Reset temporary passwords for approved accounts."}
+        </p>
         <div className="admin-top-controls">
           <div className="panel-tabs admin-tabs" role="tablist" aria-label="Account status tabs">
-            {ACCOUNT_TABS.map((tab) => (
+            {availableTabs.map((tab) => (
               <button
                 key={tab.key}
                 type="button"
@@ -248,6 +375,7 @@ export default function AdminAccountManagementPage() {
       </header>
 
       {error ? <div className="admin-error">{error}</div> : null}
+      {!error && notice ? <div className="login-warning">{notice}</div> : null}
 
       <section className="panel admin-soft-panel">
         <div className="panel-body no-padding">
@@ -257,72 +385,70 @@ export default function AdminAccountManagementPage() {
           ) : null}
 
           {!loading && filteredUsers.length > 0 ? (
-            <table
-              className={`data-table admin-management-table admin-clean-table ${
-                activeTab === "INACTIVE" ? "has-notes" : ""
-              } ${activeTab === "PENDING" ? "has-signup-date" : ""}`}
-            >
+            <table className="data-table admin-management-table admin-clean-table has-notes">
               <thead>
                 <tr>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Status</th>
                   <th>Role</th>
-                  {activeTab === "PENDING" ? <th>Date Signed Up</th> : null}
-                  {activeTab === "INACTIVE" ? <th>Notes</th> : null}
+                  <th>{getDateLabel()}</th>
+                  <th>Notes</th>
                   <th className="table-actions-header">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => {
-                  const draft = drafts[user.id];
-                  const busy = savingId === user.id || deletingId === user.id;
-                  const isEditing = editingId === user.id;
-                  const currentRole = firstEditableRole(user.roles);
+                {filteredUsers.map((entry) => {
+                  const draft = drafts[entry.id];
+                  const busy = savingId === entry.id;
+                  const isEditing = editingId === entry.id;
+                  const currentRole = firstEditableRole(entry.roles);
 
                   return (
-                    <tr key={user.id}>
+                    <tr key={entry.id}>
                       <td>
-                        {isEditing ? (
+                        {activeTab === "APPROVED" && isEditing && isChair ? (
                           <input
                             className="admin-inline-input"
-                            value={draft?.fullName ?? user.fullName}
+                            value={draft?.fullName ?? entry.fullName}
                             onChange={(event) =>
-                              updateDraft(user.id, { fullName: event.target.value })
+                              updateDraft(entry.id, { fullName: event.target.value })
                             }
                             disabled={busy}
                           />
                         ) : (
-                          <div className="table-owner">{user.fullName}</div>
+                          <div className="table-owner">{entry.fullName}</div>
                         )}
                       </td>
-                      <td>{user.email}</td>
+                      <td>{entry.email}</td>
                       <td>
-                        {isEditing ? (
-                          <select
-                            className="admin-select clean"
-                            value={draft?.status ?? "INACTIVE"}
-                            onChange={(event) =>
-                              updateDraft(user.id, {
-                                status: event.target.value as "ACTIVE" | "INACTIVE",
-                              })
-                            }
-                            disabled={busy}
-                          >
-                            <option value="ACTIVE">ACTIVE</option>
-                            <option value="INACTIVE">INACTIVE</option>
-                          </select>
-                        ) : (
-                          <span className={statusTextClass(user.status)}>{user.status}</span>
-                        )}
+                        <span className={statusTextClass(entry.status)}>
+                          {entry.status}
+                        </span>
                       </td>
                       <td>
-                        {isEditing ? (
+                        {activeTab === "PENDING" && isChair ? (
                           <select
                             className="admin-select clean"
                             value={draft?.selectedRole ?? ""}
                             onChange={(event) =>
-                              updateDraft(user.id, { selectedRole: event.target.value })
+                              updateDraft(entry.id, { selectedRole: event.target.value })
+                            }
+                            disabled={busy}
+                          >
+                            <option value="">Select role</option>
+                            {EDITABLE_ROLES.map((role) => (
+                              <option key={role} value={role}>
+                                {roleText(role)}
+                              </option>
+                            ))}
+                          </select>
+                        ) : activeTab === "APPROVED" && isEditing && isChair ? (
+                          <select
+                            className="admin-select clean"
+                            value={draft?.selectedRole ?? ""}
+                            onChange={(event) =>
+                              updateDraft(entry.id, { selectedRole: event.target.value })
                             }
                             disabled={busy}
                           >
@@ -337,44 +463,87 @@ export default function AdminAccountManagementPage() {
                           <span>{roleText(currentRole)}</span>
                         )}
                       </td>
-                      {activeTab === "PENDING" ? (
-                        <td className="admin-date-cell">{formatSignupDate(user.createdAt)}</td>
-                      ) : null}
-                      {activeTab === "INACTIVE" ? (
-                        <td>
-                          {isEditing ? (
-                            <input
-                              className="admin-note-inline"
-                              placeholder="application rejected, account inactive, etc."
-                              value={draft?.statusNote ?? ""}
-                              onChange={(event) =>
-                                updateDraft(user.id, { statusNote: event.target.value })
-                              }
-                              disabled={busy}
-                            />
-                          ) : (
-                            <span>{user.statusNote || "-"}</span>
-                          )}
-                        </td>
-                      ) : null}
+                      <td className="admin-date-cell">{formatDateTime(getDateValue(entry))}</td>
+                      <td>
+                        {activeTab === "APPROVED" && isEditing && isChair ? (
+                          <input
+                            className="admin-note-inline"
+                            placeholder="Optional note"
+                            value={draft?.statusNote ?? ""}
+                            onChange={(event) =>
+                              updateDraft(entry.id, { statusNote: event.target.value })
+                            }
+                            disabled={busy}
+                          />
+                        ) : (
+                          <span>{noteText(entry)}</span>
+                        )}
+                      </td>
                       <td className="table-actions">
                         <div className="admin-actions clean">
-                          {!isEditing ? (
-                            <button
-                              className="admin-btn"
-                              onClick={() => setEditingId(user.id)}
-                              disabled={busy}
-                            >
-                              Edit
-                            </button>
-                          ) : (
+                          {activeTab === "PENDING" && isChair ? (
                             <>
                               <button
                                 className="admin-btn save"
-                                onClick={() => void saveRole(user)}
+                                onClick={() => void handleApprove(entry)}
                                 disabled={busy}
                               >
-                                {savingId === user.id ? "Saving..." : "Save"}
+                                {busy ? "Saving..." : "Approve"}
+                              </button>
+                              <button
+                                className="admin-btn reject"
+                                onClick={() => void handleReject(entry)}
+                                disabled={busy}
+                              >
+                                Reject
+                              </button>
+                            </>
+                          ) : null}
+
+                          {activeTab === "APPROVED" && !isEditing && isChair ? (
+                            <>
+                              <button
+                                className="admin-btn"
+                                onClick={() => setEditingId(entry.id)}
+                                disabled={busy}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                className="admin-btn reject"
+                                onClick={() => void handleDisable(entry)}
+                                disabled={busy}
+                              >
+                                Disable
+                              </button>
+                              <button
+                                className="admin-btn save"
+                                onClick={() => void handleResetPassword(entry)}
+                                disabled={busy || !canResetPasswords}
+                              >
+                                Reset Password
+                              </button>
+                            </>
+                          ) : null}
+
+                          {activeTab === "APPROVED" && !isEditing && !isChair ? (
+                            <button
+                              className="admin-btn save"
+                              onClick={() => void handleResetPassword(entry)}
+                              disabled={busy || !canResetPasswords}
+                            >
+                              Reset Password
+                            </button>
+                          ) : null}
+
+                          {activeTab === "APPROVED" && isEditing && isChair ? (
+                            <>
+                              <button
+                                className="admin-btn save"
+                                onClick={() => void saveApprovedUser(entry)}
+                                disabled={busy}
+                              >
+                                {busy ? "Saving..." : "Save"}
                               </button>
                               <button
                                 className="admin-btn"
@@ -387,15 +556,20 @@ export default function AdminAccountManagementPage() {
                                 Cancel
                               </button>
                             </>
-                          )}
-                          {!isEditing ? (
+                          ) : null}
+
+                          {activeTab === "DISABLED" && isChair ? (
                             <button
-                              className="admin-btn reject"
-                              onClick={() => void deleteUser(user)}
+                              className="admin-btn save"
+                              onClick={() => void handleEnable(entry)}
                               disabled={busy}
                             >
-                              {deletingId === user.id ? "Deleting..." : "Delete"}
+                              {busy ? "Saving..." : "Enable"}
                             </button>
+                          ) : null}
+
+                          {(activeTab === "REJECTED" || (activeTab === "DISABLED" && !isChair)) ? (
+                            <span className="login-footnote">No actions</span>
                           ) : null}
                         </div>
                       </td>

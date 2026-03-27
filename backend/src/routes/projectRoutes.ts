@@ -6,6 +6,7 @@ import prisma from "../config/prismaClient";
 import { RoleType } from "../generated/prisma/client";
 import { requireAnyRole, requireUser } from "../middleware/auth";
 import { requireProjectAccess } from "../middleware/reviewerScope";
+import { validate } from "../middleware/validate";
 import {
   createProjectWithInitialSubmission,
   DuplicateProjectCodeError,
@@ -24,6 +25,13 @@ import {
   deleteMilestone,
   createSubmissionForProject,
 } from "../services/projects/projectService";
+import {
+  createMilestoneSchema,
+  createProjectSchema,
+  createProjectSubmissionSchema,
+  updateMilestoneSchema,
+  updateProjectProfileSchema,
+} from "../schemas/project";
 
 const router = Router();
 
@@ -31,42 +39,10 @@ const router = Router();
 router.post(
   "/projects",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  validate(createProjectSchema),
   async (req, res, next) => {
     try {
-      const projectCode = String(req.body?.projectCode ?? "").trim();
-      const title = String(req.body?.title ?? "").trim();
-      const piName = String(req.body?.piName ?? "").trim();
-
-      const validationErrors: Array<{ field: string; message: string }> = [];
-      if (!projectCode) validationErrors.push({ field: "projectCode", message: "projectCode is required." });
-      if (!title) validationErrors.push({ field: "title", message: "title is required." });
-      if (!piName) validationErrors.push({ field: "piName", message: "projectLeader is required." });
-      if (validationErrors.length > 0) {
-        return res.status(400).json({ message: "Validation failed.", errors: validationErrors });
-      }
-
-      const payload = {
-        projectCode,
-        title,
-        piName,
-        committeeCode: req.body?.committeeCode ? String(req.body.committeeCode) : undefined,
-        committeeId: req.body?.committeeId ? Number(req.body.committeeId) : undefined,
-        submissionType: req.body?.submissionType ? String(req.body.submissionType) : undefined,
-        receivedDate: req.body?.receivedDate ? String(req.body.receivedDate) : undefined,
-        fundingType: req.body?.fundingType ? String(req.body.fundingType) : undefined,
-        notes: req.body?.notes ? String(req.body.notes) : undefined,
-        piAffiliation: req.body?.piAffiliation ? String(req.body.piAffiliation) : undefined,
-        collegeOrUnit: req.body?.collegeOrUnit ? String(req.body.collegeOrUnit) : undefined,
-        proponentCategory: req.body?.proponentCategory ? String(req.body.proponentCategory) : undefined,
-        department: req.body?.department ? String(req.body.department) : undefined,
-        proponent: req.body?.proponent ? String(req.body.proponent) : undefined,
-        researchTypePHREB: req.body?.researchTypePHREB ? String(req.body.researchTypePHREB) : undefined,
-        researchTypePHREBOther: req.body?.researchTypePHREBOther
-          ? String(req.body.researchTypePHREBOther)
-          : undefined,
-      };
-
-      const created = await createProjectWithInitialSubmission(payload, req.user!.id);
+      const created = await createProjectWithInitialSubmission(req.body, req.user!.id);
       return res.status(201).json(created);
     } catch (error: any) {
       if (error instanceof ProjectCreateValidationError) {
@@ -184,6 +160,7 @@ router.get("/projects/:id/profile", requireUser, requireProjectAccess, async (re
 router.put(
   "/projects/:id/profile",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  validate(updateProjectProfileSchema),
   async (req, res, next) => {
     try {
       const projectId = Number(req.params.id);
@@ -200,6 +177,7 @@ router.put(
 router.post(
   "/projects/:id/profile/milestones",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  validate(createMilestoneSchema),
   async (req, res, next) => {
     try {
       const projectId = Number(req.params.id);
@@ -216,6 +194,7 @@ router.post(
 router.patch(
   "/projects/:id/profile/milestones/:milestoneId",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  validate(updateMilestoneSchema),
   async (req, res, next) => {
     try {
       const projectId = Number(req.params.id);
@@ -254,6 +233,7 @@ router.delete(
 router.post(
   "/projects/:projectId/submissions",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  validate(createProjectSubmissionSchema),
   async (req, res, next) => {
     try {
       const projectId = Number(req.params.projectId);

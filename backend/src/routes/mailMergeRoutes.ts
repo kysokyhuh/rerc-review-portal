@@ -11,9 +11,34 @@ import {
   buildInitialApprovalLetter,
 } from "../services/letterGenerator";
 import { Parser as Json2CsvParser } from "json2csv";
+import { logAuditEvent } from "../services/audit/auditService";
 
 const router = Router();
-router.use(requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]));
+router.use(["/mail-merge", "/letters"], requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]));
+router.use(["/mail-merge", "/letters"], (req, res, next) => {
+  res.on("finish", () => {
+    if (req.method !== "GET" || res.statusCode >= 400 || !req.user?.id) {
+      return;
+    }
+
+    if (!req.path.startsWith("/mail-merge/") && !req.path.startsWith("/letters/")) {
+      return;
+    }
+
+    void logAuditEvent({
+      actorId: req.user.id,
+      action: req.path.startsWith("/letters/") ? "LETTER_DOWNLOAD" : "DATA_EXPORT",
+      entityType: "Route",
+      entityId: req.originalUrl,
+      metadata: {
+        method: req.method,
+        path: req.originalUrl,
+        statusCode: res.statusCode,
+      },
+    }).catch(() => {});
+  });
+  next();
+});
 
 // Mail-merge CSV export for initial submission acknowledgment letters
 router.get("/mail-merge/initial-ack.csv", async (req, res, next) => {

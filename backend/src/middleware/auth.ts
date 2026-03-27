@@ -1,8 +1,17 @@
 import type { NextFunction, Request, Response } from "express";
-import { RoleType } from "../generated/prisma/client";
+import prisma from "../config/prismaClient";
+import { RoleType, UserStatus } from "../generated/prisma/client";
+import { logAuditEvent } from "../services/audit/auditService";
 import { verifyAccessToken } from "../utils/jwt";
+import { AUTH_COOKIE_NAME, REFRESH_COOKIE_NAME } from "../config/authCookies";
 
-const AUTH_COOKIE_NAME = "authToken";
+if (
+  process.env.DEV_HEADER_AUTH === "true" &&
+  process.env.NODE_ENV !== "development" &&
+  process.env.NODE_ENV !== "test"
+) {
+  throw new Error("DEV_HEADER_AUTH may only be enabled in local development or test.");
+}
 
 const parseRoleList = (value?: string | null): RoleType[] => {
   if (!value) return [];
@@ -43,7 +52,7 @@ const parseCommitteeRoles = (
 
 const tryDevHeaderUser = (req: Request) => {
   const isDevHeaderEnabled =
-    process.env.NODE_ENV === "development" &&
+    (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") &&
     process.env.DEV_HEADER_AUTH === "true";
   if (!isDevHeaderEnabled) {
     return null;
@@ -54,14 +63,71 @@ const tryDevHeaderUser = (req: Request) => {
 
   return {
     id,
+    sessionId: "dev-header-session",
     email: req.header("x-user-email") || undefined,
     fullName: req.header("x-user-name") || undefined,
+    forcePasswordChange: false,
     roles: parseRoleList(req.header("x-user-roles")),
     committeeRoles: parseCommitteeRoles(req.header("x-user-committee-roles")),
   };
 };
 
-export const authenticateUser = (
+async function loadSessionUser(sessionId: string, userId: number) {
+  const now = Date.now();
+  const session = await prisma.authSession.findUnique({
+    where: { id: sessionId },
+    select: {
+      id: true,
+      userId: true,
+      revokedAt: true,
+      absoluteExpiresAt: true,
+      idleExpiresAt: true,
+      expiresAt: true,
+      lastReauthenticatedAt: true,
+      user: {
+        select: {
+          id: true,
+          email: true,
+          fullName: true,
+          roles: true,
+          status: true,
+          isActive: true,
+          forcePasswordChange: true,
+        },
+      },
+    },
+  });
+
+  if (!session) return null;
+  if (session.userId !== userId) return null;
+  if (session.revokedAt) return null;
+  if (session.expiresAt.getTime() <= now) return null;
+  if (session.absoluteExpiresAt.getTime() <= now) return null;
+  if (session.idleExpiresAt.getTime() <= now) return null;
+  if (session.user.status !== UserStatus.APPROVED) return null;
+  if (!session.user.isActive) return null;
+
+  return session;
+}
+
+function logAccessDenied(req: Request, reason: "unauthenticated" | "forbidden", requiredRoles?: RoleType[]) {
+  void logAuditEvent({
+    actorId: req.user?.id ?? null,
+    action: "ACCESS_DENIED",
+    entityType: "Route",
+    entityId: req.originalUrl,
+    metadata: {
+      reason,
+      method: req.method,
+      path: req.originalUrl,
+      ip: req.ip,
+      userAgent: req.get("user-agent") ?? null,
+      requiredRoles: requiredRoles ?? [],
+    },
+  }).catch(() => {});
+}
+
+export const authenticateUser = async (
   req: Request,
   _res: Response,
   next: NextFunction
@@ -72,19 +138,27 @@ export const authenticateUser = (
     return next();
   }
 
-  const cookieToken = req.cookies?.[AUTH_COOKIE_NAME] as string | undefined;
-  const token = cookieToken;
-
+  const token = req.cookies?.[AUTH_COOKIE_NAME] as string | undefined;
   if (!token) return next();
 
   try {
     const payload = verifyAccessToken(token);
+    const session = await loadSessionUser(payload.sid, payload.sub);
+    if (!session) {
+      return next();
+    }
+
     req.user = {
-      id: payload.sub,
-      email: payload.email,
-      fullName: payload.fullName,
-      roles: payload.roles,
-      committeeRoles: payload.committeeRoles,
+      id: session.user.id,
+      sessionId: session.id,
+      sessionAbsoluteExpiresAt: session.absoluteExpiresAt,
+      sessionIdleExpiresAt: session.idleExpiresAt,
+      lastReauthenticatedAt: session.lastReauthenticatedAt ?? null,
+      email: session.user.email,
+      fullName: session.user.fullName,
+      forcePasswordChange: session.user.forcePasswordChange,
+      roles: session.user.roles,
+      committeeRoles: {},
     };
   } catch {
     // Keep req.user undefined for guards to handle.
@@ -99,26 +173,31 @@ export const requireAuth = (
   next: NextFunction
 ) => {
   if (!req.user) {
+    logAccessDenied(req, "unauthenticated");
     return res.status(401).json({ message: "Unauthorized" });
   }
   return next();
 };
 
-export const requireRole = (role: RoleType) =>
-  requireAnyRole([role]);
+export const requireRole = (role: RoleType) => requireAnyRole([role]);
 
 export const requireAnyRole = (allowed: RoleType[]) => {
   const allowedSet = new Set(allowed);
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+    if (!req.user) {
+      logAccessDenied(req, "unauthenticated", allowed);
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     const hasRole = (req.user.roles || []).some((role) => allowedSet.has(role));
-    if (!hasRole) return res.status(403).json({ message: "Forbidden" });
+    if (!hasRole) {
+      logAccessDenied(req, "forbidden", allowed);
+      return res.status(403).json({ message: "Forbidden" });
+    }
     return next();
   };
 };
 
-// Backward-compatible aliases while routes are being migrated.
 export const requireUser = requireAuth;
 export const requireRoles = requireAnyRole;
 
-export { AUTH_COOKIE_NAME };
+export { AUTH_COOKIE_NAME, REFRESH_COOKIE_NAME };

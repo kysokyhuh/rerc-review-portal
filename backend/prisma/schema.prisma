@@ -23,8 +23,9 @@ enum RoleType {
 
 enum UserStatus {
   PENDING
-  ACTIVE
+  APPROVED
   REJECTED
+  DISABLED
 }
 
 enum FundingType {
@@ -210,22 +211,25 @@ enum ProponentCategory {
 // --- MODELS ---
 
 model User {
-  id                     Int       @id @default(autoincrement())
-  email                  String    @unique
+  id                     Int        @id @default(autoincrement())
+  email                  String     @unique
   fullName               String
   passwordHash           String?
+  forcePasswordChange    Boolean    @default(false)
   status                 UserStatus @default(PENDING)
   roles                  RoleType[] @default([])
   statusNote             String?
-  passwordResetToken     String?
-  passwordResetExpiresAt DateTime?
+  approvedById           Int?
+  approvedAt             DateTime?
+  rejectedById           Int?
+  rejectedAt             DateTime?
   lastLoginAt            DateTime?
   lastLoginIp            String?
-  isCommonReviewer       Boolean   @default(false)
-  reviewerExpertise      String[]  @default([])
-  isActive               Boolean   @default(true)
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
+  isCommonReviewer       Boolean    @default(false)
+  reviewerExpertise      String[]   @default([])
+  isActive               Boolean    @default(true)
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
 
   // relations
   committeeMemberships            CommitteeMember[]
@@ -245,6 +249,38 @@ model User {
   reviewAssignments               ReviewAssignment[]        @relation("AssignmentReviewer")
   projectStatusHistories          ProjectStatusHistory[]
   auditLogs                       AuditLog[]                @relation("AuditActor")
+  authSessions                    AuthSession[]
+  approvedBy                      User?                     @relation("ApprovedUsers", fields: [approvedById], references: [id])
+  approvedUsers                   User[]                    @relation("ApprovedUsers")
+  rejectedBy                      User?                     @relation("RejectedUsers", fields: [rejectedById], references: [id])
+  rejectedUsers                   User[]                    @relation("RejectedUsers")
+
+  @@index([approvedById])
+  @@index([rejectedById])
+}
+
+model AuthSession {
+  id                    String   @id @default(cuid())
+  userId                Int
+  refreshTokenHash      String
+  ipAddress             String?
+  userAgent             String?
+  expiresAt             DateTime
+  absoluteExpiresAt     DateTime
+  idleExpiresAt         DateTime
+  revokedAt             DateTime?
+  lastSeenAt            DateTime?
+  lastReauthenticatedAt DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+  @@index([absoluteExpiresAt])
+  @@index([idleExpiresAt])
+  @@index([revokedAt])
 }
 
 model AuditLog {

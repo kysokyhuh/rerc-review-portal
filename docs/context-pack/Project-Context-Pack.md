@@ -211,7 +211,6 @@ rerc-review-portal/
 | `JWT_REFRESH_SECRET` | Yes | Refresh-token signing secret (hex)         |
 | `PORT`         | No       | Server port (default: 3000)                |
 | `CORS_ORIGINS` | No       | Allowed origins (default: localhost:5173)  |
-| `FRONTEND_URL` | No       | Frontend URL for CORS                      |
 
 **Frontend** (`.env` or Vite build):
 
@@ -657,12 +656,13 @@ Passwords are controlled by:
 <Routes>
   <Route path="/" element={<Navigate to="/login" replace />} />
   <Route path="/login" element={<LoginPage />} />
-  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+  <Route path="/signup" element={<SignupPage />} />
+  <Route path="/change-password" element={<ProtectedRoute allowForcedPasswordChange><ChangePasswordPage /></ProtectedRoute>} />
   <Route element={<ProtectedRoute><DashboardShell /></ProtectedRoute>}>
     <Route path="/dashboard" element={<DashboardPage />} />
     <Route path="/queues/:queueKey" element={<QueuePage />} /> // classification / under-review / exempted / revisions
-    <Route path="/admin/users/manage" element={<AdminUserManagementPage />} /> // chair-only
-    <Route path="/admin/users" element={<AdminUsersPage />} /> // chair-only pending approvals
+    <Route path="/admin/account-management" element={<AdminAccountManagementPage />} /> // chair/admin
+    <Route path="/admin/users" element={<Navigate to="/admin/account-management" replace />} />
     <Route path="/holidays" element={<HolidaysPage />} />
   </Route>
   <Route path="/projects/new" element={<ProtectedRoute><NewProtocolPage /></ProtectedRoute>} />
@@ -755,7 +755,7 @@ Passwords are controlled by:
 
 - No hardcoded secrets found in source code
 - `DATABASE_URL` must be in `.env` (not checked into repo)
-- `.env.example` exists at repo root with placeholder values for `DATABASE_URL`, `PORT`, `CORS_ORIGINS`, `FRONTEND_URL`
+- `.env.example` exists at repo root with placeholder values for `DATABASE_URL`, `PORT`, and `CORS_ORIGINS`
 
 ---
 

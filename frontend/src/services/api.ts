@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type InternalAxiosRequestConfig } from "axios";
 
 // Re-export all types from the types module for backward compatibility
 export type {
@@ -81,6 +81,14 @@ const API_BASE_URL =
   (typeof process !== "undefined" ? process.env?.VITE_API_URL : undefined) ||
   "http://localhost:3000";
 
+export const authApi = axios.create({
+  withCredentials: true,
+  baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
 const api = axios.create({
   withCredentials: true,
   baseURL: API_BASE_URL,
@@ -88,6 +96,155 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+const AUTH_PAGE_PATHS = new Set([
+  "/login",
+  "/signup",
+  "/change-password",
+]);
+const SESSION_EXEMPT_PATHS = new Set([
+  "/auth/signup",
+  "/auth/login",
+  "/auth/logout",
+  "/auth/me",
+  "/auth/refresh",
+]);
+const MUTATING_METHODS = new Set(["post", "put", "patch", "delete"]);
+const CSRF_COOKIE_NAME =
+  typeof import.meta !== "undefined" && import.meta.env?.PROD
+    ? "__Host-csrfToken"
+    : "csrfToken";
+
+let sessionRefreshPromise: Promise<void> | null = null;
+let csrfBootstrapPromise: Promise<void> | null = null;
+let sessionExpiredHandler: (() => void) | null = null;
+let sessionRedirectInFlight = false;
+
+function getCookieValue(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const target = `${name}=`;
+  const entry = document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(target));
+  return entry ? decodeURIComponent(entry.slice(target.length)) : null;
+}
+
+function attachCsrfToken(config: InternalAxiosRequestConfig) {
+  const method = (config.method || "get").toLowerCase();
+  if (!MUTATING_METHODS.has(method)) {
+    return config;
+  }
+
+  const csrfToken = getCookieValue(CSRF_COOKIE_NAME);
+  if (!csrfToken) {
+    return config;
+  }
+
+  config.headers = config.headers ?? {};
+  if (!config.headers["X-CSRF-Token"]) {
+    config.headers["X-CSRF-Token"] = csrfToken;
+  }
+  return config;
+}
+
+authApi.interceptors.request.use(attachCsrfToken);
+api.interceptors.request.use(attachCsrfToken);
+
+const isAuthPagePath = (path: string) => AUTH_PAGE_PATHS.has(path);
+
+const isSessionExemptRequest = (url?: string) =>
+  Array.from(SESSION_EXEMPT_PATHS).some((path) => url?.startsWith(path));
+
+export function getSafeNextPath(value?: string | null): string | null {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return null;
+  }
+
+  try {
+    const url = new URL(value, "http://localhost");
+    if (isAuthPagePath(url.pathname)) {
+      return null;
+    }
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return null;
+  }
+}
+
+const getCurrentPath = () => {
+  if (typeof window === "undefined") return null;
+  return getSafeNextPath(
+    `${window.location.pathname}${window.location.search}${window.location.hash}`
+  );
+};
+
+export function buildExpiredLoginUrl(nextPath?: string | null) {
+  const params = new URLSearchParams({ expired: "true" });
+  const safeNext = getSafeNextPath(nextPath);
+  if (safeNext) {
+    params.set("next", safeNext);
+  }
+  return `/login?${params.toString()}`;
+}
+
+export function registerSessionExpiredHandler(handler: () => void) {
+  sessionExpiredHandler = handler;
+  return () => {
+    if (sessionExpiredHandler === handler) {
+      sessionExpiredHandler = null;
+    }
+  };
+}
+
+export async function ensureCsrfCookie(): Promise<void> {
+  if (getCookieValue(CSRF_COOKIE_NAME)) {
+    return;
+  }
+
+  if (!csrfBootstrapPromise) {
+    csrfBootstrapPromise = authApi
+      .get("/auth/csrf")
+      .then(() => undefined)
+      .finally(() => {
+        csrfBootstrapPromise = null;
+      });
+  }
+
+  return csrfBootstrapPromise;
+}
+
+export async function refreshAccessSession(): Promise<void> {
+  if (!sessionRefreshPromise) {
+    await ensureCsrfCookie();
+    sessionRefreshPromise = authApi
+      .post("/auth/refresh", {})
+      .then(() => undefined)
+      .finally(() => {
+        sessionRefreshPromise = null;
+      });
+  }
+
+  return sessionRefreshPromise;
+}
+
+export async function logoutSession(): Promise<void> {
+  await ensureCsrfCookie();
+  await authApi.post("/auth/logout", {});
+}
+
+export function forceSessionExpiredRedirect(nextPath?: string | null) {
+  if (typeof window === "undefined") return;
+
+  sessionExpiredHandler?.();
+
+  if (sessionRedirectInFlight || isAuthPagePath(window.location.pathname)) {
+    return;
+  }
+
+  sessionRedirectInFlight = true;
+  window.location.assign(buildExpiredLoginUrl(nextPath ?? getCurrentPath()));
+}
 // ---------------------------------------------------------------------------
 // Cold-start retry — Render free tier can take ~30s to spin up
 // ---------------------------------------------------------------------------
@@ -109,8 +266,9 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    const config = error.config;
-    if (config._retry || config.url?.startsWith("/auth/")) {
+    const config = error.config ?? {};
+
+    if (isSessionExemptRequest(config.url)) {
       return Promise.reject(error);
     }
 
@@ -125,6 +283,26 @@ api.interceptors.response.use(
         await new Promise((r) => setTimeout(r, delay));
         return api(config);
       }
+    }
+
+    if (error.response?.status === 401 && !config._sessionRetry) {
+      config._sessionRetry = true;
+      try {
+        await refreshAccessSession();
+        return api(config);
+      } catch (refreshError) {
+        forceSessionExpiredRedirect();
+        return Promise.reject(refreshError);
+      }
+    }
+
+    if (
+      error.response?.status === 403 &&
+      error.response?.data?.code === "PASSWORD_CHANGE_REQUIRED" &&
+      typeof window !== "undefined" &&
+      window.location.pathname !== "/change-password"
+    ) {
+      window.location.assign("/change-password");
     }
 
     return Promise.reject(error);

@@ -20,10 +20,12 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
   const roles = user?.roles ?? [];
   const canOperate = roles.includes("CHAIR") || roles.includes("RESEARCH_ASSOCIATE");
   const isChair = roles.includes("CHAIR");
+  const isAdmin = roles.includes("ADMIN");
   const primaryRole = roles[0] || "";
 
   const roleLabelMap: Record<string, string> = {
     CHAIR: "Chair",
+    ADMIN: "Admin",
     RESEARCH_ASSOCIATE: "Research Associate",
     RESEARCH_ASSISTANT: "Research Assistant",
   };
@@ -86,14 +88,14 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
             </svg>
             Dashboard
           </NavLink>
-          {isChair ? (
+          {isChair || isAdmin ? (
             <NavLink to="/admin/account-management" className={navClassName}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="8" r="4" />
                 <path d="M4 21c0-4.418 3.582-8 8-8s8 3.582 8 8" />
               </svg>
               Account Management
-              {pendingApprovalCount > 0 ? (
+              {isChair && pendingApprovalCount > 0 ? (
                 <span className="nav-item-badge">{pendingApprovalCount}</span>
               ) : null}
             </NavLink>

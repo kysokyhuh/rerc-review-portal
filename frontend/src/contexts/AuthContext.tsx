@@ -6,13 +6,14 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import axios from "axios";
-
-const API_BASE_URL =
-  (typeof import.meta !== "undefined"
-    ? import.meta.env?.VITE_API_URL
-    : undefined) || "http://localhost:3000";
-const authApi = axios.create({ baseURL: API_BASE_URL, withCredentials: true });
+import {
+  authApi,
+  ensureCsrfCookie,
+  forceSessionExpiredRedirect,
+  logoutSession,
+  refreshAccessSession,
+  registerSessionExpiredHandler,
+} from "@/services/api";
 
 export interface AuthUser {
   id: number;
@@ -20,6 +21,12 @@ export interface AuthUser {
   fullName: string;
   roles: string[];
   status?: string;
+  forcePasswordChange?: boolean;
+}
+
+interface AuthLoginResult {
+  user: AuthUser;
+  mustChangePassword: boolean;
 }
 
 interface AuthState {
@@ -29,7 +36,8 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  login: (email: string, password: string) => Promise<AuthUser>;
+  login: (email: string, password: string) => Promise<AuthLoginResult>;
+  changePassword: (newPassword: string, confirmPassword: string) => Promise<AuthUser>;
   logout: () => void;
   refreshMe: () => Promise<void>;
 }
@@ -43,49 +51,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading: true,
   });
 
-  const refreshMe = useCallback(async () => {
-    try {
-      const res = await authApi.get("/auth/me");
-      setState({
-        user: res.data.user,
-        isAuthenticated: true,
-        isLoading: false,
-      });
-    } catch {
-      setState({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    void refreshMe();
-  }, [refreshMe]);
-
-  const login = useCallback(async (email: string, password: string) => {
-    const res = await axios.post(
-      `${API_BASE_URL}/auth/login`,
-      { email, password },
-      { withCredentials: true }
-    );
-
-    const { user } = res.data;
-
+  const setAuthenticatedUser = useCallback((user: AuthUser) => {
     setState({
       user,
       isAuthenticated: true,
       isLoading: false,
     });
-    return user as AuthUser;
   }, []);
 
-  const logout = useCallback(() => {
-    axios
-      .post(`${API_BASE_URL}/auth/logout`, {}, { withCredentials: true })
-      .catch(() => {});
-
+  const clearAuthState = useCallback(() => {
     setState({
       user: null,
       isAuthenticated: false,
@@ -93,9 +67,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const refreshMe = useCallback(async () => {
+    try {
+      const res = await authApi.get("/auth/me");
+      setAuthenticatedUser(res.data.user as AuthUser);
+      return;
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+        try {
+          await refreshAccessSession();
+          const retry = await authApi.get("/auth/me");
+          setAuthenticatedUser(retry.data.user as AuthUser);
+          return;
+        } catch {
+          forceSessionExpiredRedirect();
+          return;
+        }
+      }
+
+      clearAuthState();
+    }
+  }, [clearAuthState, setAuthenticatedUser]);
+
+  useEffect(() => {
+    return registerSessionExpiredHandler(() => {
+      clearAuthState();
+      void logoutSession().catch(() => {});
+    });
+  }, [clearAuthState]);
+
+  useEffect(() => {
+    void refreshMe();
+  }, [refreshMe]);
+
+  const login = useCallback(async (email: string, password: string) => {
+    await ensureCsrfCookie();
+    const res = await authApi.post("/auth/login", { email, password });
+    const { user, mustChangePassword } = res.data;
+    setAuthenticatedUser(user as AuthUser);
+    return {
+      user: user as AuthUser,
+      mustChangePassword: Boolean(mustChangePassword),
+    };
+  }, [setAuthenticatedUser]);
+
+  const changePassword = useCallback(
+    async (newPassword: string, confirmPassword: string) => {
+      await ensureCsrfCookie();
+      const res = await authApi.post("/auth/change-password", {
+        newPassword,
+        confirmPassword,
+      });
+      const { user } = res.data;
+      setAuthenticatedUser(user as AuthUser);
+      return user as AuthUser;
+    },
+    [setAuthenticatedUser]
+  );
+
+  const logout = useCallback(() => {
+    void logoutSession().catch(() => {});
+    clearAuthState();
+  }, [clearAuthState]);
+
   return (
     <AuthContext.Provider
-      value={{ ...state, login, logout, refreshMe }}
+      value={{ ...state, login, changePassword, logout, refreshMe }}
     >
       {children}
     </AuthContext.Provider>

@@ -7,7 +7,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
-import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 import pinoHttp from "pino-http";
 import "dotenv/config";
 
@@ -27,18 +27,16 @@ import {
 } from "./routes";
 import authRoutes from "./routes/authRoutes";
 import { authenticateUser } from "./middleware/auth";
+import { csrfProtection } from "./middleware/csrf";
+import { enforceForcedPasswordChange } from "./middleware/forcePasswordChange";
+import { globalLimiter } from "./middleware/rateLimits";
 import { requestId } from "./middleware/requestId";
 import { errorHandler } from "./middleware/errorHandler";
 import { logger } from "./config/logger";
+import { getAllowedOrigins } from "./config/requestOrigins";
 
 const app = express();
-const allowedOrigins = (
-  process.env.CORS_ORIGINS ||
-  "http://localhost:5173,http://127.0.0.1:5173"
-)
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
+const allowedOrigins = getAllowedOrigins();
 
 // =============================================================================
 // Middleware
@@ -56,6 +54,33 @@ app.use(
     credentials: true,
   })
 );
+
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        defaultSrc: ["'self'"],
+        baseUri: ["'self'"],
+        frameAncestors: ["'none'"],
+        formAction: ["'self'"],
+        objectSrc: ["'none'"],
+      },
+    },
+    referrerPolicy: {
+      policy: "strict-origin-when-cross-origin",
+    },
+    hsts: process.env.NODE_ENV === "production",
+  })
+);
+
+app.use((_req, res, next) => {
+  res.setHeader(
+    "Permissions-Policy",
+    "accelerometer=(), camera=(), geolocation=(), gyroscope=(), microphone=(), payment=(), usb=()"
+  );
+  next();
+});
 
 app.use(express.json());
 app.use(cookieParser());
@@ -81,22 +106,6 @@ app.use(
   })
 );
 
-// Rate limiting — strict on auth, relaxed globally
-const authLimiter = rateLimit({
-  windowMs: 60_000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { message: "Too many attempts, please try again later" },
-});
-
-const globalLimiter = rateLimit({
-  windowMs: 60_000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
 app.use(globalLimiter);
 
 // =============================================================================
@@ -105,10 +114,13 @@ app.use(globalLimiter);
 
 // Attach user from JWT/cookie (or explicit dev header adapter when enabled)
 app.use(authenticateUser);
+app.use(csrfProtection);
 
 // Auth routes
-app.use("/auth", authLimiter);
 app.use(authRoutes);
+
+// Users flagged for forced password change may only use auth/session routes
+app.use(enforceForcedPasswordChange);
 
 // Health & status routes (/, /health)
 app.use(healthRoutes);
