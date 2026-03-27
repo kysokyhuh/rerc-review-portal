@@ -110,6 +110,12 @@ const SESSION_EXEMPT_PATHS = new Set([
   "/auth/refresh",
 ]);
 const MUTATING_METHODS = new Set(["post", "put", "patch", "delete"]);
+const AUTH_ROUTES_THAT_ROTATE_CSRF = new Set([
+  "/auth/login",
+  "/auth/refresh",
+  "/auth/change-password",
+  "/auth/logout",
+]);
 const CSRF_COOKIE_NAME =
   typeof import.meta !== "undefined" && import.meta.env?.PROD
     ? "__Host-csrfToken"
@@ -119,6 +125,11 @@ let sessionRefreshPromise: Promise<void> | null = null;
 let csrfBootstrapPromise: Promise<void> | null = null;
 let sessionExpiredHandler: (() => void) | null = null;
 let sessionRedirectInFlight = false;
+let csrfTokenCache: string | null = null;
+
+function clearCsrfTokenCache() {
+  csrfTokenCache = null;
+}
 
 function getCookieValue(name: string): string | null {
   if (typeof document === "undefined") return null;
@@ -130,13 +141,36 @@ function getCookieValue(name: string): string | null {
   return entry ? decodeURIComponent(entry.slice(target.length)) : null;
 }
 
-function attachCsrfToken(config: InternalAxiosRequestConfig) {
+function getCachedCsrfToken() {
+  return csrfTokenCache || getCookieValue(CSRF_COOKIE_NAME);
+}
+
+function getRequestPath(url?: string) {
+  if (!url) return null;
+  try {
+    return new URL(url, API_BASE_URL).pathname;
+  } catch {
+    return null;
+  }
+}
+
+async function attachCsrfToken(config: InternalAxiosRequestConfig) {
   const method = (config.method || "get").toLowerCase();
   if (!MUTATING_METHODS.has(method)) {
     return config;
   }
 
-  const csrfToken = getCookieValue(CSRF_COOKIE_NAME);
+  const requestPath = getRequestPath(config.url);
+  if (requestPath === "/auth/csrf") {
+    return config;
+  }
+
+  let csrfToken = getCachedCsrfToken();
+  if (!csrfToken) {
+    await ensureCsrfCookie();
+    csrfToken = getCachedCsrfToken();
+  }
+
   if (!csrfToken) {
     return config;
   }
@@ -150,6 +184,20 @@ function attachCsrfToken(config: InternalAxiosRequestConfig) {
 
 authApi.interceptors.request.use(attachCsrfToken);
 api.interceptors.request.use(attachCsrfToken);
+
+authApi.interceptors.response.use(
+  (response) => {
+    const requestPath = getRequestPath(response.config?.url);
+    if (requestPath === "/auth/csrf" && response.data?.csrfToken) {
+      csrfTokenCache = response.data.csrfToken as string;
+    }
+    if (requestPath && AUTH_ROUTES_THAT_ROTATE_CSRF.has(requestPath)) {
+      clearCsrfTokenCache();
+    }
+    return response;
+  },
+  (error) => Promise.reject(error)
+);
 
 const isAuthPagePath = (path: string) => AUTH_PAGE_PATHS.has(path);
 
@@ -198,14 +246,21 @@ export function registerSessionExpiredHandler(handler: () => void) {
 }
 
 export async function ensureCsrfCookie(): Promise<void> {
-  if (getCookieValue(CSRF_COOKIE_NAME)) {
+  const cachedToken = getCachedCsrfToken();
+  if (cachedToken) {
+    csrfTokenCache = cachedToken;
     return;
   }
 
   if (!csrfBootstrapPromise) {
     csrfBootstrapPromise = authApi
       .get("/auth/csrf")
-      .then(() => undefined)
+      .then((response) => {
+        const csrfToken = response.data?.csrfToken;
+        if (typeof csrfToken === "string" && csrfToken.length > 0) {
+          csrfTokenCache = csrfToken;
+        }
+      })
       .finally(() => {
         csrfBootstrapPromise = null;
       });
@@ -230,12 +285,17 @@ export async function refreshAccessSession(): Promise<void> {
 
 export async function logoutSession(): Promise<void> {
   await ensureCsrfCookie();
-  await authApi.post("/auth/logout", {});
+  try {
+    await authApi.post("/auth/logout", {});
+  } finally {
+    clearCsrfTokenCache();
+  }
 }
 
 export function forceSessionExpiredRedirect(nextPath?: string | null) {
   if (typeof window === "undefined") return;
 
+  clearCsrfTokenCache();
   sessionExpiredHandler?.();
 
   if (sessionRedirectInFlight || isAuthPagePath(window.location.pathname)) {

@@ -86,8 +86,8 @@ function sendAuthError(res: Response, error: AuthError) {
 }
 
 router.get("/auth/csrf", (_req, res) => {
-  setCsrfCookie(res);
-  return res.json({ ok: true });
+  const csrfToken = setCsrfCookie(res);
+  return res.json({ ok: true, csrfToken });
 });
 
 router.post(

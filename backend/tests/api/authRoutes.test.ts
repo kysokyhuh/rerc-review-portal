@@ -61,6 +61,20 @@ describe("auth routes", () => {
     jest.clearAllMocks();
   });
 
+  it("GET /auth/csrf returns a bootstrap token and cookie", async () => {
+    const response = await request(app)
+      .get("/auth/csrf")
+      .set(originHeaders);
+
+    expect(response.status).toBe(200);
+    expect(response.body.ok).toBe(true);
+    expect(response.body.csrfToken).toEqual(expect.any(String));
+    expect(response.body.csrfToken.length).toBeGreaterThan(10);
+    expect(response.headers["set-cookie"]).toEqual(
+      expect.arrayContaining([expect.stringContaining("csrfToken=")])
+    );
+  });
+
   it("POST /auth/signup creates a pending inactive account", async () => {
     authService.signup.mockResolvedValue({
       message: "Your account has been submitted for approval.",
