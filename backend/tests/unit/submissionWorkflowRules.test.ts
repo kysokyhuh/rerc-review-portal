@@ -1,6 +1,10 @@
 import { SubmissionStatus, ReviewType } from "../../src/generated/prisma/client";
 import prismaClient from "../../src/config/prismaClient";
-import { classifySubmission, updateSubmissionStatus } from "../../src/services/submissions/submissionService";
+import {
+  classifySubmission,
+  returnSubmissionForCompletion,
+  updateSubmissionStatus,
+} from "../../src/services/submissions/submissionService";
 
 jest.mock("../../src/config/prismaClient", () => ({
   __esModule: true,
@@ -101,5 +105,44 @@ describe("submission workflow rules", () => {
         11
       )
     ).rejects.toThrow(/only move forward/i);
+  });
+
+  it("returns a screened submission for completion with a reason", async () => {
+    prisma.submission.findUnique.mockResolvedValue({
+      id: 101,
+      status: SubmissionStatus.UNDER_COMPLETENESS_CHECK,
+    });
+    prisma.submissionStatusHistory.create.mockResolvedValue({
+      id: 901,
+      newStatus: SubmissionStatus.RETURNED_FOR_COMPLETION,
+    });
+    prisma.submission.update.mockResolvedValue({
+      id: 101,
+      status: SubmissionStatus.RETURNED_FOR_COMPLETION,
+    });
+    prisma.$transaction.mockImplementation(async (operations: Array<Promise<unknown>>) =>
+      Promise.all(operations)
+    );
+
+    const result = await returnSubmissionForCompletion(
+      101,
+      {
+        reason: "Missing signed consent form",
+        completenessStatus: "MAJOR_MISSING",
+      },
+      11
+    );
+
+    expect(prisma.submission.update).toHaveBeenCalledWith({
+      where: { id: 101 },
+      data: expect.objectContaining({
+        status: SubmissionStatus.RETURNED_FOR_COMPLETION,
+        completenessStatus: "MAJOR_MISSING",
+        completenessRemarks: "Missing signed consent form",
+      }),
+    });
+    expect(result.submission).toEqual(
+      expect.objectContaining({ status: SubmissionStatus.RETURNED_FOR_COMPLETION })
+    );
   });
 });

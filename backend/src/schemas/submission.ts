@@ -1,5 +1,20 @@
 import { z } from "zod";
 
+const optionalString = (max = 1000) =>
+  z.union([z.string().trim().max(max), z.null()]).optional();
+
+const optionalDateLike = z
+  .union([z.string().trim().max(50), z.null()])
+  .optional();
+
+const completenessStatusEnum = z.enum([
+  "COMPLETE",
+  "MINOR_MISSING",
+  "MAJOR_MISSING",
+  "MISSING_SIGNATURES",
+  "OTHER",
+]);
+
 export const classifySubmissionSchema = z.object({
   reviewType: z.enum(["EXEMPT", "EXPEDITED", "FULL_BOARD"]).nullable(),
   classificationDate: z.string().min(1).optional(),
@@ -21,6 +36,8 @@ const submissionTypeEnum = z.enum([
 const submissionStatusEnum = z.enum([
   "RECEIVED",
   "UNDER_COMPLETENESS_CHECK",
+  "RETURNED_FOR_COMPLETION",
+  "NOT_ACCEPTED",
   "AWAITING_CLASSIFICATION",
   "UNDER_CLASSIFICATION",
   "CLASSIFIED",
@@ -55,6 +72,52 @@ export const updateSubmissionStatusSchema = z.object({
   reason: z.string().nullable().optional(),
 });
 
+export const startCompletenessCheckSchema = z
+  .object({
+    completenessStatus: completenessStatusEnum.optional(),
+    completenessRemarks: optionalString(2000),
+  })
+  .strict();
+
+export const screeningOutcomeSchema = z
+  .object({
+    reason: z.string().trim().min(1).max(2000),
+    completenessStatus: completenessStatusEnum.optional(),
+    completenessRemarks: optionalString(2000),
+  })
+  .strict();
+
+export const acceptSubmissionForClassificationSchema = z
+  .object({
+    projectCode: z.string().trim().min(1).max(64).optional(),
+    reason: optionalString(2000),
+    completenessRemarks: optionalString(2000),
+  })
+  .strict();
+
+export const resubmitSubmissionSchema = z
+  .object({
+    receivedDate: optionalDateLike,
+    documentLink: optionalString(1000),
+    remarks: optionalString(2000),
+  })
+  .strict();
+
+export const submissionDocumentSchema = z
+  .object({
+    type: z.enum([
+      "INFORMED_CONSENT",
+      "DATA_GATHERING_INSTRUMENT",
+      "MATERIAL_TRANSFER_AGREEMENT",
+      "PERMISSION_LETTER",
+      "OTHER",
+    ]),
+    title: z.string().trim().min(1).max(255),
+    documentUrl: optionalString(1000),
+    notes: optionalString(1000),
+  })
+  .strict();
+
 export const createReviewSchema = z.object({
   reviewerId: z.number().int().positive(),
   isPrimary: z.boolean().optional().default(false),
@@ -84,6 +147,8 @@ export const finalDecisionSchema = z.object({
   finalDecisionDate: z.string().nullable().optional(),
   approvalStartDate: z.string().nullable().optional(),
   approvalEndDate: z.string().nullable().optional(),
+  resultsNotifiedAt: z.string().nullable().optional(),
+  notes: z.string().trim().min(1).max(2000).optional(),
 });
 
 export const issueExemptionSchema = z.object({

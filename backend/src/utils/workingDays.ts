@@ -56,3 +56,30 @@ export const computeWorkingDaysBetween = (
 
   return count;
 };
+
+export const addWorkingDays = (
+  start: Date,
+  days: number,
+  holidays: Iterable<Date | string> = []
+): Date => {
+  const startDate = toUtcMidnight(new Date(start));
+  if (Number.isNaN(startDate.getTime()) || !Number.isFinite(days) || days <= 0) {
+    return startDate;
+  }
+
+  const holidayKeys = buildHolidayDateKeySet(holidays);
+  let remaining = Math.floor(days);
+  let cursor = new Date(startDate);
+
+  while (remaining > 0) {
+    cursor = new Date(cursor.getTime() + ONE_DAY_MS);
+    const day = cursor.getUTCDay();
+    const isWeekend = day === 0 || day === 6;
+    const isHoliday = holidayKeys.has(toUtcDateKey(cursor));
+    if (!isWeekend && !isHoliday) {
+      remaining -= 1;
+    }
+  }
+
+  return cursor;
+};

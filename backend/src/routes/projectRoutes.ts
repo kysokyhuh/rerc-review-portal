@@ -8,6 +8,7 @@ import { requireAnyRole, requireUser } from "../middleware/auth";
 import { requireProjectAccess } from "../middleware/reviewerScope";
 import { validate } from "../middleware/validate";
 import {
+  createPortalInitialSubmission,
   createProjectWithInitialSubmission,
   DuplicateProjectCodeError,
   ProjectCreateValidationError,
@@ -26,6 +27,8 @@ import {
   createSubmissionForProject,
 } from "../services/projects/projectService";
 import {
+  createPortalFollowUpSubmissionSchema,
+  createPortalIntakeProjectSchema,
   createMilestoneSchema,
   createProjectSchema,
   createProjectSubmissionSchema,
@@ -34,6 +37,24 @@ import {
 } from "../schemas/project";
 
 const router = Router();
+
+// Portal intake route for signed-in proponents
+router.post(
+  "/intake/projects",
+  requireUser,
+  validate(createPortalIntakeProjectSchema),
+  async (req, res, next) => {
+    try {
+      const created = await createPortalInitialSubmission(req.body, req.user!.id);
+      return res.status(201).json(created);
+    } catch (error: any) {
+      if (error instanceof ProjectCreateValidationError) {
+        return res.status(400).json({ message: "Validation failed.", errors: error.errors });
+      }
+      return next(error);
+    }
+  }
+);
 
 // Create project + initial submission via individual entry form
 router.post(
@@ -64,6 +85,36 @@ router.post(
           projectId: existingProject?.id,
         });
       }
+      next(error);
+    }
+  }
+);
+
+// Proponent follow-up submissions on an existing project
+router.post(
+  "/projects/:projectId/follow-up-submissions",
+  requireUser,
+  requireProjectAccess,
+  validate(createPortalFollowUpSubmissionSchema),
+  async (req, res, next) => {
+    try {
+      const projectId = Number(req.params.projectId);
+      if (Number.isNaN(projectId)) return res.status(400).json({ message: "Invalid projectId" });
+
+      const hasOperationalRole =
+        req.user!.roles.includes(RoleType.CHAIR) ||
+        req.user!.roles.includes(RoleType.RESEARCH_ASSOCIATE);
+      const isReviewerOnly =
+        req.user!.roles.includes(RoleType.RESEARCH_ASSISTANT) ||
+        req.user!.roles.includes(RoleType.REVIEWER);
+
+      if (!hasOperationalRole && isReviewerOnly) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      const result = await createSubmissionForProject(projectId, req.body, req.user!.id);
+      res.status(201).json(result);
+    } catch (error) {
       next(error);
     }
   }

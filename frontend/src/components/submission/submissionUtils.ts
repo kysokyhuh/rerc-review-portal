@@ -20,7 +20,7 @@ export const SUBMISSION_TYPE_OPTIONS = [
 ];
 
 export const STATUS_OPTIONS = [
-  "RECEIVED", "UNDER_COMPLETENESS_CHECK", "AWAITING_CLASSIFICATION",
+  "RECEIVED", "UNDER_COMPLETENESS_CHECK", "RETURNED_FOR_COMPLETION", "NOT_ACCEPTED", "AWAITING_CLASSIFICATION",
   "UNDER_CLASSIFICATION", "CLASSIFIED", "UNDER_REVIEW",
   "AWAITING_REVISIONS", "REVISION_SUBMITTED", "CLOSED", "WITHDRAWN",
 ];
@@ -126,8 +126,8 @@ export function getSlaPercent(stage: {
 }
 
 export function getStatusVariant(status: string): string {
-  if (["CLOSED", "WITHDRAWN"].includes(status)) return "badge-neutral";
-  if (["AWAITING_REVISIONS", "REVISION_SUBMITTED"].includes(status)) return "badge-warning";
+  if (["CLOSED", "WITHDRAWN", "NOT_ACCEPTED"].includes(status)) return "badge-neutral";
+  if (["AWAITING_REVISIONS", "REVISION_SUBMITTED", "RETURNED_FOR_COMPLETION"].includes(status)) return "badge-warning";
   if (["UNDER_REVIEW", "UNDER_CLASSIFICATION", "UNDER_COMPLETENESS_CHECK"].includes(status)) return "badge-info";
   return "badge-positive";
 }

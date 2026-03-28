@@ -45,7 +45,14 @@ const REVIEW_TYPE_OPTIONS = ["", "EXEMPT", "EXPEDITED", "FULL_BOARD"] as const;
 const normalizeClassificationStatus = (
   value: string
 ): (typeof CLASSIFICATION_STATUS_STAGES)[number] => {
-  if (value === "RECEIVED") return "AWAITING_CLASSIFICATION";
+  if (
+    value === "RECEIVED" ||
+    value === "UNDER_COMPLETENESS_CHECK" ||
+    value === "RETURNED_FOR_COMPLETION" ||
+    value === "NOT_ACCEPTED"
+  ) {
+    return "AWAITING_CLASSIFICATION";
+  }
   if (
     value === "AWAITING_CLASSIFICATION" ||
     value === "UNDER_CLASSIFICATION" ||

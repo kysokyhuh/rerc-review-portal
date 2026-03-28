@@ -32,6 +32,7 @@ export interface OverdueClassification {
 }
 
 const RESEARCHER_STATUSES = new Set([
+  "RETURNED_FOR_COMPLETION",
   "AWAITING_REVISIONS",
   "REVISION_SUBMITTED",
 ]);
@@ -39,6 +40,8 @@ const RESEARCHER_STATUSES = new Set([
 const REASON_MAP: Record<string, string> = {
   RECEIVED: "Submission awaiting initial review by the committee",
   UNDER_COMPLETENESS_CHECK: "Panel is checking submission completeness",
+  RETURNED_FOR_COMPLETION: "Researcher must complete and resubmit the intake package",
+  NOT_ACCEPTED: "Submission was not accepted or is beyond committee jurisdiction",
   AWAITING_CLASSIFICATION: "Awaiting classification by reviewer",
   UNDER_CLASSIFICATION: "Classification in progress by panel",
   CLASSIFIED: "Classified but pending review assignment",
@@ -93,7 +96,7 @@ export function classifyOverdue(
   const overdueReason = REASON_MAP[status] ?? `Status: ${status}`;
   let overdueOwnerRole: OverdueOwnerRole;
 
-  if (status === "AWAITING_REVISIONS") {
+  if (status === "RETURNED_FOR_COMPLETION" || status === "AWAITING_REVISIONS") {
     overdueOwnerRole = "PROJECT_LEADER_RESEARCHER_PROPONENT";
   } else if (status === "REVISION_SUBMITTED") {
     overdueOwnerRole = "REVIEWER_GROUP";
@@ -104,6 +107,7 @@ export function classifyOverdue(
   } else if (
     status === "RECEIVED" ||
     status === "UNDER_COMPLETENESS_CHECK" ||
+    status === "NOT_ACCEPTED" ||
     status === "AWAITING_CLASSIFICATION" ||
     status === "UNDER_CLASSIFICATION" ||
     status === "CLASSIFIED"

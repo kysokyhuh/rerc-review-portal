@@ -10,7 +10,12 @@ import {
   requireSubmissionAccess,
 } from "../middleware/reviewerScope";
 import {
+  acceptSubmissionForClassificationSchema,
   classifySubmissionSchema,
+  resubmitSubmissionSchema,
+  screeningOutcomeSchema,
+  startCompletenessCheckSchema,
+  submissionDocumentSchema,
   updateSubmissionOverviewSchema,
   updateSubmissionStatusSchema,
   createReviewSchema,
@@ -20,8 +25,15 @@ import {
   startReviewSchema,
 } from "../schemas/submission";
 import {
+  acceptSubmissionForClassification,
+  addSubmissionDocument,
   classifySubmission,
   getSubmissionById,
+  markSubmissionNotAccepted,
+  removeSubmissionDocument,
+  resubmitSubmission,
+  returnSubmissionForCompletion,
+  startSubmissionCompletenessCheck,
   updateSubmissionOverview,
   updateSubmissionStatus,
   assignReviewer,
@@ -33,6 +45,135 @@ import {
 import { issueExemptionAndClose } from "../services/exemptService";
 
 const router = Router();
+
+router.post(
+  "/submissions/:id/screening/start",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  validate(startCompletenessCheckSchema),
+  async (req, res, next) => {
+    try {
+      const submissionId = Number(req.params.id);
+      if (Number.isNaN(submissionId)) {
+        return res.status(400).json({ message: "Invalid submission id" });
+      }
+      const result = await startSubmissionCompletenessCheck(submissionId, req.body, req.user!.id);
+      return res.json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+router.post(
+  "/submissions/:id/screening/return",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  validate(screeningOutcomeSchema),
+  async (req, res, next) => {
+    try {
+      const submissionId = Number(req.params.id);
+      if (Number.isNaN(submissionId)) {
+        return res.status(400).json({ message: "Invalid submission id" });
+      }
+      const result = await returnSubmissionForCompletion(submissionId, req.body, req.user!.id);
+      return res.json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+router.post(
+  "/submissions/:id/screening/not-accepted",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  validate(screeningOutcomeSchema),
+  async (req, res, next) => {
+    try {
+      const submissionId = Number(req.params.id);
+      if (Number.isNaN(submissionId)) {
+        return res.status(400).json({ message: "Invalid submission id" });
+      }
+      const result = await markSubmissionNotAccepted(submissionId, req.body, req.user!.id);
+      return res.json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+router.post(
+  "/submissions/:id/screening/accept",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  validate(acceptSubmissionForClassificationSchema),
+  async (req, res, next) => {
+    try {
+      const submissionId = Number(req.params.id);
+      if (Number.isNaN(submissionId)) {
+        return res.status(400).json({ message: "Invalid submission id" });
+      }
+      const result = await acceptSubmissionForClassification(submissionId, req.body, req.user!.id);
+      return res.json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+router.post(
+  "/submissions/:id/resubmit",
+  requireUser,
+  requireSubmissionAccess,
+  validate(resubmitSubmissionSchema),
+  async (req, res, next) => {
+    try {
+      const submissionId = Number(req.params.id);
+      if (Number.isNaN(submissionId)) {
+        return res.status(400).json({ message: "Invalid submission id" });
+      }
+      const result = await resubmitSubmission(submissionId, req.body, req.user!.id);
+      return res.json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+router.post(
+  "/submissions/:submissionId/documents",
+  requireUser,
+  requireSubmissionAccess,
+  validate(submissionDocumentSchema),
+  async (req, res, next) => {
+    try {
+      const submissionId = Number(req.params.submissionId);
+      if (Number.isNaN(submissionId)) {
+        return res.status(400).json({ message: "Invalid submission id" });
+      }
+      const result = await addSubmissionDocument(submissionId, req.body, req.user!.id);
+      return res.status(201).json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+router.delete(
+  "/submissions/:submissionId/documents/:documentId",
+  requireUser,
+  requireSubmissionAccess,
+  async (req, res, next) => {
+    try {
+      const submissionId = Number(req.params.submissionId);
+      const documentId = Number(req.params.documentId);
+      if (Number.isNaN(submissionId) || Number.isNaN(documentId)) {
+        return res.status(400).json({ message: "Invalid id" });
+      }
+      const result = await removeSubmissionDocument(submissionId, documentId, req.user!.id);
+      return res.json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
 
 // Classify a submission (EXEMPT / EXPEDITED / FULL_BOARD)
 router.post(

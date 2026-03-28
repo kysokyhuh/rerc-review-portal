@@ -46,7 +46,33 @@ export const requireSubmissionAccess = async (
   ) {
     return next();
   }
-  if (!req.user.roles.includes(RoleType.RESEARCH_ASSISTANT)) {
+
+  const submission = await prisma.submission.findUnique({
+    where: { id: submissionId },
+    select: {
+      createdById: true,
+      project: {
+        select: {
+          createdById: true,
+        },
+      },
+    },
+  });
+  if (!submission) {
+    return res.status(404).json({ message: "Submission not found" });
+  }
+
+  if (
+    submission.createdById === req.user.id ||
+    submission.project?.createdById === req.user.id
+  ) {
+    return next();
+  }
+
+  if (
+    !req.user.roles.includes(RoleType.RESEARCH_ASSISTANT) &&
+    !req.user.roles.includes(RoleType.REVIEWER)
+  ) {
     return res.status(403).json({ message: "Forbidden" });
   }
 
@@ -77,7 +103,23 @@ export const requireProjectAccess = async (
   ) {
     return next();
   }
-  if (!req.user.roles.includes(RoleType.RESEARCH_ASSISTANT)) {
+
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { createdById: true },
+  });
+  if (!project) {
+    return res.status(404).json({ message: "Project not found" });
+  }
+
+  if (project.createdById === req.user.id) {
+    return next();
+  }
+
+  if (
+    !req.user.roles.includes(RoleType.RESEARCH_ASSISTANT) &&
+    !req.user.roles.includes(RoleType.REVIEWER)
+  ) {
     return res.status(403).json({ message: "Forbidden" });
   }
 

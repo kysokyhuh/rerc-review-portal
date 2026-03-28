@@ -59,6 +59,7 @@ export interface CreateProjectWithInitialSubmissionInput {
   status?: string | null;
   monthOfSubmission?: string | null;
   monthOfClearance?: string | null;
+  documentLink?: string | null;
 }
 
 const normalizeProjectCode = (value: string) => value.trim().toUpperCase();
@@ -140,6 +141,33 @@ const parseDate = (value?: string | Date | null): Date | null => {
   return parsed;
 };
 
+const resolveCommitteeId = async (
+  committeeCode: string,
+  committeeId?: number
+) => {
+  if (committeeId) {
+    return committeeId;
+  }
+
+  const committee = await prisma.committee.findFirst({
+    where: committeeCode
+      ? { code: { equals: committeeCode, mode: "insensitive" } }
+      : { isActive: true },
+    orderBy: { id: "asc" },
+    select: { id: true },
+  });
+  if (!committee) {
+    throw new ProjectCreateValidationError([
+      {
+        field: "committeeCode",
+        message: committeeCode ? "committeeCode does not exist." : "No active committee found.",
+      },
+    ]);
+  }
+
+  return committee.id;
+};
+
 export async function createProjectWithInitialSubmission(
   input: CreateProjectWithInitialSubmissionInput,
   actorId: number
@@ -170,25 +198,7 @@ export async function createProjectWithInitialSubmission(
     throw new DuplicateProjectCodeError(projectCode, existing.id);
   }
 
-  let committeeId = input.committeeId;
-  if (!committeeId) {
-    const committee = await prisma.committee.findFirst({
-      where: committeeCode
-        ? { code: { equals: committeeCode, mode: "insensitive" } }
-        : { isActive: true },
-      orderBy: { id: "asc" },
-      select: { id: true },
-    });
-    if (!committee) {
-      throw new ProjectCreateValidationError([
-        {
-          field: "committeeCode",
-          message: committeeCode ? "committeeCode does not exist." : "No active committee found.",
-        },
-      ]);
-    }
-    committeeId = committee.id;
-  }
+  const committeeId = await resolveCommitteeId(committeeCode, input.committeeId);
 
   const notes = normalizeString(input.notes || "") || null;
   const piAffiliation = normalizeString(input.piAffiliation || "") || null;
@@ -229,10 +239,21 @@ export async function createProjectWithInitialSubmission(
         submissionType,
         status: SubmissionStatus.AWAITING_CLASSIFICATION,
         receivedDate,
+        documentLink: normalizeString(input.documentLink || "") || null,
         remarks: notes,
         createdById: actorId,
       },
       select: { id: true },
+    });
+
+    await tx.submissionStatusHistory.create({
+      data: {
+        submissionId: submission.id,
+        oldStatus: null,
+        newStatus: SubmissionStatus.AWAITING_CLASSIFICATION,
+        reason: "Created through staff-assisted intake",
+        changedById: actorId,
+      },
     });
 
     const profileFinishDate = input.finishDate
@@ -268,6 +289,131 @@ export async function createProjectWithInitialSubmission(
         layReviewer: normalizeString(input.layReviewer || '') || null,
         independentConsultant: normalizeString(input.independentConsultant || '') || null,
         honorariumStatus: normalizeString(input.honorariumStatus || '') || null,
+      },
+    });
+
+    return {
+      projectId: project.id,
+      submissionId: submission.id,
+    };
+  });
+
+  return created;
+}
+
+export interface CreatePortalInitialSubmissionInput {
+  title: string;
+  piName: string;
+  committeeCode?: string;
+  committeeId?: number;
+  receivedDate?: string | Date | null;
+  fundingType?: string | null;
+  notes?: string | null;
+  documentLink?: string | null;
+  piAffiliation?: string | null;
+  collegeOrUnit?: string | null;
+  proponentCategory?: string | null;
+  department?: string | null;
+  proponent?: string | null;
+  researchTypePHREB?: string | null;
+  researchTypePHREBOther?: string | null;
+}
+
+export async function createPortalInitialSubmission(
+  input: CreatePortalInitialSubmissionInput,
+  actorId: number
+) {
+  const title = normalizeString(input.title);
+  const piName = normalizeString(input.piName);
+  const committeeCode = normalizeString(input.committeeCode || "");
+
+  const fieldErrors: ProjectCreateFieldError[] = [];
+  if (!title) {
+    fieldErrors.push({ field: "title", message: "title is required." });
+  }
+  if (!piName) {
+    fieldErrors.push({ field: "piName", message: "piName is required." });
+  }
+  if (fieldErrors.length) {
+    throw new ProjectCreateValidationError(fieldErrors);
+  }
+
+  const committeeId = await resolveCommitteeId(committeeCode, input.committeeId);
+  const receivedDate = parseDate(input.receivedDate) ?? new Date();
+  const fundingType = parseFundingType(input.fundingType);
+  const notes = normalizeString(input.notes || "") || null;
+  const documentLink = normalizeString(input.documentLink || "") || null;
+  const piAffiliation = normalizeString(input.piAffiliation || "") || null;
+  const collegeOrUnit =
+    normalizeString(input.collegeOrUnit || "") || piAffiliation || null;
+  const proponentCategory = parseProponentCategory(input.proponentCategory);
+  const department = normalizeString(input.department || "") || null;
+  const proponent = normalizeString(input.proponent || "") || null;
+  const researchTypePHREB = parseResearchTypePHREB(input.researchTypePHREB);
+  const researchTypePHREBOther =
+    normalizeString(input.researchTypePHREBOther || "") || null;
+
+  const created = await prisma.$transaction(async (tx) => {
+    const project = await tx.project.create({
+      data: {
+        projectCode: null,
+        title,
+        piName,
+        piAffiliation,
+        collegeOrUnit,
+        proponentCategory,
+        department,
+        proponent,
+        fundingType,
+        researchTypePHREB,
+        researchTypePHREBOther,
+        committeeId,
+        initialSubmissionDate: receivedDate,
+        createdById: actorId,
+      },
+      select: { id: true },
+    });
+
+    const submission = await tx.submission.create({
+      data: {
+        projectId: project.id,
+        sequenceNumber: 1,
+        submissionType: SubmissionType.INITIAL,
+        status: SubmissionStatus.RECEIVED,
+        receivedDate,
+        documentLink,
+        remarks: notes,
+        createdById: actorId,
+      },
+      select: { id: true },
+    });
+
+    await tx.submissionStatusHistory.create({
+      data: {
+        submissionId: submission.id,
+        oldStatus: null,
+        newStatus: SubmissionStatus.RECEIVED,
+        reason: "Initial submission received via portal intake",
+        changedById: actorId,
+      },
+    });
+
+    await tx.protocolProfile.create({
+      data: {
+        projectId: project.id,
+        title,
+        projectLeader: piName,
+        college: collegeOrUnit,
+        department,
+        dateOfSubmission: receivedDate,
+        monthOfSubmission: toMonthLabel(receivedDate),
+        typeOfReview: SubmissionType.INITIAL,
+        proponent,
+        funding: fundingType ?? null,
+        typeOfResearchPhreb: researchTypePHREB ?? null,
+        typeOfResearchPhrebOther: researchTypePHREBOther,
+        status: SubmissionStatus.RECEIVED,
+        remarks: notes,
       },
     });
 

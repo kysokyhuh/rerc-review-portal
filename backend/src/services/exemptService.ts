@@ -1,5 +1,5 @@
 import prisma from "../config/prismaClient";
-import { ReviewType, SubmissionStatus } from "../generated/prisma/client";
+import { ProjectStatus, ReviewDecision, ReviewType, SubmissionStatus } from "../generated/prisma/client";
 import { AppError } from "../middleware/errorHandler";
 import { logAuditEvent } from "./audit/auditService";
 
@@ -144,11 +144,36 @@ export async function issueExemptionAndClose(
       },
     });
 
+    await tx.submissionDecision.upsert({
+      where: { submissionId },
+      update: {
+        decision: ReviewDecision.APPROVED,
+        decidedAt: resultsNotifiedAt,
+        validFrom: resultsNotifiedAt,
+        notes: reason,
+      },
+      create: {
+        submissionId,
+        decision: ReviewDecision.APPROVED,
+        decidedAt: resultsNotifiedAt,
+        validFrom: resultsNotifiedAt,
+        notes: reason,
+      },
+    });
+
     return tx.submission.update({
       where: { id: submissionId },
       data: {
         status: SubmissionStatus.CLOSED,
         resultsNotifiedAt,
+        finalDecision: ReviewDecision.APPROVED,
+        finalDecisionDate: resultsNotifiedAt,
+        project: {
+          update: {
+            overallStatus: ProjectStatus.ACTIVE,
+            approvalStartDate: resultsNotifiedAt,
+          },
+        },
       },
       include: {
         project: true,

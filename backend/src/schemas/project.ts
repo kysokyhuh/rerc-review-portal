@@ -31,14 +31,34 @@ const profileMetaSchema = z
 export const createProjectSchema = z
   .object({
     projectCode: z.string().trim().min(1, "projectCode is required.").max(64),
-    title: z.string().trim().min(1, "title is required.").max(500),
-    piName: z.string().trim().min(1, "piName is required.").max(255),
+    title: optionalString(500),
+    piName: optionalString(255),
     committeeCode: optionalString(50),
     committeeId: z.number().int().positive().optional(),
     submissionType: optionalString(64),
     receivedDate: optionalDateLike,
     fundingType: optionalString(64),
     notes: optionalString(4000),
+    piAffiliation: optionalString(255),
+    collegeOrUnit: optionalString(255),
+    proponentCategory: optionalString(64),
+    department: optionalString(255),
+    proponent: optionalString(255),
+    researchTypePHREB: optionalString(64),
+    researchTypePHREBOther: optionalString(255),
+  })
+  .strict();
+
+export const createPortalIntakeProjectSchema = z
+  .object({
+    title: z.string().trim().min(1, "title is required.").max(500),
+    piName: z.string().trim().min(1, "piName is required.").max(255),
+    committeeCode: optionalString(50),
+    committeeId: z.number().int().positive().optional(),
+    receivedDate: optionalDateLike,
+    fundingType: optionalString(64),
+    notes: optionalString(4000),
+    documentLink: optionalString(1000),
     piAffiliation: optionalString(255),
     collegeOrUnit: optionalString(255),
     proponentCategory: optionalString(64),
@@ -130,6 +150,15 @@ export const createProjectSubmissionSchema = z
     receivedDate: z.string().trim().min(1).max(50),
     documentLink: optionalString(1000),
     completenessStatus: optionalString(64),
+    completenessRemarks: optionalString(2000),
+  })
+  .strict();
+
+export const createPortalFollowUpSubmissionSchema = z
+  .object({
+    submissionType: z.string().trim().min(1).max(64),
+    receivedDate: optionalDateLike,
+    documentLink: optionalString(1000),
     completenessRemarks: optionalString(2000),
   })
   .strict();

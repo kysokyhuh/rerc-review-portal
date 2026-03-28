@@ -70,25 +70,37 @@ const sortByRoleThenName = (a: UserRow, b: UserRow) => {
   return a.fullName.localeCompare(b.fullName, undefined, { sensitivity: "base" });
 };
 
-const formatDateTime = (value: string | null | undefined) => {
-  if (!value) return "-";
-  return new Date(value).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+const formatDateTimeParts = (value: string | null | undefined) => {
+  if (!value) {
+    return { date: "—", time: null as string | null };
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return { date: "—", time: null as string | null };
+  }
+
+  return {
+    date: parsed.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }),
+    time: parsed.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    }),
+  };
 };
 
 const getStatusNoteContent = (entry: UserRow) => {
   if (entry.statusNote) {
-    return <span className="admin-note-text">{entry.statusNote}</span>;
+    return <span className="admin-note-meta">{entry.statusNote}</span>;
   }
   if (entry.forcePasswordChange) {
-    return <span className="admin-note-flag">Password change required on next sign-in.</span>;
+    return <span className="admin-note-chip">Password reset pending</span>;
   }
-  return <span className="admin-empty-note">No internal note recorded.</span>;
+  return <span className="admin-note-meta empty">No note</span>;
 };
 
 export default function AdminAccountManagementPage() {
@@ -422,26 +434,27 @@ export default function AdminAccountManagementPage() {
 
   return (
     <div className="dashboard-content admin-page">
-      <header className="queue-page-header admin-soft-header admin-header">
-        <div className="admin-header-main">
-          <div className="admin-header-copy">
-            <span className="admin-page-kicker">Access Governance</span>
-            <h1>Account Management</h1>
-            <p>
-              {isChair
-                ? "Review signups, assign final roles, reset passwords, and control access from one operational workspace."
-                : "Reset temporary passwords for approved accounts and keep access controls visible in one queue."}
-            </p>
-          </div>
+      <header className="admin-soft-header admin-header">
+        <div className="admin-header-copy">
+          <span className="admin-page-kicker">Access Governance</span>
+          <h1>Account Management</h1>
+          <p>
+            {isChair
+              ? "Review signups, assign final roles, reset passwords, and control access from one operational workspace."
+              : "Reset temporary passwords for approved accounts and keep access controls visible in one queue."}
+          </p>
+        </div>
 
-          <div className="admin-header-metrics" aria-label="Account summary">
-            {headerMetrics.map((metric) => (
-              <div key={metric.label} className={`admin-metric-card ${metric.tone}`}>
-                <span className="admin-metric-label">{metric.label}</span>
-                <strong>{metric.value}</strong>
-              </div>
-            ))}
-          </div>
+        <div
+          className={`admin-header-metrics admin-header-metrics-${headerMetrics.length}`}
+          aria-label="Account summary"
+        >
+          {headerMetrics.map((metric) => (
+            <div key={metric.label} className={`admin-metric-card ${metric.tone}`}>
+              <span className="admin-metric-label">{metric.label}</span>
+              <strong>{metric.value}</strong>
+            </div>
+          ))}
         </div>
 
         <div className="admin-toolbar">
@@ -455,13 +468,9 @@ export default function AdminAccountManagementPage() {
                 role="tab"
                 aria-selected={activeTab === tab.key}
               >
-                <span className="admin-segment-main">
-                  <span className="admin-segment-label">{tab.label}</span>
-                  <span className="admin-segment-muted">Accounts</span>
-                </span>
-                <span className="admin-segment-meta">
-                  <span className="admin-segment-count">{tabCounts[tab.key]}</span>
-                  <span className="admin-segment-unit">items</span>
+                <span className="admin-segment-label">{tab.label}</span>
+                <span className="admin-segment-count" aria-label={`${tabCounts[tab.key]} accounts`}>
+                  {tabCounts[tab.key]}
                 </span>
               </button>
             ))}
@@ -491,8 +500,7 @@ export default function AdminAccountManagementPage() {
 
         <div className="admin-toolbar-meta">
           <p className="admin-toolbar-description">{activeTabConfig.description}</p>
-          <div className="admin-toolbar-summary">
-            <span className="admin-toolbar-pill">{filteredUsers.length} shown</span>
+          <div className="admin-toolbar-actions">
             {search.trim() ? (
               <button className="admin-toolbar-clear" type="button" onClick={() => setSearch("")}>
                 Clear search
@@ -571,6 +579,19 @@ export default function AdminAccountManagementPage() {
                     const busy = savingId === entry.id;
                     const isEditing = editingId === entry.id;
                     const currentRole = firstEditableRole(entry.roles);
+                    const dateParts = formatDateTimeParts(getDateValue(entry));
+                    const actionClassName = [
+                      "admin-actions clean",
+                      activeTab === "PENDING" && isChair ? "pending" : "",
+                      activeTab === "APPROVED" && !isEditing && isChair ? "approved" : "",
+                      activeTab === "APPROVED" && isEditing && isChair ? "edit" : "",
+                      (activeTab === "APPROVED" && !isEditing && !isChair) ||
+                      (activeTab === "DISABLED" && isChair)
+                        ? "single"
+                        : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ");
 
                     return (
                       <tr key={entry.id} className={isEditing ? "admin-row-editing" : undefined}>
@@ -642,7 +663,14 @@ export default function AdminAccountManagementPage() {
                             </span>
                           )}
                         </td>
-                        <td className="admin-date-cell">{formatDateTime(getDateValue(entry))}</td>
+                        <td className="admin-date-cell">
+                          <div className="admin-date-stack">
+                            <span className="admin-date-primary">{dateParts.date}</span>
+                            {dateParts.time ? (
+                              <span className="admin-date-secondary">{dateParts.time}</span>
+                            ) : null}
+                          </div>
+                        </td>
                         <td>
                           {activeTab === "APPROVED" && isEditing && isChair ? (
                             <input
@@ -659,7 +687,7 @@ export default function AdminAccountManagementPage() {
                           )}
                         </td>
                         <td className="table-actions">
-                          <div className="admin-actions clean">
+                          <div className={actionClassName}>
                             {activeTab === "PENDING" && isChair ? (
                               <>
                                 <button
@@ -697,6 +725,9 @@ export default function AdminAccountManagementPage() {
                                 </button>
                                 <button
                                   className="admin-btn danger"
+                                  type="button"
+                                  aria-label={`Disable ${entry.email}`}
+                                  data-span="full"
                                   onClick={() => void handleDisable(entry)}
                                   disabled={busy}
                                 >

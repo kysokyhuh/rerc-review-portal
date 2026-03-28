@@ -2,8 +2,15 @@
  * Submission service — business logic extracted from submissionRoutes.
  */
 import prisma from "../../config/prismaClient";
-import { SubmissionStatus, ReviewType, ReviewDecision } from "../../generated/prisma/client";
-import { workingDaysBetween } from "../../utils/slaUtils";
+import {
+  ProjectStatus,
+  ReviewDecision,
+  ReviewType,
+  SubmissionDocumentStatus,
+  SubmissionStatus,
+  type SubmissionDocumentType,
+} from "../../generated/prisma/client";
+import { addWorkingDays, workingDaysBetween } from "../../utils/slaUtils";
 import { AppError } from "../../middleware/errorHandler";
 import { logAuditEvent } from "../audit/auditService";
 
@@ -12,6 +19,26 @@ const WORKFLOW_STAGE_ORDER: SubmissionStatus[] = [
   SubmissionStatus.UNDER_CLASSIFICATION,
   SubmissionStatus.CLASSIFIED,
 ];
+
+const trimReason = (value?: string | null) => {
+  const normalized = value?.trim();
+  return normalized ? normalized : null;
+};
+
+const requireReason = (value: string | null, actionLabel: string) => {
+  if (!value) {
+    throw new AppError(400, "REASON_REQUIRED", `${actionLabel} requires a reason`);
+  }
+  return value;
+};
+
+const nextScreeningStatusSet = new Set<SubmissionStatus>([
+  SubmissionStatus.RETURNED_FOR_COMPLETION,
+  SubmissionStatus.NOT_ACCEPTED,
+  SubmissionStatus.AWAITING_CLASSIFICATION,
+  SubmissionStatus.UNDER_CLASSIFICATION,
+  SubmissionStatus.CLASSIFIED,
+]);
 
 /* ------------------------------------------------------------------ */
 /*  Classify                                                           */
@@ -32,7 +59,6 @@ export async function classifySubmission(
   if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
 
   const canClassifyAtStatus =
-    submission.status === SubmissionStatus.RECEIVED ||
     submission.status === SubmissionStatus.AWAITING_CLASSIFICATION ||
     submission.status === SubmissionStatus.UNDER_CLASSIFICATION ||
     submission.status === SubmissionStatus.CLASSIFIED;
@@ -143,7 +169,23 @@ export async function getSubmissionById(id: number) {
   const submission = await prisma.submission.findUnique({
     where: { id },
     include: {
-      project: { include: { committee: true, protocolProfile: true } },
+      project: {
+        include: {
+          committee: true,
+          protocolProfile: true,
+          submissions: {
+            orderBy: [{ sequenceNumber: "asc" }, { id: "asc" }],
+            select: {
+              id: true,
+              sequenceNumber: true,
+              submissionType: true,
+              status: true,
+              receivedDate: true,
+              createdAt: true,
+            },
+          },
+        },
+      },
       classification: { include: { panel: true, classifiedBy: true } },
       reviews: { include: { reviewer: true }, orderBy: { assignedAt: "asc" } },
       reviewAssignments: {
@@ -340,6 +382,384 @@ export async function updateSubmissionOverview(
 }
 
 /* ------------------------------------------------------------------ */
+/*  Screening actions                                                  */
+/* ------------------------------------------------------------------ */
+export async function startSubmissionCompletenessCheck(
+  submissionId: number,
+  data: {
+    completenessStatus?: "COMPLETE" | "MINOR_MISSING" | "MAJOR_MISSING" | "MISSING_SIGNATURES" | "OTHER";
+    completenessRemarks?: string | null;
+  },
+  changedById: number
+) {
+  const submission = await prisma.submission.findUnique({
+    where: { id: submissionId },
+    select: { id: true, status: true },
+  });
+  if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
+  if (
+    submission.status !== SubmissionStatus.RECEIVED &&
+    submission.status !== SubmissionStatus.RETURNED_FOR_COMPLETION
+  ) {
+    throw new AppError(
+      400,
+      "INVALID_WORKFLOW_STAGE",
+      "Only RECEIVED or RETURNED_FOR_COMPLETION submissions can start completeness screening"
+    );
+  }
+
+  const [history, updated] = await prisma.$transaction([
+    prisma.submissionStatusHistory.create({
+      data: {
+        submissionId,
+        oldStatus: submission.status,
+        newStatus: SubmissionStatus.UNDER_COMPLETENESS_CHECK,
+        reason: trimReason(data.completenessRemarks) ?? "Completeness screening started",
+        changedById,
+      },
+    }),
+    prisma.submission.update({
+      where: { id: submissionId },
+      data: {
+        status: SubmissionStatus.UNDER_COMPLETENESS_CHECK,
+        completenessStatus: data.completenessStatus,
+        completenessRemarks: trimReason(data.completenessRemarks),
+      },
+    }),
+  ]);
+
+  return { submission: updated, history };
+}
+
+export async function returnSubmissionForCompletion(
+  submissionId: number,
+  data: {
+    reason: string;
+    completenessStatus?: "COMPLETE" | "MINOR_MISSING" | "MAJOR_MISSING" | "MISSING_SIGNATURES" | "OTHER";
+    completenessRemarks?: string | null;
+  },
+  changedById: number
+) {
+  const submission = await prisma.submission.findUnique({
+    where: { id: submissionId },
+    select: { id: true, status: true },
+  });
+  if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
+  if (
+    submission.status !== SubmissionStatus.RECEIVED &&
+    submission.status !== SubmissionStatus.UNDER_COMPLETENESS_CHECK
+  ) {
+    throw new AppError(
+      400,
+      "INVALID_WORKFLOW_STAGE",
+      "Only submissions in intake screening can be returned for completion"
+    );
+  }
+
+  const reason = requireReason(trimReason(data.reason), "Returning a submission for completion");
+  const [history, updated] = await prisma.$transaction([
+    prisma.submissionStatusHistory.create({
+      data: {
+        submissionId,
+        oldStatus: submission.status,
+        newStatus: SubmissionStatus.RETURNED_FOR_COMPLETION,
+        reason,
+        changedById,
+      },
+    }),
+    prisma.submission.update({
+      where: { id: submissionId },
+      data: {
+        status: SubmissionStatus.RETURNED_FOR_COMPLETION,
+        completenessStatus: data.completenessStatus ?? undefined,
+        completenessRemarks: trimReason(data.completenessRemarks) ?? reason,
+      },
+    }),
+  ]);
+
+  return { submission: updated, history };
+}
+
+export async function markSubmissionNotAccepted(
+  submissionId: number,
+  data: {
+    reason: string;
+    completenessStatus?: "COMPLETE" | "MINOR_MISSING" | "MAJOR_MISSING" | "MISSING_SIGNATURES" | "OTHER";
+    completenessRemarks?: string | null;
+  },
+  changedById: number
+) {
+  const submission = await prisma.submission.findUnique({
+    where: { id: submissionId },
+    select: { id: true, status: true },
+  });
+  if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
+  if (
+    submission.status !== SubmissionStatus.RECEIVED &&
+    submission.status !== SubmissionStatus.UNDER_COMPLETENESS_CHECK
+  ) {
+    throw new AppError(
+      400,
+      "INVALID_WORKFLOW_STAGE",
+      "Only submissions in intake screening can be marked not accepted"
+    );
+  }
+
+  const reason = requireReason(trimReason(data.reason), "Marking a submission as not accepted");
+  const [history, updated] = await prisma.$transaction([
+    prisma.submissionStatusHistory.create({
+      data: {
+        submissionId,
+        oldStatus: submission.status,
+        newStatus: SubmissionStatus.NOT_ACCEPTED,
+        reason,
+        changedById,
+      },
+    }),
+    prisma.submission.update({
+      where: { id: submissionId },
+      data: {
+        status: SubmissionStatus.NOT_ACCEPTED,
+        completenessStatus: data.completenessStatus ?? undefined,
+        completenessRemarks: trimReason(data.completenessRemarks) ?? reason,
+      },
+    }),
+  ]);
+
+  return { submission: updated, history };
+}
+
+export async function acceptSubmissionForClassification(
+  submissionId: number,
+  data: {
+    projectCode?: string;
+    reason?: string | null;
+    completenessRemarks?: string | null;
+  },
+  changedById: number
+) {
+  const submission = await prisma.submission.findUnique({
+    where: { id: submissionId },
+    include: {
+      project: {
+        select: {
+          id: true,
+          projectCode: true,
+        },
+      },
+    },
+  });
+  if (!submission || !submission.project) {
+    throw new AppError(404, "NOT_FOUND", "Submission not found");
+  }
+  if (
+    submission.status !== SubmissionStatus.RECEIVED &&
+    submission.status !== SubmissionStatus.UNDER_COMPLETENESS_CHECK &&
+    submission.status !== SubmissionStatus.RETURNED_FOR_COMPLETION
+  ) {
+    throw new AppError(
+      400,
+      "INVALID_WORKFLOW_STAGE",
+      "Only submissions in intake screening can be accepted for classification"
+    );
+  }
+
+  const normalizedProjectCode = data.projectCode?.trim().toUpperCase() || submission.project.projectCode || null;
+  if (!normalizedProjectCode) {
+    throw new AppError(400, "PROJECT_CODE_REQUIRED", "projectCode is required before classification");
+  }
+
+  const updatedReason =
+    trimReason(data.reason) ?? `Accepted for classification with project code ${normalizedProjectCode}`;
+
+  const result = await prisma.$transaction(async (tx) => {
+    const duplicateProject = await tx.project.findFirst({
+      where: {
+        projectCode: normalizedProjectCode,
+        NOT: { id: submission.project!.id },
+      },
+      select: { id: true },
+    });
+    if (duplicateProject) {
+      throw new AppError(409, "DUPLICATE_PROJECT_CODE", "Project code already exists");
+    }
+
+    await tx.project.update({
+      where: { id: submission.project!.id },
+      data: { projectCode: normalizedProjectCode },
+    });
+
+    const history = await tx.submissionStatusHistory.create({
+      data: {
+        submissionId,
+        oldStatus: submission.status,
+        newStatus: SubmissionStatus.AWAITING_CLASSIFICATION,
+        reason: updatedReason,
+        changedById,
+      },
+    });
+
+    const updatedSubmission = await tx.submission.update({
+      where: { id: submissionId },
+      data: {
+        status: SubmissionStatus.AWAITING_CLASSIFICATION,
+        completenessStatus: "COMPLETE",
+        completenessRemarks: trimReason(data.completenessRemarks) ?? null,
+      },
+    });
+
+    return { submission: updatedSubmission, history };
+  });
+
+  return result;
+}
+
+export async function resubmitSubmission(
+  submissionId: number,
+  data: {
+    receivedDate?: string | null;
+    documentLink?: string | null;
+    remarks?: string | null;
+  },
+  changedById: number
+) {
+  const submission = await prisma.submission.findUnique({
+    where: { id: submissionId },
+    select: {
+      id: true,
+      status: true,
+      remarks: true,
+      documentLink: true,
+      revisionDueDate: true,
+    },
+  });
+  if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
+  if (
+    submission.status !== SubmissionStatus.RETURNED_FOR_COMPLETION &&
+    submission.status !== SubmissionStatus.AWAITING_REVISIONS
+  ) {
+    throw new AppError(
+      400,
+      "INVALID_WORKFLOW_STAGE",
+      "Only returned or revision-requested submissions can be resubmitted"
+    );
+  }
+
+  const receivedDate = data.receivedDate ? new Date(data.receivedDate) : new Date();
+  if (Number.isNaN(receivedDate.getTime())) {
+    throw new AppError(400, "INVALID_DATE", "Invalid receivedDate");
+  }
+
+  const nextStatus =
+    submission.status === SubmissionStatus.RETURNED_FOR_COMPLETION
+      ? SubmissionStatus.RECEIVED
+      : SubmissionStatus.REVISION_SUBMITTED;
+  const reason =
+    nextStatus === SubmissionStatus.RECEIVED
+      ? "Submission resubmitted after completeness return"
+      : "Revision submission received from proponent";
+
+  const [history, updated] = await prisma.$transaction([
+    prisma.submissionStatusHistory.create({
+      data: {
+        submissionId,
+        oldStatus: submission.status,
+        newStatus: nextStatus,
+        reason,
+        changedById,
+      },
+    }),
+    prisma.submission.update({
+      where: { id: submissionId },
+      data: {
+        status: nextStatus,
+        receivedDate,
+        documentLink:
+          data.documentLink === undefined
+            ? submission.documentLink
+            : data.documentLink?.trim() || null,
+        remarks: trimReason(data.remarks) ?? submission.remarks,
+        completenessRemarks:
+          nextStatus === SubmissionStatus.RECEIVED
+            ? trimReason(data.remarks)
+            : undefined,
+        revisionDueDate:
+          nextStatus === SubmissionStatus.REVISION_SUBMITTED
+            ? submission.revisionDueDate
+            : null,
+      },
+    }),
+  ]);
+
+  return { submission: updated, history };
+}
+
+export async function addSubmissionDocument(
+  submissionId: number,
+  data: {
+    type: SubmissionDocumentType;
+    title: string;
+    documentUrl?: string | null;
+    notes?: string | null;
+  },
+  actorId: number
+) {
+  const submission = await prisma.submission.findUnique({
+    where: { id: submissionId },
+    select: { id: true },
+  });
+  if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
+
+  const document = await prisma.submissionDocument.create({
+    data: {
+      submissionId,
+      type: data.type,
+      title: data.title.trim(),
+      documentUrl: data.documentUrl?.trim() || null,
+      notes: trimReason(data.notes),
+      status: data.documentUrl ? SubmissionDocumentStatus.RECEIVED : SubmissionDocumentStatus.PENDING,
+      receivedAt: data.documentUrl ? new Date() : null,
+    },
+  });
+
+  await logAuditEvent({
+    actorId,
+    action: "SUBMISSION_DOCUMENT_ADDED",
+    entityType: "Submission",
+    entityId: submissionId,
+    metadata: { documentId: document.id, type: document.type },
+  });
+
+  return document;
+}
+
+export async function removeSubmissionDocument(
+  submissionId: number,
+  documentId: number,
+  actorId: number
+) {
+  const document = await prisma.submissionDocument.findUnique({
+    where: { id: documentId },
+    select: { id: true, submissionId: true },
+  });
+  if (!document || document.submissionId !== submissionId) {
+    throw new AppError(404, "NOT_FOUND", "Submission document not found");
+  }
+
+  await prisma.submissionDocument.delete({ where: { id: documentId } });
+
+  await logAuditEvent({
+    actorId,
+    action: "SUBMISSION_DOCUMENT_REMOVED",
+    entityType: "Submission",
+    entityId: submissionId,
+    metadata: { documentId },
+  });
+
+  return { success: true };
+}
+
+/* ------------------------------------------------------------------ */
 /*  Change status                                                      */
 /* ------------------------------------------------------------------ */
 export async function updateSubmissionStatus(
@@ -352,13 +772,6 @@ export async function updateSubmissionStatus(
     where: { id }, select: { status: true },
   });
   if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
-  if (submission.status === SubmissionStatus.RECEIVED) {
-    await prisma.submission.update({
-      where: { id },
-      data: { status: SubmissionStatus.AWAITING_CLASSIFICATION },
-    });
-    submission.status = SubmissionStatus.AWAITING_CLASSIFICATION;
-  }
   const currentIndex = WORKFLOW_STAGE_ORDER.indexOf(submission.status);
   const nextIndex = WORKFLOW_STAGE_ORDER.indexOf(newStatus);
   if (currentIndex === -1 || nextIndex === -1) {
@@ -446,8 +859,15 @@ export async function startSubmissionReview(submissionId: number, actorId: numbe
   if (submission.status === SubmissionStatus.UNDER_REVIEW) {
     throw new AppError(400, "NO_CHANGES", "Submission is already under review");
   }
-  if (submission.status !== SubmissionStatus.CLASSIFIED) {
-    throw new AppError(400, "INVALID_WORKFLOW_STAGE", "Only CLASSIFIED submissions can start review");
+  if (
+    submission.status !== SubmissionStatus.CLASSIFIED &&
+    submission.status !== SubmissionStatus.REVISION_SUBMITTED
+  ) {
+    throw new AppError(
+      400,
+      "INVALID_WORKFLOW_STAGE",
+      "Only CLASSIFIED or REVISION_SUBMITTED submissions can start review"
+    );
   }
 
   const [history, updated] = await prisma.$transaction([
@@ -513,9 +933,45 @@ export async function recordFinalDecision(
     finalDecisionDate?: string;
     approvalStartDate?: string;
     approvalEndDate?: string;
+    resultsNotifiedAt?: string;
+    notes?: string;
   },
   actorId: number
 ) {
+  const submission = await prisma.submission.findUnique({
+    where: { id: submissionId },
+    include: {
+      project: {
+        select: {
+          id: true,
+          committeeId: true,
+          overallStatus: true,
+          approvalStartDate: true,
+          approvalEndDate: true,
+        },
+      },
+      classification: {
+        select: {
+          reviewType: true,
+        },
+      },
+    },
+  });
+  if (!submission || !submission.project) {
+    throw new AppError(404, "NOT_FOUND", "Submission not found");
+  }
+  if (submission.classification?.reviewType === ReviewType.EXEMPT) {
+    throw new AppError(400, "INVALID_REVIEW_TYPE", "Use the exemption issue flow for EXEMPT submissions");
+  }
+  if (submission.status !== SubmissionStatus.UNDER_REVIEW) {
+    throw new AppError(
+      400,
+      "INVALID_WORKFLOW_STAGE",
+      "Only UNDER_REVIEW submissions can record a final decision"
+    );
+  }
+
+  const notes = requireReason(trimReason(data.notes), "Recording a final decision");
   const decisionDate = data.finalDecisionDate ? new Date(data.finalDecisionDate) : new Date();
   if (Number.isNaN(decisionDate.getTime())) {
     throw new AppError(400, "INVALID_DATE", "Invalid finalDecisionDate");
@@ -531,23 +987,108 @@ export async function recordFinalDecision(
     throw new AppError(400, "INVALID_DATE", "Invalid approvalEndDate");
   }
 
-  const updated = await prisma.submission.update({
-    where: { id: submissionId },
-    data: {
-      finalDecision: data.finalDecision as any,
-      finalDecisionDate: decisionDate,
-      project: (approvalStart || approvalEnd)
-        ? { update: { approvalStartDate: approvalStart ?? undefined, approvalEndDate: approvalEnd ?? undefined } }
-        : undefined,
-    },
-    include: { project: true },
+  const resultsNotifiedAt = data.resultsNotifiedAt ? new Date(data.resultsNotifiedAt) : decisionDate;
+  if (Number.isNaN(resultsNotifiedAt.getTime())) {
+    throw new AppError(400, "INVALID_DATE", "Invalid resultsNotifiedAt");
+  }
+
+  const finalDecision = data.finalDecision;
+  const isReviewDecision = Object.values(ReviewDecision).includes(finalDecision as ReviewDecision);
+  if (!isReviewDecision && finalDecision !== "WITHDRAWN") {
+    throw new AppError(400, "INVALID_DECISION", "Invalid finalDecision");
+  }
+
+  let nextStatus: SubmissionStatus = SubmissionStatus.CLOSED;
+  let projectStatus: ProjectStatus | null = null;
+  let revisionDueDate: Date | null = null;
+  let decisionRecord: ReviewDecision | null = isReviewDecision
+    ? (finalDecision as ReviewDecision)
+    : null;
+
+  if (finalDecision === ReviewDecision.MINOR_REVISIONS || finalDecision === ReviewDecision.MAJOR_REVISIONS) {
+    const revisionSlaConfig = await prisma.configSLA.findFirst({
+      where: {
+        committeeId: submission.project.committeeId,
+        stage: "REVISION_RESPONSE",
+        reviewType: null,
+        isActive: true,
+      },
+    });
+    const revisionDays = revisionSlaConfig?.workingDays ?? 7;
+    nextStatus = SubmissionStatus.AWAITING_REVISIONS;
+    revisionDueDate = addWorkingDays(resultsNotifiedAt, revisionDays);
+  } else if (finalDecision === ReviewDecision.DISAPPROVED) {
+    projectStatus = ProjectStatus.INACTIVE;
+  } else if (finalDecision === "WITHDRAWN") {
+    nextStatus = SubmissionStatus.WITHDRAWN;
+    projectStatus = ProjectStatus.WITHDRAWN;
+    decisionRecord = null;
+  } else {
+    projectStatus = ProjectStatus.ACTIVE;
+  }
+
+  const updated = await prisma.$transaction(async (tx) => {
+    if (decisionRecord) {
+      await tx.submissionDecision.upsert({
+        where: { submissionId },
+        update: {
+          decision: decisionRecord,
+          decidedAt: decisionDate,
+          validFrom: approvalStart ?? undefined,
+          validTo: approvalEnd ?? undefined,
+          notes,
+        },
+        create: {
+          submissionId,
+          decision: decisionRecord,
+          decidedAt: decisionDate,
+          validFrom: approvalStart ?? undefined,
+          validTo: approvalEnd ?? undefined,
+          notes,
+        },
+      });
+    }
+
+    await tx.submissionStatusHistory.create({
+      data: {
+        submissionId,
+        oldStatus: submission.status,
+        newStatus: nextStatus,
+        reason: notes,
+        changedById: actorId,
+      },
+    });
+
+    return tx.submission.update({
+      where: { id: submissionId },
+      data: {
+        status: nextStatus,
+        finalDecision: decisionRecord,
+        finalDecisionDate: decisionDate,
+        resultsNotifiedAt,
+        revisionDueDate,
+        remarks: notes,
+        project: {
+          update: {
+            overallStatus: projectStatus ?? undefined,
+            approvalStartDate:
+              finalDecision === ReviewDecision.APPROVED
+                ? approvalStart ?? decisionDate
+                : approvalStart ?? undefined,
+            approvalEndDate: approvalEnd ?? undefined,
+          },
+        },
+      },
+      include: { project: true },
+    });
   });
+
   await logAuditEvent({
     actorId,
     action: "FINAL_DECISION_RECORDED",
     entityType: "Submission",
     entityId: submissionId,
-    metadata: { finalDecision: data.finalDecision },
+    metadata: { finalDecision: data.finalDecision, nextStatus, resultsNotifiedAt: resultsNotifiedAt.toISOString() },
   });
   return updated;
 }
@@ -584,15 +1125,43 @@ export async function getSlaSummary(id: number) {
     return undefined;
   };
 
+  const findFirstStatus = (predicate: (entry: any) => boolean) => {
+    for (const entry of statusHistoryAsc) {
+      if (predicate(entry)) return entry;
+    }
+    return undefined;
+  };
+
+  // Completeness SLA
+  const completenessSlaConfig = await prisma.configSLA.findFirst({
+    where: { committeeId, stage: "COMPLETENESS", reviewType: null, isActive: true },
+  });
+  const completenessEndHistory = findFirstStatus((h: any) =>
+    nextScreeningStatusSet.has(h.newStatus)
+  );
+  const completenessStart = submission.receivedDate ?? submission.createdAt;
+  const completenessEnd = completenessEndHistory?.effectiveDate ?? null;
+  const completenessActual =
+    completenessEnd && completenessSlaConfig
+      ? workingDaysBetween(new Date(completenessStart), new Date(completenessEnd), [])
+      : null;
+  const completenessConfigured = completenessSlaConfig?.workingDays ?? null;
+  const completenessWithin =
+    completenessConfigured === null || completenessActual === null
+      ? null
+      : completenessActual <= completenessConfigured;
+
   // Classification SLA
   const classificationSlaConfig = await prisma.configSLA.findFirst({
     where: { committeeId, stage: "CLASSIFICATION", reviewType, isActive: true },
   });
-  const classificationStartHistory = findLatestStatus(
-    (h: any) => h.newStatus === SubmissionStatus.UNDER_CLASSIFICATION
+  const classificationStartHistory = findFirstStatus(
+    (h: any) =>
+      h.newStatus === SubmissionStatus.AWAITING_CLASSIFICATION ||
+      h.newStatus === SubmissionStatus.UNDER_CLASSIFICATION
   );
   const classificationStart =
-    classificationStartHistory?.effectiveDate ?? submission.receivedDate ?? submission.createdAt;
+    classificationStartHistory?.effectiveDate ?? completenessEnd ?? submission.receivedDate ?? submission.createdAt;
   const classificationEnd = submission.classification.classificationDate ?? new Date();
   const classificationActual = workingDaysBetween(
     new Date(classificationStart), new Date(classificationEnd), []
@@ -648,6 +1217,14 @@ export async function getSlaSummary(id: number) {
     submissionId: submission.id,
     committeeCode: submission.project.committee.code,
     reviewType,
+    completeness: {
+      start: completenessStart,
+      end: completenessEnd,
+      configuredWorkingDays: completenessConfigured,
+      actualWorkingDays: completenessActual,
+      withinSla: completenessWithin,
+      description: completenessSlaConfig?.description ?? null,
+    },
     classification: {
       start: classificationStart, end: classificationEnd,
       configuredWorkingDays: classificationConfigured,

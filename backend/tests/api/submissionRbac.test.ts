@@ -35,6 +35,12 @@ const submissionService = jest.requireMock("../../src/services/submissions/submi
 };
 
 describe("submission RBAC", () => {
+  const csrfHeaders = {
+    Origin: "http://localhost:5173",
+    Cookie: "csrfToken=test-csrf",
+    "X-CSRF-Token": "test-csrf",
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -48,6 +54,7 @@ describe("submission RBAC", () => {
 
     const response = await request(app)
       .post("/reviews/50/decision")
+      .set(csrfHeaders)
       .set("X-User-ID", "44")
       .set("X-User-Roles", "RESEARCH_ASSISTANT")
       .send({ decision: "APPROVED", remarks: "ok" });
@@ -66,6 +73,7 @@ describe("submission RBAC", () => {
 
     const response = await request(app)
       .post("/reviews/50/decision")
+      .set(csrfHeaders)
       .set("X-User-ID", "44")
       .set("X-User-Roles", "RESEARCH_ASSISTANT")
       .send({ decision: "APPROVED", remarks: "ok" });
@@ -82,6 +90,7 @@ describe("submission RBAC", () => {
   it("denies assistant from changing workflow stage", async () => {
     const response = await request(app)
       .patch("/submissions/10/status")
+      .set(csrfHeaders)
       .set("X-User-ID", "44")
       .set("X-User-Roles", "RESEARCH_ASSISTANT")
       .send({ newStatus: "UNDER_CLASSIFICATION" });
@@ -93,6 +102,7 @@ describe("submission RBAC", () => {
   it("denies assistant from setting classification review track", async () => {
     const response = await request(app)
       .post("/submissions/10/classifications")
+      .set(csrfHeaders)
       .set("X-User-ID", "44")
       .set("X-User-Roles", "RESEARCH_ASSISTANT")
       .send({

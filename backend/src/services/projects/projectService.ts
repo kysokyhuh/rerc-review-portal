@@ -3,7 +3,11 @@
  */
 import prisma from "../../config/prismaClient";
 import { AppError } from "../../middleware/errorHandler";
-import type { SubmissionType, CompletenessStatus } from "../../generated/prisma/client";
+import {
+  SubmissionStatus,
+  type SubmissionType,
+  type CompletenessStatus,
+} from "../../generated/prisma/client";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers (moved from routes)                                        */
@@ -429,23 +433,40 @@ export async function createSubmissionForProject(
   projectId: number,
   body: {
     submissionType: string;
-    receivedDate: string;
+    receivedDate?: string;
     documentLink?: string;
     completenessStatus?: string;
     completenessRemarks?: string;
+    remarks?: string;
   },
-  userId: number
+  userId: number,
+  options: {
+    allowInitial?: boolean;
+  } = {}
 ) {
-  const allowedSubmissionTypes = [
-    "INITIAL", "AMENDMENT", "CONTINUING_REVIEW", "FINAL_REPORT",
-    "WITHDRAWAL", "SAFETY_REPORT", "PROTOCOL_DEVIATION",
-  ];
-  if (!body.submissionType || !body.receivedDate) {
-    throw new AppError(400, "VALIDATION_ERROR", "submissionType and receivedDate are required");
+  const allowedSubmissionTypes = options.allowInitial
+    ? [
+        "INITIAL", "RESUBMISSION", "AMENDMENT", "CONTINUING_REVIEW", "FINAL_REPORT",
+        "WITHDRAWAL", "SAFETY_REPORT", "PROTOCOL_DEVIATION",
+      ]
+    : [
+        "RESUBMISSION", "AMENDMENT", "CONTINUING_REVIEW", "FINAL_REPORT",
+        "WITHDRAWAL", "SAFETY_REPORT", "PROTOCOL_DEVIATION",
+      ];
+  if (!body.submissionType) {
+    throw new AppError(400, "VALIDATION_ERROR", "submissionType is required");
   }
   if (!allowedSubmissionTypes.includes(body.submissionType)) {
     throw new AppError(400, "INVALID_SUBMISSION_TYPE",
       `Invalid submissionType. Allowed: ${allowedSubmissionTypes.join(", ")}`);
+  }
+
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { id: true, projectCode: true },
+  });
+  if (!project) {
+    throw new AppError(404, "NOT_FOUND", "Project not found");
   }
 
   const allowedCompleteness = ["COMPLETE", "MINOR_MISSING", "MAJOR_MISSING", "MISSING_SIGNATURES", "OTHER"];
@@ -454,7 +475,10 @@ export async function createSubmissionForProject(
       `Invalid completenessStatus. Allowed: ${allowedCompleteness.join(", ")}`);
   }
 
-  const receivedAt = new Date(body.receivedDate);
+  const receivedAt = asNullableDate(body.receivedDate) ?? new Date();
+  if (!receivedAt) {
+    throw new AppError(400, "INVALID_DATE", "Invalid receivedDate");
+  }
 
   return prisma.$transaction(async (tx) => {
     const lastSubmission = await tx.submission.findFirst({
@@ -464,7 +488,7 @@ export async function createSubmissionForProject(
     });
     const sequenceNumber = (lastSubmission?.sequenceNumber ?? 0) + 1;
 
-    return tx.submission.create({
+    const submission = await tx.submission.create({
       data: {
         projectId,
         submissionType: body.submissionType as SubmissionType,
@@ -473,8 +497,22 @@ export async function createSubmissionForProject(
         documentLink: body.documentLink,
         completenessStatus: (body.completenessStatus || "COMPLETE") as CompletenessStatus,
         completenessRemarks: body.completenessRemarks,
+        remarks: body.remarks ?? body.completenessRemarks,
+        status: SubmissionStatus.RECEIVED,
         createdById: userId,
       },
     });
+
+    await tx.submissionStatusHistory.create({
+      data: {
+        submissionId: submission.id,
+        oldStatus: null,
+        newStatus: SubmissionStatus.RECEIVED,
+        reason: `${body.submissionType} submission received`,
+        changedById: userId,
+      },
+    });
+
+    return submission;
   });
 }

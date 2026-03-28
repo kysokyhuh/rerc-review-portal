@@ -856,31 +856,38 @@ async function main() {
       data: [
         {
           committeeId: committee.id,
+          stage: SLAStage.COMPLETENESS,
+          reviewType: null,
+          workingDays: 1,
+          description: "Completeness screening within 1 working day",
+        },
+        {
+          committeeId: committee.id,
           stage: SLAStage.CLASSIFICATION,
           reviewType: ReviewType.EXEMPT,
-          workingDays: 3,
-          description: "Exempt: classify within 3 working days",
+          workingDays: 1,
+          description: "Assign project code and classify exempt submissions within 1 working day",
         },
         {
           committeeId: committee.id,
           stage: SLAStage.CLASSIFICATION,
           reviewType: ReviewType.EXPEDITED,
-          workingDays: 5,
-          description: "Expedited: classify within 5 working days",
+          workingDays: 1,
+          description: "Assign project code and classify expedited submissions within 1 working day",
         },
         {
           committeeId: committee.id,
           stage: SLAStage.CLASSIFICATION,
           reviewType: ReviewType.FULL_BOARD,
-          workingDays: 7,
-          description: "Full board: classify within 7 working days",
+          workingDays: 1,
+          description: "Assign project code and classify full-board submissions within 1 working day",
         },
         {
           committeeId: committee.id,
           stage: SLAStage.REVIEW,
           reviewType: ReviewType.EXPEDITED,
-          workingDays: 15,
-          description: "Expedited review within 15 working days",
+          workingDays: 20,
+          description: "Expedited review within 20 working days",
         },
         {
           committeeId: committee.id,
@@ -893,14 +900,14 @@ async function main() {
           committeeId: committee.id,
           stage: SLAStage.REVISION_RESPONSE,
           reviewType: null,
-          workingDays: 70,
+          workingDays: 7,
           description:
-            "Researchers have up to 70 working days to respond to revisions",
+            "Researchers have up to 7 working days to respond to revisions",
         },
       ],
     });
 
-    console.log("Seeded default classification/review SLA for RERC-HUMAN");
+    console.log("Seeded default completeness/classification/review SLA for RERC-HUMAN");
   }
 
   type SlaSeedEntry = {
