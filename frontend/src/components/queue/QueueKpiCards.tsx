@@ -13,24 +13,49 @@ export const QueueKpiCards: React.FC<QueueKpiCardsProps> = ({
   dueSoon,
   blocked,
 }) => {
+  const cards = [
+    {
+      label: "Total in Queue",
+      value: total,
+      helper: "Protocols currently routed into this operational lane.",
+      tone: "neutral",
+      marker: "Live queue",
+    },
+    {
+      label: "Overdue",
+      value: overdue,
+      helper: "Past SLA target and likely needs chair or RA intervention.",
+      tone: "danger",
+      marker: "Immediate action",
+    },
+    {
+      label: "Due Soon",
+      value: dueSoon,
+      helper: "Approaching SLA threshold and should be reviewed next.",
+      tone: "warning",
+      marker: "Watch closely",
+    },
+    {
+      label: "Blocked",
+      value: blocked,
+      helper: "Missing data or unresolved dependencies are slowing progress.",
+      tone: "info",
+      marker: "Clear blockers",
+    },
+  ] as const;
+
   return (
     <section className="queue-kpis" aria-label="Queue KPIs">
-      <article className="queue-kpi-card">
-        <h2>Total in Queue</h2>
-        <strong>{total}</strong>
-      </article>
-      <article className="queue-kpi-card danger">
-        <h2>Overdue</h2>
-        <strong>{overdue}</strong>
-      </article>
-      <article className="queue-kpi-card warning">
-        <h2>Due Soon</h2>
-        <strong>{dueSoon}</strong>
-      </article>
-      <article className="queue-kpi-card info">
-        <h2>Blocked</h2>
-        <strong>{blocked}</strong>
-      </article>
+      {cards.map((card) => (
+        <article key={card.label} className={`queue-kpi-card ${card.tone}`}>
+          <div className="queue-kpi-topline">
+            <span className="queue-kpi-label">{card.label}</span>
+            <span className="queue-kpi-marker">{card.marker}</span>
+          </div>
+          <strong>{card.value}</strong>
+          <p>{card.helper}</p>
+        </article>
+      ))}
     </section>
   );
 };

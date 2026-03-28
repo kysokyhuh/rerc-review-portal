@@ -193,6 +193,46 @@ export default function AdminAccountManagementPage() {
     return "Disabled accounts stay visible so chairs can restore access with a documented note.";
   }, [activeTab]);
 
+  const emptyState = useMemo(() => {
+    if (search.trim()) {
+      return {
+        title: `No ${activeTabConfig.label.toLowerCase()} accounts match this search.`,
+        body: "Try a different name or email, or clear the search to return to the full result set.",
+        canResetSearch: true,
+      };
+    }
+
+    if (activeTab === "PENDING") {
+      return {
+        title: "No pending approvals right now.",
+        body: "New signups will appear here for chair review, role assignment, and final access approval.",
+        canResetSearch: false,
+      };
+    }
+
+    if (activeTab === "APPROVED") {
+      return {
+        title: "No approved accounts are visible.",
+        body: "Approved users will appear here for password resets, role updates, and access control changes.",
+        canResetSearch: false,
+      };
+    }
+
+    if (activeTab === "REJECTED") {
+      return {
+        title: "No rejected accounts are on file.",
+        body: "Declined requests stay visible here for audit context when they exist.",
+        canResetSearch: false,
+      };
+    }
+
+    return {
+      title: "No disabled accounts right now.",
+      body: "Disabled records will appear here whenever access has been suspended and can later be restored.",
+      canResetSearch: false,
+    };
+  }, [activeTab, activeTabConfig.label, search]);
+
   const headerMetrics = useMemo(() => {
     if (!isChair) {
       return [
@@ -415,11 +455,14 @@ export default function AdminAccountManagementPage() {
                 role="tab"
                 aria-selected={activeTab === tab.key}
               >
-                <span className="admin-segment-copy">
+                <span className="admin-segment-main">
                   <span className="admin-segment-label">{tab.label}</span>
-                  <span className="admin-segment-description">{tab.description}</span>
+                  <span className="admin-segment-muted">Accounts</span>
                 </span>
-                <span className="admin-segment-count">{tabCounts[tab.key]}</span>
+                <span className="admin-segment-meta">
+                  <span className="admin-segment-count">{tabCounts[tab.key]}</span>
+                  <span className="admin-segment-unit">items</span>
+                </span>
               </button>
             ))}
           </div>
@@ -445,6 +488,18 @@ export default function AdminAccountManagementPage() {
             />
           </label>
         </div>
+
+        <div className="admin-toolbar-meta">
+          <p className="admin-toolbar-description">{activeTabConfig.description}</p>
+          <div className="admin-toolbar-summary">
+            <span className="admin-toolbar-pill">{filteredUsers.length} shown</span>
+            {search.trim() ? (
+              <button className="admin-toolbar-clear" type="button" onClick={() => setSearch("")}>
+                Clear search
+              </button>
+            ) : null}
+          </div>
+        </div>
       </header>
 
       {error ? <div className="admin-notice error">{error}</div> : null}
@@ -464,10 +519,35 @@ export default function AdminAccountManagementPage() {
           </div>
         </div>
         <div className="panel-body no-padding">
-          {loading ? <div className="admin-empty">Loading accounts...</div> : null}
+          {loading ? (
+            <div className="admin-empty">
+              <div className="admin-empty-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M4 6h16" />
+                  <path d="M4 12h16" />
+                  <path d="M4 18h10" />
+                </svg>
+              </div>
+              <h3>Loading accounts</h3>
+              <p>Fetching the latest access records, approval states, and role assignments.</p>
+            </div>
+          ) : null}
           {!loading && filteredUsers.length === 0 ? (
             <div className="admin-empty">
-              No users in {activeTabConfig.label.toLowerCase()} right now.
+              <div className="admin-empty-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M4 6h16" />
+                  <path d="M4 12h16" />
+                  <path d="M4 18h10" />
+                </svg>
+              </div>
+              <h3>{emptyState.title}</h3>
+              <p>{emptyState.body}</p>
+              {emptyState.canResetSearch ? (
+                <button className="admin-btn ghost" type="button" onClick={() => setSearch("")}>
+                  Clear search
+                </button>
+              ) : null}
             </div>
           ) : null}
 
