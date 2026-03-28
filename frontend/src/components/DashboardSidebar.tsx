@@ -193,29 +193,31 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-user">
-          <div className="sidebar-avatar">{user?.fullName?.[0]?.toUpperCase() ?? "U"}</div>
-          <div className="sidebar-user-info">
-            <div className="sidebar-user-name">
-              {displayName} <span className="sidebar-user-role">({roleLabel})</span>
+        <div className="sidebar-footer-card">
+          <div className="sidebar-user">
+            <div className="sidebar-avatar">{user?.fullName?.[0]?.toUpperCase() ?? "U"}</div>
+            <div className="sidebar-user-info">
+              <div className="sidebar-user-label">Signed in as</div>
+              <div className="sidebar-user-name">{displayName}</div>
+              <div className="sidebar-user-role-badge">{roleLabel}</div>
             </div>
           </div>
+          <button
+            className="nav-item sidebar-logout"
+            type="button"
+            onClick={() => {
+              logout();
+              navigate("/login", { replace: true });
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Sign out
+          </button>
         </div>
-        <button
-          className="nav-item sidebar-logout"
-          type="button"
-          onClick={() => {
-            logout();
-            navigate("/login", { replace: true });
-          }}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-          Logout
-        </button>
       </div>
     </aside>
   );
