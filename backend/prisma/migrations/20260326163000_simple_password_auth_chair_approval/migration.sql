@@ -16,13 +16,13 @@ ALTER TABLE "User" ALTER COLUMN "status" SET DEFAULT 'PENDING';
 COMMIT;
 
 -- DropIndex
-DROP INDEX "AuditLog_actorId_idx";
+DROP INDEX IF EXISTS "AuditLog_actorId_idx";
 
 -- DropIndex
-DROP INDEX "AuditLog_createdAt_idx";
+DROP INDEX IF EXISTS "AuditLog_createdAt_idx";
 
 -- DropIndex
-DROP INDEX "AuditLog_entityType_entityId_idx";
+DROP INDEX IF EXISTS "AuditLog_entityType_entityId_idx";
 
 -- AlterTable
 ALTER TABLE "User" ADD COLUMN     "approvedAt" TIMESTAMP(3),
