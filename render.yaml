@@ -7,7 +7,7 @@ services:
     runtime: node
     region: singapore
     plan: free
-    buildCommand: cd backend && npm ci && npx prisma generate && npm run build
+    buildCommand: cd backend && npm ci --include=dev && npx prisma generate && npm run build
     preDeployCommand: cd backend && npx prisma migrate deploy
     startCommand: cd backend && node dist/server.js
     healthCheckPath: /health
