@@ -359,6 +359,7 @@ export interface ProjectDetail {
   protocolProfile?: ProtocolProfile | null;
   protocolMilestones?: ProtocolMilestone[];
   submissions: SubmissionDetail[];
+  statusHistory?: StatusHistoryEntry[];
   changeLog?: ChangeLogEntry[];
 }
 
@@ -544,6 +545,8 @@ export interface ArchivedProject {
   reviewType: string | null;
   committeeCode: string | null;
   overallStatus: string | null;
+  archiveDate: string | null;
+  archiveReason: string | null;
 }
 
 export interface ArchivedProjectsResponse {
@@ -662,9 +665,52 @@ export interface AnnualReportSummaryResponse {
     };
   }>;
   charts: {
+    receivedByMonth: Array<{ label: string; count: number }>;
+    proponentCategoryDistribution: Array<{
+      label: string;
+      category: "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
+      count: number;
+    }>;
+    receivedByCollege: Array<{ label: string; count: number }>;
+    outcomeByCollege: Array<{
+      label: string;
+      total: number;
+      exempted: number;
+      expedited: number;
+      fullReview: number;
+      withdrawn: number;
+      unclassified: number;
+    }>;
     proposalsPerTerm: Array<{ label: string; count: number }>;
     reviewTypeDistribution: Array<{ label: string; count: number }>;
     topColleges: Array<{ label: string; count: number }>;
+    reviewTypeByMonth: Array<{
+      label: string;
+      exempted: number;
+      expedited: number;
+      fullReview: number;
+      withdrawn: number;
+      unclassified: number;
+      total: number;
+    }>;
+    withdrawnByMonth: Array<{ label: string; count: number }>;
+    comparativeYearTrend: Array<{
+      label: string;
+      exempted: number;
+      expedited: number;
+      fullReview: number;
+      withdrawn: number;
+    }>;
+    committeeDistribution: Array<{ label: string; count: number }>;
+  };
+  performanceCharts: {
+    averages: {
+      daysToResults: Array<{ label: string; value: number | null }>;
+      daysToClearance: Array<{ label: string; value: number | null }>;
+      daysToResubmit: number | null;
+    };
+    slaCompliance: Array<{ label: string; within: number; overdue: number }>;
+    workflowFunnel: Array<{ label: string; count: number }>;
   };
 }
 

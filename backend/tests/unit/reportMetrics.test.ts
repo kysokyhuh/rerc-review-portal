@@ -14,14 +14,17 @@ const baseSubmission = (): ReportSubmissionRecord => ({
   receivedDate: new Date("2026-01-05T00:00:00.000Z"),
   sequenceNumber: 1,
   status: SubmissionStatus.AWAITING_REVISIONS,
+  resultsNotifiedAt: null,
   finalDecision: ReviewDecision.MINOR_REVISIONS,
   finalDecisionDate: null,
   classification: {
     reviewType: ReviewType.EXPEDITED,
+    classificationDate: new Date("2026-01-06T00:00:00.000Z"),
   },
   project: {
     id: 10,
     committee: { code: "RERC-HUMAN" },
+    committeeId: 12,
     piAffiliation: "Science",
     collegeOrUnit: "Science",
     proponentCategory: null,

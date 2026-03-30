@@ -1592,6 +1592,31 @@ a:hover {
   font-weight: 700;
 }
 
+.detail-hero-actions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.archive-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.archive-summary-card {
+  margin-bottom: 20px;
+}
+
+.archive-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
 .section-title-left {
   display: flex;
   flex-direction: column;
@@ -2083,4 +2108,116 @@ a:hover {
   .detail-table {
     min-width: 640px;
   }
+}
+
+.archive-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 31, 0.42);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 80;
+}
+
+.archive-dialog {
+  width: min(560px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 48px rgba(17, 24, 31, 0.18), 0 8px 16px rgba(17, 24, 31, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.archive-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.archive-dialog-header h3 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  color: var(--ink);
+}
+
+.archive-dialog-header p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.archive-dialog-close {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--motion-base) ease, color var(--motion-base) ease;
+}
+
+.archive-dialog-close:hover {
+  background: var(--surface-muted);
+  color: var(--ink);
+}
+
+.archive-dialog-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+.archive-dialog-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.archive-dialog-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.archive-dialog-textarea {
+  min-height: 120px;
+  resize: vertical;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.5;
+}
+
+.archive-dialog-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(24, 102, 63, 0.10);
+}
+
+.archive-dialog-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.archive-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--border);
 }

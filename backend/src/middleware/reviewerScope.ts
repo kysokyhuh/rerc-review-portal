@@ -42,7 +42,8 @@ export const requireSubmissionAccess = async (
 
   if (
     req.user.roles.includes(RoleType.CHAIR) ||
-    req.user.roles.includes(RoleType.RESEARCH_ASSOCIATE)
+    req.user.roles.includes(RoleType.RESEARCH_ASSOCIATE) ||
+    req.user.roles.includes(RoleType.ADMIN)
   ) {
     return next();
   }
@@ -99,7 +100,8 @@ export const requireProjectAccess = async (
 
   if (
     req.user.roles.includes(RoleType.CHAIR) ||
-    req.user.roles.includes(RoleType.RESEARCH_ASSOCIATE)
+    req.user.roles.includes(RoleType.RESEARCH_ASSOCIATE) ||
+    req.user.roles.includes(RoleType.ADMIN)
   ) {
     return next();
   }

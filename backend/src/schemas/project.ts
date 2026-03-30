@@ -162,3 +162,16 @@ export const createPortalFollowUpSubmissionSchema = z
     completenessRemarks: optionalString(2000),
   })
   .strict();
+
+export const archiveProjectSchema = z
+  .object({
+    mode: z.enum(["CLOSED", "WITHDRAWN"]),
+    reason: z.string().trim().min(1, "reason is required").max(1000),
+  })
+  .strict();
+
+export const restoreProjectSchema = z
+  .object({
+    reason: z.string().trim().min(1, "reason is required").max(1000),
+  })
+  .strict();

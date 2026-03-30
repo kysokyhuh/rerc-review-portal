@@ -49,7 +49,7 @@ export const getAnnualSummaryHandler = async (req: Request, res: Response, next:
     const filters = parseReportFilters(req.query as Record<string, unknown>);
     const termWindows = await resolveTermWindows(filters.ay, filters.term);
     const submissions = await fetchReportSubmissions(filters, termWindows);
-    return res.json(buildAnnualSummaryPayload(filters, termWindows, submissions));
+    return res.json(await buildAnnualSummaryPayload(filters, termWindows, submissions));
   } catch (error: any) {
     if (error instanceof Error) {
       return res.status(400).json({ message: error.message });

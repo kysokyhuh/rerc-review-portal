@@ -553,6 +553,51 @@ export async function deleteProtocolMilestone(projectId: number, milestoneId: nu
   return response.data as { success: boolean };
 }
 
+export async function archiveProjectRecord(
+  projectId: number,
+  payload: {
+    mode: "CLOSED" | "WITHDRAWN";
+    reason: string;
+  }
+) {
+  const response = await api.post(`/projects/${projectId}/archive`, payload);
+  return response.data as {
+    project: {
+      id: number;
+      overallStatus: string;
+    };
+    history: {
+      id: number;
+      oldStatus: string | null;
+      newStatus: string;
+      effectiveDate: string;
+      reason: string | null;
+    };
+  };
+}
+
+export async function restoreProjectRecord(
+  projectId: number,
+  payload: {
+    reason: string;
+  }
+) {
+  const response = await api.post(`/projects/${projectId}/restore`, payload);
+  return response.data as {
+    project: {
+      id: number;
+      overallStatus: string;
+    };
+    history: {
+      id: number;
+      oldStatus: string | null;
+      newStatus: string;
+      effectiveDate: string;
+      reason: string | null;
+    };
+  };
+}
+
 export async function fetchSubmissionDetail(submissionId: number) {
   const response = await api.get(`/submissions/${submissionId}`);
   return response.data as SubmissionDetail;
@@ -736,7 +781,7 @@ export async function createProjectWithInitialSubmission(
 }
 
 /**
- * Fetch archived projects (CLOSED or WITHDRAWN status)
+ * Fetch explicitly archived projects (project overallStatus CLOSED or WITHDRAWN)
  * These are historical protocols that don't appear in active dashboard queues.
  */
 export async function fetchArchivedProjects(params?: {

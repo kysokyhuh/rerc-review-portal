@@ -1,10 +1,16 @@
 import prisma from "../../config/prismaClient";
 import {
   ProponentCategory,
+  SLAStage,
   ReviewType,
   SubmissionStatus,
   type Prisma,
 } from "../../generated/prisma/client";
+import {
+  buildAcademicYearSummary,
+  type ReportSubmissionRecord,
+} from "./reportMetrics";
+import { computeWorkingDaysBetween } from "../../utils/workingDays";
 
 const RECENT_AY_WINDOW = 5;
 
@@ -34,7 +40,7 @@ export type TermWindow = {
 
 type SubmissionForReports = Prisma.SubmissionGetPayload<{
   include: {
-    classification: { select: { reviewType: true } };
+    classification: { select: { reviewType: true; classificationDate: true } };
     project: {
       select: {
         id: true;
@@ -46,18 +52,23 @@ type SubmissionForReports = Prisma.SubmissionGetPayload<{
         collegeOrUnit: true;
         department: true;
         proponentCategory: true;
+        committeeId: true;
+        approvalStartDate: true;
         protocolProfile: { select: { typeOfReview: true } };
         committee: { select: { code: true; name: true } };
       };
     };
     statusHistory: {
-      select: { newStatus: true };
+      select: { newStatus: true; effectiveDate: true };
     };
   };
 }>;
 
 const PRO_CATEGORY_KEYS = ["UNDERGRAD", "GRAD", "FACULTY", "NON_TEACHING"] as const;
 type ProCategoryKey = (typeof PRO_CATEGORY_KEYS)[number];
+type ResolvedReviewType = "EXEMPT" | "EXPEDITED" | "FULL_BOARD";
+type ExclusiveOutcome = ResolvedReviewType | "WITHDRAWN" | "UNCLASSIFIED";
+type StageComplianceKey = "COMPLETENESS" | "CLASSIFICATION" | "REVIEW" | "REVISION_RESPONSE";
 
 const emptyCategoryBuckets = () => ({
   UNDERGRAD: 0,
@@ -132,12 +143,175 @@ const normalizeReviewTypeFromText = (value: string | null | undefined) => {
   return null;
 };
 
-const resolveSubmissionReviewType = (submission: SubmissionForReports) =>
+const resolveSubmissionReviewType = (
+  submission: SubmissionForReports
+): ResolvedReviewType | null =>
+  normalizeReviewType(submission.classification?.reviewType) ??
   normalizeReviewTypeFromText(submission.project?.protocolProfile?.typeOfReview);
 
 const isWithdrawn = (submission: SubmissionForReports) =>
   submission.status === SubmissionStatus.WITHDRAWN ||
   submission.statusHistory.some((entry) => entry.newStatus === SubmissionStatus.WITHDRAWN);
+
+const nextScreeningStatusSet = new Set<SubmissionStatus>([
+  SubmissionStatus.RETURNED_FOR_COMPLETION,
+  SubmissionStatus.NOT_ACCEPTED,
+  SubmissionStatus.AWAITING_CLASSIFICATION,
+  SubmissionStatus.UNDER_CLASSIFICATION,
+  SubmissionStatus.CLASSIFIED,
+]);
+
+const toMetricSubmission = (submission: SubmissionForReports): ReportSubmissionRecord => ({
+  id: submission.id,
+  receivedDate: submission.receivedDate ?? submission.createdAt,
+  sequenceNumber: submission.sequenceNumber,
+  status: submission.status,
+  resultsNotifiedAt: submission.resultsNotifiedAt ?? null,
+  finalDecision: submission.finalDecision ?? null,
+  finalDecisionDate: submission.finalDecisionDate ?? null,
+  classification: submission.classification
+    ? {
+        reviewType: submission.classification.reviewType,
+        classificationDate: submission.classification.classificationDate,
+      }
+    : null,
+  project: submission.project
+    ? {
+        id: submission.project.id,
+        committee: { code: submission.project.committee.code },
+        committeeId: submission.project.committeeId,
+        piAffiliation: submission.project.piAffiliation,
+        collegeOrUnit: submission.project.collegeOrUnit,
+        proponentCategory: submission.project.proponentCategory,
+        approvalStartDate: submission.project.approvalStartDate,
+      }
+    : null,
+  statusHistory: submission.statusHistory.map((entry) => ({
+    newStatus: entry.newStatus,
+    effectiveDate: entry.effectiveDate,
+  })),
+});
+
+const getExclusiveOutcome = (submission: SubmissionForReports): ExclusiveOutcome => {
+  if (isWithdrawn(submission)) return "WITHDRAWN";
+  return resolveSubmissionReviewType(submission) ?? "UNCLASSIFIED";
+};
+
+const monthFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  timeZone: "UTC",
+});
+
+const startOfUtcMonth = (value: Date) =>
+  new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), 1));
+
+const addUtcMonths = (value: Date, months: number) =>
+  new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth() + months, 1));
+
+const buildMonthBuckets = (termWindows: TermWindow[]) => {
+  if (termWindows.length === 0) return [];
+
+  const start = startOfUtcMonth(
+    termWindows.reduce((min, item) => (item.startDate < min ? item.startDate : min), termWindows[0].startDate)
+  );
+  const latestEndExclusive = termWindows.reduce(
+    (max, item) => (item.endDateExclusive > max ? item.endDateExclusive : max),
+    termWindows[0].endDateExclusive
+  );
+  const endExclusive = addUtcMonths(startOfUtcMonth(addDays(latestEndExclusive, -1)), 1);
+
+  const buckets: Array<{ key: string; label: string; start: Date; endExclusive: Date }> = [];
+  for (let cursor = start; cursor < endExclusive; cursor = addUtcMonths(cursor, 1)) {
+    const next = addUtcMonths(cursor, 1);
+    buckets.push({
+      key: `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, "0")}`,
+      label: monthFormatter.format(cursor),
+      start: cursor,
+      endExclusive: next,
+    });
+  }
+  return buckets;
+};
+
+const findBucketByDate = <T extends { start: Date; endExclusive: Date }>(
+  buckets: T[],
+  value: Date | null | undefined
+) => {
+  if (!value) return null;
+  const timestamp = new Date(value).getTime();
+  if (!Number.isFinite(timestamp)) return null;
+  return (
+    buckets.find((bucket) => {
+      const start = bucket.start.getTime();
+      const end = bucket.endExclusive.getTime();
+      return timestamp >= start && timestamp < end;
+    }) ?? null
+  );
+};
+
+const toSlaConfigKey = (
+  committeeId: number,
+  stage: SLAStage,
+  reviewType: ReviewType | null
+) => `${committeeId}:${stage}:${reviewType ?? "null"}`;
+
+const buildSlaConfigMap = (
+  configs: Array<{ committeeId: number; stage: SLAStage; reviewType: ReviewType | null; workingDays: number }>
+) => {
+  const byKey = new Map<string, number>();
+  const byStage = new Map<string, number[]>();
+
+  for (const config of configs) {
+    byKey.set(toSlaConfigKey(config.committeeId, config.stage, config.reviewType), config.workingDays);
+    const stageKey = `${config.committeeId}:${config.stage}`;
+    const values = byStage.get(stageKey) ?? [];
+    values.push(config.workingDays);
+    byStage.set(stageKey, values);
+  }
+
+  return { byKey, byStage };
+};
+
+const getConfiguredWorkingDays = (
+  configMap: ReturnType<typeof buildSlaConfigMap>,
+  committeeId: number | null | undefined,
+  stage: SLAStage,
+  reviewType: ReviewType | null
+) => {
+  if (!committeeId) return null;
+
+  const specific = configMap.byKey.get(toSlaConfigKey(committeeId, stage, reviewType));
+  if (typeof specific === "number") return specific;
+
+  const fallback = configMap.byKey.get(toSlaConfigKey(committeeId, stage, null));
+  if (typeof fallback === "number") return fallback;
+
+  const stageValues = configMap.byStage.get(`${committeeId}:${stage}`) ?? [];
+  if (!stageValues.length) return null;
+  return Math.min(...stageValues);
+};
+
+const firstHistoryDate = (
+  submission: SubmissionForReports,
+  predicate: (status: SubmissionStatus) => boolean
+) =>
+  submission.statusHistory.find((entry) => predicate(entry.newStatus))?.effectiveDate ?? null;
+
+const lastHistoryDate = (
+  submission: SubmissionForReports,
+  predicate: (status: SubmissionStatus) => boolean
+) => {
+  for (let index = submission.statusHistory.length - 1; index >= 0; index -= 1) {
+    const entry = submission.statusHistory[index];
+    if (predicate(entry.newStatus)) return entry.effectiveDate;
+  }
+  return null;
+};
+
+const reachedStatus = (
+  submission: SubmissionForReports,
+  predicate: (status: SubmissionStatus) => boolean
+) => predicate(submission.status) || submission.statusHistory.some((entry) => predicate(entry.newStatus));
 
 const parseTerm = (value: unknown): "ALL" | 1 | 2 | 3 => {
   const raw = String(value ?? "ALL").trim().toUpperCase();
@@ -267,7 +441,7 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
         : {}),
     },
     include: {
-      classification: { select: { reviewType: true } },
+      classification: { select: { reviewType: true, classificationDate: true } },
       project: {
         select: {
           id: true,
@@ -279,12 +453,15 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
           collegeOrUnit: true,
           department: true,
           proponentCategory: true,
+          committeeId: true,
+          approvalStartDate: true,
           protocolProfile: { select: { typeOfReview: true } },
           committee: { select: { code: true, name: true } },
         },
       },
       statusHistory: {
-        select: { newStatus: true },
+        orderBy: { effectiveDate: "asc" },
+        select: { newStatus: true, effectiveDate: true },
       },
     },
   });
@@ -322,11 +499,45 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
   });
 }
 
-export function buildAnnualSummaryPayload(
+const aggregateTopRows = <T extends { label: string }>(
+  rows: T[],
+  limit: number,
+  createOther: (items: T[]) => T
+) => {
+  if (rows.length <= limit) return rows;
+  const primary = rows.slice(0, limit);
+  return [...primary, createOther(rows.slice(limit))];
+};
+
+export async function buildAnnualSummaryPayload(
   filters: ReportViewFilters,
   termWindows: TermWindow[],
   submissions: SubmissionForReports[]
 ) {
+  const [holidayRows, slaConfigs] = await Promise.all([
+    prisma.holiday.findMany({ select: { date: true } }),
+    prisma.configSLA.findMany({
+      where: { isActive: true },
+      select: {
+        committeeId: true,
+        stage: true,
+        reviewType: true,
+        workingDays: true,
+      },
+    }),
+  ]);
+  const holidayDates = holidayRows.map((row) => row.date);
+  const metricsSummary = buildAcademicYearSummary({
+    submissions: submissions.map(toMetricSubmission),
+    holidayDates,
+    termWindows: termWindows.map((window) => ({
+      term: window.term,
+      startDate: window.startDate,
+      endDate: window.endDateExclusive,
+    })),
+  });
+  const slaConfigMap = buildSlaConfigMap(slaConfigs);
+
   const dateRange = {
     startDate: termWindows.reduce((min, t) => (t.startDate < min ? t.startDate : min), termWindows[0].startDate),
     endDate: addDays(
@@ -370,12 +581,27 @@ export function buildAnnualSummaryPayload(
       >;
     }
   >();
+  const outcomeByCollege = new Map<
+    string,
+    {
+      label: string;
+      total: number;
+      exempted: number;
+      expedited: number;
+      fullReview: number;
+      withdrawn: number;
+      unclassified: number;
+    }
+  >();
+  const committeeDistributionMap = new Map<string, number>();
 
   for (const submission of submissions) {
     const category = resolveSubmissionCategory(submission);
     const reviewType = resolveSubmissionReviewType(submission);
     const college = normalizeCollege(submission);
     const withdrawn = isWithdrawn(submission);
+    const exclusiveOutcome = getExclusiveOutcome(submission);
+    const committeeLabel = submission.project?.committee.code ?? "Unknown";
 
     summaryCounts.received += 1;
     if (reviewType === "EXEMPT") summaryCounts.exempted += 1;
@@ -383,6 +609,10 @@ export function buildAnnualSummaryPayload(
     if (reviewType === "FULL_BOARD") summaryCounts.fullReview += 1;
     if (withdrawn) summaryCounts.withdrawn += 1;
     if (category) summaryCounts.byProponentCategory[category] += 1;
+    committeeDistributionMap.set(
+      committeeLabel,
+      (committeeDistributionMap.get(committeeLabel) ?? 0) + 1
+    );
 
     if (!breakdownByCollege.has(college)) {
       breakdownByCollege.set(college, {
@@ -433,6 +663,25 @@ export function buildAnnualSummaryPayload(
         matrixBase.TOTAL.withdrawn += 1;
       }
     }
+
+    if (!outcomeByCollege.has(college)) {
+      outcomeByCollege.set(college, {
+        label: college,
+        total: 0,
+        exempted: 0,
+        expedited: 0,
+        fullReview: 0,
+        withdrawn: 0,
+        unclassified: 0,
+      });
+    }
+    const outcomeBucket = outcomeByCollege.get(college)!;
+    outcomeBucket.total += 1;
+    if (exclusiveOutcome === "WITHDRAWN") outcomeBucket.withdrawn += 1;
+    else if (exclusiveOutcome === "EXEMPT") outcomeBucket.exempted += 1;
+    else if (exclusiveOutcome === "EXPEDITED") outcomeBucket.expedited += 1;
+    else if (exclusiveOutcome === "FULL_BOARD") outcomeBucket.fullReview += 1;
+    else outcomeBucket.unclassified += 1;
   }
 
   const termBuckets = new Map<string, { label: string; received: number; exempted: number; expedited: number; fullReview: number; withdrawn: number }>();
@@ -575,6 +824,291 @@ export function buildAnnualSummaryPayload(
     return { category, years: comparativeYears, rows, totals };
   });
 
+  const monthBuckets = filters.ay === "ALL" ? [] : buildMonthBuckets(termWindows);
+  const receivedByMonthMap = new Map(
+    monthBuckets.map((bucket) => [bucket.key, { label: bucket.label, count: 0 }])
+  );
+  const reviewTypeByMonthMap = new Map(
+    monthBuckets.map((bucket) => [
+      bucket.key,
+      {
+        label: bucket.label,
+        exempted: 0,
+        expedited: 0,
+        fullReview: 0,
+        withdrawn: 0,
+        unclassified: 0,
+        total: 0,
+      },
+    ])
+  );
+  const withdrawnByMonthMap = new Map(
+    monthBuckets.map((bucket) => [bucket.key, { label: bucket.label, count: 0 }])
+  );
+
+  for (const submission of submissions) {
+    if (!monthBuckets.length) break;
+    const bucket = findBucketByDate(monthBuckets, submission.receivedDate ?? submission.createdAt);
+    if (!bucket) continue;
+
+    receivedByMonthMap.get(bucket.key)!.count += 1;
+    const reviewBucket = reviewTypeByMonthMap.get(bucket.key)!;
+    reviewBucket.total += 1;
+    const exclusiveOutcome = getExclusiveOutcome(submission);
+    if (exclusiveOutcome === "WITHDRAWN") {
+      reviewBucket.withdrawn += 1;
+      withdrawnByMonthMap.get(bucket.key)!.count += 1;
+    } else if (exclusiveOutcome === "EXEMPT") {
+      reviewBucket.exempted += 1;
+    } else if (exclusiveOutcome === "EXPEDITED") {
+      reviewBucket.expedited += 1;
+    } else if (exclusiveOutcome === "FULL_BOARD") {
+      reviewBucket.fullReview += 1;
+    } else {
+      reviewBucket.unclassified += 1;
+    }
+  }
+
+  const receivedByMonth = monthBuckets.map((bucket) => receivedByMonthMap.get(bucket.key)!);
+  const reviewTypeByMonth = monthBuckets.map((bucket) => reviewTypeByMonthMap.get(bucket.key)!);
+  const withdrawnByMonth = monthBuckets.map((bucket) => withdrawnByMonthMap.get(bucket.key)!);
+
+  const proponentCategoryDistribution = [
+    { label: "Undergraduate", category: "UNDERGRAD" as const, count: summaryCounts.byProponentCategory.UNDERGRAD },
+    { label: "Graduate", category: "GRAD" as const, count: summaryCounts.byProponentCategory.GRAD },
+    { label: "Faculty", category: "FACULTY" as const, count: summaryCounts.byProponentCategory.FACULTY },
+    { label: "Non-Teaching", category: "NON_TEACHING" as const, count: summaryCounts.byProponentCategory.NON_TEACHING },
+  ];
+
+  const receivedByCollege = aggregateTopRows(
+    topCollegeRows.map((row) => ({
+      label: row.college,
+      count: row.received,
+    })),
+    8,
+    (items) => ({
+      label: "Other",
+      count: items.reduce((sum, item) => sum + item.count, 0),
+    })
+  );
+
+  const outcomeByCollegeRows = aggregateTopRows(
+    Array.from(outcomeByCollege.values())
+      .sort((a, b) => b.total - a.total),
+    8,
+    (items) => ({
+      label: "Other",
+      total: items.reduce((sum, item) => sum + item.total, 0),
+      exempted: items.reduce((sum, item) => sum + item.exempted, 0),
+      expedited: items.reduce((sum, item) => sum + item.expedited, 0),
+      fullReview: items.reduce((sum, item) => sum + item.fullReview, 0),
+      withdrawn: items.reduce((sum, item) => sum + item.withdrawn, 0),
+      unclassified: items.reduce((sum, item) => sum + item.unclassified, 0),
+    })
+  );
+
+  const comparativeYearTrend = comparativeYears.map((year) => {
+    const row = {
+      label: year,
+      exempted: 0,
+      expedited: 0,
+      fullReview: 0,
+      withdrawn: 0,
+    };
+    for (const table of comparativeByProponent) {
+      row.exempted += table.totals.exempted[year] ?? 0;
+      row.expedited += table.totals.expedited[year] ?? 0;
+      row.fullReview += table.totals.fullReview[year] ?? 0;
+      row.withdrawn += table.totals.withdrawn[year] ?? 0;
+    }
+    return row;
+  });
+
+  const committeeDistribution = Array.from(committeeDistributionMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([label, count]) => ({ label, count }));
+
+  const slaCompliance = new Map<StageComplianceKey, { within: number; overdue: number }>([
+    ["COMPLETENESS", { within: 0, overdue: 0 }],
+    ["CLASSIFICATION", { within: 0, overdue: 0 }],
+    ["REVIEW", { within: 0, overdue: 0 }],
+    ["REVISION_RESPONSE", { within: 0, overdue: 0 }],
+  ]);
+  const now = new Date();
+
+  for (const submission of submissions) {
+    const committeeId = submission.project?.committeeId ?? null;
+    const reviewType = submission.classification?.reviewType ?? null;
+    const completenessStart = submission.receivedDate ?? submission.createdAt;
+    const completenessEnd = firstHistoryDate(submission, (status) => nextScreeningStatusSet.has(status));
+    const completenessConfigured = getConfiguredWorkingDays(
+      slaConfigMap,
+      committeeId,
+      SLAStage.COMPLETENESS,
+      null
+    );
+    if (completenessConfigured !== null) {
+      const completenessActual = computeWorkingDaysBetween(
+        completenessStart,
+        completenessEnd ?? now,
+        holidayDates
+      );
+      const stage = slaCompliance.get("COMPLETENESS")!;
+      if (completenessActual <= completenessConfigured) stage.within += 1;
+      else stage.overdue += 1;
+    }
+
+    const classificationReached =
+      !!submission.classification ||
+      reachedStatus(submission, (status) =>
+        status === SubmissionStatus.AWAITING_CLASSIFICATION ||
+        status === SubmissionStatus.UNDER_CLASSIFICATION ||
+        status === SubmissionStatus.CLASSIFIED ||
+        status === SubmissionStatus.UNDER_REVIEW ||
+        status === SubmissionStatus.AWAITING_REVISIONS ||
+        status === SubmissionStatus.REVISION_SUBMITTED ||
+        status === SubmissionStatus.CLOSED ||
+        status === SubmissionStatus.WITHDRAWN
+      );
+    const classificationConfigured = getConfiguredWorkingDays(
+      slaConfigMap,
+      committeeId,
+      SLAStage.CLASSIFICATION,
+      reviewType
+    );
+    if (classificationReached && classificationConfigured !== null) {
+      const classificationStart =
+        firstHistoryDate(
+          submission,
+          (status) =>
+            status === SubmissionStatus.AWAITING_CLASSIFICATION ||
+            status === SubmissionStatus.UNDER_CLASSIFICATION
+        ) ??
+        completenessEnd ??
+        completenessStart;
+      const classificationEnd = submission.classification?.classificationDate ?? now;
+      const classificationActual = computeWorkingDaysBetween(
+        classificationStart,
+        classificationEnd,
+        holidayDates
+      );
+      const stage = slaCompliance.get("CLASSIFICATION")!;
+      if (classificationActual <= classificationConfigured) stage.within += 1;
+      else stage.overdue += 1;
+    }
+
+    const reviewConfigured =
+      reviewType === ReviewType.EXPEDITED || reviewType === ReviewType.FULL_BOARD
+        ? getConfiguredWorkingDays(slaConfigMap, committeeId, SLAStage.REVIEW, reviewType)
+        : null;
+    const reviewStart = firstHistoryDate(
+      submission,
+      (status) => status === SubmissionStatus.UNDER_REVIEW
+    );
+    if (reviewStart && reviewConfigured !== null) {
+      const reviewEnd =
+        firstHistoryDate(
+          submission,
+          (status) =>
+            status === SubmissionStatus.AWAITING_REVISIONS ||
+            status === SubmissionStatus.REVISION_SUBMITTED ||
+            status === SubmissionStatus.CLOSED ||
+            status === SubmissionStatus.WITHDRAWN
+        ) ?? now;
+      const reviewActual = computeWorkingDaysBetween(reviewStart, reviewEnd, holidayDates);
+      const stage = slaCompliance.get("REVIEW")!;
+      if (reviewActual <= reviewConfigured) stage.within += 1;
+      else stage.overdue += 1;
+    }
+
+    const revisionConfigured = getConfiguredWorkingDays(
+      slaConfigMap,
+      committeeId,
+      SLAStage.REVISION_RESPONSE,
+      null
+    );
+    const revisionStart = lastHistoryDate(
+      submission,
+      (status) => status === SubmissionStatus.AWAITING_REVISIONS
+    );
+    const revisionEnd = lastHistoryDate(
+      submission,
+      (status) => status === SubmissionStatus.REVISION_SUBMITTED
+    );
+    if (revisionStart && revisionConfigured !== null) {
+      const effectiveRevisionEnd =
+        revisionEnd && revisionEnd.getTime() >= revisionStart.getTime() ? revisionEnd : now;
+      const revisionActual = computeWorkingDaysBetween(
+        revisionStart,
+        effectiveRevisionEnd,
+        holidayDates
+      );
+      const stage = slaCompliance.get("REVISION_RESPONSE")!;
+      if (revisionActual <= revisionConfigured) stage.within += 1;
+      else stage.overdue += 1;
+    }
+  }
+
+  const workflowFunnel = [
+    { label: "Received", count: submissions.length },
+    {
+      label: "Screened",
+      count: submissions.filter((submission) =>
+        reachedStatus(
+          submission,
+          (status) =>
+            status === SubmissionStatus.UNDER_COMPLETENESS_CHECK ||
+            nextScreeningStatusSet.has(status)
+        )
+      ).length,
+    },
+    {
+      label: "Classified",
+      count: submissions.filter((submission) =>
+        !!submission.classification ||
+        reachedStatus(
+          submission,
+          (status) =>
+            status === SubmissionStatus.AWAITING_CLASSIFICATION ||
+            status === SubmissionStatus.UNDER_CLASSIFICATION ||
+            status === SubmissionStatus.CLASSIFIED ||
+            status === SubmissionStatus.UNDER_REVIEW ||
+            status === SubmissionStatus.AWAITING_REVISIONS ||
+            status === SubmissionStatus.REVISION_SUBMITTED ||
+            status === SubmissionStatus.CLOSED ||
+            status === SubmissionStatus.WITHDRAWN
+        )
+      ).length,
+    },
+    {
+      label: "Under Review",
+      count: submissions.filter((submission) =>
+        reachedStatus(submission, (status) => status === SubmissionStatus.UNDER_REVIEW)
+      ).length,
+    },
+    {
+      label: "Awaiting Revisions",
+      count: submissions.filter((submission) =>
+        reachedStatus(
+          submission,
+          (status) =>
+            status === SubmissionStatus.AWAITING_REVISIONS ||
+            status === SubmissionStatus.REVISION_SUBMITTED
+        )
+      ).length,
+    },
+    {
+      label: "Closed",
+      count: submissions.filter((submission) =>
+        reachedStatus(
+          submission,
+          (status) =>
+            status === SubmissionStatus.CLOSED || status === SubmissionStatus.WITHDRAWN
+        )
+      ).length,
+    },
+  ];
+
   return {
     selection: {
       ay: filters.ay,
@@ -602,9 +1136,53 @@ export function buildAnnualSummaryPayload(
     breakdownByCollege: topCollegeRows,
     comparativeByProponent,
     charts: {
+      receivedByMonth,
+      proponentCategoryDistribution,
+      receivedByCollege,
+      outcomeByCollege: outcomeByCollegeRows,
       proposalsPerTerm,
       reviewTypeDistribution,
       topColleges,
+      reviewTypeByMonth,
+      withdrawnByMonth,
+      comparativeYearTrend,
+      committeeDistribution,
+    },
+    performanceCharts: {
+      averages: {
+        daysToResults: [
+          { label: "Expedited", value: metricsSummary.averages.avgDaysToResults.expedited },
+          { label: "Full Review", value: metricsSummary.averages.avgDaysToResults.fullReview },
+        ],
+        daysToClearance: [
+          { label: "Expedited", value: metricsSummary.averages.avgDaysToClearance.expedited },
+          { label: "Full Review", value: metricsSummary.averages.avgDaysToClearance.fullReview },
+        ],
+        daysToResubmit: metricsSummary.averages.avgDaysToResubmit,
+      },
+      slaCompliance: [
+        {
+          label: "Completeness",
+          within: slaCompliance.get("COMPLETENESS")!.within,
+          overdue: slaCompliance.get("COMPLETENESS")!.overdue,
+        },
+        {
+          label: "Classification",
+          within: slaCompliance.get("CLASSIFICATION")!.within,
+          overdue: slaCompliance.get("CLASSIFICATION")!.overdue,
+        },
+        {
+          label: "Review",
+          within: slaCompliance.get("REVIEW")!.within,
+          overdue: slaCompliance.get("REVIEW")!.overdue,
+        },
+        {
+          label: "Revisions",
+          within: slaCompliance.get("REVISION_RESPONSE")!.within,
+          overdue: slaCompliance.get("REVISION_RESPONSE")!.overdue,
+        },
+      ],
+      workflowFunnel,
     },
   };
 }

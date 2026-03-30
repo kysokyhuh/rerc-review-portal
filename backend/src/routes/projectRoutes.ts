@@ -25,13 +25,17 @@ import {
   updateMilestone,
   deleteMilestone,
   createSubmissionForProject,
+  archiveProject,
+  restoreProjectArchive,
 } from "../services/projects/projectService";
 import {
+  archiveProjectSchema,
   createPortalFollowUpSubmissionSchema,
   createPortalIntakeProjectSchema,
   createMilestoneSchema,
   createProjectSchema,
   createProjectSubmissionSchema,
+  restoreProjectSchema,
   updateMilestoneSchema,
   updateProjectProfileSchema,
 } from "../schemas/project";
@@ -170,6 +174,38 @@ router.get("/projects/archived", requireUser, async (req, res, next) => {
     next(error);
   }
 });
+
+router.post(
+  "/projects/:id/archive",
+  requireAnyRole([RoleType.CHAIR, RoleType.ADMIN]),
+  validate(archiveProjectSchema),
+  async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) return res.status(400).json({ message: "Invalid project id" });
+      const result = await archiveProject(id, req.body.mode, req.body.reason, req.user!.id);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
+  "/projects/:id/restore",
+  requireAnyRole([RoleType.CHAIR, RoleType.ADMIN]),
+  validate(restoreProjectSchema),
+  async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) return res.status(400).json({ message: "Invalid project id" });
+      const result = await restoreProjectArchive(id, req.body.reason, req.user!.id);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 // Get a single project
 router.get("/projects/:id", requireUser, requireProjectAccess, async (req, res, next) => {

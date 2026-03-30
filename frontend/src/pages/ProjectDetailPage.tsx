@@ -2,16 +2,19 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useProjectDetail } from "@/hooks/useProjectDetail";
 import {
+  archiveProjectRecord,
   createProtocolMilestone,
   deleteProtocolMilestone,
   exportInitialAckCSV,
   exportInitialApprovalDocx,
   fetchProjectDetail,
+  restoreProjectRecord,
   updateProtocolMilestone,
   updateProtocolProfile,
 } from "@/services/api";
 import { Timeline } from "@/components/Timeline";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   ProtocolProfileSection,
   profileToFormState,
@@ -32,10 +35,16 @@ const STANDARD_MILESTONES: { label: string; ownerRole: string }[] = [
   { label: "Issuance of Ethics Clearance", ownerRole: "RERC and RERC Chair" },
 ];
 
+type ArchiveDialogState =
+  | { kind: "archive"; mode: "CLOSED" | "WITHDRAWN" }
+  | { kind: "restore" }
+  | null;
+
 export const ProjectDetailPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const [exporting, setExporting] = useState<string | null>(null);
   const [profileEditing, setProfileEditing] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
@@ -43,6 +52,10 @@ export const ProjectDetailPage: React.FC = () => {
   const [profileForm, setProfileForm] = useState<Record<string, string>>({});
   const [milestones, setMilestones] = useState<ProtocolMilestone[]>([]);
   const [newMilestoneLabel, setNewMilestoneLabel] = useState("");
+  const [archiveDialog, setArchiveDialog] = useState<ArchiveDialogState>(null);
+  const [archiveReason, setArchiveReason] = useState("");
+  const [archiveSubmitting, setArchiveSubmitting] = useState(false);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
   const backTarget = `/dashboard${location.search ?? ""}`;
 
   if (!projectId) {
@@ -80,7 +93,23 @@ export const ProjectDetailPage: React.FC = () => {
     );
   }
 
-  const latestSubmission = project.submissions?.[0];
+  const latestSubmission =
+    project.submissions && project.submissions.length > 0
+      ? project.submissions[project.submissions.length - 1]
+      : null;
+  const canManageArchive = Boolean(
+    user?.roles.some((role) => role === "CHAIR" || role === "ADMIN")
+  );
+  const isArchived =
+    project.overallStatus === "CLOSED" || project.overallStatus === "WITHDRAWN";
+  const canArchiveAsCompleted =
+    canManageArchive && !isArchived && latestSubmission?.status === "CLOSED";
+  const canArchiveAsWithdrawn =
+    canManageArchive && !isArchived && latestSubmission?.status === "WITHDRAWN";
+  const canRestoreArchive = canManageArchive && isArchived;
+  const latestArchiveEvent = (project.statusHistory ?? []).find(
+    (entry) => entry.newStatus === "CLOSED" || entry.newStatus === "WITHDRAWN"
+  );
 
   const getStatusVariant = (status: string) => {
     const s = status.toUpperCase();
@@ -136,6 +165,64 @@ export const ProjectDetailPage: React.FC = () => {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return "—";
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  };
+
+  const formatDateTime = (dateStr: string | null | undefined) => {
+    if (!dateStr) return "—";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  const openArchiveDialog = (next: Exclude<ArchiveDialogState, null>) => {
+    setArchiveDialog(next);
+    setArchiveReason("");
+    setArchiveError(null);
+  };
+
+  const closeArchiveDialog = () => {
+    if (archiveSubmitting) return;
+    setArchiveDialog(null);
+    setArchiveReason("");
+    setArchiveError(null);
+  };
+
+  const handleArchiveAction = async () => {
+    if (!archiveDialog) return;
+    const trimmedReason = archiveReason.trim();
+    if (!trimmedReason) {
+      setArchiveError("Reason is required.");
+      return;
+    }
+
+    try {
+      setArchiveSubmitting(true);
+      setArchiveError(null);
+      if (archiveDialog.kind === "archive") {
+        await archiveProjectRecord(project.id, {
+          mode: archiveDialog.mode,
+          reason: trimmedReason,
+        });
+      } else {
+        await restoreProjectRecord(project.id, {
+          reason: trimmedReason,
+        });
+      }
+      await reloadProject();
+      closeArchiveDialog();
+    } catch (err: any) {
+      setArchiveError(
+        err?.response?.data?.message || err?.message || "Failed to update archive status."
+      );
+    } finally {
+      setArchiveSubmitting(false);
+    }
   };
 
   const handleSaveProfile = async () => {
@@ -244,11 +331,69 @@ export const ProjectDetailPage: React.FC = () => {
               </span>
             </div>
           </div>
-          <span className={`badge badge-lg ${getStatusVariant(project.overallStatus)}`}>
-            {project.overallStatus.replace(/_/g, ' ')}
-          </span>
+          <div className="detail-hero-actions">
+            <span className={`badge badge-lg ${getStatusVariant(project.overallStatus)}`}>
+              {project.overallStatus.replace(/_/g, ' ')}
+            </span>
+            {canArchiveAsCompleted || canArchiveAsWithdrawn || canRestoreArchive ? (
+              <div className="archive-hero-actions">
+                {canArchiveAsCompleted ? (
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => openArchiveDialog({ kind: "archive", mode: "CLOSED" })}
+                  >
+                    Archive as Completed
+                  </button>
+                ) : null}
+                {canArchiveAsWithdrawn ? (
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => openArchiveDialog({ kind: "archive", mode: "WITHDRAWN" })}
+                  >
+                    Archive as Withdrawn
+                  </button>
+                ) : null}
+                {canRestoreArchive ? (
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => openArchiveDialog({ kind: "restore" })}
+                  >
+                    Restore from Archive
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
         </div>
       </header>
+
+      {isArchived ? (
+        <section className="card detail-card archive-summary-card">
+          <div className="section-title">
+            <h2>Archive Status</h2>
+            <span className={`badge ${getStatusVariant(project.overallStatus)}`}>
+              {project.overallStatus.replace(/_/g, " ")}
+            </span>
+          </div>
+          <div className="archive-summary-grid">
+            <div className="field">
+              <label>Archived on</label>
+              <p>{formatDateTime(latestArchiveEvent?.effectiveDate)}</p>
+            </div>
+            <div className="field">
+              <label>Archived by</label>
+              <p>{latestArchiveEvent?.changedBy?.fullName ?? "—"}</p>
+            </div>
+            <div className="field field-wide">
+              <label>Archive reason</label>
+              <p>{latestArchiveEvent?.reason || "No archive reason recorded."}</p>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <ProtocolProfileSection
         profile={project.protocolProfile}
@@ -522,6 +667,92 @@ export const ProjectDetailPage: React.FC = () => {
           </div>
         )}
       </section>
+
+      {archiveDialog ? (
+        <div
+          className="archive-dialog-backdrop"
+          role="dialog"
+          aria-modal="true"
+          onClick={closeArchiveDialog}
+        >
+          <div className="archive-dialog" onClick={(event) => event.stopPropagation()}>
+            <div className="archive-dialog-header">
+              <div>
+                <h3>
+                  {archiveDialog.kind === "restore"
+                    ? "Restore Archived Protocol"
+                    : archiveDialog.mode === "CLOSED"
+                    ? "Archive as Completed"
+                    : "Archive as Withdrawn"}
+                </h3>
+                <p>
+                  {archiveDialog.kind === "restore"
+                    ? "Restoring makes the protocol active again for future lifecycle work."
+                    : archiveDialog.mode === "CLOSED"
+                    ? "This marks the protocol itself as archived after its finished review cycle."
+                    : "This archives the protocol after its withdrawal has already been recorded."}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="archive-dialog-close"
+                onClick={closeArchiveDialog}
+                aria-label="Close archive dialog"
+              >
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 5l10 10M15 5L5 15" />
+                </svg>
+              </button>
+            </div>
+            <div className="archive-dialog-body">
+              <label htmlFor="archive-reason" className="archive-dialog-label">
+                Reason
+              </label>
+              <textarea
+                id="archive-reason"
+                className="archive-dialog-textarea"
+                value={archiveReason}
+                onChange={(event) => setArchiveReason(event.target.value)}
+                placeholder={
+                  archiveDialog.kind === "restore"
+                    ? "Explain why this protocol should be restored."
+                    : "Explain why this protocol is being archived."
+                }
+                disabled={archiveSubmitting}
+              />
+              {archiveError ? (
+                <p className="archive-dialog-error" role="alert">
+                  {archiveError}
+                </p>
+              ) : null}
+            </div>
+            <div className="archive-dialog-footer">
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={closeArchiveDialog}
+                disabled={archiveSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={handleArchiveAction}
+                disabled={archiveSubmitting}
+              >
+                {archiveSubmitting
+                  ? archiveDialog.kind === "restore"
+                    ? "Restoring..."
+                    : "Archiving..."
+                  : archiveDialog.kind === "restore"
+                  ? "Confirm Restore"
+                  : "Confirm Archive"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

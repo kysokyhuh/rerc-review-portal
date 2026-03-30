@@ -16,16 +16,19 @@ export interface ReportSubmissionRecord {
   receivedDate: Date;
   sequenceNumber: number;
   status: SubmissionStatus;
+  resultsNotifiedAt: Date | null;
   finalDecision: ReviewDecision | null;
   finalDecisionDate: Date | null;
   classification: {
     reviewType: ReviewType;
+    classificationDate: Date | null;
   } | null;
   project: {
     id: number;
     committee: {
       code: string;
     };
+    committeeId: number;
     piAffiliation: string | null;
     collegeOrUnit: string | null;
     proponentCategory: ProponentCategory | null;
@@ -236,6 +239,10 @@ const sortHistory = (history: ReportSubmissionHistoryEntry[]) =>
 export const resolveReviewResultsNotificationDate = (
   submission: ReportSubmissionRecord
 ): Date | null => {
+  if (submission.resultsNotifiedAt) {
+    return new Date(submission.resultsNotifiedAt);
+  }
+
   const history = sortHistory(submission.statusHistory);
   const underReview = history.find(
     (entry) => entry.newStatus === SubmissionStatus.UNDER_REVIEW

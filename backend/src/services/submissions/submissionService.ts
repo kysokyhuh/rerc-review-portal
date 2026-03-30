@@ -1021,7 +1021,6 @@ export async function recordFinalDecision(
     projectStatus = ProjectStatus.INACTIVE;
   } else if (finalDecision === "WITHDRAWN") {
     nextStatus = SubmissionStatus.WITHDRAWN;
-    projectStatus = ProjectStatus.WITHDRAWN;
     decisionRecord = null;
   } else {
     projectStatus = ProjectStatus.ACTIVE;

@@ -4,6 +4,7 @@
 import prisma from "../../config/prismaClient";
 import { AppError } from "../../middleware/errorHandler";
 import {
+  ProjectStatus,
   SubmissionStatus,
   type SubmissionType,
   type CompletenessStatus,
@@ -40,6 +41,25 @@ export const asNullableDate = (value: unknown) => {
   }
   const parsed = new Date(String(value));
   return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const ARCHIVED_PROJECT_STATUSES = [ProjectStatus.CLOSED, ProjectStatus.WITHDRAWN] as const;
+
+const normalizeArchiveProjectStatus = (value?: string | null) => {
+  if (value === ProjectStatus.CLOSED || value === ProjectStatus.WITHDRAWN) {
+    return value;
+  }
+  return null;
+};
+
+const compareNullableDates = (
+  left: Date | string | null | undefined,
+  right: Date | string | null | undefined,
+  dir: "asc" | "desc"
+) => {
+  const leftTime = left ? new Date(left).getTime() : Number.NEGATIVE_INFINITY;
+  const rightTime = right ? new Date(right).getTime() : Number.NEGATIVE_INFINITY;
+  return dir === "asc" ? leftTime - rightTime : rightTime - leftTime;
 };
 
 /* ------------------------------------------------------------------ */
@@ -124,22 +144,16 @@ export async function getArchivedProjects(params: {
     sortBy = "lastModified",
     sortDir = "desc",
   } = params;
-  const terminalStatuses = statusFilter ? [statusFilter] : ["CLOSED", "WITHDRAWN"];
+  const archiveStatuses = normalizeArchiveProjectStatus(statusFilter)
+    ? [normalizeArchiveProjectStatus(statusFilter)!]
+    : [...ARCHIVED_PROJECT_STATUSES];
 
   const whereClause: any = {
-    submissions: { some: { status: { in: terminalStatuses } } },
+    overallStatus: { in: archiveStatuses },
   };
 
   if (committeeCode) whereClause.committee = { code: committeeCode };
   if (collegeFilter) whereClause.piAffiliation = { equals: collegeFilter, mode: "insensitive" };
-  if (reviewTypeFilter) {
-    whereClause.submissions = {
-      some: {
-        status: { in: terminalStatuses },
-        classification: { reviewType: reviewTypeFilter },
-      },
-    };
-  }
   if (search) {
     whereClause.OR = [
       { projectCode: { contains: search, mode: "insensitive" } },
@@ -152,29 +166,43 @@ export async function getArchivedProjects(params: {
     where: whereClause,
     include: {
       submissions: {
-        orderBy: { sequenceNumber: "desc" },
+        orderBy: [{ sequenceNumber: "desc" }, { id: "desc" }],
         take: 1,
         include: { classification: { select: { reviewType: true } } },
       },
       committee: { select: { code: true, name: true } },
+      statusHistory: {
+        where: { newStatus: { in: ARCHIVED_PROJECT_STATUSES as unknown as ProjectStatus[] } },
+        orderBy: [{ effectiveDate: "desc" }, { id: "desc" }],
+        take: 1,
+      },
     },
-    orderBy:
-      sortBy === "submitted"
-        ? { initialSubmissionDate: sortDir }
-        : { updatedAt: sortDir },
-    take: limit,
-    skip: offset,
   });
 
   const archivedProjects = projects.filter((project) => {
     const latestSubmission = project.submissions[0];
-    return latestSubmission && terminalStatuses.includes(latestSubmission.status);
+    if (!latestSubmission) return false;
+    if (reviewTypeFilter && latestSubmission.classification?.reviewType !== reviewTypeFilter) {
+      return false;
+    }
+    return (
+      project.overallStatus === ProjectStatus.CLOSED ||
+      project.overallStatus === ProjectStatus.WITHDRAWN
+    ) && archiveStatuses.includes(project.overallStatus as (typeof ARCHIVED_PROJECT_STATUSES)[number]);
   });
 
-  const totalCount = await prisma.project.count({ where: whereClause });
+  archivedProjects.sort((left, right) => {
+    if (sortBy === "submitted") {
+      const leftReceived = left.submissions[0]?.receivedDate ?? left.initialSubmissionDate;
+      const rightReceived = right.submissions[0]?.receivedDate ?? right.initialSubmissionDate;
+      return compareNullableDates(leftReceived, rightReceived, sortDir);
+    }
+    return compareNullableDates(left.updatedAt, right.updatedAt, sortDir);
+  });
 
-  const items = archivedProjects.map((project) => {
+  const items = archivedProjects.slice(offset, offset + limit).map((project) => {
     const latestSubmission = project.submissions[0];
+    const archiveEvent = project.statusHistory[0];
     return {
       projectId: project.id,
       projectCode: project.projectCode,
@@ -186,10 +214,12 @@ export async function getArchivedProjects(params: {
       reviewType: latestSubmission?.classification?.reviewType ?? null,
       committeeCode: project.committee?.code ?? null,
       overallStatus: project.overallStatus,
+      archiveDate: archiveEvent?.effectiveDate ?? null,
+      archiveReason: archiveEvent?.reason ?? null,
     };
   });
 
-  return { items, total: totalCount, limit, offset };
+  return { items, total: archivedProjects.length, limit, offset };
 }
 
 /* ------------------------------------------------------------------ */
@@ -223,6 +253,10 @@ export async function getProjectFull(id: number) {
         orderBy: { createdAt: "desc" },
         include: { changedBy: true },
       },
+      statusHistory: {
+        orderBy: [{ effectiveDate: "desc" }, { id: "desc" }],
+        include: { changedBy: true },
+      },
       submissions: {
         orderBy: [{ receivedDate: "asc" }, { id: "asc" }],
         include: {
@@ -238,6 +272,145 @@ export async function getProjectFull(id: number) {
   });
   if (!project) throw new AppError(404, "NOT_FOUND", "Project not found");
   return project;
+}
+
+export async function archiveProject(
+  projectId: number,
+  mode: "CLOSED" | "WITHDRAWN",
+  reason: string,
+  actorId: number
+) {
+  const trimmedReason = reason.trim();
+  if (!trimmedReason) {
+    throw new AppError(400, "REASON_REQUIRED", "Archive reason is required");
+  }
+
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: {
+      id: true,
+      overallStatus: true,
+      submissions: {
+        orderBy: [{ sequenceNumber: "desc" }, { id: "desc" }],
+        take: 1,
+        select: { id: true, status: true },
+      },
+    },
+  });
+
+  if (!project) {
+    throw new AppError(404, "NOT_FOUND", "Project not found");
+  }
+
+  if (ARCHIVED_PROJECT_STATUSES.includes(project.overallStatus as (typeof ARCHIVED_PROJECT_STATUSES)[number])) {
+    throw new AppError(409, "ALREADY_ARCHIVED", "Project is already archived");
+  }
+
+  const latestSubmission = project.submissions[0];
+  if (!latestSubmission) {
+    throw new AppError(400, "NO_SUBMISSIONS", "Project must have a submission before it can be archived");
+  }
+
+  if (mode === ProjectStatus.CLOSED && latestSubmission.status !== SubmissionStatus.CLOSED) {
+    throw new AppError(400, "ARCHIVE_NOT_ALLOWED", "Latest submission must be closed before archiving as completed");
+  }
+
+  if (mode === ProjectStatus.WITHDRAWN && latestSubmission.status !== SubmissionStatus.WITHDRAWN) {
+    throw new AppError(400, "ARCHIVE_NOT_ALLOWED", "Latest submission must be withdrawn before archiving as withdrawn");
+  }
+
+  const updated = await prisma.$transaction(async (tx) => {
+    const history = await tx.projectStatusHistory.create({
+      data: {
+        projectId,
+        oldStatus: project.overallStatus,
+        newStatus: mode as ProjectStatus,
+        reason: trimmedReason,
+        changedById: actorId,
+      },
+      include: {
+        changedBy: {
+          select: {
+            fullName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    const nextProject = await tx.project.update({
+      where: { id: projectId },
+      data: { overallStatus: mode as ProjectStatus },
+      select: {
+        id: true,
+        overallStatus: true,
+      },
+    });
+
+    return { project: nextProject, history };
+  });
+
+  return updated;
+}
+
+export async function restoreProjectArchive(
+  projectId: number,
+  reason: string,
+  actorId: number
+) {
+  const trimmedReason = reason.trim();
+  if (!trimmedReason) {
+    throw new AppError(400, "REASON_REQUIRED", "Restore reason is required");
+  }
+
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: {
+      id: true,
+      overallStatus: true,
+    },
+  });
+
+  if (!project) {
+    throw new AppError(404, "NOT_FOUND", "Project not found");
+  }
+
+  if (!ARCHIVED_PROJECT_STATUSES.includes(project.overallStatus as (typeof ARCHIVED_PROJECT_STATUSES)[number])) {
+    throw new AppError(400, "NOT_ARCHIVED", "Project is not currently archived");
+  }
+
+  const updated = await prisma.$transaction(async (tx) => {
+    const history = await tx.projectStatusHistory.create({
+      data: {
+        projectId,
+        oldStatus: project.overallStatus,
+        newStatus: ProjectStatus.ACTIVE,
+        reason: trimmedReason,
+        changedById: actorId,
+      },
+      include: {
+        changedBy: {
+          select: {
+            fullName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    const nextProject = await tx.project.update({
+      where: { id: projectId },
+      data: { overallStatus: ProjectStatus.ACTIVE },
+      select: {
+        id: true,
+        overallStatus: true,
+      },
+    });
+
+    return { project: nextProject, history };
+  });
+
+  return updated;
 }
 
 /* ------------------------------------------------------------------ */

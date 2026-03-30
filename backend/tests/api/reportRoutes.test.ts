@@ -1,11 +1,6 @@
 import prismaClient from "../../src/config/prismaClient";
-import {
-  getAcademicYearSummaryHandler,
-} from "../../src/routes/reportRoutes";
-import {
-  ReviewType,
-  SubmissionStatus,
-} from "../../src/generated/prisma/client";
+import { getAcademicYearSummaryHandler } from "../../src/routes/reportRoutes";
+import { ReviewType, SubmissionStatus } from "../../src/generated/prisma/client";
 
 jest.mock("../../src/config/prismaClient", () => ({
   __esModule: true,
@@ -19,6 +14,9 @@ jest.mock("../../src/config/prismaClient", () => ({
     holiday: {
       findMany: jest.fn(),
     },
+    configSLA: {
+      findMany: jest.fn(),
+    },
   },
 }));
 
@@ -26,6 +24,7 @@ const prisma = prismaClient as unknown as {
   academicTerm: { findMany: jest.Mock };
   submission: { findMany: jest.Mock };
   holiday: { findMany: jest.Mock };
+  configSLA: { findMany: jest.Mock };
 };
 
 const createResponseMock = () => {
@@ -55,25 +54,53 @@ describe("GET /reports/academic-year-summary", () => {
     ]);
 
     prisma.holiday.findMany.mockResolvedValue([]);
+    prisma.configSLA.findMany.mockResolvedValue([
+      { committeeId: 10, stage: "COMPLETENESS", reviewType: null, workingDays: 1 },
+      { committeeId: 10, stage: "CLASSIFICATION", reviewType: ReviewType.EXPEDITED, workingDays: 1 },
+      { committeeId: 10, stage: "CLASSIFICATION", reviewType: ReviewType.FULL_BOARD, workingDays: 1 },
+      { committeeId: 10, stage: "REVIEW", reviewType: ReviewType.EXPEDITED, workingDays: 20 },
+      { committeeId: 10, stage: "REVIEW", reviewType: ReviewType.FULL_BOARD, workingDays: 30 },
+      { committeeId: 10, stage: "REVISION_RESPONSE", reviewType: null, workingDays: 7 },
+    ]);
 
     prisma.submission.findMany.mockResolvedValue([
       {
         id: 101,
+        createdAt: new Date("2025-06-12T00:00:00.000Z"),
         receivedDate: new Date("2025-06-12T00:00:00.000Z"),
         sequenceNumber: 1,
         status: SubmissionStatus.CLOSED,
+        resultsNotifiedAt: new Date("2025-06-20T00:00:00.000Z"),
         finalDecision: "APPROVED",
         finalDecisionDate: new Date("2025-06-20T00:00:00.000Z"),
-        classification: { reviewType: ReviewType.EXPEDITED },
+        classification: {
+          reviewType: ReviewType.EXPEDITED,
+          classificationDate: new Date("2025-06-14T00:00:00.000Z"),
+        },
         project: {
           id: 1,
+          projectCode: "RERC-2025-001",
+          title: "Protocol A",
+          proponent: "Student Group",
+          piName: "Student Group",
           piAffiliation: "College of Science",
           collegeOrUnit: "College of Science",
+          department: "Biology",
           proponentCategory: "UNDERGRAD",
+          committeeId: 10,
           approvalStartDate: new Date("2025-06-20T00:00:00.000Z"),
-          committee: { code: "RERC-HUMAN" },
+          protocolProfile: { typeOfReview: "Expedited" },
+          committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
         statusHistory: [
+          {
+            newStatus: SubmissionStatus.UNDER_COMPLETENESS_CHECK,
+            effectiveDate: new Date("2025-06-12T00:00:00.000Z"),
+          },
+          {
+            newStatus: SubmissionStatus.AWAITING_CLASSIFICATION,
+            effectiveDate: new Date("2025-06-13T00:00:00.000Z"),
+          },
           {
             newStatus: SubmissionStatus.UNDER_REVIEW,
             effectiveDate: new Date("2025-06-15T00:00:00.000Z"),
@@ -86,21 +113,41 @@ describe("GET /reports/academic-year-summary", () => {
       },
       {
         id: 102,
+        createdAt: new Date("2025-10-10T00:00:00.000Z"),
         receivedDate: new Date("2025-10-10T00:00:00.000Z"),
         sequenceNumber: 1,
         status: SubmissionStatus.WITHDRAWN,
+        resultsNotifiedAt: null,
         finalDecision: null,
         finalDecisionDate: null,
-        classification: { reviewType: ReviewType.FULL_BOARD },
+        classification: {
+          reviewType: ReviewType.FULL_BOARD,
+          classificationDate: new Date("2025-10-11T00:00:00.000Z"),
+        },
         project: {
           id: 2,
+          projectCode: "RERC-2025-002",
+          title: "Protocol B",
+          proponent: "Faculty Team",
+          piName: "Faculty Team",
           piAffiliation: "College of Science",
           collegeOrUnit: "College of Science",
+          department: "Chemistry",
           proponentCategory: "FACULTY",
+          committeeId: 10,
           approvalStartDate: null,
-          committee: { code: "RERC-HUMAN" },
+          protocolProfile: { typeOfReview: "Full board" },
+          committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
         statusHistory: [
+          {
+            newStatus: SubmissionStatus.UNDER_COMPLETENESS_CHECK,
+            effectiveDate: new Date("2025-10-10T00:00:00.000Z"),
+          },
+          {
+            newStatus: SubmissionStatus.AWAITING_CLASSIFICATION,
+            effectiveDate: new Date("2025-10-10T12:00:00.000Z"),
+          },
           {
             newStatus: SubmissionStatus.UNDER_REVIEW,
             effectiveDate: new Date("2025-10-12T00:00:00.000Z"),
@@ -114,10 +161,10 @@ describe("GET /reports/academic-year-summary", () => {
     ]);
   });
 
-  it("returns expected shape and totals", async () => {
+  it("returns expanded analytics and performance payloads", async () => {
     const req: any = {
       query: {
-        academicYear: "2025-2026",
+        ay: "2025-2026",
         term: "ALL",
       },
     };
@@ -132,11 +179,30 @@ describe("GET /reports/academic-year-summary", () => {
     expect(body).toHaveProperty("selection");
     expect(body).toHaveProperty("summaryCounts");
     expect(body).toHaveProperty("breakdownByCollege");
+    expect(body).toHaveProperty("performanceCharts");
+    expect(body.charts).toHaveProperty("receivedByMonth");
+    expect(body.charts).toHaveProperty("reviewTypeByMonth");
+    expect(body.charts).toHaveProperty("committeeDistribution");
 
     expect(body.summaryCounts.received).toBe(2);
     expect(body.summaryCounts.withdrawn).toBe(1);
-    expect(body.summaryCounts.expedited).toBe(0);
-    expect(body.summaryCounts.fullReview).toBe(0);
+    expect(body.summaryCounts.expedited).toBe(1);
+    expect(body.summaryCounts.fullReview).toBe(1);
+    expect(body.charts.receivedByMonth).toEqual([
+      { label: "Jun", count: 1 },
+      { label: "Jul", count: 0 },
+      { label: "Aug", count: 0 },
+      { label: "Sep", count: 0 },
+      { label: "Oct", count: 1 },
+      { label: "Nov", count: 0 },
+      { label: "Dec", count: 0 },
+      { label: "Jan", count: 0 },
+    ]);
+    expect(body.performanceCharts.averages.daysToResults[0].value).toBe(6);
+    expect(body.performanceCharts.workflowFunnel[0]).toEqual({
+      label: "Received",
+      count: 2,
+    });
 
     const breakdownTotal = body.breakdownByCollege.reduce(
       (sum: number, row: { received: number }) => sum + row.received,

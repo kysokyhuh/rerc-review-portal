@@ -317,7 +317,7 @@ export default function ReportsPage() {
 
         {appliedView === "analytics" && summary ? (
           <ReportSection title="Visual Analytics" subtitle="Charts reflect the same active filters.">
-            <AnalyticsCharts charts={summary.charts} onDrilldown={onDrilldown} />
+            <AnalyticsCharts summary={summary} onDrilldown={onDrilldown} />
           </ReportSection>
         ) : null}
 

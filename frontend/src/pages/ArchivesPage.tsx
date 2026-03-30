@@ -1,14 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { fetchArchivedProjects, fetchColleges, type ArchivedProject } from "@/services/api";
+import {
+  fetchArchivedProjects,
+  fetchColleges,
+  restoreProjectRecord,
+  type ArchivedProject,
+} from "@/services/api";
 import { Breadcrumbs } from "@/components";
 import { BRAND } from "@/config/branding";
+import { useAuth } from "@/contexts/AuthContext";
 import "../styles/archives.css";
 
 /**
  * Archives Page
  * 
- * Displays archived projects - those with terminal submission statuses (CLOSED, WITHDRAWN).
+ * Displays explicitly archived projects.
  * 
  * WHY CSV IMPORTS DON'T APPEAR IN THE DASHBOARD:
  * The main dashboard queues only show submissions with active workflow statuses:
@@ -16,12 +22,8 @@ import "../styles/archives.css";
  *   - Review queue: UNDER_REVIEW  
  *   - Revisions queue: AWAITING_REVISIONS
  * 
- * When CSV data is imported, protocols are typically set to CLOSED (approved) or 
- * WITHDRAWN status because they represent historical data that has already been
- * processed. These terminal statuses are intentionally excluded from active queues
- * since they require no further action.
- * 
- * This Archives page provides access to all historical/completed protocols.
+ * A protocol appears here only when the project itself has been archived at
+ * the project level as completed or withdrawn.
  */
 
 const formatDate = (dateString: string | null) => {
@@ -61,6 +63,7 @@ export default function ArchivesPage() {
   type ArchiveSort = "lastModifiedDesc" | "lastModifiedAsc" | "submittedDesc" | "submittedAsc";
 
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [items, setItems] = useState<ArchivedProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +77,14 @@ export default function ArchivesPage() {
   const [preset, setPreset] = useState<ArchivePreset>("ALL");
   const [sort, setSort] = useState<ArchiveSort>("lastModifiedDesc");
   const [collegeOptions, setCollegeOptions] = useState<string[]>([]);
+  const [restoreTarget, setRestoreTarget] = useState<ArchivedProject | null>(null);
+  const [restoreReason, setRestoreReason] = useState("");
+  const [restoreSubmitting, setRestoreSubmitting] = useState(false);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
   const limit = 50;
+  const canManageArchive = Boolean(
+    user?.roles.some((role) => role === "CHAIR" || role === "ADMIN")
+  );
 
   // Load distinct college values once
   useEffect(() => {
@@ -167,6 +177,42 @@ export default function ArchivesPage() {
   const currentPage = Math.floor(offset / limit) + 1;
   const totalPages = Math.ceil(total / limit);
 
+  const openRestoreDialog = (item: ArchivedProject) => {
+    setRestoreTarget(item);
+    setRestoreReason("");
+    setRestoreError(null);
+  };
+
+  const closeRestoreDialog = () => {
+    if (restoreSubmitting) return;
+    setRestoreTarget(null);
+    setRestoreReason("");
+    setRestoreError(null);
+  };
+
+  const handleRestore = async () => {
+    if (!restoreTarget) return;
+    const trimmedReason = restoreReason.trim();
+    if (!trimmedReason) {
+      setRestoreError("Reason is required.");
+      return;
+    }
+
+    try {
+      setRestoreSubmitting(true);
+      setRestoreError(null);
+      await restoreProjectRecord(restoreTarget.projectId, { reason: trimmedReason });
+      closeRestoreDialog();
+      await loadArchives();
+    } catch (err: any) {
+      setRestoreError(
+        err?.response?.data?.message || err?.message || "Failed to restore archived protocol."
+      );
+    } finally {
+      setRestoreSubmitting(false);
+    }
+  };
+
   return (
     <div className="archives-page detail-v2">
       <header className="detail-hero archives-hero">
@@ -181,7 +227,7 @@ export default function ArchivesPage() {
             <span className="detail-project-code">ARCHIVES</span>
             <h1 className="detail-title">Archived Protocols</h1>
             <span className="detail-subtitle">
-              Historical protocols with completed or withdrawn status.
+              Protocols explicitly archived as completed or withdrawn.
             </span>
           </div>
           <span className="badge badge-lg badge-neutral">{total} total</span>
@@ -314,6 +360,7 @@ export default function ArchivesPage() {
                   <th>Status</th>
                   <th>Date Received</th>
                   <th>Review Type</th>
+                  {canManageArchive ? <th>Actions</th> : null}
                 </tr>
               </thead>
               <tbody>
@@ -325,16 +372,40 @@ export default function ArchivesPage() {
                       </Link>
                     </td>
                     <td className="title-cell" title={item.title ?? "—"}>
-                      {item.title || "—"}
+                      <div className="archives-title-stack">
+                        <span className="archives-title-main">{item.title || "—"}</span>
+                        {item.archiveDate || item.archiveReason ? (
+                          <span className="archives-title-meta">
+                            Archived {formatDate(item.archiveDate)}
+                            {item.archiveReason ? ` • ${item.archiveReason}` : ""}
+                          </span>
+                        ) : null}
+                      </div>
                     </td>
                     <td>{item.piName || "—"}</td>
-                    <td>
-                      <span className={`status-badge status-${item.latestSubmissionStatus?.toLowerCase()}`}>
-                        {formatStatus(item.latestSubmissionStatus)}
+                    <td className="archives-status-cell">
+                      <span className={`status-badge status-${item.overallStatus?.toLowerCase()}`}>
+                        {formatStatus(item.overallStatus)}
                       </span>
                     </td>
                     <td>{formatDate(item.receivedDate)}</td>
                     <td>{formatReviewType(item.reviewType)}</td>
+                    {canManageArchive ? (
+                      <td>
+                        <div className="archives-row-actions">
+                          <button
+                            type="button"
+                            className="view-btn"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openRestoreDialog(item);
+                            }}
+                          >
+                            Restore
+                          </button>
+                        </div>
+                      </td>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>
@@ -365,6 +436,72 @@ export default function ArchivesPage() {
           )}
         </>
       )}
+
+      {restoreTarget ? (
+        <div
+          className="archive-dialog-backdrop"
+          role="dialog"
+          aria-modal="true"
+          onClick={closeRestoreDialog}
+        >
+          <div className="archive-dialog" onClick={(event) => event.stopPropagation()}>
+            <div className="archive-dialog-header">
+              <div>
+                <h3>Restore Archived Protocol</h3>
+                <p>
+                  Restoring will move this protocol out of Archives and set the project back to active.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="archive-dialog-close"
+                onClick={closeRestoreDialog}
+                aria-label="Close restore dialog"
+              >
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 5l10 10M15 5L5 15" />
+                </svg>
+              </button>
+            </div>
+            <div className="archive-dialog-body">
+              <label htmlFor="restore-reason" className="archive-dialog-label">
+                Reason
+              </label>
+              <textarea
+                id="restore-reason"
+                className="archive-dialog-textarea"
+                value={restoreReason}
+                onChange={(event) => setRestoreReason(event.target.value)}
+                placeholder="Explain why this protocol should be restored."
+                disabled={restoreSubmitting}
+              />
+              {restoreError ? (
+                <p className="archive-dialog-error" role="alert">
+                  {restoreError}
+                </p>
+              ) : null}
+            </div>
+            <div className="archive-dialog-footer">
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={closeRestoreDialog}
+                disabled={restoreSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={handleRestore}
+                disabled={restoreSubmitting}
+              >
+                {restoreSubmitting ? "Restoring..." : "Confirm Restore"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
