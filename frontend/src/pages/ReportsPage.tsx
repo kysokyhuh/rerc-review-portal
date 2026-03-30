@@ -251,41 +251,47 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="reports-page">
-      <Breadcrumbs items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Reports" }]} />
+    <div className="reports-page portal-page portal-page--dense">
+      <section className="portal-context">
+        <Breadcrumbs items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Reports" }]} />
 
-      <header className="reports-header">
-        <div className="reports-header-content">
-          <Link to="/dashboard" className="back-link">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Back to Dashboard
-          </Link>
-          <h1>Annual Reports</h1>
-          <p>Spreadsheet-style reporting with summary, analytics, and submission records.</p>
-        </div>
-      </header>
+        <header className="reports-header">
+          <div className="reports-header-content portal-context-inline">
+            <div className="portal-context-copy">
+              <Link to="/dashboard" className="back-link">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Back to Dashboard
+              </Link>
+              <h1>Annual Reports</h1>
+              <p>Review summary metrics, analytics, and records without switching reporting surfaces.</p>
+            </div>
+            <span className="ui-info-pill">{selectionSummary}</span>
+          </div>
+        </header>
+      </section>
 
-      <ReportViewSwitch active={appliedView} onChange={onViewChange} />
+      <section className="portal-controls portal-section compact">
+        <ReportViewSwitch active={appliedView} onChange={onViewChange} />
 
-      <ReportFiltersBar
-        years={years}
-        committees={committees}
-        filters={draftFilters}
-        availableTermValues={availableTermValues}
-        loading={loadingOptions || loadingSummary || loadingRecords}
-        selectionSummary={selectionSummary}
-        onChange={onFilterChange}
-        onApply={onApply}
-        onReset={onReset}
-      />
+        <ReportFiltersBar
+          years={years}
+          committees={committees}
+          filters={draftFilters}
+          availableTermValues={availableTermValues}
+          loading={loadingOptions || loadingSummary || loadingRecords}
+          selectionSummary={selectionSummary}
+          onChange={onFilterChange}
+          onApply={onApply}
+          onReset={onReset}
+        />
+      </section>
 
-      {error ? <div className="reports-error">{error}</div> : null}
+      {error ? <div className="reports-error portal-support">{error}</div> : null}
 
-      <div className="reports-sheet">
-        {appliedView === "summary" && summary ? (
-          <>
+      {summary ? (
+        <section className="portal-summary">
           <ReportSummaryCards
             received={summary.summaryCounts.received}
             exempted={summary.summaryCounts.exempted}
@@ -294,7 +300,12 @@ export default function ReportsPage() {
             withdrawn={summary.summaryCounts.withdrawn}
             byCategory={summary.summaryCounts.byProponentCategory}
           />
+        </section>
+      ) : null}
 
+      <div className="reports-sheet portal-content">
+        {appliedView === "summary" && summary ? (
+          <>
           <ReportSection
             title="Comparative Tables by Proponent Category"
             subtitle="Sheet-style layout by proponent category, grouped by review type and academic year."

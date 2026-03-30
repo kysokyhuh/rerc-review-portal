@@ -133,6 +133,7 @@ let csrfBootstrapPromise: Promise<void> | null = null;
 let sessionExpiredHandler: (() => void) | null = null;
 let sessionRedirectInFlight = false;
 let csrfTokenCache: string | null = null;
+const CSRF_HEADER_NAMES = ["X-CSRF-Token", "x-csrf-token"] as const;
 
 function clearCsrfTokenCache() {
   csrfTokenCache = null;
@@ -150,6 +151,37 @@ function getCookieValue(name: string): string | null {
 
 function getCachedCsrfToken() {
   return csrfTokenCache || getCookieValue(CSRF_COOKIE_NAME);
+}
+
+function setRequestHeader(
+  config: InternalAxiosRequestConfig,
+  name: string,
+  value: string
+) {
+  config.headers = config.headers ?? {};
+  if (typeof config.headers.set === "function") {
+    config.headers.set(name, value);
+    return;
+  }
+  config.headers[name] = value;
+}
+
+function clearRequestHeader(config: InternalAxiosRequestConfig, name: string) {
+  const headers = config.headers;
+  if (!headers) {
+    return;
+  }
+  if (typeof headers.delete === "function") {
+    headers.delete(name);
+    return;
+  }
+  delete headers[name];
+}
+
+function clearCsrfHeaders(config: InternalAxiosRequestConfig) {
+  for (const name of CSRF_HEADER_NAMES) {
+    clearRequestHeader(config, name);
+  }
 }
 
 function getRequestPath(url?: string) {
@@ -182,10 +214,7 @@ async function attachCsrfToken(config: InternalAxiosRequestConfig) {
     return config;
   }
 
-  config.headers = config.headers ?? {};
-  if (!config.headers["X-CSRF-Token"]) {
-    config.headers["X-CSRF-Token"] = csrfToken;
-  }
+  setRequestHeader(config, "X-CSRF-Token", csrfToken);
   return config;
 }
 
@@ -356,10 +385,30 @@ api.interceptors.response.use(
       config._sessionRetry = true;
       try {
         await refreshAccessSession();
+        clearCsrfTokenCache();
+        clearCsrfHeaders(config);
         return api(config);
       } catch (refreshError) {
         forceSessionExpiredRedirect();
         return Promise.reject(refreshError);
+      }
+    }
+
+    const method = (config.method || "get").toLowerCase();
+    if (
+      error.response?.status === 403 &&
+      error.response?.data?.code === "INVALID_CSRF_TOKEN" &&
+      MUTATING_METHODS.has(method) &&
+      !config._csrfRetry
+    ) {
+      config._csrfRetry = true;
+      clearCsrfTokenCache();
+      clearCsrfHeaders(config);
+      try {
+        await ensureCsrfCookie();
+        return api(config);
+      } catch (csrfError) {
+        return Promise.reject(csrfError);
       }
     }
 
@@ -428,10 +477,27 @@ export async function fetchDashboardQueues(
       submissionType: item.submissionType,
       status: item.status,
       receivedDate: item.receivedDate,
-      daysRemaining: undefined,
+      daysRemaining: item.sla?.remainingDays ?? null,
+      daysElapsed: item.sla?.elapsedDays ?? null,
+      targetDays: item.sla?.targetDays ?? null,
       reviewType: item.classification?.reviewType ?? null,
       finalDecision: item.finalDecision ?? null,
       queue,
+      slaStage: item.sla?.stage ?? null,
+      slaDayMode: item.sla?.dayMode ?? null,
+      slaStatus: item.sla?.slaStatus ?? "ON_TRACK",
+      slaDueDate: item.sla?.dueDate ?? null,
+      startedAt: item.sla?.startedAt ?? null,
+      overdueOwner: item.sla?.ownerRole
+        ? item.sla.ownerRole === "PROJECT_LEADER_RESEARCHER_PROPONENT"
+          ? "RESEARCHER"
+          : "PANEL"
+        : undefined,
+      overdueOwnerRole: item.sla?.ownerRole,
+      overdueOwnerLabel: item.sla?.ownerLabel,
+      overdueOwnerIcon: item.sla?.ownerIcon,
+      overdueOwnerReason: item.sla?.ownerReason,
+      overdueReason: item.sla?.reason,
     }));
   };
 

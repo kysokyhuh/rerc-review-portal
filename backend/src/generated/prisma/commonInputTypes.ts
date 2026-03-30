@@ -705,6 +705,13 @@ export type EnumSLAStageFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumSLAStageFilter<$PrismaModel> | $Enums.SLAStage
 }
 
+export type EnumSLADayModeFilter<$PrismaModel = never> = {
+  equals?: $Enums.SLADayMode | Prisma.EnumSLADayModeFieldRefInput<$PrismaModel>
+  in?: $Enums.SLADayMode[] | Prisma.ListEnumSLADayModeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SLADayMode[] | Prisma.ListEnumSLADayModeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSLADayModeFilter<$PrismaModel> | $Enums.SLADayMode
+}
+
 export type EnumReviewTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.ReviewType | Prisma.EnumReviewTypeFieldRefInput<$PrismaModel> | null
   in?: $Enums.ReviewType[] | Prisma.ListEnumReviewTypeFieldRefInput<$PrismaModel> | null
@@ -723,6 +730,16 @@ export type EnumSLAStageWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumSLAStageFilter<$PrismaModel>
   _max?: Prisma.NestedEnumSLAStageFilter<$PrismaModel>
+}
+
+export type EnumSLADayModeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SLADayMode | Prisma.EnumSLADayModeFieldRefInput<$PrismaModel>
+  in?: $Enums.SLADayMode[] | Prisma.ListEnumSLADayModeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SLADayMode[] | Prisma.ListEnumSLADayModeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSLADayModeWithAggregatesFilter<$PrismaModel> | $Enums.SLADayMode
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSLADayModeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSLADayModeFilter<$PrismaModel>
 }
 
 export type EnumWorkflowEventTypeFilter<$PrismaModel = never> = {
@@ -1419,6 +1436,13 @@ export type NestedEnumSLAStageFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumSLAStageFilter<$PrismaModel> | $Enums.SLAStage
 }
 
+export type NestedEnumSLADayModeFilter<$PrismaModel = never> = {
+  equals?: $Enums.SLADayMode | Prisma.EnumSLADayModeFieldRefInput<$PrismaModel>
+  in?: $Enums.SLADayMode[] | Prisma.ListEnumSLADayModeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SLADayMode[] | Prisma.ListEnumSLADayModeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSLADayModeFilter<$PrismaModel> | $Enums.SLADayMode
+}
+
 export type NestedEnumReviewTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.ReviewType | Prisma.EnumReviewTypeFieldRefInput<$PrismaModel> | null
   in?: $Enums.ReviewType[] | Prisma.ListEnumReviewTypeFieldRefInput<$PrismaModel> | null
@@ -1437,6 +1461,16 @@ export type NestedEnumSLAStageWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumSLAStageFilter<$PrismaModel>
   _max?: Prisma.NestedEnumSLAStageFilter<$PrismaModel>
+}
+
+export type NestedEnumSLADayModeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SLADayMode | Prisma.EnumSLADayModeFieldRefInput<$PrismaModel>
+  in?: $Enums.SLADayMode[] | Prisma.ListEnumSLADayModeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SLADayMode[] | Prisma.ListEnumSLADayModeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSLADayModeWithAggregatesFilter<$PrismaModel> | $Enums.SLADayMode
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSLADayModeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSLADayModeFilter<$PrismaModel>
 }
 
 export type NestedEnumWorkflowEventTypeFilter<$PrismaModel = never> = {

@@ -81,12 +81,15 @@ export const OWNER_BADGE_META: Record<
 export type CollapsedPanels = { overdue: boolean };
 
 export const PAGE_SIZE = 15;
+const slaUnitShort = (item: any) => (item.slaDayMode === "CALENDAR" ? "d" : "wd");
 
 // ── Row-level predicates ──────────────────────────────────
 export const isOverdue = (item: any) => item.slaStatus === "OVERDUE";
 
 export const isDueSoon = (item: any, threshold: number) =>
-  item.workingDaysRemaining <= threshold && item.workingDaysRemaining >= 0;
+  item.slaStatus === "DUE_SOON" ||
+  ((item.daysRemaining ?? item.workingDaysRemaining) <= threshold &&
+    (item.daysRemaining ?? item.workingDaysRemaining) >= 0);
 
 export const isBlocked = (item: any) =>
   item.missingFields && item.missingFields.length > 0;
@@ -106,10 +109,13 @@ export function blockReasonFor(item: any): string {
 
 export function slaChipText(item: any, threshold: number): string {
   if (isPaused(item)) return "SLA paused";
-  if (!item.targetWorkingDays || !item.slaDueDate) return "SLA not set";
-  if (isOverdue(item)) return `Overdue ${Math.abs(item.workingDaysRemaining)} wd`;
-  if (isDueSoon(item, threshold)) return `Due in ${item.workingDaysRemaining} wd`;
-  return `${item.workingDaysRemaining} wd left`;
+  const remaining = item.daysRemaining ?? item.workingDaysRemaining;
+  const target = item.targetDays ?? item.targetWorkingDays;
+  if (target == null || !item.slaDueDate || remaining == null) return "SLA not set";
+  const unit = slaUnitShort(item);
+  if (isOverdue(item)) return `Overdue ${Math.abs(remaining)} ${unit}`;
+  if (isDueSoon(item, threshold)) return `Due in ${remaining} ${unit}`;
+  return `${remaining} ${unit} left`;
 }
 
 export function priorityScore(item: any, threshold: number): number {

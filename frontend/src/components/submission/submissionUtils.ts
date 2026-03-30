@@ -105,24 +105,24 @@ export function getDueMeta(
 }
 
 export function getSlaStatus(stage: {
-  actualWorkingDays: number | null;
-  configuredWorkingDays: number | null;
+  actualDays: number | null;
+  configuredDays: number | null;
   withinSla: boolean | null;
 }): string {
-  if (stage.actualWorkingDays == null || stage.configuredWorkingDays == null) return "pending";
+  if (stage.actualDays == null || stage.configuredDays == null) return "pending";
   if (stage.withinSla === false) return "overdue";
-  const ratio = stage.actualWorkingDays / stage.configuredWorkingDays;
+  const ratio = stage.actualDays / stage.configuredDays;
   if (ratio >= 0.8) return "due-soon";
   return "on-track";
 }
 
 export function getSlaPercent(stage: {
-  actualWorkingDays: number | null;
-  configuredWorkingDays: number | null;
+  actualDays: number | null;
+  configuredDays: number | null;
 }): number {
-  if (stage.actualWorkingDays == null || stage.configuredWorkingDays == null) return 0;
-  if (stage.configuredWorkingDays === 0) return 100;
-  return Math.min(100, Math.round((stage.actualWorkingDays / stage.configuredWorkingDays) * 100));
+  if (stage.actualDays == null || stage.configuredDays == null) return 0;
+  if (stage.configuredDays === 0) return 100;
+  return Math.min(100, Math.round((stage.actualDays / stage.configuredDays) * 100));
 }
 
 export function getStatusVariant(status: string): string {

@@ -1,7 +1,6 @@
 import prisma from "../../config/prismaClient";
 import {
   ProponentCategory,
-  SLAStage,
   ReviewType,
   SubmissionStatus,
   type Prisma,
@@ -10,7 +9,7 @@ import {
   buildAcademicYearSummary,
   type ReportSubmissionRecord,
 } from "./reportMetrics";
-import { computeWorkingDaysBetween } from "../../utils/workingDays";
+import { buildSubmissionSlaSummary } from "../sla/submissionSlaService";
 
 const RECENT_AY_WINDOW = 5;
 
@@ -61,6 +60,9 @@ type SubmissionForReports = Prisma.SubmissionGetPayload<{
     statusHistory: {
       select: { newStatus: true; effectiveDate: true };
     };
+    reviews: {
+      select: { assignedAt: true; dueDate: true; respondedAt: true };
+    };
   };
 }>;
 
@@ -68,7 +70,12 @@ const PRO_CATEGORY_KEYS = ["UNDERGRAD", "GRAD", "FACULTY", "NON_TEACHING"] as co
 type ProCategoryKey = (typeof PRO_CATEGORY_KEYS)[number];
 type ResolvedReviewType = "EXEMPT" | "EXPEDITED" | "FULL_BOARD";
 type ExclusiveOutcome = ResolvedReviewType | "WITHDRAWN" | "UNCLASSIFIED";
-type StageComplianceKey = "COMPLETENESS" | "CLASSIFICATION" | "REVIEW" | "REVISION_RESPONSE";
+type StageComplianceKey =
+  | "COMPLETENESS"
+  | "CLASSIFICATION"
+  | "EXEMPT_NOTIFICATION"
+  | "REVIEW"
+  | "REVISION_RESPONSE";
 
 const emptyCategoryBuckets = () => ({
   UNDERGRAD: 0,
@@ -249,48 +256,6 @@ const findBucketByDate = <T extends { start: Date; endExclusive: Date }>(
   );
 };
 
-const toSlaConfigKey = (
-  committeeId: number,
-  stage: SLAStage,
-  reviewType: ReviewType | null
-) => `${committeeId}:${stage}:${reviewType ?? "null"}`;
-
-const buildSlaConfigMap = (
-  configs: Array<{ committeeId: number; stage: SLAStage; reviewType: ReviewType | null; workingDays: number }>
-) => {
-  const byKey = new Map<string, number>();
-  const byStage = new Map<string, number[]>();
-
-  for (const config of configs) {
-    byKey.set(toSlaConfigKey(config.committeeId, config.stage, config.reviewType), config.workingDays);
-    const stageKey = `${config.committeeId}:${config.stage}`;
-    const values = byStage.get(stageKey) ?? [];
-    values.push(config.workingDays);
-    byStage.set(stageKey, values);
-  }
-
-  return { byKey, byStage };
-};
-
-const getConfiguredWorkingDays = (
-  configMap: ReturnType<typeof buildSlaConfigMap>,
-  committeeId: number | null | undefined,
-  stage: SLAStage,
-  reviewType: ReviewType | null
-) => {
-  if (!committeeId) return null;
-
-  const specific = configMap.byKey.get(toSlaConfigKey(committeeId, stage, reviewType));
-  if (typeof specific === "number") return specific;
-
-  const fallback = configMap.byKey.get(toSlaConfigKey(committeeId, stage, null));
-  if (typeof fallback === "number") return fallback;
-
-  const stageValues = configMap.byStage.get(`${committeeId}:${stage}`) ?? [];
-  if (!stageValues.length) return null;
-  return Math.min(...stageValues);
-};
-
 const firstHistoryDate = (
   submission: SubmissionForReports,
   predicate: (status: SubmissionStatus) => boolean
@@ -463,6 +428,13 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
         orderBy: { effectiveDate: "asc" },
         select: { newStatus: true, effectiveDate: true },
       },
+      reviews: {
+        select: {
+          assignedAt: true,
+          dueDate: true,
+          respondedAt: true,
+        },
+      },
     },
   });
 
@@ -523,6 +495,8 @@ export async function buildAnnualSummaryPayload(
         stage: true,
         reviewType: true,
         workingDays: true,
+        dayMode: true,
+        description: true,
       },
     }),
   ]);
@@ -536,7 +510,6 @@ export async function buildAnnualSummaryPayload(
       endDate: window.endDateExclusive,
     })),
   });
-  const slaConfigMap = buildSlaConfigMap(slaConfigs);
 
   const dateRange = {
     startDate: termWindows.reduce((min, t) => (t.startDate < min ? t.startDate : min), termWindows[0].startDate),
@@ -931,121 +904,27 @@ export async function buildAnnualSummaryPayload(
   const slaCompliance = new Map<StageComplianceKey, { within: number; overdue: number }>([
     ["COMPLETENESS", { within: 0, overdue: 0 }],
     ["CLASSIFICATION", { within: 0, overdue: 0 }],
+    ["EXEMPT_NOTIFICATION", { within: 0, overdue: 0 }],
     ["REVIEW", { within: 0, overdue: 0 }],
     ["REVISION_RESPONSE", { within: 0, overdue: 0 }],
   ]);
   const now = new Date();
 
   for (const submission of submissions) {
-    const committeeId = submission.project?.committeeId ?? null;
-    const reviewType = submission.classification?.reviewType ?? null;
-    const completenessStart = submission.receivedDate ?? submission.createdAt;
-    const completenessEnd = firstHistoryDate(submission, (status) => nextScreeningStatusSet.has(status));
-    const completenessConfigured = getConfiguredWorkingDays(
-      slaConfigMap,
-      committeeId,
-      SLAStage.COMPLETENESS,
-      null
-    );
-    if (completenessConfigured !== null) {
-      const completenessActual = computeWorkingDaysBetween(
-        completenessStart,
-        completenessEnd ?? now,
-        holidayDates
-      );
-      const stage = slaCompliance.get("COMPLETENESS")!;
-      if (completenessActual <= completenessConfigured) stage.within += 1;
-      else stage.overdue += 1;
-    }
+    const summary = buildSubmissionSlaSummary(submission, slaConfigs, holidayDates, now);
+    const complianceRows: Array<[StageComplianceKey, typeof summary.completeness]> = [
+      ["COMPLETENESS", summary.completeness],
+      ["CLASSIFICATION", summary.classification],
+      ["EXEMPT_NOTIFICATION", summary.exemptNotification],
+      ["REVIEW", summary.review],
+      ["REVISION_RESPONSE", summary.revisionResponse],
+    ];
 
-    const classificationReached =
-      !!submission.classification ||
-      reachedStatus(submission, (status) =>
-        status === SubmissionStatus.AWAITING_CLASSIFICATION ||
-        status === SubmissionStatus.UNDER_CLASSIFICATION ||
-        status === SubmissionStatus.CLASSIFIED ||
-        status === SubmissionStatus.UNDER_REVIEW ||
-        status === SubmissionStatus.AWAITING_REVISIONS ||
-        status === SubmissionStatus.REVISION_SUBMITTED ||
-        status === SubmissionStatus.CLOSED ||
-        status === SubmissionStatus.WITHDRAWN
-      );
-    const classificationConfigured = getConfiguredWorkingDays(
-      slaConfigMap,
-      committeeId,
-      SLAStage.CLASSIFICATION,
-      reviewType
-    );
-    if (classificationReached && classificationConfigured !== null) {
-      const classificationStart =
-        firstHistoryDate(
-          submission,
-          (status) =>
-            status === SubmissionStatus.AWAITING_CLASSIFICATION ||
-            status === SubmissionStatus.UNDER_CLASSIFICATION
-        ) ??
-        completenessEnd ??
-        completenessStart;
-      const classificationEnd = submission.classification?.classificationDate ?? now;
-      const classificationActual = computeWorkingDaysBetween(
-        classificationStart,
-        classificationEnd,
-        holidayDates
-      );
-      const stage = slaCompliance.get("CLASSIFICATION")!;
-      if (classificationActual <= classificationConfigured) stage.within += 1;
-      else stage.overdue += 1;
-    }
-
-    const reviewConfigured =
-      reviewType === ReviewType.EXPEDITED || reviewType === ReviewType.FULL_BOARD
-        ? getConfiguredWorkingDays(slaConfigMap, committeeId, SLAStage.REVIEW, reviewType)
-        : null;
-    const reviewStart = firstHistoryDate(
-      submission,
-      (status) => status === SubmissionStatus.UNDER_REVIEW
-    );
-    if (reviewStart && reviewConfigured !== null) {
-      const reviewEnd =
-        firstHistoryDate(
-          submission,
-          (status) =>
-            status === SubmissionStatus.AWAITING_REVISIONS ||
-            status === SubmissionStatus.REVISION_SUBMITTED ||
-            status === SubmissionStatus.CLOSED ||
-            status === SubmissionStatus.WITHDRAWN
-        ) ?? now;
-      const reviewActual = computeWorkingDaysBetween(reviewStart, reviewEnd, holidayDates);
-      const stage = slaCompliance.get("REVIEW")!;
-      if (reviewActual <= reviewConfigured) stage.within += 1;
-      else stage.overdue += 1;
-    }
-
-    const revisionConfigured = getConfiguredWorkingDays(
-      slaConfigMap,
-      committeeId,
-      SLAStage.REVISION_RESPONSE,
-      null
-    );
-    const revisionStart = lastHistoryDate(
-      submission,
-      (status) => status === SubmissionStatus.AWAITING_REVISIONS
-    );
-    const revisionEnd = lastHistoryDate(
-      submission,
-      (status) => status === SubmissionStatus.REVISION_SUBMITTED
-    );
-    if (revisionStart && revisionConfigured !== null) {
-      const effectiveRevisionEnd =
-        revisionEnd && revisionEnd.getTime() >= revisionStart.getTime() ? revisionEnd : now;
-      const revisionActual = computeWorkingDaysBetween(
-        revisionStart,
-        effectiveRevisionEnd,
-        holidayDates
-      );
-      const stage = slaCompliance.get("REVISION_RESPONSE")!;
-      if (revisionActual <= revisionConfigured) stage.within += 1;
-      else stage.overdue += 1;
+    for (const [key, stageSummary] of complianceRows) {
+      if (stageSummary.configuredDays == null || stageSummary.actualDays == null) continue;
+      const bucket = slaCompliance.get(key)!;
+      if (stageSummary.withinSla === false) bucket.overdue += 1;
+      else bucket.within += 1;
     }
   }
 
@@ -1170,6 +1049,11 @@ export async function buildAnnualSummaryPayload(
           label: "Classification",
           within: slaCompliance.get("CLASSIFICATION")!.within,
           overdue: slaCompliance.get("CLASSIFICATION")!.overdue,
+        },
+        {
+          label: "Exempt Notification",
+          within: slaCompliance.get("EXEMPT_NOTIFICATION")!.within,
+          overdue: slaCompliance.get("EXEMPT_NOTIFICATION")!.overdue,
         },
         {
           label: "Review",

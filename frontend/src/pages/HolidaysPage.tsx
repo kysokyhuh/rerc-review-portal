@@ -343,8 +343,9 @@ export default function HolidaysPage() {
   };
 
   return (
-    <div className="dashboard-content queue-page-content">
-      <header className="queue-page-header">
+    <div className="dashboard-content queue-page-content portal-page portal-page--dense">
+      <header className="queue-page-header portal-context">
+        <span className="queue-page-eyebrow">Calendar administration</span>
         <h1>Holiday Calendar</h1>
         <p>Manage non-working days that affect SLA calculations. Drag on the calendar to select a date range.</p>
       </header>
@@ -366,7 +367,7 @@ export default function HolidaysPage() {
       )}
 
       {/* Calendar + Form side by side */}
-      <div className="hol-layout">
+      <div className="hol-layout portal-content">
         {/* Calendar Panel */}
         <section className="panel hol-calendar-panel">
           <div className="panel-header">
@@ -532,7 +533,7 @@ export default function HolidaysPage() {
       )}
 
       {/* Event List */}
-      <section className="panel hol-events-panel">
+      <section className="panel hol-events-panel portal-content">
         <div className="panel-header">
           <div>
             <h2 className="panel-title">Holidays</h2>

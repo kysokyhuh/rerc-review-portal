@@ -85,7 +85,7 @@ export default function SubmissionRecordsTable({
         </table>
       </div>
       <div className="pagination-row">
-        <button type="button" className="btn-secondary" onClick={() => onPageChange(data.page - 1)} disabled={data.page <= 1}>
+        <button type="button" className="report-btn-secondary" onClick={() => onPageChange(data.page - 1)} disabled={data.page <= 1}>
           Previous
         </button>
         <span>
@@ -93,7 +93,7 @@ export default function SubmissionRecordsTable({
         </span>
         <button
           type="button"
-          className="btn-secondary"
+          className="report-btn-secondary"
           onClick={() => onPageChange(data.page + 1)}
           disabled={data.page >= totalPages}
         >

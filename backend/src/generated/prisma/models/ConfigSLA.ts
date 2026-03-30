@@ -44,6 +44,7 @@ export type ConfigSLAMinAggregateOutputType = {
   reviewType: $Enums.ReviewType | null
   stage: $Enums.SLAStage | null
   workingDays: number | null
+  dayMode: $Enums.SLADayMode | null
   description: string | null
   isActive: boolean | null
   createdAt: Date | null
@@ -56,6 +57,7 @@ export type ConfigSLAMaxAggregateOutputType = {
   reviewType: $Enums.ReviewType | null
   stage: $Enums.SLAStage | null
   workingDays: number | null
+  dayMode: $Enums.SLADayMode | null
   description: string | null
   isActive: boolean | null
   createdAt: Date | null
@@ -68,6 +70,7 @@ export type ConfigSLACountAggregateOutputType = {
   reviewType: number
   stage: number
   workingDays: number
+  dayMode: number
   description: number
   isActive: number
   createdAt: number
@@ -94,6 +97,7 @@ export type ConfigSLAMinAggregateInputType = {
   reviewType?: true
   stage?: true
   workingDays?: true
+  dayMode?: true
   description?: true
   isActive?: true
   createdAt?: true
@@ -106,6 +110,7 @@ export type ConfigSLAMaxAggregateInputType = {
   reviewType?: true
   stage?: true
   workingDays?: true
+  dayMode?: true
   description?: true
   isActive?: true
   createdAt?: true
@@ -118,6 +123,7 @@ export type ConfigSLACountAggregateInputType = {
   reviewType?: true
   stage?: true
   workingDays?: true
+  dayMode?: true
   description?: true
   isActive?: true
   createdAt?: true
@@ -217,6 +223,7 @@ export type ConfigSLAGroupByOutputType = {
   reviewType: $Enums.ReviewType | null
   stage: $Enums.SLAStage
   workingDays: number
+  dayMode: $Enums.SLADayMode
   description: string | null
   isActive: boolean
   createdAt: Date
@@ -252,6 +259,7 @@ export type ConfigSLAWhereInput = {
   reviewType?: Prisma.EnumReviewTypeNullableFilter<"ConfigSLA"> | $Enums.ReviewType | null
   stage?: Prisma.EnumSLAStageFilter<"ConfigSLA"> | $Enums.SLAStage
   workingDays?: Prisma.IntFilter<"ConfigSLA"> | number
+  dayMode?: Prisma.EnumSLADayModeFilter<"ConfigSLA"> | $Enums.SLADayMode
   description?: Prisma.StringNullableFilter<"ConfigSLA"> | string | null
   isActive?: Prisma.BoolFilter<"ConfigSLA"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ConfigSLA"> | Date | string
@@ -265,6 +273,7 @@ export type ConfigSLAOrderByWithRelationInput = {
   reviewType?: Prisma.SortOrderInput | Prisma.SortOrder
   stage?: Prisma.SortOrder
   workingDays?: Prisma.SortOrder
+  dayMode?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -281,6 +290,7 @@ export type ConfigSLAWhereUniqueInput = Prisma.AtLeast<{
   reviewType?: Prisma.EnumReviewTypeNullableFilter<"ConfigSLA"> | $Enums.ReviewType | null
   stage?: Prisma.EnumSLAStageFilter<"ConfigSLA"> | $Enums.SLAStage
   workingDays?: Prisma.IntFilter<"ConfigSLA"> | number
+  dayMode?: Prisma.EnumSLADayModeFilter<"ConfigSLA"> | $Enums.SLADayMode
   description?: Prisma.StringNullableFilter<"ConfigSLA"> | string | null
   isActive?: Prisma.BoolFilter<"ConfigSLA"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ConfigSLA"> | Date | string
@@ -294,6 +304,7 @@ export type ConfigSLAOrderByWithAggregationInput = {
   reviewType?: Prisma.SortOrderInput | Prisma.SortOrder
   stage?: Prisma.SortOrder
   workingDays?: Prisma.SortOrder
+  dayMode?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -314,6 +325,7 @@ export type ConfigSLAScalarWhereWithAggregatesInput = {
   reviewType?: Prisma.EnumReviewTypeNullableWithAggregatesFilter<"ConfigSLA"> | $Enums.ReviewType | null
   stage?: Prisma.EnumSLAStageWithAggregatesFilter<"ConfigSLA"> | $Enums.SLAStage
   workingDays?: Prisma.IntWithAggregatesFilter<"ConfigSLA"> | number
+  dayMode?: Prisma.EnumSLADayModeWithAggregatesFilter<"ConfigSLA"> | $Enums.SLADayMode
   description?: Prisma.StringNullableWithAggregatesFilter<"ConfigSLA"> | string | null
   isActive?: Prisma.BoolWithAggregatesFilter<"ConfigSLA"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ConfigSLA"> | Date | string
@@ -324,6 +336,7 @@ export type ConfigSLACreateInput = {
   reviewType?: $Enums.ReviewType | null
   stage: $Enums.SLAStage
   workingDays: number
+  dayMode?: $Enums.SLADayMode
   description?: string | null
   isActive?: boolean
   createdAt?: Date | string
@@ -337,6 +350,7 @@ export type ConfigSLAUncheckedCreateInput = {
   reviewType?: $Enums.ReviewType | null
   stage: $Enums.SLAStage
   workingDays: number
+  dayMode?: $Enums.SLADayMode
   description?: string | null
   isActive?: boolean
   createdAt?: Date | string
@@ -347,6 +361,7 @@ export type ConfigSLAUpdateInput = {
   reviewType?: Prisma.NullableEnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType | null
   stage?: Prisma.EnumSLAStageFieldUpdateOperationsInput | $Enums.SLAStage
   workingDays?: Prisma.IntFieldUpdateOperationsInput | number
+  dayMode?: Prisma.EnumSLADayModeFieldUpdateOperationsInput | $Enums.SLADayMode
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -360,6 +375,7 @@ export type ConfigSLAUncheckedUpdateInput = {
   reviewType?: Prisma.NullableEnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType | null
   stage?: Prisma.EnumSLAStageFieldUpdateOperationsInput | $Enums.SLAStage
   workingDays?: Prisma.IntFieldUpdateOperationsInput | number
+  dayMode?: Prisma.EnumSLADayModeFieldUpdateOperationsInput | $Enums.SLADayMode
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -372,6 +388,7 @@ export type ConfigSLACreateManyInput = {
   reviewType?: $Enums.ReviewType | null
   stage: $Enums.SLAStage
   workingDays: number
+  dayMode?: $Enums.SLADayMode
   description?: string | null
   isActive?: boolean
   createdAt?: Date | string
@@ -382,6 +399,7 @@ export type ConfigSLAUpdateManyMutationInput = {
   reviewType?: Prisma.NullableEnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType | null
   stage?: Prisma.EnumSLAStageFieldUpdateOperationsInput | $Enums.SLAStage
   workingDays?: Prisma.IntFieldUpdateOperationsInput | number
+  dayMode?: Prisma.EnumSLADayModeFieldUpdateOperationsInput | $Enums.SLADayMode
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -394,6 +412,7 @@ export type ConfigSLAUncheckedUpdateManyInput = {
   reviewType?: Prisma.NullableEnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType | null
   stage?: Prisma.EnumSLAStageFieldUpdateOperationsInput | $Enums.SLAStage
   workingDays?: Prisma.IntFieldUpdateOperationsInput | number
+  dayMode?: Prisma.EnumSLADayModeFieldUpdateOperationsInput | $Enums.SLADayMode
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -416,6 +435,7 @@ export type ConfigSLACountOrderByAggregateInput = {
   reviewType?: Prisma.SortOrder
   stage?: Prisma.SortOrder
   workingDays?: Prisma.SortOrder
+  dayMode?: Prisma.SortOrder
   description?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -434,6 +454,7 @@ export type ConfigSLAMaxOrderByAggregateInput = {
   reviewType?: Prisma.SortOrder
   stage?: Prisma.SortOrder
   workingDays?: Prisma.SortOrder
+  dayMode?: Prisma.SortOrder
   description?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -446,6 +467,7 @@ export type ConfigSLAMinOrderByAggregateInput = {
   reviewType?: Prisma.SortOrder
   stage?: Prisma.SortOrder
   workingDays?: Prisma.SortOrder
+  dayMode?: Prisma.SortOrder
   description?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -508,10 +530,15 @@ export type EnumSLAStageFieldUpdateOperationsInput = {
   set?: $Enums.SLAStage
 }
 
+export type EnumSLADayModeFieldUpdateOperationsInput = {
+  set?: $Enums.SLADayMode
+}
+
 export type ConfigSLACreateWithoutCommitteeInput = {
   reviewType?: $Enums.ReviewType | null
   stage: $Enums.SLAStage
   workingDays: number
+  dayMode?: $Enums.SLADayMode
   description?: string | null
   isActive?: boolean
   createdAt?: Date | string
@@ -523,6 +550,7 @@ export type ConfigSLAUncheckedCreateWithoutCommitteeInput = {
   reviewType?: $Enums.ReviewType | null
   stage: $Enums.SLAStage
   workingDays: number
+  dayMode?: $Enums.SLADayMode
   description?: string | null
   isActive?: boolean
   createdAt?: Date | string
@@ -564,6 +592,7 @@ export type ConfigSLAScalarWhereInput = {
   reviewType?: Prisma.EnumReviewTypeNullableFilter<"ConfigSLA"> | $Enums.ReviewType | null
   stage?: Prisma.EnumSLAStageFilter<"ConfigSLA"> | $Enums.SLAStage
   workingDays?: Prisma.IntFilter<"ConfigSLA"> | number
+  dayMode?: Prisma.EnumSLADayModeFilter<"ConfigSLA"> | $Enums.SLADayMode
   description?: Prisma.StringNullableFilter<"ConfigSLA"> | string | null
   isActive?: Prisma.BoolFilter<"ConfigSLA"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ConfigSLA"> | Date | string
@@ -575,6 +604,7 @@ export type ConfigSLACreateManyCommitteeInput = {
   reviewType?: $Enums.ReviewType | null
   stage: $Enums.SLAStage
   workingDays: number
+  dayMode?: $Enums.SLADayMode
   description?: string | null
   isActive?: boolean
   createdAt?: Date | string
@@ -585,6 +615,7 @@ export type ConfigSLAUpdateWithoutCommitteeInput = {
   reviewType?: Prisma.NullableEnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType | null
   stage?: Prisma.EnumSLAStageFieldUpdateOperationsInput | $Enums.SLAStage
   workingDays?: Prisma.IntFieldUpdateOperationsInput | number
+  dayMode?: Prisma.EnumSLADayModeFieldUpdateOperationsInput | $Enums.SLADayMode
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -596,6 +627,7 @@ export type ConfigSLAUncheckedUpdateWithoutCommitteeInput = {
   reviewType?: Prisma.NullableEnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType | null
   stage?: Prisma.EnumSLAStageFieldUpdateOperationsInput | $Enums.SLAStage
   workingDays?: Prisma.IntFieldUpdateOperationsInput | number
+  dayMode?: Prisma.EnumSLADayModeFieldUpdateOperationsInput | $Enums.SLADayMode
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -607,6 +639,7 @@ export type ConfigSLAUncheckedUpdateManyWithoutCommitteeInput = {
   reviewType?: Prisma.NullableEnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType | null
   stage?: Prisma.EnumSLAStageFieldUpdateOperationsInput | $Enums.SLAStage
   workingDays?: Prisma.IntFieldUpdateOperationsInput | number
+  dayMode?: Prisma.EnumSLADayModeFieldUpdateOperationsInput | $Enums.SLADayMode
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -621,6 +654,7 @@ export type ConfigSLASelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   reviewType?: boolean
   stage?: boolean
   workingDays?: boolean
+  dayMode?: boolean
   description?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -634,6 +668,7 @@ export type ConfigSLASelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   reviewType?: boolean
   stage?: boolean
   workingDays?: boolean
+  dayMode?: boolean
   description?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -647,6 +682,7 @@ export type ConfigSLASelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   reviewType?: boolean
   stage?: boolean
   workingDays?: boolean
+  dayMode?: boolean
   description?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -660,13 +696,14 @@ export type ConfigSLASelectScalar = {
   reviewType?: boolean
   stage?: boolean
   workingDays?: boolean
+  dayMode?: boolean
   description?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ConfigSLAOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "committeeId" | "reviewType" | "stage" | "workingDays" | "description" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["configSLA"]>
+export type ConfigSLAOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "committeeId" | "reviewType" | "stage" | "workingDays" | "dayMode" | "description" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["configSLA"]>
 export type ConfigSLAInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   committee?: boolean | Prisma.CommitteeDefaultArgs<ExtArgs>
 }
@@ -688,6 +725,7 @@ export type $ConfigSLAPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     reviewType: $Enums.ReviewType | null
     stage: $Enums.SLAStage
     workingDays: number
+    dayMode: $Enums.SLADayMode
     description: string | null
     isActive: boolean
     createdAt: Date
@@ -1121,6 +1159,7 @@ export interface ConfigSLAFieldRefs {
   readonly reviewType: Prisma.FieldRef<"ConfigSLA", 'ReviewType'>
   readonly stage: Prisma.FieldRef<"ConfigSLA", 'SLAStage'>
   readonly workingDays: Prisma.FieldRef<"ConfigSLA", 'Int'>
+  readonly dayMode: Prisma.FieldRef<"ConfigSLA", 'SLADayMode'>
   readonly description: Prisma.FieldRef<"ConfigSLA", 'String'>
   readonly isActive: Prisma.FieldRef<"ConfigSLA", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"ConfigSLA", 'DateTime'>

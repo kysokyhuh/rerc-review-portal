@@ -79,7 +79,10 @@ describe("submission workflow rules", () => {
 
     expect(tx.submission.update).toHaveBeenCalledWith({
       where: { id: 101 },
-      data: { status: SubmissionStatus.CLASSIFIED },
+      data: {
+        status: SubmissionStatus.CLASSIFIED,
+        exemptNotificationDueDate: null,
+      },
     });
     expect(tx.submissionStatusHistory.create).toHaveBeenCalledWith(
       expect.objectContaining({

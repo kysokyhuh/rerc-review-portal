@@ -246,48 +246,41 @@ export default function QueuePage() {
   }, [effectiveSegment, search, segmentTabs, sla]);
 
   return (
-    <div className="dashboard-content queue-page-content">
-      <header className="queue-page-header">
-        <div className="queue-page-header-main">
-          <span className="queue-page-eyebrow">Queue operations</span>
-          <h1>{meta.title}</h1>
-          <p>{meta.description}</p>
-        </div>
-        <div className="queue-page-header-aside">
-          <div className="queue-page-brief">
-            <span className="queue-page-brief-label">Visible now</span>
-            <strong>{filteredItems.length}</strong>
-            <p>
-              {filteredItems.length === queueItems.length
-                ? `All ${queueItems.length} protocol${queueItems.length === 1 ? "" : "s"} are in view.`
-                : `${queueItems.length} total protocol${queueItems.length === 1 ? "" : "s"} in this queue.`}
-            </p>
+    <div className="dashboard-content queue-page-content portal-page">
+      <header className="queue-page-header portal-context">
+        <div className="portal-context-inline">
+          <div className="portal-context-copy">
+            <span className="queue-page-eyebrow">Queue operations</span>
+            <h1>{meta.title}</h1>
+            <p>{meta.description}</p>
           </div>
-          <div className="queue-page-brief emphasis">
-            <span className="queue-page-brief-label">Operational focus</span>
-            <strong>{queueFocus.title}</strong>
-            <p>{queueFocus.description}</p>
-          </div>
+          <span className="ui-info-pill">
+            {filteredItems.length === queueItems.length
+              ? `${filteredItems.length} visible`
+              : `${filteredItems.length} of ${queueItems.length} visible`}
+          </span>
         </div>
       </header>
 
-      <QueueKpiCards
-        total={kpis.total}
-        overdue={kpis.overdue}
-        dueSoon={kpis.dueSoon}
-        blocked={kpis.blocked}
-      />
+      <section className="portal-summary">
+        <QueueKpiCards
+          total={kpis.total}
+          overdue={kpis.overdue}
+          dueSoon={kpis.dueSoon}
+          blocked={kpis.blocked}
+        />
+      </section>
 
-      <section className="panel queue-control-panel">
+      <section className="panel queue-control-panel portal-controls">
         <div className="panel-body">
           <div className="queue-control-header">
             <div className="queue-control-header-copy">
-              <span className="queue-control-eyebrow">Filter and prioritize</span>
-              <h2>Refine the queue by protocol details, SLA pressure, or active work state.</h2>
+              <span className="queue-control-eyebrow">Controls</span>
+              <h2>Search, filter, and focus the records that need action now.</h2>
             </div>
             <div className="queue-control-summary">
               <span className="queue-control-summary-value">{filteredItems.length}</span>
-              <span className="queue-control-summary-label">shown now</span>
+              <span className="queue-control-summary-label">visible</span>
             </div>
           </div>
 
@@ -334,6 +327,13 @@ export default function QueuePage() {
               </button>
             </div>
           ) : null}
+        </div>
+      </section>
+
+      <section className="portal-support portal-section compact">
+        <div className="portal-results-line">
+          <strong>{queueFocus.title}</strong>
+          <span className="portal-results-copy">{queueFocus.description}</span>
         </div>
       </section>
 

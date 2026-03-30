@@ -3,10 +3,16 @@ import {
   FundingType,
   ProponentCategory,
   ResearchTypePHREB,
+  SLAStage,
   SubmissionStatus,
   SubmissionType,
 } from "../../generated/prisma/client";
 import { parseReceivedDate } from "../imports/projectCsvImport";
+import {
+  buildSlaConfigMap,
+  computeDueDate,
+  getConfiguredSlaOrDefault,
+} from "../sla/submissionSlaService";
 
 export interface ProjectCreateFieldError {
   field: string;
@@ -211,6 +217,41 @@ export async function createProjectWithInitialSubmission(
   const researchTypePHREBOther =
     normalizeString(input.researchTypePHREBOther || "") || null;
 
+  const [slaConfigs, holidayRows] = await Promise.all([
+    prisma.configSLA.findMany({
+      where: {
+        committeeId,
+        isActive: true,
+      },
+      select: {
+        committeeId: true,
+        stage: true,
+        reviewType: true,
+        workingDays: true,
+        dayMode: true,
+        description: true,
+      },
+    }),
+    prisma.holiday.findMany({
+      select: { date: true },
+    }),
+  ]);
+  const classificationConfig = getConfiguredSlaOrDefault(
+    buildSlaConfigMap(slaConfigs),
+    committeeId,
+    SLAStage.CLASSIFICATION,
+    null
+  );
+  const classificationDueDate =
+    receivedDate && classificationConfig
+      ? computeDueDate(
+          classificationConfig.dayMode,
+          receivedDate,
+          classificationConfig.targetDays,
+          holidayRows.map((row) => row.date)
+        )
+      : null;
+
   const created = await prisma.$transaction(async (tx) => {
     const project = await tx.project.create({
       data: {
@@ -239,6 +280,7 @@ export async function createProjectWithInitialSubmission(
         submissionType,
         status: SubmissionStatus.AWAITING_CLASSIFICATION,
         receivedDate,
+        classificationDueDate,
         documentLink: normalizeString(input.documentLink || "") || null,
         remarks: notes,
         createdById: actorId,

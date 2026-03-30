@@ -45,6 +45,13 @@ const buildErrorsCsv = (result: ImportResult) => {
   return [header, ...lines].join("\n");
 };
 
+const resolveImportErrorMessage = (err: any, fallback: string) => {
+  if (err?.response?.data?.code === "INVALID_CSRF_TOKEN") {
+    return "Your session was refreshed. Please try the upload again.";
+  }
+  return err?.response?.data?.message || err?.message || fallback;
+};
+
 export default function ImportProjectsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<ProjectImportPreview | null>(null);
@@ -113,8 +120,9 @@ export default function ImportProjectsPage() {
         setStatusMessage("Preview ready. You can edit blank cells in the preview before import.");
       }
     } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "Failed to preview CSV.";
+      const message = resolveImportErrorMessage(err, "Failed to preview CSV.");
       setError(message);
+      setStatusMessage(null);
       setPreview(null);
       setEditablePreviewRows([]);
     } finally {
@@ -185,7 +193,8 @@ export default function ImportProjectsPage() {
         `Import finished: ${response.insertedRows} inserted, ${response.failedRows} failed.`
       );
     } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "Failed to import CSV.";
+      const message = resolveImportErrorMessage(err, "Failed to import CSV.");
+      setStatusMessage(null);
       setError(message);
     } finally {
       setUploading(false);
@@ -215,7 +224,7 @@ export default function ImportProjectsPage() {
       : [];
 
   return (
-    <div className="import-page">
+    <div className="import-page portal-page portal-page--dense">
       <Breadcrumbs
         items={[
           { label: "Dashboard", href: "/dashboard" },
@@ -223,7 +232,7 @@ export default function ImportProjectsPage() {
         ]}
       />
 
-      <header className="page-header">
+      <header className="page-header portal-context">
         <Link to="/dashboard" className="back-link">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -234,13 +243,15 @@ export default function ImportProjectsPage() {
         <p>Upload any CSV format. We auto-detect required headers and let you edit preview cells before import.</p>
       </header>
 
-      <ImportStepper currentStep={currentStep} warningsCount={missingMappings.length} />
+      <div className="portal-summary">
+        <ImportStepper currentStep={currentStep} warningsCount={missingMappings.length} />
+      </div>
 
       <div className="import-live-region" role="status" aria-live="polite">
         {statusMessage}
       </div>
 
-      <section className="import-panel">
+      <section className="import-panel portal-content">
         <div className="import-grid">
           <div className="import-main-col">
             <section className="import-card" aria-labelledby="step-1-title">

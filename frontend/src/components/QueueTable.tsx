@@ -84,15 +84,17 @@ export const QueueTable: React.FC<QueueTableProps> = ({
       }
       if (sortKey === "slaDueDate") {
         return (
-          (new Date(a.slaDueDate).getTime() -
-            new Date(b.slaDueDate).getTime()) * factor
+          ((a.slaDueDate ? new Date(a.slaDueDate).getTime() : Number.MAX_SAFE_INTEGER) -
+            (b.slaDueDate ? new Date(b.slaDueDate).getTime() : Number.MAX_SAFE_INTEGER)) * factor
         );
       }
       if (sortKey === "workingDaysElapsed") {
-        return (a.workingDaysElapsed - b.workingDaysElapsed) * factor;
+        return (((a.workingDaysElapsed ?? Number.MAX_SAFE_INTEGER) -
+          (b.workingDaysElapsed ?? Number.MAX_SAFE_INTEGER)) * factor);
       }
       if (sortKey === "workingDaysRemaining") {
-        return (a.workingDaysRemaining - b.workingDaysRemaining) * factor;
+        return (((a.workingDaysRemaining ?? Number.MAX_SAFE_INTEGER) -
+          (b.workingDaysRemaining ?? Number.MAX_SAFE_INTEGER)) * factor);
       }
       return 0;
     });
@@ -365,16 +367,19 @@ export const QueueTable: React.FC<QueueTableProps> = ({
                           targetWorkingDays={item.targetWorkingDays}
                           dueDate={item.slaDueDate}
                           startedAt={item.startedAt}
+                          dayMode={item.slaDayMode}
                         />
                       </td>
                       <td>
-                        {item.workingDaysRemaining >= 0 ? (
+                        {item.workingDaysRemaining == null ? (
+                          <span className="badge">SLA pending</span>
+                        ) : item.workingDaysRemaining >= 0 ? (
                           <span className="badge badge-warning">
-                            {item.workingDaysRemaining} wd left
+                            {item.workingDaysRemaining} {item.slaDayMode === "CALENDAR" ? "d" : "wd"} left
                           </span>
                         ) : (
                           <span className="badge badge-danger">
-                            {Math.abs(item.workingDaysRemaining)} wd over
+                            {Math.abs(item.workingDaysRemaining)} {item.slaDayMode === "CALENDAR" ? "d" : "wd"} over
                           </span>
                         )}
                       </td>

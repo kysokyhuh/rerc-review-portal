@@ -36,11 +36,12 @@ export default function ReportFiltersBar({
   filters,
   availableTermValues,
   loading,
-  selectionSummary,
+  selectionSummary: _selectionSummary,
   onChange,
   onApply,
   onReset,
 }: ReportFiltersBarProps) {
+  void _selectionSummary;
   const visibleYears = years.slice(0, 5);
 
   return (
@@ -134,15 +135,14 @@ export default function ReportFiltersBar({
         </label>
 
         <div className="report-filter-actions">
-          <button type="button" className="btn-primary" onClick={onApply} disabled={loading}>
+          <button type="button" className="report-btn-primary" onClick={onApply} disabled={loading}>
             {loading ? "Applying..." : "Apply"}
           </button>
-          <button type="button" className="btn-secondary" onClick={onReset} disabled={loading}>
+          <button type="button" className="report-btn-secondary" onClick={onReset} disabled={loading}>
             Reset
           </button>
         </div>
       </div>
-      <p className="report-selection-line">{selectionSummary}</p>
     </section>
   );
 }

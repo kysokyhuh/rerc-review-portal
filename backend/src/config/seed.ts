@@ -18,6 +18,7 @@ import {
   ReviewerRoleType,
   ReviewerRoundRole,
   RoleType,
+  SLADayMode,
   SLAStage,
   SubmissionDocumentStatus,
   SubmissionDocumentType,
@@ -859,34 +860,31 @@ async function main() {
           stage: SLAStage.COMPLETENESS,
           reviewType: null,
           workingDays: 1,
+          dayMode: SLADayMode.WORKING,
           description: "Completeness screening within 1 working day",
         },
         {
           committeeId: committee.id,
           stage: SLAStage.CLASSIFICATION,
+          reviewType: null,
+          workingDays: 14,
+          dayMode: SLADayMode.CALENDAR,
+          description: "Classification within 14 calendar days",
+        },
+        {
+          committeeId: committee.id,
+          stage: SLAStage.EXEMPT_NOTIFICATION,
           reviewType: ReviewType.EXEMPT,
-          workingDays: 1,
-          description: "Assign project code and classify exempt submissions within 1 working day",
-        },
-        {
-          committeeId: committee.id,
-          stage: SLAStage.CLASSIFICATION,
-          reviewType: ReviewType.EXPEDITED,
-          workingDays: 1,
-          description: "Assign project code and classify expedited submissions within 1 working day",
-        },
-        {
-          committeeId: committee.id,
-          stage: SLAStage.CLASSIFICATION,
-          reviewType: ReviewType.FULL_BOARD,
-          workingDays: 1,
-          description: "Assign project code and classify full-board submissions within 1 working day",
+          workingDays: 7,
+          dayMode: SLADayMode.CALENDAR,
+          description: "Notify proponents of exempted protocols within 7 calendar days",
         },
         {
           committeeId: committee.id,
           stage: SLAStage.REVIEW,
           reviewType: ReviewType.EXPEDITED,
           workingDays: 20,
+          dayMode: SLADayMode.WORKING,
           description: "Expedited review within 20 working days",
         },
         {
@@ -894,6 +892,7 @@ async function main() {
           stage: SLAStage.REVIEW,
           reviewType: ReviewType.FULL_BOARD,
           workingDays: 30,
+          dayMode: SLADayMode.WORKING,
           description: "Full board review within 30 working days",
         },
         {
@@ -901,8 +900,9 @@ async function main() {
           stage: SLAStage.REVISION_RESPONSE,
           reviewType: null,
           workingDays: 7,
+          dayMode: SLADayMode.CALENDAR,
           description:
-            "Researchers have up to 7 working days to respond to revisions",
+            "Researchers have up to 7 calendar days to respond to revisions",
         },
       ],
     });
@@ -915,6 +915,7 @@ async function main() {
     stage: SLAStage;
     reviewType: ReviewType | null;
     workingDays: number;
+    dayMode: SLADayMode;
     description: string;
   };
 
@@ -924,6 +925,7 @@ async function main() {
       stage: SLAStage.MEMBERSHIP,
       reviewType: null,
       workingDays: 14,
+      dayMode: SLADayMode.CALENDAR,
       description: "SOP 1B Step 1: Request and receipt of recommendations",
     },
     {
@@ -931,6 +933,7 @@ async function main() {
       stage: SLAStage.MEMBERSHIP,
       reviewType: null,
       workingDays: 3,
+      dayMode: SLADayMode.CALENDAR,
       description:
         "SOP 1B Step 2: Nomination and endorsement of members for appointment",
     },
@@ -939,6 +942,7 @@ async function main() {
       stage: SLAStage.MEMBERSHIP,
       reviewType: null,
       workingDays: 3,
+      dayMode: SLADayMode.WORKING,
       description:
         "SOP 1B Step 3: Receipt of appointment papers of new members",
     },
@@ -947,6 +951,7 @@ async function main() {
       stage: SLAStage.MEMBERSHIP,
       reviewType: null,
       workingDays: 5,
+      dayMode: SLADayMode.WORKING,
       description:
         "SOP 1B Step 4: Forwarding of appointment papers to new members",
     },
@@ -955,6 +960,7 @@ async function main() {
       stage: SLAStage.MEMBERSHIP,
       reviewType: null,
       workingDays: 5,
+      dayMode: SLADayMode.WORKING,
       description:
         "SOP 1B Step 5: Signing of conforme, confidentiality agreement, and COI declaration",
     },
@@ -963,6 +969,7 @@ async function main() {
       stage: SLAStage.MEMBERSHIP,
       reviewType: null,
       workingDays: 1,
+      dayMode: SLADayMode.WORKING,
       description:
         "SOP 1B Step 6: Filing of appointment documents and CVs in membership file",
     },
@@ -974,6 +981,7 @@ async function main() {
       stage: SLAStage.MEETING,
       reviewType: null,
       workingDays: 1,
+      dayMode: SLADayMode.WORKING,
       description:
         "SOP 18B Step 1: Distribution of meeting materials for face-to-face meetings",
     },
@@ -982,6 +990,7 @@ async function main() {
       stage: SLAStage.MEETING,
       reviewType: null,
       workingDays: 5,
+      dayMode: SLADayMode.WORKING,
       description:
         "SOP 18B Step 1: For online meetings, materials emailed at least 5 working days ahead of schedule",
     },

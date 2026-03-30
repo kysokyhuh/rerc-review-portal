@@ -92,7 +92,7 @@ export default function CollegeBreakdownTable({
                 <td>
                   <button
                     type="button"
-                    className="btn-tertiary"
+                    className="report-btn-tertiary"
                     onClick={() =>
                       setOpenRows((prev) => ({ ...prev, [row.college]: !prev[row.college] }))
                     }

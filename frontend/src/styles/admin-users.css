@@ -1,23 +1,23 @@
 .admin-page {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .admin-header {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 14px 16px 12px;
+  gap: 10px;
+  padding: 14px 16px;
   border-radius: 18px;
 }
 
 .admin-soft-header {
-  border: 1px solid rgba(87, 112, 95, 0.18);
+  border: 1px solid rgba(87, 112, 95, 0.14);
   background:
-    radial-gradient(circle at top right, rgba(45, 106, 79, 0.08), transparent 28%),
-    linear-gradient(180deg, #fbfdfb 0%, #f3f6f4 100%);
-  box-shadow: 0 12px 28px rgba(17, 24, 31, 0.06);
+    radial-gradient(circle at top right, rgba(45, 106, 79, 0.06), transparent 28%),
+    linear-gradient(180deg, #fbfdfb 0%, #f6f8f7 100%);
+  box-shadow: 0 8px 20px rgba(17, 24, 31, 0.05);
 }
 
 .admin-header-copy {
@@ -365,16 +365,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 28px;
+  min-height: 26px;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(45, 106, 79, 0.1);
-  color: var(--primary);
-  font-size: 11px;
+  background: rgba(248, 250, 248, 0.98);
+  color: var(--text-secondary);
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  border: 1px solid rgba(45, 106, 79, 0.12);
+  border: 1px solid rgba(97, 113, 104, 0.14);
 }
 
 .admin-results-caption {
@@ -385,17 +385,17 @@
 
 .admin-empty {
   margin: 12px;
-  min-height: 204px;
+  min-height: 188px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   padding: 24px 24px;
-  border: 1px dashed rgba(109, 126, 117, 0.28);
-  border-radius: 18px;
+  border: 1px solid rgba(109, 126, 117, 0.18);
+  border-radius: 16px;
   color: var(--text-muted);
-  background: linear-gradient(180deg, rgba(250, 251, 250, 0.98), rgba(244, 247, 245, 0.98));
+  background: linear-gradient(180deg, rgba(251, 252, 251, 0.98), rgba(246, 248, 246, 0.98));
   text-align: center;
 }
 
@@ -451,7 +451,7 @@
 .admin-clean-table td {
   border-bottom: 1px solid rgba(97, 113, 104, 0.14);
   vertical-align: middle;
-  padding: 10px 16px;
+  padding: 9px 16px;
   color: var(--text-primary);
 }
 

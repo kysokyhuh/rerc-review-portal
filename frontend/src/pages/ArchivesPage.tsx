@@ -214,8 +214,8 @@ export default function ArchivesPage() {
   };
 
   return (
-    <div className="archives-page detail-v2">
-      <header className="detail-hero archives-hero">
+    <div className="archives-page detail-v2 portal-page portal-page--dense">
+      <header className="detail-hero archives-hero portal-context">
         <Breadcrumbs
           items={[
             { label: "Dashboard", href: "/dashboard" },
@@ -234,7 +234,7 @@ export default function ArchivesPage() {
         </div>
       </header>
 
-      <section className="card detail-card archives-toolbar-card">
+      <section className="card detail-card archives-toolbar-card portal-controls">
         <div className="section-title">
           <h2>Search & Filters</h2>
         </div>
@@ -346,7 +346,7 @@ export default function ArchivesPage() {
         </div>
       ) : (
         <>
-          <section className="card detail-card">
+      <section className="card detail-card portal-content">
             <div className="section-title">
               <h2>Archive List</h2>
             </div>

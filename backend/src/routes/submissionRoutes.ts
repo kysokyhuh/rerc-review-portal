@@ -261,6 +261,8 @@ router.post(
         submissionId,
         req.body.reviewerId,
         Boolean(req.body.isPrimary),
+        req.body.reviewerRole,
+        req.body.dueDate,
         req.user!.id
       );
       res.status(201).json(result);

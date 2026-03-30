@@ -12,6 +12,13 @@ import {
   mergeDashboardWhere,
 } from "../utils/dashboardFilters";
 import { classifyOverdue } from "../utils/overdueClassifier";
+import {
+  buildSlaConfigMap,
+  computeDueDate,
+  computeElapsedDays,
+  getConfiguredSlaOrDefault,
+  resolveCurrentSubmissionSla,
+} from "../services/sla/submissionSlaService";
 
 const router = Router();
 const escapeHtml = (value: string | null | undefined) =>
@@ -34,6 +41,38 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
     const roleScope = isAssistant
       ? { reviews: { some: { reviewerId: req.user!.id } } }
       : {};
+    const [holidayRows, slaConfigs] = await Promise.all([
+      prisma.holiday.findMany({ select: { date: true } }),
+      prisma.configSLA.findMany({
+        where: { isActive: true },
+        select: {
+          committeeId: true,
+          stage: true,
+          reviewType: true,
+          workingDays: true,
+          dayMode: true,
+          description: true,
+        },
+      }),
+    ]);
+    const holidayDates = holidayRows.map((row) => row.date);
+    const slaConfigMap = buildSlaConfigMap(slaConfigs);
+    const submissionInclude = {
+      project: {
+        include: {
+          committee: {
+            select: { code: true },
+          },
+        },
+      },
+      classification: true,
+      staffInCharge: true,
+      statusHistory: {
+        orderBy: { effectiveDate: "asc" as const },
+      },
+      reviews: true,
+      reviewAssignments: true,
+    };
 
     const classificationQueue = await prisma.submission.findMany({
       where: mergeDashboardWhere(
@@ -47,11 +86,7 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
         // Don't override status if the user explicitly passed one
         filterParams.status ? (() => { const { status, ...rest } = filterWhere; return rest; })() : filterWhere
       ),
-      include: {
-        project: true,
-        classification: true,
-        staffInCharge: true,
-      },
+      include: submissionInclude,
       orderBy: {
         receivedDate: "asc",
       },
@@ -71,11 +106,7 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
         },
         filterParams.status ? (() => { const { status, ...rest } = filterWhere; return rest; })() : filterWhere
       ),
-      include: {
-        project: true,
-        classification: true,
-        staffInCharge: true,
-      },
+      include: submissionInclude,
       orderBy: {
         receivedDate: "asc",
       },
@@ -90,11 +121,7 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
         },
         filterParams.status ? (() => { const { status, ...rest } = filterWhere; return rest; })() : filterWhere
       ),
-      include: {
-        project: true,
-        classification: true,
-        staffInCharge: true,
-      },
+      include: submissionInclude,
       orderBy: {
         receivedDate: "asc",
       },
@@ -119,15 +146,17 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
             })()
           : filterWhere
       ),
-      include: {
-        project: true,
-        classification: true,
-        staffInCharge: true,
-      },
+      include: submissionInclude,
       orderBy: {
         receivedDate: "asc",
       },
     });
+
+    const withSla = <T extends typeof classificationQueue[number]>(items: T[]) =>
+      items.map((item) => ({
+        ...item,
+        sla: resolveCurrentSubmissionSla(item, slaConfigMap, holidayDates),
+      }));
 
     res.json({
       committeeCode,
@@ -137,10 +166,10 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
         exempted: exemptedQueue.length,
         revision: revisionQueue.length,
       },
-      classificationQueue,
-      reviewQueue,
-      exemptedQueue,
-      revisionQueue,
+      classificationQueue: withSla(classificationQueue),
+      reviewQueue: withSla(reviewQueue),
+      exemptedQueue: withSla(exemptedQueue),
+      revisionQueue: withSla(revisionQueue),
     });
   } catch (error) {
     next(error);
@@ -229,6 +258,22 @@ router.get("/dashboard/overdue", requireUser, async (req, res, next) => {
     const filterParams = parseDashboardFilterParams(req.query as Record<string, unknown>);
     const filterWhere = buildDashboardFiltersWhere(filterParams);
     const now = new Date();
+    const [holidayRows, slaConfigs] = await Promise.all([
+      prisma.holiday.findMany({ select: { date: true } }),
+      prisma.configSLA.findMany({
+        where: { isActive: true },
+        select: {
+          committeeId: true,
+          stage: true,
+          reviewType: true,
+          workingDays: true,
+          dayMode: true,
+          description: true,
+        },
+      }),
+    ]);
+    const holidayDates = holidayRows.map((row) => row.date);
+    const slaConfigMap = buildSlaConfigMap(slaConfigs);
 
     // Build the submission-level where for filters on project fields
     const submissionWhere: Record<string, any> = {
@@ -255,27 +300,43 @@ router.get("/dashboard/overdue", requireUser, async (req, res, next) => {
         submission: {
           include: {
             project: true,
+            classification: true,
           },
         },
       },
     });
 
-    const addDays = (date: Date, days: number) => {
-      const next = new Date(date);
-      next.setDate(next.getDate() + days);
-      return next;
-    };
-
     const overdueReviews = [];
     const overdueEndorsements = [];
 
     for (const review of reviews) {
-      const dueDate = review.dueDate ?? addDays(review.assignedAt, 7);
+      const reviewConfig = getConfiguredSlaOrDefault(
+        slaConfigMap,
+        review.submission.project?.committeeId ?? null,
+        "REVIEW",
+        review.submission.classification?.reviewType ?? null
+      );
+      const dueDate =
+        review.dueDate ??
+        (reviewConfig
+          ? computeDueDate(
+              reviewConfig.dayMode,
+              review.assignedAt,
+              reviewConfig.targetDays,
+              holidayDates
+            )
+          : null);
+      if (!dueDate) continue;
       if (dueDate >= now) continue;
 
       const daysOverdue = Math.max(
         1,
-        Math.ceil((now.getTime() - dueDate.getTime()) / 86400000)
+        computeElapsedDays(
+          reviewConfig?.dayMode ?? "WORKING",
+          dueDate,
+          now,
+          holidayDates
+        )
       );
 
       const basePayload = {

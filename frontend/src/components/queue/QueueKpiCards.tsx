@@ -17,30 +17,30 @@ export const QueueKpiCards: React.FC<QueueKpiCardsProps> = ({
     {
       label: "Total in Queue",
       value: total,
-      helper: "Protocols currently routed into this operational lane.",
+      helper: "Active protocols in this lane.",
       tone: "neutral",
-      marker: "Live queue",
+      marker: "Live",
     },
     {
       label: "Overdue",
       value: overdue,
-      helper: "Past SLA target and likely needs chair or RA intervention.",
+      helper: "Needs immediate follow-through.",
       tone: "danger",
-      marker: "Immediate action",
+      marker: "Urgent",
     },
     {
       label: "Due Soon",
       value: dueSoon,
-      helper: "Approaching SLA threshold and should be reviewed next.",
+      helper: "Approaching SLA threshold.",
       tone: "warning",
-      marker: "Watch closely",
+      marker: "Watch",
     },
     {
       label: "Blocked",
       value: blocked,
-      helper: "Missing data or unresolved dependencies are slowing progress.",
+      helper: "Missing data or dependencies.",
       tone: "info",
-      marker: "Clear blockers",
+      marker: "Blocked",
     },
   ] as const;
 

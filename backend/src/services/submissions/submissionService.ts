@@ -5,14 +5,22 @@ import prisma from "../../config/prismaClient";
 import {
   ProjectStatus,
   ReviewDecision,
+  ReviewerRoleType,
+  ReviewerRoundRole,
   ReviewType,
+  SLAStage,
   SubmissionDocumentStatus,
   SubmissionStatus,
   type SubmissionDocumentType,
 } from "../../generated/prisma/client";
-import { addWorkingDays, workingDaysBetween } from "../../utils/slaUtils";
 import { AppError } from "../../middleware/errorHandler";
 import { logAuditEvent } from "../audit/auditService";
+import {
+  buildSlaConfigMap,
+  buildSubmissionSlaSummary,
+  computeDueDate,
+  getConfiguredSlaOrDefault,
+} from "../sla/submissionSlaService";
 
 const WORKFLOW_STAGE_ORDER: SubmissionStatus[] = [
   SubmissionStatus.AWAITING_CLASSIFICATION,
@@ -32,13 +40,57 @@ const requireReason = (value: string | null, actionLabel: string) => {
   return value;
 };
 
-const nextScreeningStatusSet = new Set<SubmissionStatus>([
-  SubmissionStatus.RETURNED_FOR_COMPLETION,
-  SubmissionStatus.NOT_ACCEPTED,
-  SubmissionStatus.AWAITING_CLASSIFICATION,
-  SubmissionStatus.UNDER_CLASSIFICATION,
-  SubmissionStatus.CLASSIFIED,
-]);
+const normalizeReviewerRoles = (value?: string | null) => {
+  const normalized = String(value ?? "SCIENTIST")
+    .trim()
+    .toUpperCase();
+
+  if (normalized === "LAY") {
+    return {
+      reviewRole: ReviewerRoleType.LAY,
+      assignmentRole: ReviewerRoundRole.LAY,
+    };
+  }
+
+  if (normalized === "INDEPENDENT_CONSULTANT" || normalized === "CONSULTANT") {
+    return {
+      reviewRole: ReviewerRoleType.INDEPENDENT_CONSULTANT,
+      assignmentRole: null,
+    };
+  }
+
+  return {
+    reviewRole: ReviewerRoleType.SCIENTIST,
+    assignmentRole: ReviewerRoundRole.SCIENTIFIC,
+  };
+};
+
+async function getActiveSlaContext(committeeId: number) {
+  const [configs, holidayRows] = await Promise.all([
+    prisma.configSLA.findMany({
+      where: {
+        committeeId,
+        isActive: true,
+      },
+      select: {
+        committeeId: true,
+        stage: true,
+        reviewType: true,
+        workingDays: true,
+        dayMode: true,
+        description: true,
+      },
+    }),
+    prisma.holiday.findMany({
+      select: { date: true },
+    }),
+  ]);
+
+  return {
+    configMap: buildSlaConfigMap(configs),
+    holidayDates: holidayRows.map((row) => row.date),
+  };
+}
 
 /* ------------------------------------------------------------------ */
 /*  Classify                                                           */
@@ -55,6 +107,13 @@ export async function classifySubmission(
 ) {
   const submission = await prisma.submission.findUnique({
     where: { id: submissionId },
+    include: {
+      project: {
+        select: {
+          committeeId: true,
+        },
+      },
+    },
   });
   if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
 
@@ -78,11 +137,14 @@ export async function classifySubmission(
         previousStatus === SubmissionStatus.CLASSIFIED
           ? SubmissionStatus.CLASSIFIED
           : SubmissionStatus.AWAITING_CLASSIFICATION;
+      await tx.submission.update({
+        where: { id: submissionId },
+        data: {
+          status: nextStatus,
+          exemptNotificationDueDate: null,
+        },
+      });
       if (previousStatus !== nextStatus) {
-        await tx.submission.update({
-          where: { id: submissionId },
-          data: { status: nextStatus },
-        });
         await tx.submissionStatusHistory.create({
           data: {
             submissionId,
@@ -112,6 +174,28 @@ export async function classifySubmission(
     throw new AppError(400, "INVALID_DATE", "Invalid classificationDate");
   }
 
+  const committeeId = submission.project?.committeeId ?? null;
+  const exemptNotificationDueDate =
+    reviewType === ReviewType.EXEMPT && committeeId
+      ? await (async () => {
+          const { configMap, holidayDates } = await getActiveSlaContext(committeeId);
+          const exemptConfig = getConfiguredSlaOrDefault(
+            configMap,
+            committeeId,
+            SLAStage.EXEMPT_NOTIFICATION,
+            ReviewType.EXEMPT
+          );
+          return exemptConfig
+            ? computeDueDate(
+                exemptConfig.dayMode,
+                classificationDate,
+                exemptConfig.targetDays,
+                holidayDates
+              )
+            : null;
+        })()
+      : null;
+
   const result = await prisma.$transaction(async (tx) => {
     const classification = await tx.classification.upsert({
       where: { submissionId },
@@ -136,7 +220,17 @@ export async function classifySubmission(
     if (previousStatus !== SubmissionStatus.CLASSIFIED) {
       await tx.submission.update({
         where: { id: submissionId },
-        data: { status: SubmissionStatus.CLASSIFIED },
+        data: {
+          status: SubmissionStatus.CLASSIFIED,
+          exemptNotificationDueDate,
+        },
+      });
+    } else {
+      await tx.submission.update({
+        where: { id: submissionId },
+        data: {
+          exemptNotificationDueDate,
+        },
       });
     }
     await tx.submissionStatusHistory.create({
@@ -545,6 +639,7 @@ export async function acceptSubmissionForClassification(
         select: {
           id: true,
           projectCode: true,
+          committeeId: true,
         },
       },
     },
@@ -571,6 +666,17 @@ export async function acceptSubmissionForClassification(
 
   const updatedReason =
     trimReason(data.reason) ?? `Accepted for classification with project code ${normalizedProjectCode}`;
+
+  const { configMap, holidayDates } = await getActiveSlaContext(submission.project.committeeId);
+  const classificationConfig = getConfiguredSlaOrDefault(
+    configMap,
+    submission.project.committeeId,
+    SLAStage.CLASSIFICATION,
+    null
+  );
+  const classificationDueDate = classificationConfig
+    ? computeDueDate(classificationConfig.dayMode, new Date(), classificationConfig.targetDays, holidayDates)
+    : null;
 
   const result = await prisma.$transaction(async (tx) => {
     const duplicateProject = await tx.project.findFirst({
@@ -605,6 +711,7 @@ export async function acceptSubmissionForClassification(
         status: SubmissionStatus.AWAITING_CLASSIFICATION,
         completenessStatus: "COMPLETE",
         completenessRemarks: trimReason(data.completenessRemarks) ?? null,
+        classificationDueDate,
       },
     });
 
@@ -682,6 +789,14 @@ export async function resubmitSubmission(
         completenessRemarks:
           nextStatus === SubmissionStatus.RECEIVED
             ? trimReason(data.remarks)
+            : undefined,
+        classificationDueDate:
+          nextStatus === SubmissionStatus.RECEIVED
+            ? null
+            : undefined,
+        exemptNotificationDueDate:
+          nextStatus === SubmissionStatus.RECEIVED
+            ? null
             : undefined,
         revisionDueDate:
           nextStatus === SubmissionStatus.REVISION_SUBMITTED
@@ -800,11 +915,20 @@ export async function assignReviewer(
   submissionId: number,
   reviewerId: number,
   isPrimary: boolean,
+  reviewerRoleInput: string | null | undefined,
+  dueDateInput: string | null | undefined,
   actorId: number
 ) {
   const submission = await prisma.submission.findUnique({
     where: { id: submissionId },
-    include: { classification: true },
+    include: {
+      classification: true,
+      project: {
+        select: {
+          committeeId: true,
+        },
+      },
+    },
   });
   if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
   if (!submission.classification) {
@@ -817,15 +941,86 @@ export async function assignReviewer(
   const reviewer = await prisma.user.findUnique({ where: { id: reviewerId } });
   if (!reviewer) throw new AppError(404, "NOT_FOUND", "Reviewer not found");
 
-  const review = await prisma.review.create({
-    data: { submissionId, reviewerId, isPrimary },
+  const { reviewRole, assignmentRole } = normalizeReviewerRoles(reviewerRoleInput);
+  const explicitDueDate = dueDateInput ? new Date(dueDateInput) : null;
+  if (explicitDueDate && Number.isNaN(explicitDueDate.getTime())) {
+    throw new AppError(400, "INVALID_DATE", "Invalid dueDate");
+  }
+
+  const { configMap, holidayDates } = await getActiveSlaContext(submission.project?.committeeId ?? 0);
+  const reviewConfig = getConfiguredSlaOrDefault(
+    configMap,
+    submission.project?.committeeId ?? null,
+    SLAStage.REVIEW,
+    submission.classification.reviewType
+  );
+  const dueDate =
+    explicitDueDate ??
+    (reviewConfig
+      ? computeDueDate(
+          reviewConfig.dayMode,
+          new Date(),
+          reviewConfig.targetDays,
+          holidayDates
+        )
+      : null);
+
+  const review = await prisma.$transaction(async (tx) => {
+    const createdReview = await tx.review.create({
+      data: {
+        submissionId,
+        reviewerId,
+        isPrimary,
+        reviewerRole: reviewRole,
+        dueDate,
+      },
+    });
+
+    if (assignmentRole) {
+      const existingAssignment = await tx.reviewAssignment.findFirst({
+        where: {
+          submissionId,
+          roundSequence: submission.sequenceNumber,
+          reviewerRole: assignmentRole,
+          isActive: true,
+        },
+      });
+
+      if (!existingAssignment || existingAssignment.reviewerId === reviewerId) {
+        await tx.reviewAssignment.upsert({
+          where: {
+            submissionId_roundSequence_reviewerRole: {
+              submissionId,
+              roundSequence: submission.sequenceNumber,
+              reviewerRole: assignmentRole,
+            },
+          },
+          update: {
+            reviewerId,
+            dueDate,
+            isActive: true,
+            endedAt: null,
+            submittedAt: null,
+          },
+          create: {
+            submissionId,
+            roundSequence: submission.sequenceNumber,
+            reviewerId,
+            reviewerRole: assignmentRole,
+            dueDate,
+          },
+        });
+      }
+    }
+
+    return createdReview;
   });
   await logAuditEvent({
     actorId,
     action: "REVIEWER_ASSIGNED",
     entityType: "Submission",
     entityId: submissionId,
-    metadata: { reviewerId, isPrimary },
+    metadata: { reviewerId, isPrimary, reviewerRole: reviewRole, dueDate: dueDate?.toISOString() ?? null },
   });
   return review;
 }
@@ -909,9 +1104,36 @@ export async function recordReviewDecision(
   const existing = await prisma.review.findUnique({ where: { id: reviewId } });
   if (!existing) throw new AppError(404, "NOT_FOUND", "Review not found");
 
-  const updated = await prisma.review.update({
-    where: { id: reviewId },
-    data: { decision, remarks, respondedAt: new Date() },
+  const respondedAt = new Date();
+  const updated = await prisma.$transaction(async (tx) => {
+    const review = await tx.review.update({
+      where: { id: reviewId },
+      data: { decision, remarks, respondedAt },
+    });
+
+    const assignment = await tx.reviewAssignment.findFirst({
+      where: {
+        submissionId: existing.submissionId,
+        reviewerId: existing.reviewerId,
+        isActive: true,
+      },
+      orderBy: [{ roundSequence: "desc" }, { assignedAt: "desc" }],
+    });
+
+    if (assignment) {
+      await tx.reviewAssignment.update({
+        where: { id: assignment.id },
+        data: {
+          decision,
+          remarks,
+          submittedAt: respondedAt,
+          isActive: false,
+          endedAt: respondedAt,
+        },
+      });
+    }
+
+    return review;
   });
   await logAuditEvent({
     actorId,
@@ -1006,17 +1228,22 @@ export async function recordFinalDecision(
     : null;
 
   if (finalDecision === ReviewDecision.MINOR_REVISIONS || finalDecision === ReviewDecision.MAJOR_REVISIONS) {
-    const revisionSlaConfig = await prisma.configSLA.findFirst({
-      where: {
-        committeeId: submission.project.committeeId,
-        stage: "REVISION_RESPONSE",
-        reviewType: null,
-        isActive: true,
-      },
-    });
-    const revisionDays = revisionSlaConfig?.workingDays ?? 7;
+    const { configMap, holidayDates } = await getActiveSlaContext(submission.project.committeeId);
+    const revisionSlaConfig = getConfiguredSlaOrDefault(
+      configMap,
+      submission.project.committeeId,
+      SLAStage.REVISION_RESPONSE,
+      null
+    );
     nextStatus = SubmissionStatus.AWAITING_REVISIONS;
-    revisionDueDate = addWorkingDays(resultsNotifiedAt, revisionDays);
+    revisionDueDate = revisionSlaConfig
+      ? computeDueDate(
+          revisionSlaConfig.dayMode,
+          resultsNotifiedAt,
+          revisionSlaConfig.targetDays,
+          holidayDates
+        )
+      : null;
   } else if (finalDecision === ReviewDecision.DISAPPROVED) {
     projectStatus = ProjectStatus.INACTIVE;
   } else if (finalDecision === "WITHDRAWN") {
@@ -1103,147 +1330,36 @@ export async function getSlaSummary(id: number) {
       classification: true,
       statusHistory: { orderBy: { effectiveDate: "asc" } },
       reviews: true,
+      reviewAssignments: true,
     },
   });
   if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
   if (!submission.project?.committee) {
     throw new AppError(400, "NO_COMMITTEE", "Submission has no committee");
   }
-  if (!submission.classification) {
-    throw new AppError(400, "NOT_CLASSIFIED", "Submission has not been classified yet");
-  }
+  const [configs, holidayRows] = await Promise.all([
+    prisma.configSLA.findMany({
+      where: {
+        committeeId: submission.project.committeeId,
+        isActive: true,
+      },
+      select: {
+        committeeId: true,
+        stage: true,
+        reviewType: true,
+        workingDays: true,
+        dayMode: true,
+        description: true,
+      },
+    }),
+    prisma.holiday.findMany({
+      select: { date: true },
+    }),
+  ]);
 
-  const committeeId = submission.project.committeeId;
-  const reviewType = submission.classification.reviewType;
-  const statusHistoryAsc = submission.statusHistory;
-
-  const findLatestStatus = (predicate: (entry: any) => boolean) => {
-    for (let i = statusHistoryAsc.length - 1; i >= 0; i--) {
-      if (predicate(statusHistoryAsc[i])) return statusHistoryAsc[i];
-    }
-    return undefined;
-  };
-
-  const findFirstStatus = (predicate: (entry: any) => boolean) => {
-    for (const entry of statusHistoryAsc) {
-      if (predicate(entry)) return entry;
-    }
-    return undefined;
-  };
-
-  // Completeness SLA
-  const completenessSlaConfig = await prisma.configSLA.findFirst({
-    where: { committeeId, stage: "COMPLETENESS", reviewType: null, isActive: true },
-  });
-  const completenessEndHistory = findFirstStatus((h: any) =>
-    nextScreeningStatusSet.has(h.newStatus)
+  return buildSubmissionSlaSummary(
+    submission,
+    configs,
+    holidayRows.map((row) => row.date)
   );
-  const completenessStart = submission.receivedDate ?? submission.createdAt;
-  const completenessEnd = completenessEndHistory?.effectiveDate ?? null;
-  const completenessActual =
-    completenessEnd && completenessSlaConfig
-      ? workingDaysBetween(new Date(completenessStart), new Date(completenessEnd), [])
-      : null;
-  const completenessConfigured = completenessSlaConfig?.workingDays ?? null;
-  const completenessWithin =
-    completenessConfigured === null || completenessActual === null
-      ? null
-      : completenessActual <= completenessConfigured;
-
-  // Classification SLA
-  const classificationSlaConfig = await prisma.configSLA.findFirst({
-    where: { committeeId, stage: "CLASSIFICATION", reviewType, isActive: true },
-  });
-  const classificationStartHistory = findFirstStatus(
-    (h: any) =>
-      h.newStatus === SubmissionStatus.AWAITING_CLASSIFICATION ||
-      h.newStatus === SubmissionStatus.UNDER_CLASSIFICATION
-  );
-  const classificationStart =
-    classificationStartHistory?.effectiveDate ?? completenessEnd ?? submission.receivedDate ?? submission.createdAt;
-  const classificationEnd = submission.classification.classificationDate ?? new Date();
-  const classificationActual = workingDaysBetween(
-    new Date(classificationStart), new Date(classificationEnd), []
-  );
-  const classificationConfigured = classificationSlaConfig?.workingDays ?? null;
-  const classificationWithin = classificationConfigured === null
-    ? null : classificationActual <= classificationConfigured;
-
-  // Review SLA
-  const reviewSlaConfig = await prisma.configSLA.findFirst({
-    where: { committeeId, stage: "REVIEW", reviewType, isActive: true },
-  });
-  const reviewStartHistory = findLatestStatus(
-    (h: any) => h.newStatus === SubmissionStatus.UNDER_REVIEW
-  );
-  const reviewStart = reviewStartHistory?.effectiveDate ?? null;
-  const reviewEndHistory = findLatestStatus((h: any) => {
-    const s = h.newStatus;
-    return s === SubmissionStatus.AWAITING_REVISIONS ||
-      s === SubmissionStatus.REVISION_SUBMITTED ||
-      s === SubmissionStatus.CLOSED || s === SubmissionStatus.WITHDRAWN;
-  });
-  const reviewEnd = reviewEndHistory?.effectiveDate ?? null;
-
-  let reviewActual: number | null = null;
-  let reviewWithin: boolean | null = null;
-  if (reviewStart && reviewEnd && reviewSlaConfig) {
-    reviewActual = workingDaysBetween(new Date(reviewStart), new Date(reviewEnd), []);
-    reviewWithin = reviewActual <= reviewSlaConfig.workingDays;
-  }
-
-  // Revision SLA
-  const revisionSlaConfig = await prisma.configSLA.findFirst({
-    where: { committeeId, stage: "REVISION_RESPONSE", reviewType: null, isActive: true },
-  });
-  const revisionStartHistory = findLatestStatus(
-    (h: any) => h.newStatus === SubmissionStatus.AWAITING_REVISIONS
-  );
-  const revisionEndHistory = findLatestStatus(
-    (h: any) => h.newStatus === SubmissionStatus.REVISION_SUBMITTED
-  );
-  const revisionStart = revisionStartHistory?.effectiveDate ?? null;
-  const revisionEnd = revisionEndHistory?.effectiveDate ?? null;
-
-  let revisionActual: number | null = null;
-  let revisionWithin: boolean | null = null;
-  if (revisionStart && revisionEnd && revisionSlaConfig) {
-    revisionActual = workingDaysBetween(new Date(revisionStart), new Date(revisionEnd), []);
-    revisionWithin = revisionActual <= revisionSlaConfig.workingDays;
-  }
-
-  return {
-    submissionId: submission.id,
-    committeeCode: submission.project.committee.code,
-    reviewType,
-    completeness: {
-      start: completenessStart,
-      end: completenessEnd,
-      configuredWorkingDays: completenessConfigured,
-      actualWorkingDays: completenessActual,
-      withinSla: completenessWithin,
-      description: completenessSlaConfig?.description ?? null,
-    },
-    classification: {
-      start: classificationStart, end: classificationEnd,
-      configuredWorkingDays: classificationConfigured,
-      actualWorkingDays: classificationActual,
-      withinSla: classificationWithin,
-      description: classificationSlaConfig?.description ?? null,
-    },
-    review: {
-      start: reviewStart, end: reviewEnd,
-      configuredWorkingDays: reviewSlaConfig?.workingDays ?? null,
-      actualWorkingDays: reviewActual,
-      withinSla: reviewWithin,
-      description: reviewSlaConfig?.description ?? null,
-    },
-    revisionResponse: {
-      start: revisionStart, end: revisionEnd,
-      configuredWorkingDays: revisionSlaConfig?.workingDays ?? null,
-      actualWorkingDays: revisionActual,
-      withinSla: revisionWithin,
-      description: revisionSlaConfig?.description ?? null,
-    },
-  };
 }

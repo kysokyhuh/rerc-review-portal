@@ -13,21 +13,21 @@ export default function ReportViewSwitch({ active, onChange }: ReportViewSwitchP
         className={active === "summary" ? "active" : ""}
         onClick={() => onChange("summary")}
       >
-        Report Summary
+        Summary
       </button>
       <button
         type="button"
         className={active === "analytics" ? "active" : ""}
         onClick={() => onChange("analytics")}
       >
-        Visual Analytics
+        Analytics
       </button>
       <button
         type="button"
         className={active === "records" ? "active" : ""}
         onClick={() => onChange("records")}
       >
-        Submission Records
+        Records
       </button>
     </section>
   );

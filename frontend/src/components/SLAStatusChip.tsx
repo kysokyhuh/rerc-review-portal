@@ -1,14 +1,15 @@
 import React from "react";
-import type { SLAStatus } from "@/types";
+import type { SLADayMode, SLAStatus } from "@/types";
 import { formatDateDisplay } from "@/utils/dateUtils";
 
 interface SLAStatusChipProps {
   status: SLAStatus;
-  workingDaysRemaining: number;
-  workingDaysElapsed: number;
-  targetWorkingDays: number;
-  dueDate: string;
-  startedAt: string;
+  workingDaysRemaining: number | null;
+  workingDaysElapsed: number | null;
+  targetWorkingDays: number | null;
+  dueDate: string | null;
+  startedAt: string | null;
+  dayMode?: SLADayMode | null;
 }
 
 export const SLAStatusChip: React.FC<SLAStatusChipProps> = ({
@@ -18,6 +19,7 @@ export const SLAStatusChip: React.FC<SLAStatusChipProps> = ({
   targetWorkingDays,
   dueDate,
   startedAt,
+  dayMode,
 }) => {
   const statusLabel =
     status === "OVERDUE"
@@ -32,15 +34,26 @@ export const SLAStatusChip: React.FC<SLAStatusChipProps> = ({
         ? "due-soon"
         : "on-track";
 
-  const description = `Working days (weekends excluded). Start: ${formatDateDisplay(startedAt)} • Target: ${targetWorkingDays} wd • Elapsed: ${workingDaysElapsed} wd • Due: ${formatDateDisplay(dueDate)}`;
+  if (targetWorkingDays == null || workingDaysRemaining == null || dueDate == null || startedAt == null) {
+    return (
+      <span className={`sla-chip ${statusClass}`} title="SLA will start once the current workflow deadline is set.">
+        <span>{statusLabel}</span>
+        <span className="sla-meta">SLA pending</span>
+      </span>
+    );
+  }
+
+  const unitLong = dayMode === "CALENDAR" ? "calendar days" : "working days";
+  const unitShort = dayMode === "CALENDAR" ? "d" : "wd";
+  const description = `${unitLong}. Start: ${formatDateDisplay(startedAt)} • Target: ${targetWorkingDays} ${unitShort} • Elapsed: ${workingDaysElapsed ?? 0} ${unitShort} • Due: ${formatDateDisplay(dueDate)}`;
 
   return (
     <span className={`sla-chip ${statusClass}`} title={description}>
       <span>{statusLabel}</span>
       <span className="sla-meta">
         {workingDaysRemaining >= 0
-          ? `${workingDaysRemaining} wd left`
-          : `${Math.abs(workingDaysRemaining)} wd over`}
+          ? `${workingDaysRemaining} ${unitShort} left`
+          : `${Math.abs(workingDaysRemaining)} ${unitShort} over`}
       </span>
     </span>
   );

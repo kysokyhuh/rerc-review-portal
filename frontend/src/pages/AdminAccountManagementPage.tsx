@@ -433,8 +433,8 @@ export default function AdminAccountManagementPage() {
   };
 
   return (
-    <div className="dashboard-content admin-page">
-      <header className="admin-soft-header admin-header">
+    <div className="dashboard-content admin-page portal-page portal-page--dense">
+      <header className="admin-soft-header admin-header portal-context portal-section">
         <div className="admin-header-copy">
           <span className="admin-page-kicker">Access Governance</span>
           <h1>Account Management</h1>
@@ -510,10 +510,10 @@ export default function AdminAccountManagementPage() {
         </div>
       </header>
 
-      {error ? <div className="admin-notice error">{error}</div> : null}
-      {!error && notice ? <div className="admin-notice success">{notice}</div> : null}
+      {error ? <div className="admin-notice error portal-support">{error}</div> : null}
+      {!error && notice ? <div className="admin-notice success portal-support">{notice}</div> : null}
 
-      <section className="panel admin-soft-panel admin-data-panel">
+      <section className="panel admin-soft-panel admin-data-panel portal-content">
         <div className="panel-header admin-table-header">
           <div>
             <h2 className="panel-title">{activeTabConfig.label} Accounts</h2>

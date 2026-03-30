@@ -3140,6 +3140,8 @@ export const SubmissionScalarFieldEnum = {
   completenessStatus: 'completenessStatus',
   completenessRemarks: 'completenessRemarks',
   status: 'status',
+  classificationDueDate: 'classificationDueDate',
+  exemptNotificationDueDate: 'exemptNotificationDueDate',
   revisionDueDate: 'revisionDueDate',
   continuingReviewDueDate: 'continuingReviewDueDate',
   finalReportDueDate: 'finalReportDueDate',
@@ -3373,6 +3375,7 @@ export const ConfigSLAScalarFieldEnum = {
   reviewType: 'reviewType',
   stage: 'stage',
   workingDays: 'workingDays',
+  dayMode: 'dayMode',
   description: 'description',
   isActive: 'isActive',
   createdAt: 'createdAt',
@@ -3825,6 +3828,20 @@ export type EnumSLAStageFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
  * Reference to a field of type 'SLAStage[]'
  */
 export type ListEnumSLAStageFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SLAStage[]'>
+    
+
+
+/**
+ * Reference to a field of type 'SLADayMode'
+ */
+export type EnumSLADayModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SLADayMode'>
+    
+
+
+/**
+ * Reference to a field of type 'SLADayMode[]'
+ */
+export type ListEnumSLADayModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SLADayMode[]'>
     
 
 

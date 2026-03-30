@@ -14,10 +14,10 @@ export const QueueFilters: React.FC<QueueFiltersProps> = ({
   onSlaChange,
 }) => {
   return (
-    <section className="queue-filters" aria-label="Queue filters">
+    <section className="queue-filters portal-toolbar" aria-label="Queue filters">
       <label className="queue-filter-field queue-filter-search">
         <span className="queue-filter-label">Search Queue</span>
-        <div className="queue-filter-search-shell">
+        <div className="queue-filter-search-shell portal-search">
           <svg
             className="queue-filter-search-icon"
             viewBox="0 0 24 24"
@@ -51,21 +51,23 @@ export const QueueFilters: React.FC<QueueFiltersProps> = ({
 
       <label className="queue-filter-field queue-filter-select-field">
         <span className="queue-filter-label">SLA Status</span>
-        <select
-          className="queue-filter-select"
-          value={sla}
-          onChange={(event) =>
-            onSlaChange(
-              event.target.value as "all" | "on-track" | "due-soon" | "overdue" | "blocked"
-            )
-          }
-        >
-          <option value="all">All statuses</option>
-          <option value="on-track">On Track</option>
-          <option value="due-soon">Due Soon</option>
-          <option value="overdue">Overdue</option>
-          <option value="blocked">Blocked</option>
-        </select>
+        <div className="portal-select-shell">
+          <select
+            className="queue-filter-select"
+            value={sla}
+            onChange={(event) =>
+              onSlaChange(
+                event.target.value as "all" | "on-track" | "due-soon" | "overdue" | "blocked"
+              )
+            }
+          >
+            <option value="all">All statuses</option>
+            <option value="on-track">On Track</option>
+            <option value="due-soon">Due Soon</option>
+            <option value="overdue">Overdue</option>
+            <option value="blocked">Blocked</option>
+          </select>
+        </div>
       </label>
     </section>
   );

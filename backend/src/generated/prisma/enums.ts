@@ -118,6 +118,7 @@ export type SubmissionStatus = (typeof SubmissionStatus)[keyof typeof Submission
 export const SLAStage = {
   COMPLETENESS: 'COMPLETENESS',
   CLASSIFICATION: 'CLASSIFICATION',
+  EXEMPT_NOTIFICATION: 'EXEMPT_NOTIFICATION',
   REVIEW: 'REVIEW',
   REVISION_RESPONSE: 'REVISION_RESPONSE',
   CONTINUING_REVIEW_DUE: 'CONTINUING_REVIEW_DUE',
@@ -127,6 +128,14 @@ export const SLAStage = {
 } as const
 
 export type SLAStage = (typeof SLAStage)[keyof typeof SLAStage]
+
+
+export const SLADayMode = {
+  CALENDAR: 'CALENDAR',
+  WORKING: 'WORKING'
+} as const
+
+export type SLADayMode = (typeof SLADayMode)[keyof typeof SLADayMode]
 
 
 export const PanelMemberRole = {

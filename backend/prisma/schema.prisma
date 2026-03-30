@@ -94,12 +94,18 @@ enum SubmissionStatus {
 enum SLAStage {
   COMPLETENESS
   CLASSIFICATION
+  EXEMPT_NOTIFICATION
   REVIEW
   REVISION_RESPONSE
   CONTINUING_REVIEW_DUE
   FINAL_REPORT_DUE
   MEMBERSHIP
   MEETING
+}
+
+enum SLADayMode {
+  CALENDAR
+  WORKING
 }
 
 enum PanelMemberRole {
@@ -568,6 +574,8 @@ model Submission {
   completenessStatus      CompletenessStatus @default(COMPLETE)
   completenessRemarks     String?
   status                  SubmissionStatus   @default(RECEIVED)
+  classificationDueDate   DateTime?
+  exemptNotificationDueDate DateTime?
   revisionDueDate         DateTime?
   continuingReviewDueDate DateTime?
   finalReportDueDate      DateTime?
@@ -847,6 +855,7 @@ model ConfigSLA {
   reviewType  ReviewType?
   stage       SLAStage
   workingDays Int
+  dayMode     SLADayMode  @default(WORKING)
   description String?
   isActive    Boolean     @default(true)
   createdAt   DateTime    @default(now())

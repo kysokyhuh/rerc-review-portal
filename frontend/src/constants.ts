@@ -19,9 +19,9 @@ export const SLA_TARGETS: Record<QueueType, number> = {
 export const DUE_SOON_THRESHOLD = 3;
 
 /**
- * Number of working days a classification can wait before flagging
+ * Number of days a classification can wait before flagging
  */
-export const CLASSIFICATION_WAIT_THRESHOLD = 3;
+export const CLASSIFICATION_WAIT_THRESHOLD = 14;
 
 /**
  * Auto-refresh interval in milliseconds (90 seconds)

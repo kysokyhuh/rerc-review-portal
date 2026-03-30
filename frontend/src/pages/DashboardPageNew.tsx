@@ -260,7 +260,7 @@ export const DashboardPage: React.FC = () => {
   // ── Error state ────────────────────────────────────────
   if (error) {
     return (
-      <div className="dashboard-content">
+      <div className="dashboard-content portal-page">
         <div className="empty-state" style={{ minHeight: "50vh", display: "flex", flexDirection: "column", justifyContent: "center" }} role="alert">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
           <h3>Unable to load dashboard</h3>
@@ -275,76 +275,86 @@ export const DashboardPage: React.FC = () => {
 
   // ── Render ─────────────────────────────────────────────
   return (
-    <div className={`dashboard-content ${fromLogin ? "dashboard-enter" : ""} ${loading ? "is-loading" : "is-ready"}`}>
-      <DashboardTopBar
-        greeting={greeting}
-        lastUpdated={lastUpdated}
-        searchTerm={searchTerm}
-        onSearchTermChange={setSearchTerm}
-        searchResults={searchResults}
-        searchOpen={searchOpen}
-        searchLoading={searchLoading}
-        searchError={searchError}
-        searchInputRef={searchInputRef}
-        onSearchFocus={() => { if (searchResults.length > 0) setSearchOpen(true); }}
-        onSearchBlur={() => { setTimeout(() => setSearchOpen(false), 150); }}
-        onRefresh={handleRefresh}
-        onNavigate={(p) => navigate(p)}
-      />
+    <div className={`dashboard-content portal-page portal-page--dense ${fromLogin ? "dashboard-enter" : ""} ${loading ? "is-loading" : "is-ready"}`}>
+      <section className="portal-context">
+        <DashboardTopBar
+          greeting={greeting}
+          lastUpdated={lastUpdated}
+          searchTerm={searchTerm}
+          onSearchTermChange={setSearchTerm}
+          searchResults={searchResults}
+          searchOpen={searchOpen}
+          searchLoading={searchLoading}
+          searchError={searchError}
+          searchInputRef={searchInputRef}
+          onSearchFocus={() => { if (searchResults.length > 0) setSearchOpen(true); }}
+          onSearchBlur={() => { setTimeout(() => setSearchOpen(false), 150); }}
+          onRefresh={handleRefresh}
+          onNavigate={(p) => navigate(p)}
+        />
+      </section>
 
-      <AnnouncementBanner
-        announcements={visibleAnnouncements}
-        onDismiss={(id) => setDismissedAnnouncements((prev) => [...prev, id])}
-      />
+      {visibleAnnouncements.length > 0 ? (
+        <section className="portal-support">
+          <AnnouncementBanner
+            announcements={visibleAnnouncements}
+            onDismiss={(id) => setDismissedAnnouncements((prev) => [...prev, id])}
+          />
+        </section>
+      ) : null}
 
-      <StatsGrid
-        counts={counts}
-        attention={attention}
-        onFilterChange={(f) => setQueueFilter(f as QueueFilter)}
-        tableRef={tableRef}
-      />
+      <section className="portal-summary">
+        <StatsGrid
+          counts={counts}
+          attention={attention}
+          onFilterChange={(f) => setQueueFilter(f as QueueFilter)}
+          tableRef={tableRef}
+        />
+      </section>
 
-      <SubmissionsTable
-        loading={loading}
-        filteredItems={filteredItems}
-        allItems={allItems}
-        classificationQueue={classificationQueue}
-        reviewQueue={reviewQueue}
-        revisionQueue={revisionQueue}
-        overdueSubmissions={overdueSubmissions}
-        dueSoonSubmissions={dueSoonSubmissions}
-        dueSoonThreshold={DUE_SOON_THRESHOLD}
-        queueFilter={queueFilter}
-        onQueueFilterChange={setQueueFilter}
-        searchTerm={searchTerm}
-        onSearchTermChange={setSearchTerm}
-        hasActiveFilters={hasActiveFilters}
-        activeFilters={activeFilters}
-        overdueOwnerFilter={overdueOwnerFilter}
-        onOverdueOwnerFilterChange={setOverdueOwnerFilter}
-        onDashboardFilterChange={handleDashboardFilterChange}
-        selectedIds={selectedIds}
-        allVisibleSelected={allVisibleSelected}
-        selectedCount={selectedIds.size}
-        onToggleSelectAll={toggleSelectAllVisible}
-        onToggleSelection={toggleSelection}
-        onClearSelection={() => setSelectedIds(new Set())}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        safePage={safePage}
-        startIdx={startIdx}
-        endIdx={endIdx}
-        totalFiltered={totalFiltered}
-        onPageChange={setCurrentPage}
-        onQuickView={openQuickView}
-        onNavigate={(p) => navigate(p)}
-        onExportFiltered={handleExportFiltered}
-        onExportSelected={handleExportSelected}
-        onBulkAssign={handleBulkAssign}
-        onBulkReminder={handleBulkReminder}
-        onBulkStatusChange={handleBulkStatusChange}
-        tableRef={tableRef}
-      />
+      <section className="portal-content">
+        <SubmissionsTable
+          loading={loading}
+          filteredItems={filteredItems}
+          allItems={allItems}
+          classificationQueue={classificationQueue}
+          reviewQueue={reviewQueue}
+          revisionQueue={revisionQueue}
+          overdueSubmissions={overdueSubmissions}
+          dueSoonSubmissions={dueSoonSubmissions}
+          dueSoonThreshold={DUE_SOON_THRESHOLD}
+          queueFilter={queueFilter}
+          onQueueFilterChange={setQueueFilter}
+          searchTerm={searchTerm}
+          onSearchTermChange={setSearchTerm}
+          hasActiveFilters={hasActiveFilters}
+          activeFilters={activeFilters}
+          overdueOwnerFilter={overdueOwnerFilter}
+          onOverdueOwnerFilterChange={setOverdueOwnerFilter}
+          onDashboardFilterChange={handleDashboardFilterChange}
+          selectedIds={selectedIds}
+          allVisibleSelected={allVisibleSelected}
+          selectedCount={selectedIds.size}
+          onToggleSelectAll={toggleSelectAllVisible}
+          onToggleSelection={toggleSelection}
+          onClearSelection={() => setSelectedIds(new Set())}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          safePage={safePage}
+          startIdx={startIdx}
+          endIdx={endIdx}
+          totalFiltered={totalFiltered}
+          onPageChange={setCurrentPage}
+          onQuickView={openQuickView}
+          onNavigate={(p) => navigate(p)}
+          onExportFiltered={handleExportFiltered}
+          onExportSelected={handleExportSelected}
+          onBulkAssign={handleBulkAssign}
+          onBulkReminder={handleBulkReminder}
+          onBulkStatusChange={handleBulkStatusChange}
+          tableRef={tableRef}
+        />
+      </section>
 
       <QuickViewModal
         open={quickViewOpen}

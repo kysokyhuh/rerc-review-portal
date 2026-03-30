@@ -72,24 +72,14 @@ function SubmissionDetailLoadingState() {
     "Current status",
     "Decision date",
   ];
-  const protocolFields = [
-    "Protocol profile",
-    "Proponent details",
-    "Review routing",
-    "Clearance schedule",
-  ];
 
   return (
     <div
-      className="project-detail-page detail-v2 detail-loading-page"
+      className="project-detail-page detail-v2 detail-loading-page portal-page portal-page--dense"
       aria-busy="true"
       aria-live="polite"
     >
       <header className="detail-hero detail-loading-hero">
-        <div className="detail-loading-progress" aria-hidden="true">
-          <div className="detail-loading-progress-bar" />
-        </div>
-
         <div className="detail-loading-breadcrumbs" aria-hidden="true">
           <span className="detail-skeleton detail-skeleton-pill detail-loading-breadcrumb-item detail-loading-breadcrumb-item-wide" />
           <span className="detail-loading-breadcrumb-separator" />
@@ -121,7 +111,6 @@ function SubmissionDetailLoadingState() {
           </div>
 
           <div className="detail-loading-indicator" role="status">
-            <span className="detail-loading-spinner" aria-hidden="true" />
             <div className="detail-loading-indicator-copy">
               <strong>Loading submission details</strong>
               <span>Syncing protocol overview and lifecycle records.</span>
@@ -167,105 +156,35 @@ function SubmissionDetailLoadingState() {
       <section className="card detail-card detail-loading-card">
         <div className="section-title">
           <div className="section-title-left">
-            <h2>Classification controls</h2>
+            <h2>Workflow and supporting records</h2>
             <p className="detail-loading-section-copy">
-              Review-path setup and committee routing.
+              Review routing, documents, SLA indicators, and recent history.
             </p>
           </div>
         </div>
         <div className="classification-controls-grid detail-loading-controls-grid">
           <div className="field detail-loading-field">
             <label>Classification status</label>
-            <span
-              className="detail-skeleton detail-skeleton-input detail-skeleton-width-2"
-              aria-hidden="true"
-            />
+            <span className="detail-skeleton detail-skeleton-input detail-skeleton-width-2" aria-hidden="true" />
           </div>
           <div className="field detail-loading-field">
             <label>Type of review</label>
-            <span
-              className="detail-skeleton detail-skeleton-input detail-skeleton-width-1"
-              aria-hidden="true"
-            />
+            <span className="detail-skeleton detail-skeleton-input detail-skeleton-width-1" aria-hidden="true" />
           </div>
           <div className="classification-save-cell detail-loading-action-cell">
-            <span
-              className="detail-skeleton detail-skeleton-button detail-skeleton-button-wide"
-              aria-hidden="true"
-            />
+            <span className="detail-skeleton detail-skeleton-button detail-skeleton-button-wide" aria-hidden="true" />
           </div>
         </div>
-      </section>
-
-      <section className="card detail-card detail-loading-card">
-        <div className="section-title">
-          <div className="section-title-left">
-            <h2>Protocol profile</h2>
-            <p className="detail-loading-section-copy">
-              Submission context, milestones, and supporting metadata.
-            </p>
-          </div>
-        </div>
-        <div className="detail-loading-protocol-grid">
-          {protocolFields.map((label, index) => (
-            <div className="field detail-loading-field" key={label}>
-              <label>{label}</label>
-              <span
-                className={`detail-skeleton detail-skeleton-line detail-skeleton-width-${
-                  (index % 3) + 1
-                }`}
-                aria-hidden="true"
-              />
-              <span
-                className="detail-skeleton detail-skeleton-line detail-skeleton-width-4"
-                aria-hidden="true"
-              />
-            </div>
-          ))}
-        </div>
-        <div className="detail-loading-copy-block" aria-hidden="true">
-          <span className="detail-skeleton detail-skeleton-line detail-skeleton-width-5" />
-          <span className="detail-skeleton detail-skeleton-line detail-skeleton-width-4" />
-          <span className="detail-skeleton detail-skeleton-line detail-skeleton-width-3" />
-        </div>
-      </section>
-
-      <div className="detail-loading-secondary-grid">
-        <section className="card detail-card detail-loading-card">
-          <div className="section-title">
-            <div className="section-title-left">
-              <h2>Reviewer assignments</h2>
-            </div>
-            <span
-              className="detail-skeleton detail-skeleton-pill detail-loading-meta-pill detail-loading-meta-pill-compact"
-              aria-hidden="true"
-            />
-          </div>
+        <div className="detail-loading-secondary-grid">
           <div className="detail-loading-list" aria-hidden="true">
             <span className="detail-skeleton detail-skeleton-line detail-skeleton-width-4" />
             <span className="detail-skeleton detail-skeleton-line detail-skeleton-width-5" />
             <span className="detail-skeleton detail-skeleton-line detail-skeleton-width-3" />
           </div>
-        </section>
-
-        <section className="card detail-card detail-loading-card">
-          <div className="section-title">
-            <div className="section-title-left">
-              <h2>Documents</h2>
-            </div>
-          </div>
           <div className="detail-loading-list" aria-hidden="true">
             <span className="detail-skeleton detail-skeleton-line detail-skeleton-width-5" />
             <span className="detail-skeleton detail-skeleton-line detail-skeleton-width-2" />
             <span className="detail-skeleton detail-skeleton-line detail-skeleton-width-4" />
-          </div>
-        </section>
-
-        <section className="card detail-card detail-loading-card">
-          <div className="section-title">
-            <div className="section-title-left">
-              <h2>SLA snapshots</h2>
-            </div>
           </div>
           <div className="detail-loading-sla-grid" aria-hidden="true">
             {[0, 1, 2].map((item) => (
@@ -275,17 +194,6 @@ function SubmissionDetailLoadingState() {
                 <span className="detail-skeleton detail-skeleton-line detail-skeleton-width-3" />
               </div>
             ))}
-          </div>
-        </section>
-      </div>
-
-      <section className="card detail-card detail-loading-card">
-        <div className="section-title">
-          <div className="section-title-left">
-            <h2>Submission timeline</h2>
-            <p className="detail-loading-section-copy">
-              Workflow transitions and review-history events.
-            </p>
           </div>
         </div>
         <div className="detail-loading-timeline" aria-hidden="true">
@@ -632,7 +540,7 @@ export const SubmissionDetailPage: React.FC = () => {
 
   /* ── render ── */
   return (
-    <div className="project-detail-page detail-v2">
+    <div className="project-detail-page detail-v2 portal-page portal-page--dense">
       {creationBannerVisible && locationState?.banner ? (
         <section className="card detail-card" style={{ borderColor: "var(--primary)", background: "var(--primary-soft)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>

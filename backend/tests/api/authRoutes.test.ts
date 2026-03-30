@@ -75,6 +75,42 @@ describe("auth routes", () => {
     );
   });
 
+  it("rejects invalid request origins with a structured CSRF code", async () => {
+    const response = await request(app)
+      .post("/auth/login")
+      .set("Referer", "https://evil.example/upload")
+      .set("Cookie", "csrfToken=test-csrf")
+      .set("X-CSRF-Token", "test-csrf")
+      .send({
+        email: "chair@urerb.com",
+        password: "StrongPassword12",
+      });
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({
+      code: "INVALID_REQUEST_ORIGIN",
+      message: "Invalid request origin",
+    });
+  });
+
+  it("rejects mismatched CSRF tokens with a structured error code", async () => {
+    const response = await request(app)
+      .post("/auth/login")
+      .set(originHeaders)
+      .set("Cookie", "csrfToken=test-csrf")
+      .set("X-CSRF-Token", "different-token")
+      .send({
+        email: "chair@urerb.com",
+        password: "StrongPassword12",
+      });
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({
+      code: "INVALID_CSRF_TOKEN",
+      message: "Invalid CSRF token",
+    });
+  });
+
   it("POST /auth/signup creates a pending inactive account", async () => {
     authService.signup.mockResolvedValue({
       message: "Your account has been submitted for approval.",

@@ -37,13 +37,19 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction) 
     referer: req.get("referer"),
   });
   if (!trustedOrigin || !ALLOWED_ORIGINS.has(trustedOrigin)) {
-    return res.status(403).json({ message: "Invalid request origin" });
+    return res.status(403).json({
+      code: "INVALID_REQUEST_ORIGIN",
+      message: "Invalid request origin",
+    });
   }
 
   const cookieToken = req.cookies?.[CSRF_COOKIE_NAME];
   const headerToken = req.header(CSRF_HEADER_NAME);
   if (!cookieToken || !headerToken || cookieToken !== headerToken) {
-    return res.status(403).json({ message: "Invalid CSRF token" });
+    return res.status(403).json({
+      code: "INVALID_CSRF_TOKEN",
+      message: "Invalid CSRF token",
+    });
   }
 
   return next();

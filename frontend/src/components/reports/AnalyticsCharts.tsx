@@ -515,7 +515,7 @@ export default function AnalyticsCharts({ summary, onDrilldown }: AnalyticsChart
       <section className="analytics-section">
         <div className="analytics-section-header">
           <h4>Performance</h4>
-          <p>Working-day turnaround, SLA compliance, and stage-reach indicators for the filtered submission set.</p>
+          <p>Turnaround, SLA compliance, and stage-reach indicators for the filtered submission set.</p>
         </div>
 
         <div className="analytics-grid analytics-grid-performance">
@@ -537,7 +537,7 @@ export default function AnalyticsCharts({ summary, onDrilldown }: AnalyticsChart
           <section className="chart-card chart-card-wide">
             <div className="chart-card-heading">
               <h4>Within SLA vs Overdue</h4>
-              <p>Stage compliance uses the configured committee SLA and current filtered workflow history.</p>
+              <p>Stage compliance uses the configured committee SLA, including calendar-day and working-day stages.</p>
             </div>
             <div className="stacked-rows">
               {performanceCharts.slaCompliance.map((item) => {

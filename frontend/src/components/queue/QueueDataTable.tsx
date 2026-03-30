@@ -39,18 +39,26 @@ const getSlaMeta = (item: DecoratedQueueItem) => {
     return "Missing required supporting details.";
   }
 
+  const remaining = item.daysRemaining ?? item.workingDaysRemaining;
+  const target = item.targetDays ?? item.targetWorkingDays;
+  const unitLabel = item.slaDayMode === "CALENDAR" ? "day" : "working day";
+
+  if (target == null || remaining == null || !item.slaDueDate) {
+    return "SLA will start once the current workflow deadline is set.";
+  }
+
   if (item.slaStatus === "OVERDUE") {
-    return `${Math.abs(item.workingDaysRemaining)} working day${
-      Math.abs(item.workingDaysRemaining) === 1 ? "" : "s"
+    return `${Math.abs(remaining)} ${unitLabel}${
+      Math.abs(remaining) === 1 ? "" : "s"
     } overdue`;
   }
 
-  if (item.workingDaysRemaining === 0) {
+  if (remaining === 0) {
     return "Due today";
   }
 
-  return `${item.workingDaysRemaining} working day${
-    item.workingDaysRemaining === 1 ? "" : "s"
+  return `${remaining} ${unitLabel}${
+    remaining === 1 ? "" : "s"
   } remaining`;
 };
 
@@ -105,7 +113,7 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
   );
 
   return (
-    <section className="panel queue-focused-table">
+    <section className="panel queue-focused-table portal-content">
       {showHeader ? (
         <div className="panel-header queue-results-header">
           <div className="queue-results-header-copy">
@@ -120,19 +128,6 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
               Reset filters
             </button>
           ) : null}
-        </div>
-      ) : null}
-
-      {activeFilters.length > 0 ? (
-        <div className="queue-results-filter-strip">
-          <span className="queue-results-filter-label">Active filters</span>
-          <div className="queue-results-filter-chips">
-            {activeFilters.map((filter) => (
-              <span key={filter} className="filter-chip">
-                {filter}
-              </span>
-            ))}
-          </div>
         </div>
       ) : null}
 
@@ -229,10 +224,8 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
               </table>
             </div>
             <div className="queue-results-footer">
-              <span>
-                Showing {items.length} protocol{items.length === 1 ? "" : "s"} in this view.
-              </span>
-              <span>Open any row to inspect the full submission record and next action.</span>
+              <span>Showing {items.length} protocol{items.length === 1 ? "" : "s"} in this view.</span>
+              <span>Open any row for the full submission record.</span>
             </div>
           </>
         )}

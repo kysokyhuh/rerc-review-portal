@@ -5,6 +5,17 @@
 // Queue and SLA types
 export type QueueType = "classification" | "review" | "revision";
 export type SLAStatus = "ON_TRACK" | "DUE_SOON" | "OVERDUE";
+export type SLADayMode = "CALENDAR" | "WORKING";
+export type SLAStageKey =
+  | "COMPLETENESS"
+  | "CLASSIFICATION"
+  | "EXEMPT_NOTIFICATION"
+  | "REVIEW"
+  | "REVISION_RESPONSE"
+  | "CONTINUING_REVIEW_DUE"
+  | "FINAL_REPORT_DUE"
+  | "MEMBERSHIP"
+  | "MEETING";
 export type StageFilter =
   | "ALL"
   | "RECEIVED"
@@ -66,20 +77,43 @@ export interface QueueItem {
   submissionType: string;
   status: string;
   receivedDate: string;
-  daysRemaining?: number;
+  daysRemaining?: number | null;
+  daysElapsed?: number | null;
+  targetDays?: number | null;
   reviewType?: string | null;
   finalDecision?: string | null;
   queue?: QueueType;
+  slaStage?: SLAStageKey | null;
+  slaDayMode?: SLADayMode | null;
+  slaStatus?: SLAStatus;
+  slaDueDate?: string | null;
+  startedAt?: string | null;
+  overdueOwner?: "PANEL" | "RESEARCHER";
+  overdueReason?: string;
+  overdueOwnerRole?:
+    | "PROJECT_LEADER_RESEARCHER_PROPONENT"
+    | "REVIEWER_GROUP"
+    | "RESEARCH_ASSOCIATE_PROCESSING_STAFF"
+    | "COMMITTEE_CHAIRPERSON_DESIGNATE"
+    | "UNASSIGNED_PROCESS_GAP";
+  overdueOwnerLabel?: string;
+  overdueOwnerIcon?: string;
+  overdueOwnerReason?: string;
 }
 
 export interface DecoratedQueueItem extends QueueItem {
   queue: QueueType;
   slaStatus: SLAStatus;
-  workingDaysRemaining: number;
-  workingDaysElapsed: number;
-  slaDueDate: string;
-  targetWorkingDays: number;
-  startedAt: string;
+  workingDaysRemaining: number | null;
+  workingDaysElapsed: number | null;
+  slaDueDate: string | null;
+  targetWorkingDays: number | null;
+  startedAt: string | null;
+  daysRemaining: number | null;
+  daysElapsed: number | null;
+  targetDays: number | null;
+  slaStage: SLAStageKey | null;
+  slaDayMode: SLADayMode | null;
   missingFields: string[];
   templateCode: string;
   nextAction?: string;
@@ -503,34 +537,55 @@ export interface UpdateProtocolMilestonePayload {
 }
 
 // SLA summary
+export interface SubmissionSlaStageSummary {
+  stage: SLAStageKey;
+  label: string;
+  dayMode: SLADayMode | null;
+  configuredDays: number | null;
+  start: string | null;
+  end: string | null;
+  dueDate: string | null;
+  actualDays: number | null;
+  remainingDays: number | null;
+  withinSla: boolean | null;
+  description: string | null;
+  isActive: boolean;
+  slaStatus: SLAStatus | null;
+}
+
+export interface SubmissionCurrentSlaWindow {
+  stage: SLAStageKey;
+  label: string;
+  dayMode: SLADayMode;
+  targetDays: number;
+  startedAt: string;
+  dueDate: string;
+  elapsedDays: number;
+  remainingDays: number;
+  slaStatus: SLAStatus;
+  ownerRole:
+    | "PROJECT_LEADER_RESEARCHER_PROPONENT"
+    | "REVIEWER_GROUP"
+    | "RESEARCH_ASSOCIATE_PROCESSING_STAFF"
+    | "COMMITTEE_CHAIRPERSON_DESIGNATE"
+    | "UNASSIGNED_PROCESS_GAP";
+  ownerLabel: string;
+  ownerIcon: string;
+  ownerReason: string;
+  reason: string;
+  description: string | null;
+}
+
 export interface SubmissionSlaSummary {
   submissionId: number;
-  committeeCode: string;
+  committeeCode: string | null;
   reviewType: string | null;
-  classification: {
-    start: string;
-    end: string;
-    configuredWorkingDays: number | null;
-    actualWorkingDays: number | null;
-    withinSla: boolean | null;
-    description: string | null;
-  };
-  review: {
-    start: string | null;
-    end: string | null;
-    configuredWorkingDays: number | null;
-    actualWorkingDays: number | null;
-    withinSla: boolean | null;
-    description: string | null;
-  };
-  revisionResponse: {
-    start: string | null;
-    end: string | null;
-    configuredWorkingDays: number | null;
-    actualWorkingDays: number | null;
-    withinSla: boolean | null;
-    description: string | null;
-  };
+  current: SubmissionCurrentSlaWindow | null;
+  completeness: SubmissionSlaStageSummary;
+  classification: SubmissionSlaStageSummary;
+  exemptNotification: SubmissionSlaStageSummary;
+  review: SubmissionSlaStageSummary;
+  revisionResponse: SubmissionSlaStageSummary;
 }
 
 // Archived projects (terminal states: CLOSED, WITHDRAWN)

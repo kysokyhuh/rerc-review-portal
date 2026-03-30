@@ -87,7 +87,7 @@ export const ProjectDetailPage: React.FC = () => {
 
   if (loading || !project) {
     return (
-      <div className="loading-state">
+      <div className="loading-state portal-page">
         <p>Loading project details...</p>
       </div>
     );
@@ -310,7 +310,7 @@ export const ProjectDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="project-detail-page detail-v2">
+    <div className="project-detail-page detail-v2 portal-page portal-page--dense">
       {/* Hero */}
       <header className="detail-hero">
         <Breadcrumbs items={[

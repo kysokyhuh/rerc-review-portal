@@ -41,9 +41,9 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     },
     {
       key: "dueSoon" as const,
-      label: "Due soon (≤3 wd)",
+      label: "Due soon (≤3 days)",
       value: counts.dueSoon ?? 0,
-      subtext: "Working day SLA logic applied",
+      subtext: "Based on the active workflow deadline",
     },
   ];
 

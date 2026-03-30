@@ -118,7 +118,9 @@ export function QuickViewModal({
               </div>
               <div className="qv-detail-item">
                 <span className="qv-detail-label">SLA due</span>
-                <span className="qv-detail-value">{sla ? formatShortDate(sla.classification?.end ?? null) : "Not set"}</span>
+                <span className="qv-detail-value">
+                  {sla?.current?.dueDate ? formatShortDate(sla.current.dueDate) : "Not set"}
+                </span>
               </div>
               <div className="qv-detail-item">
                 <span className="qv-detail-label">Staff in charge</span>

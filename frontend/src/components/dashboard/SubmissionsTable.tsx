@@ -130,18 +130,11 @@ export function SubmissionsTable({
 }: SubmissionsTableProps) {
   return (
     <>
-      <div className="content-grid-header">
-        <div className="content-grid-title">
-          <h3>Queue workspace</h3>
-          <p>Filters, triage, and bulk actions in one place.</p>
-        </div>
-      </div>
-
       <div className="content-grid rail-collapsed">
         <div className="panel" ref={tableRef}>
           <div className="panel-header">
             <div>
-              <h3 className="panel-title">Submissions Queue</h3>
+              <h3 className="panel-title">Queue workspace</h3>
             </div>
             <div className="panel-actions">
               <span className="panel-count">{filteredItems.length} submissions</span>
