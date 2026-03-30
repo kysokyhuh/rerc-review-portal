@@ -1,4 +1,7 @@
-import axios, { type InternalAxiosRequestConfig } from "axios";
+import axios, {
+  type AxiosProgressEvent,
+  type InternalAxiosRequestConfig,
+} from "axios";
 
 // Re-export all types from the types module for backward compatibility
 export type {
@@ -150,7 +153,18 @@ function getCookieValue(name: string): string | null {
 }
 
 function getCachedCsrfToken() {
-  return csrfTokenCache || getCookieValue(CSRF_COOKIE_NAME);
+  const cookieToken = getCookieValue(CSRF_COOKIE_NAME);
+  if (cookieToken) {
+    csrfTokenCache = cookieToken;
+    return cookieToken;
+  }
+
+  if (typeof document !== "undefined") {
+    csrfTokenCache = null;
+    return null;
+  }
+
+  return csrfTokenCache;
 }
 
 function setRequestHeader(
@@ -232,7 +246,17 @@ authApi.interceptors.response.use(
     }
     return response;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    const requestPath = getRequestPath(error.config?.url);
+    if (
+      requestPath &&
+      (AUTH_ROUTES_THAT_ROTATE_CSRF.has(requestPath) || requestPath === "/auth/me") &&
+      error.response?.status >= 400
+    ) {
+      clearCsrfTokenCache();
+    }
+    return Promise.reject(error);
+  }
 );
 
 const isAuthPagePath = (path: string) => AUTH_PAGE_PATHS.has(path);
@@ -807,13 +831,48 @@ export async function importProjectsCsv(file: File) {
   return commitProjectsCsvImport(file);
 }
 
-export async function previewProjectsCsv(file: File) {
+export interface CsvUploadProgress {
+  loaded: number;
+  total: number | null;
+  percent: number | null;
+}
+
+const normalizeUploadProgress = (
+  event: AxiosProgressEvent
+): CsvUploadProgress => {
+  const total =
+    typeof event.total === "number" && Number.isFinite(event.total)
+      ? event.total
+      : null;
+  const loaded =
+    typeof event.loaded === "number" && Number.isFinite(event.loaded)
+      ? event.loaded
+      : 0;
+  const percent =
+    total && total > 0 ? Math.min(100, Math.round((loaded / total) * 100)) : null;
+
+  return {
+    loaded,
+    total,
+    percent,
+  };
+};
+
+export async function previewProjectsCsv(
+  file: File,
+  options?: {
+    onUploadProgress?: (progress: CsvUploadProgress) => void;
+  }
+) {
   const formData = new FormData();
   formData.append("file", file);
   const response = await api.post("/imports/projects/preview", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
+    onUploadProgress: options?.onUploadProgress
+      ? (event) => options.onUploadProgress?.(normalizeUploadProgress(event))
+      : undefined,
   });
   return response.data as ProjectImportPreview;
 }
@@ -821,7 +880,10 @@ export async function previewProjectsCsv(file: File) {
 export async function commitProjectsCsvImport(
   file: File,
   mapping?: Record<string, string | null>,
-  rowEdits?: ProjectImportRowEdit[]
+  rowEdits?: ProjectImportRowEdit[],
+  options?: {
+    onUploadProgress?: (progress: CsvUploadProgress) => void;
+  }
 ) {
   const formData = new FormData();
   formData.append("file", file);
@@ -835,6 +897,9 @@ export async function commitProjectsCsvImport(
     headers: {
       "Content-Type": "multipart/form-data",
     },
+    onUploadProgress: options?.onUploadProgress
+      ? (event) => options.onUploadProgress?.(normalizeUploadProgress(event))
+      : undefined,
   });
   return response.data as ImportResult;
 }

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
+  type CsvUploadProgress,
   commitProjectsCsvImport,
   fetchProjectImportTemplate,
   previewProjectsCsv,
@@ -20,6 +21,20 @@ import "../styles/imports.css";
 const MAX_FILE_SIZE_MB = 5;
 const MAX_ERRORS_DISPLAY = 50;
 const PREVIEW_ROWS_LIMIT = 10;
+
+type RequestProgressState = {
+  phase: "idle" | "uploading" | "processing";
+  loaded: number;
+  total: number | null;
+  percent: number | null;
+};
+
+const IDLE_PROGRESS: RequestProgressState = {
+  phase: "idle",
+  loaded: 0,
+  total: null,
+  percent: null,
+};
 
 const formatBytes = (bytes: number) => {
   if (bytes < 1024) return `${bytes} B`;
@@ -52,11 +67,31 @@ const resolveImportErrorMessage = (err: any, fallback: string) => {
   return err?.response?.data?.message || err?.message || fallback;
 };
 
+const resolveProgressState = (progress: CsvUploadProgress): RequestProgressState => ({
+  phase: progress.percent === 100 ? "processing" : "uploading",
+  loaded: progress.loaded,
+  total: progress.total,
+  percent: progress.percent,
+});
+
+const renderTransferMeta = (progress: RequestProgressState) => {
+  if (progress.phase !== "uploading") return null;
+  if (progress.total && progress.total > 0) {
+    return `${formatBytes(progress.loaded)} of ${formatBytes(progress.total)} uploaded`;
+  }
+  if (progress.loaded > 0) {
+    return `${formatBytes(progress.loaded)} uploaded`;
+  }
+  return null;
+};
+
 export default function ImportProjectsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<ProjectImportPreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [previewProgress, setPreviewProgress] = useState<RequestProgressState>(IDLE_PROGRESS);
+  const [importProgress, setImportProgress] = useState<RequestProgressState>(IDLE_PROGRESS);
   const [templateDownloading, setTemplateDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -85,6 +120,8 @@ export default function ImportProjectsPage() {
     setStatusMessage(null);
     setResult(null);
     setPreview(null);
+    setPreviewProgress(IDLE_PROGRESS);
+    setImportProgress(IDLE_PROGRESS);
     setEditablePreviewRows([]);
 
     if (!file) {
@@ -108,10 +145,24 @@ export default function ImportProjectsPage() {
 
     setSelectedFile(file);
     setPreviewLoading(true);
-    setStatusMessage("Analyzing file and auto-detecting required headers...");
+    setPreviewProgress({
+      phase: "uploading",
+      loaded: 0,
+      total: file.size,
+      percent: 0,
+    });
+    setStatusMessage("Uploading CSV for preview...");
 
     try {
-      const previewResponse = await previewProjectsCsv(file);
+      const previewResponse = await previewProjectsCsv(file, {
+        onUploadProgress: (progress) => {
+          const next = resolveProgressState(progress);
+          setPreviewProgress(next);
+          if (next.phase === "processing") {
+            setStatusMessage("Analyzing file and auto-detecting required headers...");
+          }
+        },
+      });
       setPreview(previewResponse);
       setEditablePreviewRows(previewResponse.previewRows.map((row) => ({ ...row })));
       if (previewResponse.missingRequiredFields.length > 0) {
@@ -127,6 +178,7 @@ export default function ImportProjectsPage() {
       setEditablePreviewRows([]);
     } finally {
       setPreviewLoading(false);
+      setPreviewProgress(IDLE_PROGRESS);
     }
   };
 
@@ -162,7 +214,13 @@ export default function ImportProjectsPage() {
       setUploading(true);
       setError(null);
       setResult(null);
-      setStatusMessage("Import in progress...");
+      setImportProgress({
+        phase: "uploading",
+        loaded: 0,
+        total: selectedFile.size,
+        percent: 0,
+      });
+      setStatusMessage("Uploading CSV for import...");
       const previewHeaders = preview.detectedHeaders;
       const rowNumbers =
         preview.previewRowNumbers && preview.previewRowNumbers.length === preview.previewRows.length
@@ -187,7 +245,15 @@ export default function ImportProjectsPage() {
         })
         .filter((edit) => Object.keys(edit.values).length > 0);
 
-      const response = await commitProjectsCsvImport(selectedFile, undefined, rowEdits);
+      const response = await commitProjectsCsvImport(selectedFile, undefined, rowEdits, {
+        onUploadProgress: (progress) => {
+          const next = resolveProgressState(progress);
+          setImportProgress(next);
+          if (next.phase === "processing") {
+            setStatusMessage("File uploaded. Validating rows and importing records...");
+          }
+        },
+      });
       setResult(response);
       setStatusMessage(
         `Import finished: ${response.insertedRows} inserted, ${response.failedRows} failed.`
@@ -198,6 +264,7 @@ export default function ImportProjectsPage() {
       setError(message);
     } finally {
       setUploading(false);
+      setImportProgress(IDLE_PROGRESS);
     }
   };
 
@@ -222,6 +289,8 @@ export default function ImportProjectsPage() {
     preview && preview.missingRequiredFields.length > 0
       ? ["We can't auto-detect required headers for import."]
       : [];
+  const previewTransferMeta = renderTransferMeta(previewProgress);
+  const importTransferMeta = renderTransferMeta(importProgress);
 
   return (
     <div className="import-page portal-page portal-page--dense">
@@ -283,7 +352,49 @@ export default function ImportProjectsPage() {
                 </span>
               </div>
 
-              {previewLoading && <p className="import-loading-note">Generating preview...</p>}
+              {previewLoading && (
+                <div
+                  className={`import-progress-shell${
+                    previewProgress.phase === "processing" ? " is-processing" : ""
+                  }`}
+                  aria-live="polite"
+                >
+                  <div className="import-progress-copy">
+                    <strong>
+                      {previewProgress.phase === "processing"
+                        ? "Analyzing headers and generating preview"
+                        : "Uploading CSV for preview"}
+                    </strong>
+                    <span>
+                      {previewProgress.phase === "processing"
+                        ? "The file is already on the server. The portal is checking headers and building the preview."
+                        : previewTransferMeta || "Sending the file to the server."}
+                    </span>
+                  </div>
+                  <div className="import-progress-track" aria-hidden="true">
+                    <div
+                      className={`import-progress-fill${
+                        previewProgress.phase === "processing" ? " is-indeterminate" : ""
+                      }`}
+                      style={
+                        previewProgress.phase === "processing"
+                          ? undefined
+                          : { width: `${previewProgress.percent ?? 0}%` }
+                      }
+                    />
+                  </div>
+                  <div className="import-progress-meta">
+                    <span>
+                      {previewProgress.phase === "processing"
+                        ? "Processing on server"
+                        : `${previewProgress.percent ?? 0}%`}
+                    </span>
+                    {previewTransferMeta && previewProgress.phase !== "processing" && (
+                      <span>{previewTransferMeta}</span>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {!previewLoading && preview && (
                 <>
@@ -344,10 +455,57 @@ export default function ImportProjectsPage() {
               <div className="import-card-head">
                 <h2 id="step-3-title">Step 3: Import</h2>
                 <button className="btn btn-primary" type="button" onClick={handleImport} disabled={!canImport}>
-                  {uploading ? "Importing..." : "Import CSV"}
+                  {uploading
+                    ? importProgress.phase === "processing"
+                      ? "Processing..."
+                      : "Uploading..."
+                    : "Import CSV"}
                 </button>
               </div>
               <p className="import-hint">Import stays disabled until required headers are auto-detected.</p>
+              {uploading && (
+                <div
+                  className={`import-progress-shell${
+                    importProgress.phase === "processing" ? " is-processing" : ""
+                  }`}
+                  aria-live="polite"
+                >
+                  <div className="import-progress-copy">
+                    <strong>
+                      {importProgress.phase === "processing"
+                        ? "Validating rows and importing records"
+                        : "Uploading CSV for import"}
+                    </strong>
+                    <span>
+                      {importProgress.phase === "processing"
+                        ? "The upload is finished. The server is still validating the file and creating records, so this can take a little longer on larger CSVs."
+                        : importTransferMeta || "Sending the import file to the server."}
+                    </span>
+                  </div>
+                  <div className="import-progress-track" aria-hidden="true">
+                    <div
+                      className={`import-progress-fill${
+                        importProgress.phase === "processing" ? " is-indeterminate" : ""
+                      }`}
+                      style={
+                        importProgress.phase === "processing"
+                          ? undefined
+                          : { width: `${importProgress.percent ?? 0}%` }
+                      }
+                    />
+                  </div>
+                  <div className="import-progress-meta">
+                    <span>
+                      {importProgress.phase === "processing"
+                        ? "Processing on server"
+                        : `${importProgress.percent ?? 0}%`}
+                    </span>
+                    {importTransferMeta && importProgress.phase !== "processing" && (
+                      <span>{importTransferMeta}</span>
+                    )}
+                  </div>
+                </div>
+              )}
             </section>
 
             {result && <ImportSummary result={result} onDownloadErrors={handleDownloadErrors} />}
