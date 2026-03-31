@@ -5,6 +5,9 @@ import axios, {
 
 // Re-export all types from the types module for backward compatibility
 export type {
+  AuthProfile,
+  UpdateProfilePayload,
+  ChangePasswordPayload,
   QueueType,
   SLAStatus,
   StageFilter,
@@ -49,6 +52,9 @@ export type {
 } from "@/types";
 
 import type {
+  AuthProfile,
+  UpdateProfilePayload,
+  ChangePasswordPayload,
   QueueItem,
   QueueType,
   ProjectDetail,
@@ -358,6 +364,26 @@ export async function logoutSession(): Promise<void> {
   } finally {
     clearCsrfTokenCache();
   }
+}
+
+export async function fetchMyProfile(): Promise<AuthProfile> {
+  const response = await api.get("/auth/profile");
+  return response.data.user as AuthProfile;
+}
+
+export async function updateMyProfile(
+  payload: UpdateProfilePayload
+): Promise<AuthProfile> {
+  const response = await api.patch("/auth/profile", payload);
+  return response.data.user as AuthProfile;
+}
+
+export async function changeOwnPassword(
+  payload: ChangePasswordPayload
+): Promise<AuthProfile> {
+  await ensureCsrfCookie();
+  const response = await authApi.post("/auth/change-password", payload);
+  return response.data.user as AuthProfile;
 }
 
 export function forceSessionExpiredRedirect(nextPath?: string | null) {

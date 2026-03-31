@@ -8,21 +8,22 @@ import {
 } from "react";
 import {
   authApi,
+  changeOwnPassword,
   ensureCsrfCookie,
+  fetchMyProfile,
   forceSessionExpiredRedirect,
   logoutSession,
   refreshAccessSession,
   registerSessionExpiredHandler,
+  updateMyProfile,
 } from "@/services/api";
+import type {
+  AuthProfile,
+  ChangePasswordPayload,
+  UpdateProfilePayload,
+} from "@/types";
 
-export interface AuthUser {
-  id: number;
-  email: string;
-  fullName: string;
-  roles: string[];
-  status?: string;
-  forcePasswordChange?: boolean;
-}
+export type AuthUser = AuthProfile;
 
 interface AuthLoginResult {
   user: AuthUser;
@@ -37,7 +38,8 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<AuthLoginResult>;
-  changePassword: (newPassword: string, confirmPassword: string) => Promise<AuthUser>;
+  updateProfile: (payload: UpdateProfilePayload) => Promise<AuthUser>;
+  changePassword: (payload: ChangePasswordPayload) => Promise<AuthUser>;
   logout: () => void;
   refreshMe: () => Promise<void>;
 }
@@ -69,15 +71,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshMe = useCallback(async () => {
     try {
-      const res = await authApi.get("/auth/me");
-      setAuthenticatedUser(res.data.user as AuthUser);
+      const profile = await fetchMyProfile();
+      setAuthenticatedUser(profile);
       return;
     } catch (error: any) {
       if (error?.response?.status === 401) {
         try {
           await refreshAccessSession();
-          const retry = await authApi.get("/auth/me");
-          setAuthenticatedUser(retry.data.user as AuthUser);
+          const retry = await fetchMyProfile();
+          setAuthenticatedUser(retry);
           return;
         } catch {
           forceSessionExpiredRedirect();
@@ -111,16 +113,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [setAuthenticatedUser]);
 
+  const updateProfile = useCallback(
+    async (payload: UpdateProfilePayload) => {
+      const user = await updateMyProfile(payload);
+      setAuthenticatedUser(user);
+      return user;
+    },
+    [setAuthenticatedUser]
+  );
+
   const changePassword = useCallback(
-    async (newPassword: string, confirmPassword: string) => {
-      await ensureCsrfCookie();
-      const res = await authApi.post("/auth/change-password", {
-        newPassword,
-        confirmPassword,
-      });
-      const { user } = res.data;
-      setAuthenticatedUser(user as AuthUser);
-      return user as AuthUser;
+    async (payload: ChangePasswordPayload) => {
+      const user = await changeOwnPassword(payload);
+      setAuthenticatedUser(user);
+      return user;
     },
     [setAuthenticatedUser]
   );
@@ -132,7 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ ...state, login, changePassword, logout, refreshMe }}
+      value={{ ...state, login, updateProfile, changePassword, logout, refreshMe }}
     >
       {children}
     </AuthContext.Provider>

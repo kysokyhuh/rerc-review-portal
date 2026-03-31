@@ -49,6 +49,9 @@ type AuthenticatedUser = {
   roles: RoleType[];
   status: UserStatus;
   forcePasswordChange: boolean;
+  lastLoginAt?: Date | null;
+  lastLoginIp?: string | null;
+  approvedAt?: Date | null;
 };
 
 type AuthSessionTokens = {
@@ -80,6 +83,10 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
+function normalizeFullName(fullName: string) {
+  return fullName.trim().replace(/\s+/g, " ");
+}
+
 function composeFullName(firstName: string, lastName: string) {
   return `${firstName.trim()} ${lastName.trim()}`.trim().replace(/\s+/g, " ");
 }
@@ -93,6 +100,9 @@ function buildAuthUserResponse(user: AuthenticatedUser) {
     committeeRoles: {},
     status: user.status,
     forcePasswordChange: user.forcePasswordChange,
+    lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
+    lastLoginIp: user.lastLoginIp ?? null,
+    approvedAt: user.approvedAt?.toISOString() ?? null,
   };
 }
 
@@ -213,6 +223,9 @@ async function getAuthEligibleUser(userId: number) {
       status: true,
       isActive: true,
       forcePasswordChange: true,
+      lastLoginAt: true,
+      lastLoginIp: true,
+      approvedAt: true,
     },
   });
 
@@ -328,6 +341,7 @@ export async function login(
       isActive: true,
       roles: true,
       forcePasswordChange: true,
+      approvedAt: true,
     },
   });
 
@@ -380,11 +394,12 @@ export async function login(
     throw new AuthError(401, "INVALID_CREDENTIALS", GENERIC_LOGIN_ERROR);
   }
 
+  const loginTimestamp = new Date();
   const tokens = await createSession(user, context);
   await prisma.user.update({
     where: { id: user.id },
     data: {
-      lastLoginAt: new Date(),
+      lastLoginAt: loginTimestamp,
       lastLoginIp: context.ipAddress ?? null,
     },
   });
@@ -399,7 +414,14 @@ export async function login(
     },
   });
 
-  return buildSessionResponse(user, tokens);
+  return buildSessionResponse(
+    {
+      ...user,
+      lastLoginAt: loginTimestamp,
+      lastLoginIp: context.ipAddress ?? null,
+    },
+    tokens
+  );
 }
 
 export async function refreshSession(
@@ -432,6 +454,9 @@ export async function refreshSession(
           status: true,
           isActive: true,
           forcePasswordChange: true,
+          lastLoginAt: true,
+          lastLoginIp: true,
+          approvedAt: true,
         },
       },
     },
@@ -539,7 +564,11 @@ export async function logoutSession(
 export async function changePassword(
   userId: number,
   sessionId: string,
-  input: { newPassword: string; confirmPassword: string },
+  input: {
+    currentPassword?: string;
+    newPassword: string;
+    confirmPassword: string;
+  },
   context: RequestContext = {}
 ): Promise<AuthenticatedSessionResult> {
   ensurePasswordsMatch(input.newPassword, input.confirmPassword);
@@ -554,6 +583,10 @@ export async function changePassword(
       status: true,
       isActive: true,
       forcePasswordChange: true,
+      lastLoginAt: true,
+      lastLoginIp: true,
+      approvedAt: true,
+      passwordHash: true,
     },
   });
 
@@ -561,11 +594,25 @@ export async function changePassword(
     throw new AuthError(401, "UNAUTHORIZED", "Unauthorized");
   }
   if (!user.forcePasswordChange) {
-    throw new AuthError(
-      400,
-      "VALIDATION_ERROR",
-      PASSWORD_CHANGE_REQUIRED_MESSAGE
-    );
+    const currentPassword = input.currentPassword?.trim();
+    if (!currentPassword) {
+      throw new AuthError(
+        400,
+        "VALIDATION_ERROR",
+        "Enter your current password to update it."
+      );
+    }
+    const existingPasswordHash = user.passwordHash;
+    const passwordMatches = existingPasswordHash
+      ? await bcrypt.compare(currentPassword, existingPasswordHash)
+      : false;
+    if (!passwordMatches) {
+      throw new AuthError(
+        400,
+        "VALIDATION_ERROR",
+        "Current password is incorrect."
+      );
+    }
   }
 
   ensurePasswordPolicy(input.newPassword, user.email);
@@ -592,6 +639,9 @@ export async function changePassword(
     roles: user.roles,
     status: user.status,
     forcePasswordChange: false,
+    lastLoginAt: user.lastLoginAt,
+    lastLoginIp: user.lastLoginIp,
+    approvedAt: user.approvedAt,
   };
   const tokens = await createSession(refreshedUser, context);
 
@@ -603,6 +653,7 @@ export async function changePassword(
     metadata: {
       previousSessionId: sessionId,
       newSessionId: tokens.sessionId,
+      mode: user.forcePasswordChange ? "FORCED" : "SELF_SERVICE",
       ipAddress: context.ipAddress ?? null,
       userAgent: context.userAgent ?? null,
     },
@@ -643,6 +694,136 @@ export async function getMeFromToken(token: string) {
 export async function getMeById(userId: number) {
   const user = await getAuthEligibleUser(userId);
   return buildAuthUserResponse(user);
+}
+
+export async function updateOwnProfile(
+  userId: number,
+  input: {
+    fullName?: string;
+    email?: string;
+    currentPassword?: string;
+  },
+  context: RequestContext = {}
+) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      fullName: true,
+      roles: true,
+      status: true,
+      isActive: true,
+      forcePasswordChange: true,
+      lastLoginAt: true,
+      lastLoginIp: true,
+      approvedAt: true,
+      passwordHash: true,
+    },
+  });
+
+  if (!user || user.status !== UserStatus.APPROVED || !user.isActive) {
+    throw new AuthError(401, "UNAUTHORIZED", "Unauthorized");
+  }
+
+  const nextFullName =
+    input.fullName !== undefined ? normalizeFullName(input.fullName) : user.fullName;
+  const nextEmail =
+    input.email !== undefined ? normalizeEmail(input.email) : user.email;
+
+  const fullNameChanged = nextFullName !== user.fullName;
+  const emailChanged = nextEmail !== user.email;
+
+  if (!fullNameChanged && !emailChanged) {
+    return buildAuthUserResponse(user);
+  }
+
+  if (emailChanged) {
+    const currentPassword = input.currentPassword?.trim();
+    if (!currentPassword) {
+      throw new AuthError(
+        400,
+        "VALIDATION_ERROR",
+        "Enter your current password to update your email."
+      );
+    }
+
+    const existingPasswordHash = user.passwordHash;
+    const passwordMatches = existingPasswordHash
+      ? await bcrypt.compare(currentPassword, existingPasswordHash)
+      : false;
+    if (!passwordMatches) {
+      throw new AuthError(
+        400,
+        "VALIDATION_ERROR",
+        "Current password is incorrect."
+      );
+    }
+
+    const existing = await prisma.user.findUnique({
+      where: { email: nextEmail },
+      select: { id: true },
+    });
+    if (existing && existing.id !== user.id) {
+      throw new AuthError(
+        409,
+        "EMAIL_ALREADY_IN_USE",
+        "That email address is already in use."
+      );
+    }
+  }
+
+  const updated = await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      ...(fullNameChanged ? { fullName: nextFullName } : {}),
+      ...(emailChanged ? { email: nextEmail } : {}),
+    },
+    select: {
+      id: true,
+      email: true,
+      fullName: true,
+      roles: true,
+      status: true,
+      forcePasswordChange: true,
+      lastLoginAt: true,
+      lastLoginIp: true,
+      approvedAt: true,
+    },
+  });
+
+  if (fullNameChanged) {
+    await logAuditEvent({
+      actorId: user.id,
+      action: "USER_PROFILE_UPDATED",
+      entityType: "User",
+      entityId: user.id,
+      metadata: {
+        fields: ["fullName"],
+        previousFullName: user.fullName,
+        nextFullName,
+        ipAddress: context.ipAddress ?? null,
+        userAgent: context.userAgent ?? null,
+      },
+    });
+  }
+
+  if (emailChanged) {
+    await logAuditEvent({
+      actorId: user.id,
+      action: "USER_EMAIL_CHANGED",
+      entityType: "User",
+      entityId: user.id,
+      metadata: {
+        previousEmail: user.email,
+        nextEmail,
+        ipAddress: context.ipAddress ?? null,
+        userAgent: context.userAgent ?? null,
+      },
+    });
+  }
+
+  return buildAuthUserResponse(updated);
 }
 
 export function sanitizeAssignedRole(inputRole: RoleType) {

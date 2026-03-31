@@ -434,8 +434,11 @@
   border: 1px solid rgba(45, 106, 79, 0.12);
 }
 
-.sidebar-logout {
+.sidebar-footer-card .nav-item {
   margin-top: 6px;
+}
+
+.sidebar-logout {
   min-height: 34px;
   justify-content: flex-start;
   border: 1px solid rgba(111, 124, 116, 0.14);

@@ -53,7 +53,10 @@ export default function ChangePasswordPage() {
 
     setLoading(true);
     try {
-      const nextUser = await changePassword(newPassword, confirmPassword);
+      const nextUser = await changePassword({
+        newPassword,
+        confirmPassword,
+      });
       if (nextUser.roles.includes("CHAIR") || nextUser.roles.includes("ADMIN")) {
         navigate("/admin/account-management", { replace: true });
         return;

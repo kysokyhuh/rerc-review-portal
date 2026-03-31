@@ -15,6 +15,7 @@ import {
   changePasswordSchema,
   loginSchema,
   signupSchema,
+  updateProfileSchema,
 } from "../schemas/auth";
 import {
   AuthError,
@@ -24,6 +25,7 @@ import {
   logoutSession,
   refreshSession,
   signup,
+  updateOwnProfile,
 } from "../services/auth/authService";
 import {
   assertLoginAttemptAllowed,
@@ -200,6 +202,42 @@ router.post(
         if (error.statusCode === 401) {
           clearAuthCookies(res);
         }
+        return sendAuthError(res, error);
+      }
+      return next(error);
+    }
+  }
+);
+
+router.get("/auth/profile", requireAuth, async (req, res, next) => {
+  try {
+    const user = await getMeById(req.user!.id);
+    return res.json({ user });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return sendAuthError(res, error);
+    }
+    return next(error);
+  }
+});
+
+router.patch(
+  "/auth/profile",
+  requireAuth,
+  validate(updateProfileSchema),
+  async (req, res, next) => {
+    try {
+      const user = await updateOwnProfile(
+        req.user!.id,
+        req.body,
+        getRequestContext(req)
+      );
+      return res.json({
+        ok: true,
+        user,
+      });
+    } catch (error) {
+      if (error instanceof AuthError) {
         return sendAuthError(res, error);
       }
       return next(error);

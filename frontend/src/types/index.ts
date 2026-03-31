@@ -27,6 +27,30 @@ export type StageFilter =
   | "OVERDUE"
   | "CLOSED";
 
+export interface AuthProfile {
+  id: number;
+  email: string;
+  fullName: string;
+  roles: string[];
+  status?: string;
+  forcePasswordChange?: boolean;
+  lastLoginAt?: string | null;
+  lastLoginIp?: string | null;
+  approvedAt?: string | null;
+}
+
+export interface UpdateProfilePayload {
+  fullName?: string;
+  email?: string;
+  currentPassword?: string;
+}
+
+export interface ChangePasswordPayload {
+  currentPassword?: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 // Dashboard metrics
 export interface QueueCounts {
   forClassification: number;

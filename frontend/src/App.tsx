@@ -35,6 +35,7 @@ const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const SignupPage = lazy(() => import("@/pages/SignupPage"));
 const ChangePasswordPage = lazy(() => import("@/pages/ChangePasswordPage"));
 const AdminAccountManagementPage = lazy(() => import("@/pages/AdminAccountManagementPage"));
+const MyProfilePage = lazy(() => import("@/pages/MyProfilePage"));
 const NotAuthorizedPage = lazy(() => import("@/pages/NotAuthorizedPage"));
 
 function RouteFallback() {
@@ -59,7 +60,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     location.pathname === "/dashboard" ||
     location.pathname.startsWith("/queues/") ||
     location.pathname.startsWith("/holidays") ||
-    location.pathname.startsWith("/admin/");
+    location.pathname.startsWith("/admin/") ||
+    location.pathname.startsWith("/account/");
 
   if (isAuthPage || isDashboardShell) {
     return <>{children}</>;
@@ -133,6 +135,7 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+                  <Route path="/account/profile" element={<MyProfilePage />} />
                 </Route>
 
                 {/* Protected: standalone pages */}

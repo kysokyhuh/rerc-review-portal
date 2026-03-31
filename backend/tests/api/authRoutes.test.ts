@@ -28,6 +28,7 @@ jest.mock("../../src/services/auth/authService", () => ({
   changePassword: jest.fn(),
   refreshSession: jest.fn(),
   getMeById: jest.fn(),
+  updateOwnProfile: jest.fn(),
   logoutSession: jest.fn(),
 }));
 
@@ -40,6 +41,7 @@ const authService = jest.requireMock("../../src/services/auth/authService") as {
   changePassword: jest.Mock;
   refreshSession: jest.Mock;
   getMeById: jest.Mock;
+  updateOwnProfile: jest.Mock;
   logoutSession: jest.Mock;
 };
 
@@ -233,8 +235,69 @@ describe("auth routes", () => {
       9,
       "dev-header-session",
       {
+        currentPassword: undefined,
         newPassword: "UpdatedPassword12",
         confirmPassword: "UpdatedPassword12",
+      },
+      expect.objectContaining({ ipAddress: expect.any(String) })
+    );
+  });
+
+  it("GET /auth/profile resolves the current user profile", async () => {
+    authService.getMeById.mockResolvedValue({
+      id: 9,
+      email: "chair@urerb.com",
+      fullName: "URERB Chair",
+      roles: ["CHAIR"],
+      status: "APPROVED",
+      forcePasswordChange: false,
+      lastLoginAt: "2026-04-01T01:00:00.000Z",
+      lastLoginIp: "127.0.0.1",
+      approvedAt: "2026-03-28T01:00:00.000Z",
+    });
+
+    const response = await request(app)
+      .get("/auth/profile")
+      .set("X-User-ID", "9")
+      .set("X-User-Roles", "CHAIR");
+
+    expect(response.status).toBe(200);
+    expect(response.body.user.email).toBe("chair@urerb.com");
+    expect(authService.getMeById).toHaveBeenCalledWith(9);
+  });
+
+  it("PATCH /auth/profile updates self-service profile fields", async () => {
+    authService.updateOwnProfile.mockResolvedValue({
+      id: 9,
+      email: "updated@urerb.com",
+      fullName: "Updated Chair",
+      roles: ["CHAIR"],
+      status: "APPROVED",
+      forcePasswordChange: false,
+      lastLoginAt: null,
+      lastLoginIp: null,
+      approvedAt: "2026-03-28T01:00:00.000Z",
+    });
+
+    const response = await request(app)
+      .patch("/auth/profile")
+      .set(csrfHeaders)
+      .set("X-User-ID", "9")
+      .set("X-User-Roles", "CHAIR")
+      .send({
+        fullName: "Updated Chair",
+        email: "updated@urerb.com",
+        currentPassword: "CurrentPassword12",
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.ok).toBe(true);
+    expect(authService.updateOwnProfile).toHaveBeenCalledWith(
+      9,
+      {
+        fullName: "Updated Chair",
+        email: "updated@urerb.com",
+        currentPassword: "CurrentPassword12",
       },
       expect.objectContaining({ ipAddress: expect.any(String) })
     );
