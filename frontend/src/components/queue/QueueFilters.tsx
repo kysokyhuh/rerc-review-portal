@@ -16,10 +16,10 @@ export const QueueFilters: React.FC<QueueFiltersProps> = ({
   onSlaChange,
 }) => {
   return (
-    <section className="queue-filters portal-toolbar" aria-label="Queue filters">
+    <section className="queue-filters" aria-label="Queue filters">
       <label className="queue-filter-field queue-filter-search">
         <span className="queue-filter-label">Search</span>
-        <div className="queue-filter-search-shell portal-search">
+        <div className="queue-filter-search-shell">
           <svg
             className="queue-filter-search-icon"
             viewBox="0 0 24 24"
@@ -53,7 +53,7 @@ export const QueueFilters: React.FC<QueueFiltersProps> = ({
 
       <label className="queue-filter-field queue-filter-select-field">
         <span className="queue-filter-label">SLA status</span>
-        <div className="portal-select-shell">
+        <div className="queue-filter-select-shell">
           <select
             className="queue-filter-select"
             value={sla}

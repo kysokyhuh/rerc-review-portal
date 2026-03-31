@@ -1091,7 +1091,7 @@
 
 .queue-filters {
   display: grid;
-  grid-template-columns: minmax(0, 1.8fr) minmax(210px, 0.9fr) auto;
+  grid-template-columns: minmax(0, 1.35fr) minmax(190px, 220px) auto;
   gap: 8px;
   align-items: end;
   padding: 0;
@@ -1114,14 +1114,23 @@
   position: relative;
   display: flex;
   align-items: center;
-}
-
-.queue-filter-search-shell.portal-search,
-.queue-filter-select-field .portal-select-shell {
+  width: 100%;
   min-height: 38px;
   padding: 0 11px;
   border-radius: 11px;
   border-color: rgba(91, 116, 103, 0.14);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(91, 116, 103, 0.14);
+}
+
+.queue-filter-select-shell {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  min-height: 38px;
+  padding: 0 11px;
+  border-radius: 11px;
+  border: 1px solid rgba(91, 116, 103, 0.14);
   background: rgba(255, 255, 255, 0.96);
 }
 
@@ -1166,6 +1175,12 @@
   outline: none;
   box-shadow: none;
   background: transparent;
+}
+
+.queue-filter-search-shell:focus-within,
+.queue-filter-select-shell:focus-within {
+  border-color: rgba(45, 106, 79, 0.28);
+  box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.08);
 }
 
 .queue-filter-search-clear {
