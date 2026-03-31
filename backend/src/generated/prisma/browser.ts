@@ -123,6 +123,11 @@ export type ClassificationVote = Prisma.ClassificationVoteModel
  */
 export type SubmissionStatusHistory = Prisma.SubmissionStatusHistoryModel
 /**
+ * Model SubmissionReminderLog
+ * 
+ */
+export type SubmissionReminderLog = Prisma.SubmissionReminderLogModel
+/**
  * Model ProjectStatusHistory
  * 
  */

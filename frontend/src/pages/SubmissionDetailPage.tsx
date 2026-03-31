@@ -24,6 +24,7 @@ import {
   ReviewerAssignmentsCard,
   DocumentsCard,
   SlaTrackingCard,
+  ReminderLogCard,
   EditHistoryCard,
   MilestoneTable,
   toInputDate,
@@ -656,6 +657,7 @@ export const SubmissionDetailPage: React.FC = () => {
       <ReviewerAssignmentsCard reviewerRows={reviewerRows} />
       <DocumentsCard documents={submission.documents ?? []} />
       {slaSummary && <SlaTrackingCard slaSummary={slaSummary} />}
+      <ReminderLogCard reminders={submission.reminderLogs ?? []} />
 
       {submission.statusHistory && (
         <section className="card detail-card">

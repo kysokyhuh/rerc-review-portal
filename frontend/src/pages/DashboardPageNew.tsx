@@ -4,7 +4,7 @@ import { useDashboardQueues } from "@/hooks/useDashboardQueues";
 import { useDashboardOverdue } from "@/hooks/useDashboardOverdue";
 import { type DashboardFilterValues, filtersToParams } from "@/components/DashboardFilters";
 import { fetchSubmissionDetail, fetchSubmissionSlaSummary, searchProjects } from "@/services/api";
-import type { ProjectSearchResult, SubmissionDetail, SubmissionSlaSummary } from "@/types";
+import type { DecoratedQueueItem, ProjectSearchResult, SubmissionDetail, SubmissionSlaSummary } from "@/types";
 import { DUE_SOON_THRESHOLD } from "@/constants";
 import { BRAND } from "@/config/branding";
 import {
@@ -14,6 +14,11 @@ import {
   SubmissionsTable,
   QuickViewModal,
 } from "@/components/dashboard";
+import {
+  AssignReviewersBulkModal,
+  ChangeStatusBulkModal,
+  SendRemindersBulkModal,
+} from "@/components/dashboard/BulkActionModals";
 import {
   getGreeting,
   PAGE_SIZE,
@@ -65,6 +70,7 @@ export const DashboardPage: React.FC = () => {
   const [quickViewLoading, setQuickViewLoading] = useState(false);
   const [quickViewError, setQuickViewError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkModal, setBulkModal] = useState<"assign" | "reminders" | "status" | null>(null);
   const [collapsedPanels, setCollapsedPanels] = useState<CollapsedPanels>(() => {
     if (typeof window === "undefined") return { overdue: false };
     try {
@@ -152,6 +158,14 @@ export const DashboardPage: React.FC = () => {
   const filteredItems = sortedItems.slice(startIdx, endIdx);
   const visibleItemIds = useMemo(() => filteredItems.map((i) => i.id), [filteredItems]);
   const allVisibleSelected = visibleItemIds.length > 0 && visibleItemIds.every((id) => selectedIds.has(id));
+  const selectedItems = useMemo(() => {
+    const itemMap = new Map<number, DecoratedQueueItem>(
+      allItems.map((item) => [item.id, item])
+    );
+    return Array.from(selectedIds)
+      .map((id) => itemMap.get(id))
+      .filter((item): item is DecoratedQueueItem => Boolean(item));
+  }, [allItems, selectedIds]);
 
   // ── Selection handlers ─────────────────────────────────
   const toggleSelectAllVisible = () => {
@@ -186,12 +200,16 @@ export const DashboardPage: React.FC = () => {
 
   // ── Bulk / export handlers ─────────────────────────────
   const handleExportFiltered = () => exportRowsToCsv(sortedItems, `submissions_export_${Date.now()}.csv`);
-  const handleBulkAssign = () => { if (selectedIds.size) window.alert(`Assign reviewers for ${selectedIds.size} submissions (UI only).`); };
-  const handleBulkReminder = () => { if (selectedIds.size && window.confirm(`Send reminders for ${selectedIds.size} submissions?`)) window.alert("Reminder emails queued (UI only)."); };
-  const handleBulkStatusChange = () => { if (selectedIds.size && window.confirm(`Change status for ${selectedIds.size} submissions?`)) window.alert("Status updated (UI only)."); };
+  const handleBulkAssign = () => { if (selectedIds.size) setBulkModal("assign"); };
+  const handleBulkReminder = () => { if (selectedIds.size) setBulkModal("reminders"); };
+  const handleBulkStatusChange = () => { if (selectedIds.size) setBulkModal("status"); };
   const handleExportSelected = () => {
     const rows = sortedItems.filter((r) => selectedIds.has(r.id));
     exportRowsToCsv(rows, `submissions_selected_${Date.now()}.csv`);
+  };
+  const handleBulkActionApplied = () => {
+    handleRefresh();
+    setSelectedIds(new Set());
   };
 
   // ── Overdue data ───────────────────────────────────────
@@ -367,6 +385,25 @@ export const DashboardPage: React.FC = () => {
         submissionId={quickViewId}
         onNavigate={(p) => navigate(p)}
         onRetry={() => { setQuickViewOpen(false); setTimeout(() => setQuickViewOpen(true), 100); }}
+      />
+
+      <AssignReviewersBulkModal
+        open={bulkModal === "assign"}
+        onClose={() => setBulkModal(null)}
+        selectedItems={selectedItems}
+        onApplied={handleBulkActionApplied}
+      />
+      <SendRemindersBulkModal
+        open={bulkModal === "reminders"}
+        onClose={() => setBulkModal(null)}
+        selectedItems={selectedItems}
+        onApplied={handleBulkActionApplied}
+      />
+      <ChangeStatusBulkModal
+        open={bulkModal === "status"}
+        onClose={() => setBulkModal(null)}
+        selectedItems={selectedItems}
+        onApplied={handleBulkActionApplied}
       />
     </div>
   );

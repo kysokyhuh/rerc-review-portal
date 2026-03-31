@@ -129,6 +129,12 @@ enum ReviewerRoleType {
   INDEPENDENT_CONSULTANT
 }
 
+enum ReminderTarget {
+  PROPONENT
+  REVIEWER
+  INTERNAL_STAFF
+}
+
 enum HonorariumStatus {
   PENDING
   PROCESSING
@@ -257,6 +263,7 @@ model User {
   classificationDecisionsRecorded ClassificationDecision[]  @relation("ClassificationDecisionRecordedBy")
   reviewAssignments               ReviewAssignment[]        @relation("AssignmentReviewer")
   projectStatusHistories          ProjectStatusHistory[]
+  submissionReminderLogsCreated   SubmissionReminderLog[]   @relation("SubmissionReminderActor")
   auditLogs                       AuditLog[]                @relation("AuditActor")
   authSessions                    AuthSession[]
   approvedBy                      User?                     @relation("ApprovedUsers", fields: [approvedById], references: [id])
@@ -600,6 +607,7 @@ model Submission {
   letterDrafts           LetterDraft[]
   workflowEvents         WorkflowEvent[]
   statusHistory          SubmissionStatusHistory[]
+  reminderLogs           SubmissionReminderLog[]
   projectChangeLogs      ProjectChangeLog[]
   changeLogs             SubmissionChangeLog[]
   classificationVotes    ClassificationVote[]
@@ -693,6 +701,20 @@ model SubmissionStatusHistory {
   createdAt     DateTime          @default(now())
   @@index([submissionId])
   @@index([changedById])
+}
+
+model SubmissionReminderLog {
+  id           Int            @id @default(autoincrement())
+  submission   Submission     @relation(fields: [submissionId], references: [id])
+  submissionId Int
+  target       ReminderTarget
+  note         String
+  actor        User?          @relation("SubmissionReminderActor", fields: [actorId], references: [id])
+  actorId      Int?
+  createdAt    DateTime       @default(now())
+
+  @@index([submissionId, createdAt])
+  @@index([actorId])
 }
 
 model ProjectStatusHistory {

@@ -72,6 +72,7 @@ export const ModelName = {
   ClassificationDecision: 'ClassificationDecision',
   ClassificationVote: 'ClassificationVote',
   SubmissionStatusHistory: 'SubmissionStatusHistory',
+  SubmissionReminderLog: 'SubmissionReminderLog',
   ProjectStatusHistory: 'ProjectStatusHistory',
   Review: 'Review',
   ReviewAssignment: 'ReviewAssignment',
@@ -486,6 +487,18 @@ export const SubmissionStatusHistoryScalarFieldEnum = {
 } as const
 
 export type SubmissionStatusHistoryScalarFieldEnum = (typeof SubmissionStatusHistoryScalarFieldEnum)[keyof typeof SubmissionStatusHistoryScalarFieldEnum]
+
+
+export const SubmissionReminderLogScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  target: 'target',
+  note: 'note',
+  actorId: 'actorId',
+  createdAt: 'createdAt'
+} as const
+
+export type SubmissionReminderLogScalarFieldEnum = (typeof SubmissionReminderLogScalarFieldEnum)[keyof typeof SubmissionReminderLogScalarFieldEnum]
 
 
 export const ProjectStatusHistoryScalarFieldEnum = {

@@ -11,36 +11,43 @@ import {
 } from "../middleware/reviewerScope";
 import {
   acceptSubmissionForClassificationSchema,
+  bulkAssignReviewerSchema,
+  bulkReminderSchema,
+  bulkStatusActionSchema,
   classifySubmissionSchema,
+  createReviewSchema,
+  finalDecisionSchema,
+  issueExemptionSchema,
   resubmitSubmissionSchema,
+  reviewDecisionSchema,
   screeningOutcomeSchema,
   startCompletenessCheckSchema,
+  startReviewSchema,
   submissionDocumentSchema,
   updateSubmissionOverviewSchema,
   updateSubmissionStatusSchema,
-  createReviewSchema,
-  reviewDecisionSchema,
-  finalDecisionSchema,
-  issueExemptionSchema,
-  startReviewSchema,
 } from "../schemas/submission";
 import {
   acceptSubmissionForClassification,
   addSubmissionDocument,
+  assignReviewer,
+  bulkAssignReviewerToSubmissions,
+  bulkCreateSubmissionReminders,
+  bulkRunSubmissionStatusAction,
   classifySubmission,
+  getSlaSummary,
   getSubmissionById,
+  listReviewerCandidates,
   markSubmissionNotAccepted,
+  recordFinalDecision,
+  recordReviewDecision,
   removeSubmissionDocument,
   resubmitSubmission,
   returnSubmissionForCompletion,
   startSubmissionCompletenessCheck,
+  startSubmissionReview,
   updateSubmissionOverview,
   updateSubmissionStatus,
-  assignReviewer,
-  recordReviewDecision,
-  recordFinalDecision,
-  getSlaSummary,
-  startSubmissionReview,
 } from "../services/submissions/submissionService";
 import { issueExemptionAndClose } from "../services/exemptService";
 
@@ -188,6 +195,86 @@ router.post(
       }
       const result = await classifySubmission(submissionId, req.body, req.user!.id);
       res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.get(
+  "/submissions/reviewer-candidates",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  async (_req, res, next) => {
+    try {
+      const candidates = await listReviewerCandidates();
+      res.json(candidates);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
+  "/submissions/bulk/assign-reviewer",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  validate(bulkAssignReviewerSchema),
+  async (req, res, next) => {
+    try {
+      const result = await bulkAssignReviewerToSubmissions(
+        req.body.submissionIds,
+        {
+          reviewerId: req.body.reviewerId,
+          reviewerRole: req.body.reviewerRole,
+          dueDate: req.body.dueDate,
+          isPrimary: req.body.isPrimary,
+        },
+        req.user!.id
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
+  "/submissions/bulk/status-action",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  validate(bulkStatusActionSchema),
+  async (req, res, next) => {
+    try {
+      const result = await bulkRunSubmissionStatusAction(
+        req.body.submissionIds,
+        {
+          action: req.body.action,
+          reason: req.body.reason,
+          completenessStatus: req.body.completenessStatus,
+          completenessRemarks: req.body.completenessRemarks,
+        },
+        req.user!.id
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
+  "/submissions/bulk/reminders",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  validate(bulkReminderSchema),
+  async (req, res, next) => {
+    try {
+      const result = await bulkCreateSubmissionReminders(
+        req.body.submissionIds,
+        {
+          target: req.body.target,
+          note: req.body.note,
+        },
+        req.user!.id
+      );
+      res.json(result);
     } catch (error) {
       next(error);
     }

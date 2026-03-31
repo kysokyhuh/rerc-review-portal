@@ -3,7 +3,10 @@
  */
 import prisma from "../../config/prismaClient";
 import {
+  Prisma,
   ProjectStatus,
+  ReminderTarget,
+  RoleType,
   ReviewDecision,
   ReviewerRoleType,
   ReviewerRoundRole,
@@ -11,6 +14,7 @@ import {
   SLAStage,
   SubmissionDocumentStatus,
   SubmissionStatus,
+  UserStatus,
   type SubmissionDocumentType,
 } from "../../generated/prisma/client";
 import { AppError } from "../../middleware/errorHandler";
@@ -27,6 +31,60 @@ const WORKFLOW_STAGE_ORDER: SubmissionStatus[] = [
   SubmissionStatus.UNDER_CLASSIFICATION,
   SubmissionStatus.CLASSIFIED,
 ];
+
+export type BulkStatusAction =
+  | "START_COMPLETENESS_CHECK"
+  | "RETURN_FOR_COMPLETION"
+  | "MARK_NOT_ACCEPTED"
+  | "ACCEPT_FOR_CLASSIFICATION"
+  | "MOVE_TO_UNDER_CLASSIFICATION"
+  | "MARK_CLASSIFIED"
+  | "START_REVIEW";
+
+type BulkResultStatus = "SUCCEEDED" | "SKIPPED" | "FAILED";
+
+export interface BulkActionResult {
+  submissionId: number;
+  projectCode: string | null;
+  status: BulkResultStatus;
+  message: string;
+  data?: Record<string, unknown> | null;
+}
+
+export interface BulkActionResponse {
+  requestedCount: number;
+  succeeded: number;
+  skipped: number;
+  failed: number;
+  results: BulkActionResult[];
+}
+
+type BulkSubmissionContext = {
+  id: number;
+  status: SubmissionStatus;
+  project: {
+    projectCode: string | null;
+  } | null;
+  classification: {
+    reviewType: ReviewType;
+    panelId: number | null;
+  } | null;
+  reviews: Array<{ id: number }>;
+};
+
+const SKIPPABLE_ERROR_CODES = new Set([
+  "NO_CHANGES",
+  "INVALID_WORKFLOW_STAGE",
+  "INVALID_TRANSITION",
+  "NOT_CLASSIFIED",
+  "INVALID_REVIEW_SETUP",
+  "REVIEWER_REQUIRED",
+  "PANEL_REQUIRED",
+  "PROJECT_CODE_REQUIRED",
+  "DUPLICATE_REVIEWER_ASSIGNMENT",
+  "CLASSIFICATION_REQUIRED",
+  "REASON_REQUIRED",
+]);
 
 const trimReason = (value?: string | null) => {
   const normalized = value?.trim();
@@ -90,6 +148,76 @@ async function getActiveSlaContext(committeeId: number) {
     configMap: buildSlaConfigMap(configs),
     holidayDates: holidayRows.map((row) => row.date),
   };
+}
+
+const buildBulkResult = (
+  submissionId: number,
+  projectCode: string | null,
+  status: BulkResultStatus,
+  message: string,
+  data?: Record<string, unknown> | null
+): BulkActionResult => ({
+  submissionId,
+  projectCode,
+  status,
+  message,
+  data: data ?? null,
+});
+
+const summarizeBulkResults = (
+  requestedCount: number,
+  results: BulkActionResult[]
+): BulkActionResponse => ({
+  requestedCount,
+  succeeded: results.filter((item) => item.status === "SUCCEEDED").length,
+  skipped: results.filter((item) => item.status === "SKIPPED").length,
+  failed: results.filter((item) => item.status === "FAILED").length,
+  results,
+});
+
+const getBulkResultStatusForError = (error: unknown): BulkResultStatus => {
+  if (error instanceof AppError && SKIPPABLE_ERROR_CODES.has(error.code)) {
+    return "SKIPPED";
+  }
+  return "FAILED";
+};
+
+const getErrorMessage = (error: unknown) => {
+  if (error instanceof AppError) {
+    return error.message;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return "Unexpected error";
+};
+
+async function getBulkSubmissionContexts(submissionIds: number[]) {
+  const submissions = await prisma.submission.findMany({
+    where: { id: { in: submissionIds } },
+    select: {
+      id: true,
+      status: true,
+      project: {
+        select: {
+          projectCode: true,
+        },
+      },
+      classification: {
+        select: {
+          reviewType: true,
+          panelId: true,
+        },
+      },
+      reviews: {
+        select: { id: true },
+      },
+    },
+  });
+
+  return new Map<number, BulkSubmissionContext>(
+    submissions.map((submission) => [submission.id, submission])
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -291,6 +419,10 @@ export async function getSubmissionById(id: number) {
         include: { changedBy: true },
         orderBy: { effectiveDate: "asc" },
       },
+      reminderLogs: {
+        include: { actor: true },
+        orderBy: { createdAt: "desc" },
+      },
       changeLogs: {
         include: { changedBy: true },
         orderBy: { createdAt: "desc" },
@@ -469,6 +601,7 @@ export async function updateSubmissionOverview(
       },
       documents: { orderBy: [{ type: "asc" }, { createdAt: "asc" }] },
       statusHistory: { include: { changedBy: true }, orderBy: { effectiveDate: "asc" } },
+      reminderLogs: { include: { actor: true }, orderBy: { createdAt: "desc" } },
       changeLogs: { include: { changedBy: true }, orderBy: { createdAt: "desc" } },
       projectChangeLogs: { include: { changedBy: true }, orderBy: { createdAt: "desc" } },
     },
@@ -940,6 +1073,9 @@ export async function assignReviewer(
 
   const reviewer = await prisma.user.findUnique({ where: { id: reviewerId } });
   if (!reviewer) throw new AppError(404, "NOT_FOUND", "Reviewer not found");
+  if (!reviewer.isActive || reviewer.status !== UserStatus.APPROVED) {
+    throw new AppError(400, "INVALID_REVIEWER", "Reviewer must be active and approved");
+  }
 
   const { reviewRole, assignmentRole } = normalizeReviewerRoles(reviewerRoleInput);
   const explicitDueDate = dueDateInput ? new Date(dueDateInput) : null;
@@ -965,56 +1101,71 @@ export async function assignReviewer(
         )
       : null);
 
-  const review = await prisma.$transaction(async (tx) => {
-    const createdReview = await tx.review.create({
-      data: {
-        submissionId,
-        reviewerId,
-        isPrimary,
-        reviewerRole: reviewRole,
-        dueDate,
-      },
-    });
-
-    if (assignmentRole) {
-      const existingAssignment = await tx.reviewAssignment.findFirst({
-        where: {
+  let review;
+  try {
+    review = await prisma.$transaction(async (tx) => {
+      const createdReview = await tx.review.create({
+        data: {
           submissionId,
-          roundSequence: submission.sequenceNumber,
-          reviewerRole: assignmentRole,
-          isActive: true,
+          reviewerId,
+          isPrimary,
+          reviewerRole: reviewRole,
+          dueDate,
         },
       });
 
-      if (!existingAssignment || existingAssignment.reviewerId === reviewerId) {
-        await tx.reviewAssignment.upsert({
+      if (assignmentRole) {
+        const existingAssignment = await tx.reviewAssignment.findFirst({
           where: {
-            submissionId_roundSequence_reviewerRole: {
-              submissionId,
-              roundSequence: submission.sequenceNumber,
-              reviewerRole: assignmentRole,
-            },
-          },
-          update: {
-            reviewerId,
-            dueDate,
-            isActive: true,
-            endedAt: null,
-            submittedAt: null,
-          },
-          create: {
             submissionId,
             roundSequence: submission.sequenceNumber,
-            reviewerId,
             reviewerRole: assignmentRole,
-            dueDate,
+            isActive: true,
           },
         });
-      }
-    }
 
-    return createdReview;
-  });
+        if (!existingAssignment || existingAssignment.reviewerId === reviewerId) {
+          await tx.reviewAssignment.upsert({
+            where: {
+              submissionId_roundSequence_reviewerRole: {
+                submissionId,
+                roundSequence: submission.sequenceNumber,
+                reviewerRole: assignmentRole,
+              },
+            },
+            update: {
+              reviewerId,
+              dueDate,
+              isActive: true,
+              endedAt: null,
+              submittedAt: null,
+            },
+            create: {
+              submissionId,
+              roundSequence: submission.sequenceNumber,
+              reviewerId,
+              reviewerRole: assignmentRole,
+              dueDate,
+            },
+          });
+        }
+      }
+
+      return createdReview;
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw new AppError(
+        409,
+        "DUPLICATE_REVIEWER_ASSIGNMENT",
+        "Reviewer is already assigned to this submission"
+      );
+    }
+    throw error;
+  }
   await logAuditEvent({
     actorId,
     action: "REVIEWER_ASSIGNED",
@@ -1090,6 +1241,376 @@ export async function startSubmissionReview(submissionId: number, actorId: numbe
   });
 
   return { submission: updated, history };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Dashboard bulk actions                                             */
+/* ------------------------------------------------------------------ */
+export async function listReviewerCandidates() {
+  return prisma.user.findMany({
+    where: {
+      isActive: true,
+      status: UserStatus.APPROVED,
+      OR: [
+        { roles: { has: RoleType.REVIEWER } },
+        { isCommonReviewer: true },
+      ],
+    },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      roles: true,
+      isCommonReviewer: true,
+      reviewerExpertise: true,
+    },
+    orderBy: [{ fullName: "asc" }],
+  });
+}
+
+export async function bulkAssignReviewerToSubmissions(
+  submissionIds: number[],
+  data: {
+    reviewerId: number;
+    reviewerRole: "SCIENTIST" | "LAY" | "INDEPENDENT_CONSULTANT";
+    dueDate?: string | null;
+    isPrimary?: boolean;
+  },
+  actorId: number
+) {
+  const contexts = await getBulkSubmissionContexts(submissionIds);
+  const results: BulkActionResult[] = [];
+
+  for (const submissionId of submissionIds) {
+    const context = contexts.get(submissionId);
+    const projectCode = context?.project?.projectCode ?? null;
+
+    if (!context) {
+      results.push(
+        buildBulkResult(
+          submissionId,
+          null,
+          "FAILED",
+          "Submission not found"
+        )
+      );
+      continue;
+    }
+
+    try {
+      const review = await assignReviewer(
+        submissionId,
+        data.reviewerId,
+        Boolean(data.isPrimary),
+        data.reviewerRole,
+        data.dueDate,
+        actorId
+      );
+
+      results.push(
+        buildBulkResult(
+          submissionId,
+          projectCode,
+          "SUCCEEDED",
+          "Reviewer assigned",
+          { reviewId: review.id, reviewerId: data.reviewerId }
+        )
+      );
+    } catch (error) {
+      results.push(
+        buildBulkResult(
+          submissionId,
+          projectCode,
+          getBulkResultStatusForError(error),
+          getErrorMessage(error)
+        )
+      );
+    }
+  }
+
+  return summarizeBulkResults(submissionIds.length, results);
+}
+
+const requireBulkStatusActionPreconditions = (
+  context: BulkSubmissionContext,
+  action: BulkStatusAction,
+  reason: string | null
+) => {
+  if (action === "RETURN_FOR_COMPLETION") {
+    requireReason(reason, "Returning a submission for completion");
+    return;
+  }
+
+  if (action === "MARK_NOT_ACCEPTED") {
+    requireReason(reason, "Marking a submission as not accepted");
+    return;
+  }
+
+  if (action === "MARK_CLASSIFIED" && !context.classification?.reviewType) {
+    throw new AppError(
+      400,
+      "CLASSIFICATION_REQUIRED",
+      "Set a review type before marking the submission as classified"
+    );
+  }
+
+  if (action !== "START_REVIEW") {
+    return;
+  }
+
+  if (!context.classification) {
+    throw new AppError(
+      400,
+      "NOT_CLASSIFIED",
+      "Submission must be classified before starting review"
+    );
+  }
+
+  if (context.classification.reviewType === ReviewType.EXEMPT) {
+    throw new AppError(
+      400,
+      "INVALID_REVIEW_SETUP",
+      "EXEMPT submissions cannot be moved to UNDER_REVIEW"
+    );
+  }
+
+  if (
+    context.classification.reviewType === ReviewType.FULL_BOARD &&
+    !context.classification.panelId
+  ) {
+    throw new AppError(
+      400,
+      "PANEL_REQUIRED",
+      "FULL_BOARD requires an assigned panel before starting review"
+    );
+  }
+
+  if ((context.reviews ?? []).length < 1) {
+    throw new AppError(
+      400,
+      "REVIEWER_REQUIRED",
+      "Assign at least one reviewer before starting review"
+    );
+  }
+};
+
+export async function bulkRunSubmissionStatusAction(
+  submissionIds: number[],
+  data: {
+    action: BulkStatusAction;
+    reason?: string | null;
+    completenessStatus?:
+      | "COMPLETE"
+      | "MINOR_MISSING"
+      | "MAJOR_MISSING"
+      | "MISSING_SIGNATURES"
+      | "OTHER";
+    completenessRemarks?: string | null;
+  },
+  actorId: number
+) {
+  const contexts = await getBulkSubmissionContexts(submissionIds);
+  const results: BulkActionResult[] = [];
+  const reason = trimReason(data.reason);
+  const completenessRemarks = trimReason(data.completenessRemarks);
+
+  for (const submissionId of submissionIds) {
+    const context = contexts.get(submissionId);
+    const projectCode = context?.project?.projectCode ?? null;
+
+    if (!context) {
+      results.push(
+        buildBulkResult(
+          submissionId,
+          null,
+          "FAILED",
+          "Submission not found"
+        )
+      );
+      continue;
+    }
+
+    try {
+      requireBulkStatusActionPreconditions(context, data.action, reason);
+
+      let result:
+        | Awaited<ReturnType<typeof startSubmissionCompletenessCheck>>
+        | Awaited<ReturnType<typeof returnSubmissionForCompletion>>
+        | Awaited<ReturnType<typeof markSubmissionNotAccepted>>
+        | Awaited<ReturnType<typeof acceptSubmissionForClassification>>
+        | Awaited<ReturnType<typeof updateSubmissionStatus>>
+        | Awaited<ReturnType<typeof startSubmissionReview>>;
+
+      switch (data.action) {
+        case "START_COMPLETENESS_CHECK":
+          result = await startSubmissionCompletenessCheck(
+            submissionId,
+            {
+              completenessStatus: data.completenessStatus,
+              completenessRemarks: completenessRemarks ?? reason,
+            },
+            actorId
+          );
+          break;
+        case "RETURN_FOR_COMPLETION":
+          result = await returnSubmissionForCompletion(
+            submissionId,
+            {
+              reason: requireReason(
+                reason,
+                "Returning a submission for completion"
+              ),
+              completenessStatus: data.completenessStatus,
+              completenessRemarks,
+            },
+            actorId
+          );
+          break;
+        case "MARK_NOT_ACCEPTED":
+          result = await markSubmissionNotAccepted(
+            submissionId,
+            {
+              reason: requireReason(
+                reason,
+                "Marking a submission as not accepted"
+              ),
+              completenessStatus: data.completenessStatus,
+              completenessRemarks,
+            },
+            actorId
+          );
+          break;
+        case "ACCEPT_FOR_CLASSIFICATION":
+          result = await acceptSubmissionForClassification(
+            submissionId,
+            {
+              reason,
+              completenessRemarks,
+            },
+            actorId
+          );
+          break;
+        case "MOVE_TO_UNDER_CLASSIFICATION":
+          result = await updateSubmissionStatus(
+            submissionId,
+            SubmissionStatus.UNDER_CLASSIFICATION,
+            reason ?? undefined,
+            actorId
+          );
+          break;
+        case "MARK_CLASSIFIED":
+          result = await updateSubmissionStatus(
+            submissionId,
+            SubmissionStatus.CLASSIFIED,
+            reason ?? undefined,
+            actorId
+          );
+          break;
+        case "START_REVIEW":
+          result = await startSubmissionReview(submissionId, actorId);
+          break;
+        default:
+          throw new AppError(400, "INVALID_ACTION", "Unsupported bulk status action");
+      }
+
+      results.push(
+        buildBulkResult(
+          submissionId,
+          projectCode,
+          "SUCCEEDED",
+          "Action completed",
+          {
+            action: data.action,
+            nextStatus: result.submission.status,
+          }
+        )
+      );
+    } catch (error) {
+      results.push(
+        buildBulkResult(
+          submissionId,
+          projectCode,
+          getBulkResultStatusForError(error),
+          getErrorMessage(error)
+        )
+      );
+    }
+  }
+
+  return summarizeBulkResults(submissionIds.length, results);
+}
+
+export async function bulkCreateSubmissionReminders(
+  submissionIds: number[],
+  data: {
+    target: ReminderTarget;
+    note: string;
+  },
+  actorId: number
+) {
+  const contexts = await getBulkSubmissionContexts(submissionIds);
+  const results: BulkActionResult[] = [];
+  const note = data.note.trim();
+
+  for (const submissionId of submissionIds) {
+    const context = contexts.get(submissionId);
+    const projectCode = context?.project?.projectCode ?? null;
+
+    if (!context) {
+      results.push(
+        buildBulkResult(
+          submissionId,
+          null,
+          "FAILED",
+          "Submission not found"
+        )
+      );
+      continue;
+    }
+
+    try {
+      const reminder = await prisma.submissionReminderLog.create({
+        data: {
+          submissionId,
+          target: data.target,
+          note,
+          actorId,
+        },
+      });
+
+      await logAuditEvent({
+        actorId,
+        action: "SUBMISSION_REMINDER_LOGGED",
+        entityType: "Submission",
+        entityId: submissionId,
+        metadata: {
+          target: data.target,
+          reminderLogId: reminder.id,
+        },
+      });
+
+      results.push(
+        buildBulkResult(
+          submissionId,
+          projectCode,
+          "SUCCEEDED",
+          "Reminder logged",
+          { reminderLogId: reminder.id, target: data.target }
+        )
+      );
+    } catch (error) {
+      results.push(
+        buildBulkResult(
+          submissionId,
+          projectCode,
+          getBulkResultStatusForError(error),
+          getErrorMessage(error)
+        )
+      );
+    }
+  }
+
+  return summarizeBulkResults(submissionIds.length, results);
 }
 
 /* ------------------------------------------------------------------ */

@@ -504,6 +504,23 @@ export type EnumSubmissionStatusNullableWithAggregatesFilter<$PrismaModel = neve
   _max?: Prisma.NestedEnumSubmissionStatusNullableFilter<$PrismaModel>
 }
 
+export type EnumReminderTargetFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReminderTarget | Prisma.EnumReminderTargetFieldRefInput<$PrismaModel>
+  in?: $Enums.ReminderTarget[] | Prisma.ListEnumReminderTargetFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ReminderTarget[] | Prisma.ListEnumReminderTargetFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumReminderTargetFilter<$PrismaModel> | $Enums.ReminderTarget
+}
+
+export type EnumReminderTargetWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReminderTarget | Prisma.EnumReminderTargetFieldRefInput<$PrismaModel>
+  in?: $Enums.ReminderTarget[] | Prisma.ListEnumReminderTargetFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ReminderTarget[] | Prisma.ListEnumReminderTargetFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumReminderTargetWithAggregatesFilter<$PrismaModel> | $Enums.ReminderTarget
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumReminderTargetFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumReminderTargetFilter<$PrismaModel>
+}
+
 export type EnumProjectStatusNullableFilter<$PrismaModel = never> = {
   equals?: $Enums.ProjectStatus | Prisma.EnumProjectStatusFieldRefInput<$PrismaModel> | null
   in?: $Enums.ProjectStatus[] | Prisma.ListEnumProjectStatusFieldRefInput<$PrismaModel> | null
@@ -1233,6 +1250,23 @@ export type NestedEnumSubmissionStatusNullableWithAggregatesFilter<$PrismaModel 
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumSubmissionStatusNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumSubmissionStatusNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumReminderTargetFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReminderTarget | Prisma.EnumReminderTargetFieldRefInput<$PrismaModel>
+  in?: $Enums.ReminderTarget[] | Prisma.ListEnumReminderTargetFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ReminderTarget[] | Prisma.ListEnumReminderTargetFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumReminderTargetFilter<$PrismaModel> | $Enums.ReminderTarget
+}
+
+export type NestedEnumReminderTargetWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ReminderTarget | Prisma.EnumReminderTargetFieldRefInput<$PrismaModel>
+  in?: $Enums.ReminderTarget[] | Prisma.ListEnumReminderTargetFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ReminderTarget[] | Prisma.ListEnumReminderTargetFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumReminderTargetWithAggregatesFilter<$PrismaModel> | $Enums.ReminderTarget
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumReminderTargetFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumReminderTargetFilter<$PrismaModel>
 }
 
 export type NestedEnumProjectStatusNullableFilter<$PrismaModel = never> = {

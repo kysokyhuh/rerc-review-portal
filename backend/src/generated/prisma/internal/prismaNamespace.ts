@@ -405,6 +405,7 @@ export const ModelName = {
   ClassificationDecision: 'ClassificationDecision',
   ClassificationVote: 'ClassificationVote',
   SubmissionStatusHistory: 'SubmissionStatusHistory',
+  SubmissionReminderLog: 'SubmissionReminderLog',
   ProjectStatusHistory: 'ProjectStatusHistory',
   Review: 'Review',
   ReviewAssignment: 'ReviewAssignment',
@@ -431,7 +432,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "authSession" | "auditLog" | "committee" | "panel" | "committeeMember" | "project" | "protocolProfile" | "protocolMilestone" | "academicTerm" | "proponent" | "projectProponent" | "projectMember" | "projectChangeLog" | "projectSnapshot" | "submission" | "submissionChangeLog" | "classification" | "classificationDecision" | "classificationVote" | "submissionStatusHistory" | "projectStatusHistory" | "review" | "reviewAssignment" | "submissionDocument" | "submissionDecision" | "holiday" | "letterDraft" | "contractPeriod" | "panelMember" | "configSLA" | "workflowEvent"
+    modelProps: "user" | "authSession" | "auditLog" | "committee" | "panel" | "committeeMember" | "project" | "protocolProfile" | "protocolMilestone" | "academicTerm" | "proponent" | "projectProponent" | "projectMember" | "projectChangeLog" | "projectSnapshot" | "submission" | "submissionChangeLog" | "classification" | "classificationDecision" | "classificationVote" | "submissionStatusHistory" | "submissionReminderLog" | "projectStatusHistory" | "review" | "reviewAssignment" | "submissionDocument" | "submissionDecision" | "holiday" | "letterDraft" | "contractPeriod" | "panelMember" | "configSLA" | "workflowEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1989,6 +1990,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SubmissionReminderLog: {
+      payload: Prisma.$SubmissionReminderLogPayload<ExtArgs>
+      fields: Prisma.SubmissionReminderLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SubmissionReminderLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionReminderLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SubmissionReminderLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionReminderLogPayload>
+        }
+        findFirst: {
+          args: Prisma.SubmissionReminderLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionReminderLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SubmissionReminderLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionReminderLogPayload>
+        }
+        findMany: {
+          args: Prisma.SubmissionReminderLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionReminderLogPayload>[]
+        }
+        create: {
+          args: Prisma.SubmissionReminderLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionReminderLogPayload>
+        }
+        createMany: {
+          args: Prisma.SubmissionReminderLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SubmissionReminderLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionReminderLogPayload>[]
+        }
+        delete: {
+          args: Prisma.SubmissionReminderLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionReminderLogPayload>
+        }
+        update: {
+          args: Prisma.SubmissionReminderLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionReminderLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.SubmissionReminderLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SubmissionReminderLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SubmissionReminderLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionReminderLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.SubmissionReminderLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionReminderLogPayload>
+        }
+        aggregate: {
+          args: Prisma.SubmissionReminderLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSubmissionReminderLog>
+        }
+        groupBy: {
+          args: Prisma.SubmissionReminderLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SubmissionReminderLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SubmissionReminderLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SubmissionReminderLogCountAggregateOutputType> | number
+        }
+      }
+    }
     ProjectStatusHistory: {
       payload: Prisma.$ProjectStatusHistoryPayload<ExtArgs>
       fields: Prisma.ProjectStatusHistoryFieldRefs
@@ -3229,6 +3304,18 @@ export const SubmissionStatusHistoryScalarFieldEnum = {
 export type SubmissionStatusHistoryScalarFieldEnum = (typeof SubmissionStatusHistoryScalarFieldEnum)[keyof typeof SubmissionStatusHistoryScalarFieldEnum]
 
 
+export const SubmissionReminderLogScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  target: 'target',
+  note: 'note',
+  actorId: 'actorId',
+  createdAt: 'createdAt'
+} as const
+
+export type SubmissionReminderLogScalarFieldEnum = (typeof SubmissionReminderLogScalarFieldEnum)[keyof typeof SubmissionReminderLogScalarFieldEnum]
+
+
 export const ProjectStatusHistoryScalarFieldEnum = {
   id: 'id',
   projectId: 'projectId',
@@ -3692,6 +3779,20 @@ export type ListEnumClassificationTypeFieldRefInput<$PrismaModel> = FieldRefInpu
 
 
 /**
+ * Reference to a field of type 'ReminderTarget'
+ */
+export type EnumReminderTargetFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReminderTarget'>
+    
+
+
+/**
+ * Reference to a field of type 'ReminderTarget[]'
+ */
+export type ListEnumReminderTargetFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReminderTarget[]'>
+    
+
+
+/**
  * Reference to a field of type 'ReviewerRoleType'
  */
 export type EnumReviewerRoleTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReviewerRoleType'>
@@ -3988,6 +4089,7 @@ export type GlobalOmitConfig = {
   classificationDecision?: Prisma.ClassificationDecisionOmit
   classificationVote?: Prisma.ClassificationVoteOmit
   submissionStatusHistory?: Prisma.SubmissionStatusHistoryOmit
+  submissionReminderLog?: Prisma.SubmissionReminderLogOmit
   projectStatusHistory?: Prisma.ProjectStatusHistoryOmit
   review?: Prisma.ReviewOmit
   reviewAssignment?: Prisma.ReviewAssignmentOmit

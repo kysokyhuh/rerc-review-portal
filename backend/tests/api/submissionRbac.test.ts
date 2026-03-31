@@ -16,7 +16,11 @@ jest.mock("../../src/services/submissions/submissionService", () => {
   return {
     __esModule: true,
     ...actual,
+    bulkAssignReviewerToSubmissions: jest.fn(),
+    bulkCreateSubmissionReminders: jest.fn(),
+    bulkRunSubmissionStatusAction: jest.fn(),
     classifySubmission: jest.fn(),
+    listReviewerCandidates: jest.fn(),
     updateSubmissionStatus: jest.fn(),
     recordReviewDecision: jest.fn(),
   };
@@ -29,7 +33,11 @@ const prisma = prismaClient as unknown as {
 };
 
 const submissionService = jest.requireMock("../../src/services/submissions/submissionService") as {
+  bulkAssignReviewerToSubmissions: jest.Mock;
+  bulkCreateSubmissionReminders: jest.Mock;
+  bulkRunSubmissionStatusAction: jest.Mock;
   classifySubmission: jest.Mock;
+  listReviewerCandidates: jest.Mock;
   updateSubmissionStatus: jest.Mock;
   recordReviewDecision: jest.Mock;
 };
@@ -112,5 +120,63 @@ describe("submission RBAC", () => {
 
     expect(response.status).toBe(403);
     expect(submissionService.classifySubmission).not.toHaveBeenCalled();
+  });
+
+  it("denies assistant from fetching reviewer candidates", async () => {
+    const response = await request(app)
+      .get("/submissions/reviewer-candidates")
+      .set(csrfHeaders)
+      .set("X-User-ID", "44")
+      .set("X-User-Roles", "RESEARCH_ASSISTANT");
+
+    expect(response.status).toBe(403);
+    expect(submissionService.listReviewerCandidates).not.toHaveBeenCalled();
+  });
+
+  it("denies assistant from bulk assigning reviewers", async () => {
+    const response = await request(app)
+      .post("/submissions/bulk/assign-reviewer")
+      .set(csrfHeaders)
+      .set("X-User-ID", "44")
+      .set("X-User-Roles", "RESEARCH_ASSISTANT")
+      .send({
+        submissionIds: [10, 11],
+        reviewerId: 7,
+        reviewerRole: "SCIENTIST",
+      });
+
+    expect(response.status).toBe(403);
+    expect(submissionService.bulkAssignReviewerToSubmissions).not.toHaveBeenCalled();
+  });
+
+  it("denies assistant from bulk changing status", async () => {
+    const response = await request(app)
+      .post("/submissions/bulk/status-action")
+      .set(csrfHeaders)
+      .set("X-User-ID", "44")
+      .set("X-User-Roles", "RESEARCH_ASSISTANT")
+      .send({
+        submissionIds: [10, 11],
+        action: "MOVE_TO_UNDER_CLASSIFICATION",
+      });
+
+    expect(response.status).toBe(403);
+    expect(submissionService.bulkRunSubmissionStatusAction).not.toHaveBeenCalled();
+  });
+
+  it("denies assistant from bulk logging reminders", async () => {
+    const response = await request(app)
+      .post("/submissions/bulk/reminders")
+      .set(csrfHeaders)
+      .set("X-User-ID", "44")
+      .set("X-User-Roles", "RESEARCH_ASSISTANT")
+      .send({
+        submissionIds: [10],
+        target: "REVIEWER",
+        note: "Follow up",
+      });
+
+    expect(response.status).toBe(403);
+    expect(submissionService.bulkCreateSubmissionReminders).not.toHaveBeenCalled();
   });
 });

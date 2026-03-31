@@ -168,6 +168,15 @@ export const ReviewerRoleType = {
 export type ReviewerRoleType = (typeof ReviewerRoleType)[keyof typeof ReviewerRoleType]
 
 
+export const ReminderTarget = {
+  PROPONENT: 'PROPONENT',
+  REVIEWER: 'REVIEWER',
+  INTERNAL_STAFF: 'INTERNAL_STAFF'
+} as const
+
+export type ReminderTarget = (typeof ReminderTarget)[keyof typeof ReminderTarget]
+
+
 export const HonorariumStatus = {
   PENDING: 'PENDING',
   PROCESSING: 'PROCESSING',

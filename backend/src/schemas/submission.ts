@@ -54,6 +54,36 @@ const workflowStageEnum = z.enum([
   "CLASSIFIED",
 ]);
 
+const reviewerRoleEnum = z.enum([
+  "SCIENTIST",
+  "LAY",
+  "INDEPENDENT_CONSULTANT",
+]);
+
+const reminderTargetEnum = z.enum([
+  "PROPONENT",
+  "REVIEWER",
+  "INTERNAL_STAFF",
+]);
+
+export const bulkStatusActionEnum = z.enum([
+  "START_COMPLETENESS_CHECK",
+  "RETURN_FOR_COMPLETION",
+  "MARK_NOT_ACCEPTED",
+  "ACCEPT_FOR_CLASSIFICATION",
+  "MOVE_TO_UNDER_CLASSIFICATION",
+  "MARK_CLASSIFIED",
+  "START_REVIEW",
+]);
+
+const submissionIdsSchema = z
+  .array(z.number().int().positive())
+  .min(1)
+  .max(200)
+  .refine((ids) => new Set(ids).size === ids.length, {
+    message: "submissionIds must be unique",
+  });
+
 export const updateSubmissionOverviewSchema = z.object({
   submissionType: submissionTypeEnum.optional(),
   receivedDate: z.string().nullable().optional(),
@@ -124,6 +154,34 @@ export const createReviewSchema = z.object({
   reviewerRole: z.string().nullable().optional(),
   dueDate: z.string().nullable().optional(),
 });
+
+export const bulkAssignReviewerSchema = z
+  .object({
+    submissionIds: submissionIdsSchema,
+    reviewerId: z.number().int().positive(),
+    reviewerRole: reviewerRoleEnum,
+    dueDate: optionalDateLike,
+    isPrimary: z.boolean().optional().default(false),
+  })
+  .strict();
+
+export const bulkStatusActionSchema = z
+  .object({
+    submissionIds: submissionIdsSchema,
+    action: bulkStatusActionEnum,
+    reason: optionalString(2000),
+    completenessStatus: completenessStatusEnum.optional(),
+    completenessRemarks: optionalString(2000),
+  })
+  .strict();
+
+export const bulkReminderSchema = z
+  .object({
+    submissionIds: submissionIdsSchema,
+    target: reminderTargetEnum,
+    note: z.string().trim().min(1).max(2000),
+  })
+  .strict();
 
 export const reviewDecisionSchema = z.object({
   decision: z.enum([

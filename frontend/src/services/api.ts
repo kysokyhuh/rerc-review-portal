@@ -11,6 +11,10 @@ export type {
   QueueCounts,
   QueueItem,
   DecoratedQueueItem,
+  ReviewerCandidate,
+  BulkActionResponse,
+  BulkReminderTarget,
+  BulkStatusAction,
   AttentionMetrics,
   DashboardActivityEntry,
   OverdueReviewItem,
@@ -50,6 +54,10 @@ import type {
   ProjectDetail,
   SubmissionDetail,
   SubmissionSlaSummary,
+  ReviewerCandidate,
+  BulkActionResponse,
+  BulkReminderTarget,
+  BulkStatusAction,
   DashboardActivityEntry,
   OverdueReviewItem,
   ProjectSearchResult,
@@ -691,6 +699,47 @@ export async function restoreProjectRecord(
 export async function fetchSubmissionDetail(submissionId: number) {
   const response = await api.get(`/submissions/${submissionId}`);
   return response.data as SubmissionDetail;
+}
+
+export async function fetchReviewerCandidates() {
+  const response = await api.get("/submissions/reviewer-candidates");
+  return response.data as ReviewerCandidate[];
+}
+
+export async function bulkAssignReviewers(payload: {
+  submissionIds: number[];
+  reviewerId: number;
+  reviewerRole: "SCIENTIST" | "LAY" | "INDEPENDENT_CONSULTANT";
+  dueDate?: string | null;
+  isPrimary?: boolean;
+}) {
+  const response = await api.post("/submissions/bulk/assign-reviewer", payload);
+  return response.data as BulkActionResponse;
+}
+
+export async function bulkRunStatusAction(payload: {
+  submissionIds: number[];
+  action: BulkStatusAction;
+  reason?: string | null;
+  completenessStatus?:
+    | "COMPLETE"
+    | "MINOR_MISSING"
+    | "MAJOR_MISSING"
+    | "MISSING_SIGNATURES"
+    | "OTHER";
+  completenessRemarks?: string | null;
+}) {
+  const response = await api.post("/submissions/bulk/status-action", payload);
+  return response.data as BulkActionResponse;
+}
+
+export async function bulkCreateReminders(payload: {
+  submissionIds: number[];
+  target: BulkReminderTarget;
+  note: string;
+}) {
+  const response = await api.post("/submissions/bulk/reminders", payload);
+  return response.data as BulkActionResponse;
 }
 
 export async function updateSubmissionOverview(

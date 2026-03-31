@@ -99,6 +99,17 @@ export interface QueueItem {
   overdueOwnerLabel?: string;
   overdueOwnerIcon?: string;
   overdueOwnerReason?: string;
+  classification?: {
+    reviewType: string | null;
+    panelId?: number | null;
+  } | null;
+  reviews?: Array<{ id: number }>;
+  reviewAssignments?: Array<{
+    id: number;
+    reviewerId: number;
+    reviewerRole: string;
+    isActive: boolean;
+  }>;
 }
 
 export interface DecoratedQueueItem extends QueueItem {
@@ -185,6 +196,56 @@ export interface StatusHistoryEntry {
   effectiveDate: string;
   reason: string | null;
   changedBy: {
+    fullName: string;
+    email: string;
+  } | null;
+}
+
+export type BulkReminderTarget =
+  | "PROPONENT"
+  | "REVIEWER"
+  | "INTERNAL_STAFF";
+
+export type BulkStatusAction =
+  | "START_COMPLETENESS_CHECK"
+  | "RETURN_FOR_COMPLETION"
+  | "MARK_NOT_ACCEPTED"
+  | "ACCEPT_FOR_CLASSIFICATION"
+  | "MOVE_TO_UNDER_CLASSIFICATION"
+  | "MARK_CLASSIFIED"
+  | "START_REVIEW";
+
+export interface ReviewerCandidate {
+  id: number;
+  fullName: string;
+  email: string;
+  roles: string[];
+  isCommonReviewer: boolean;
+  reviewerExpertise: string[];
+}
+
+export interface BulkActionResult {
+  submissionId: number;
+  projectCode: string | null;
+  status: "SUCCEEDED" | "SKIPPED" | "FAILED";
+  message: string;
+  data?: Record<string, unknown> | null;
+}
+
+export interface BulkActionResponse {
+  requestedCount: number;
+  succeeded: number;
+  skipped: number;
+  failed: number;
+  results: BulkActionResult[];
+}
+
+export interface SubmissionReminderLogEntry {
+  id: number;
+  target: BulkReminderTarget;
+  note: string;
+  createdAt: string;
+  actor: {
     fullName: string;
     email: string;
   } | null;
@@ -351,6 +412,7 @@ export interface SubmissionDetail {
   reviewAssignments?: SubmissionReviewAssignmentEntry[];
   documents?: SubmissionDocumentEntry[];
   changeLogs?: ChangeLogEntry[];
+  reminderLogs?: SubmissionReminderLogEntry[];
   projectChangeLogs?: ChangeLogEntry[];
   classification?: {
     reviewType: string | null;

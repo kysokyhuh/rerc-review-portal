@@ -380,6 +380,7 @@ export type SubmissionWhereInput = {
   letterDrafts?: Prisma.LetterDraftListRelationFilter
   workflowEvents?: Prisma.WorkflowEventListRelationFilter
   statusHistory?: Prisma.SubmissionStatusHistoryListRelationFilter
+  reminderLogs?: Prisma.SubmissionReminderLogListRelationFilter
   projectChangeLogs?: Prisma.ProjectChangeLogListRelationFilter
   changeLogs?: Prisma.SubmissionChangeLogListRelationFilter
   classificationVotes?: Prisma.ClassificationVoteListRelationFilter
@@ -420,6 +421,7 @@ export type SubmissionOrderByWithRelationInput = {
   letterDrafts?: Prisma.LetterDraftOrderByRelationAggregateInput
   workflowEvents?: Prisma.WorkflowEventOrderByRelationAggregateInput
   statusHistory?: Prisma.SubmissionStatusHistoryOrderByRelationAggregateInput
+  reminderLogs?: Prisma.SubmissionReminderLogOrderByRelationAggregateInput
   projectChangeLogs?: Prisma.ProjectChangeLogOrderByRelationAggregateInput
   changeLogs?: Prisma.SubmissionChangeLogOrderByRelationAggregateInput
   classificationVotes?: Prisma.ClassificationVoteOrderByRelationAggregateInput
@@ -464,6 +466,7 @@ export type SubmissionWhereUniqueInput = Prisma.AtLeast<{
   letterDrafts?: Prisma.LetterDraftListRelationFilter
   workflowEvents?: Prisma.WorkflowEventListRelationFilter
   statusHistory?: Prisma.SubmissionStatusHistoryListRelationFilter
+  reminderLogs?: Prisma.SubmissionReminderLogListRelationFilter
   projectChangeLogs?: Prisma.ProjectChangeLogListRelationFilter
   changeLogs?: Prisma.SubmissionChangeLogListRelationFilter
   classificationVotes?: Prisma.ClassificationVoteListRelationFilter
@@ -558,6 +561,7 @@ export type SubmissionCreateInput = {
   letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
@@ -595,6 +599,7 @@ export type SubmissionUncheckedCreateInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
@@ -631,6 +636,7 @@ export type SubmissionUpdateInput = {
   letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
@@ -668,6 +674,7 @@ export type SubmissionUncheckedUpdateInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
@@ -1088,6 +1095,20 @@ export type SubmissionUpdateOneRequiredWithoutStatusHistoryNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SubmissionUpdateToOneWithWhereWithoutStatusHistoryInput, Prisma.SubmissionUpdateWithoutStatusHistoryInput>, Prisma.SubmissionUncheckedUpdateWithoutStatusHistoryInput>
 }
 
+export type SubmissionCreateNestedOneWithoutReminderLogsInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutReminderLogsInput, Prisma.SubmissionUncheckedCreateWithoutReminderLogsInput>
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutReminderLogsInput
+  connect?: Prisma.SubmissionWhereUniqueInput
+}
+
+export type SubmissionUpdateOneRequiredWithoutReminderLogsNestedInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutReminderLogsInput, Prisma.SubmissionUncheckedCreateWithoutReminderLogsInput>
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutReminderLogsInput
+  upsert?: Prisma.SubmissionUpsertWithoutReminderLogsInput
+  connect?: Prisma.SubmissionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SubmissionUpdateToOneWithWhereWithoutReminderLogsInput, Prisma.SubmissionUpdateWithoutReminderLogsInput>, Prisma.SubmissionUncheckedUpdateWithoutReminderLogsInput>
+}
+
 export type SubmissionCreateNestedOneWithoutReviewsInput = {
   create?: Prisma.XOR<Prisma.SubmissionCreateWithoutReviewsInput, Prisma.SubmissionUncheckedCreateWithoutReviewsInput>
   connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutReviewsInput
@@ -1202,6 +1223,7 @@ export type SubmissionCreateWithoutCreatedByInput = {
   letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
@@ -1238,6 +1260,7 @@ export type SubmissionUncheckedCreateWithoutCreatedByInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
@@ -1283,6 +1306,7 @@ export type SubmissionCreateWithoutStaffInChargeInput = {
   letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
@@ -1319,6 +1343,7 @@ export type SubmissionUncheckedCreateWithoutStaffInChargeInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
@@ -1424,6 +1449,7 @@ export type SubmissionCreateWithoutProjectInput = {
   letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
@@ -1460,6 +1486,7 @@ export type SubmissionUncheckedCreateWithoutProjectInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
@@ -1522,6 +1549,7 @@ export type SubmissionCreateWithoutProjectChangeLogsInput = {
   letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
 }
@@ -1558,6 +1586,7 @@ export type SubmissionUncheckedCreateWithoutProjectChangeLogsInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
 }
@@ -1609,6 +1638,7 @@ export type SubmissionUpdateWithoutProjectChangeLogsInput = {
   letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
 }
@@ -1645,6 +1675,7 @@ export type SubmissionUncheckedUpdateWithoutProjectChangeLogsInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
 }
@@ -1680,6 +1711,7 @@ export type SubmissionCreateWithoutChangeLogsInput = {
   letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
 }
@@ -1716,6 +1748,7 @@ export type SubmissionUncheckedCreateWithoutChangeLogsInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
 }
@@ -1767,6 +1800,7 @@ export type SubmissionUpdateWithoutChangeLogsInput = {
   letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
 }
@@ -1803,6 +1837,7 @@ export type SubmissionUncheckedUpdateWithoutChangeLogsInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
 }
@@ -1837,6 +1872,7 @@ export type SubmissionCreateWithoutClassificationInput = {
   letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
@@ -1873,6 +1909,7 @@ export type SubmissionUncheckedCreateWithoutClassificationInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
@@ -1924,6 +1961,7 @@ export type SubmissionUpdateWithoutClassificationInput = {
   letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
@@ -1960,6 +1998,7 @@ export type SubmissionUncheckedUpdateWithoutClassificationInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
@@ -1995,6 +2034,7 @@ export type SubmissionCreateWithoutClassificationDecisionInput = {
   letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
@@ -2031,6 +2071,7 @@ export type SubmissionUncheckedCreateWithoutClassificationDecisionInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
@@ -2082,6 +2123,7 @@ export type SubmissionUpdateWithoutClassificationDecisionInput = {
   letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
@@ -2118,6 +2160,7 @@ export type SubmissionUncheckedUpdateWithoutClassificationDecisionInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
@@ -2154,6 +2197,7 @@ export type SubmissionCreateWithoutClassificationVotesInput = {
   letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
 }
@@ -2190,6 +2234,7 @@ export type SubmissionUncheckedCreateWithoutClassificationVotesInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
 }
@@ -2241,6 +2286,7 @@ export type SubmissionUpdateWithoutClassificationVotesInput = {
   letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
 }
@@ -2277,6 +2323,7 @@ export type SubmissionUncheckedUpdateWithoutClassificationVotesInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
 }
@@ -2311,6 +2358,7 @@ export type SubmissionCreateWithoutStatusHistoryInput = {
   documents?: Prisma.SubmissionDocumentCreateNestedManyWithoutSubmissionInput
   letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
@@ -2347,6 +2395,7 @@ export type SubmissionUncheckedCreateWithoutStatusHistoryInput = {
   documents?: Prisma.SubmissionDocumentUncheckedCreateNestedManyWithoutSubmissionInput
   letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
@@ -2398,6 +2447,7 @@ export type SubmissionUpdateWithoutStatusHistoryInput = {
   documents?: Prisma.SubmissionDocumentUpdateManyWithoutSubmissionNestedInput
   letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
@@ -2434,6 +2484,169 @@ export type SubmissionUncheckedUpdateWithoutStatusHistoryInput = {
   documents?: Prisma.SubmissionDocumentUncheckedUpdateManyWithoutSubmissionNestedInput
   letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
+  classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
+}
+
+export type SubmissionCreateWithoutReminderLogsInput = {
+  submissionType?: $Enums.SubmissionType | null
+  sequenceNumber?: number
+  receivedDate?: Date | string | null
+  documentLink?: string | null
+  completenessStatus?: $Enums.CompletenessStatus
+  completenessRemarks?: string | null
+  status?: $Enums.SubmissionStatus
+  classificationDueDate?: Date | string | null
+  exemptNotificationDueDate?: Date | string | null
+  revisionDueDate?: Date | string | null
+  continuingReviewDueDate?: Date | string | null
+  finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
+  finalDecision?: $Enums.ReviewDecision | null
+  finalDecisionDate?: Date | string | null
+  remarks?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project?: Prisma.ProjectCreateNestedOneWithoutSubmissionsInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutSubmissionsCreatedInput
+  staffInCharge?: Prisma.UserCreateNestedOneWithoutAssignedSubmissionsInput
+  classification?: Prisma.ClassificationCreateNestedOneWithoutSubmissionInput
+  classificationDecision?: Prisma.ClassificationDecisionCreateNestedOneWithoutSubmissionInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSubmissionInput
+  reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutSubmissionInput
+  decision?: Prisma.SubmissionDecisionCreateNestedOneWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
+  workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
+  statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
+  classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
+}
+
+export type SubmissionUncheckedCreateWithoutReminderLogsInput = {
+  id?: number
+  projectId?: number | null
+  submissionType?: $Enums.SubmissionType | null
+  sequenceNumber?: number
+  receivedDate?: Date | string | null
+  documentLink?: string | null
+  completenessStatus?: $Enums.CompletenessStatus
+  completenessRemarks?: string | null
+  status?: $Enums.SubmissionStatus
+  classificationDueDate?: Date | string | null
+  exemptNotificationDueDate?: Date | string | null
+  revisionDueDate?: Date | string | null
+  continuingReviewDueDate?: Date | string | null
+  finalReportDueDate?: Date | string | null
+  resultsNotifiedAt?: Date | string | null
+  finalDecision?: $Enums.ReviewDecision | null
+  finalDecisionDate?: Date | string | null
+  remarks?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: number | null
+  staffInChargeId?: number | null
+  classification?: Prisma.ClassificationUncheckedCreateNestedOneWithoutSubmissionInput
+  classificationDecision?: Prisma.ClassificationDecisionUncheckedCreateNestedOneWithoutSubmissionInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSubmissionInput
+  reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutSubmissionInput
+  decision?: Prisma.SubmissionDecisionUncheckedCreateNestedOneWithoutSubmissionInput
+  documents?: Prisma.SubmissionDocumentUncheckedCreateNestedManyWithoutSubmissionInput
+  letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
+  workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
+  changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
+  classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
+}
+
+export type SubmissionCreateOrConnectWithoutReminderLogsInput = {
+  where: Prisma.SubmissionWhereUniqueInput
+  create: Prisma.XOR<Prisma.SubmissionCreateWithoutReminderLogsInput, Prisma.SubmissionUncheckedCreateWithoutReminderLogsInput>
+}
+
+export type SubmissionUpsertWithoutReminderLogsInput = {
+  update: Prisma.XOR<Prisma.SubmissionUpdateWithoutReminderLogsInput, Prisma.SubmissionUncheckedUpdateWithoutReminderLogsInput>
+  create: Prisma.XOR<Prisma.SubmissionCreateWithoutReminderLogsInput, Prisma.SubmissionUncheckedCreateWithoutReminderLogsInput>
+  where?: Prisma.SubmissionWhereInput
+}
+
+export type SubmissionUpdateToOneWithWhereWithoutReminderLogsInput = {
+  where?: Prisma.SubmissionWhereInput
+  data: Prisma.XOR<Prisma.SubmissionUpdateWithoutReminderLogsInput, Prisma.SubmissionUncheckedUpdateWithoutReminderLogsInput>
+}
+
+export type SubmissionUpdateWithoutReminderLogsInput = {
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
+  sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
+  completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
+  classificationDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  exemptNotificationDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
+  finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ProjectUpdateOneWithoutSubmissionsNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutSubmissionsCreatedNestedInput
+  staffInCharge?: Prisma.UserUpdateOneWithoutAssignedSubmissionsNestedInput
+  classification?: Prisma.ClassificationUpdateOneWithoutSubmissionNestedInput
+  classificationDecision?: Prisma.ClassificationDecisionUpdateOneWithoutSubmissionNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSubmissionNestedInput
+  reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutSubmissionNestedInput
+  decision?: Prisma.SubmissionDecisionUpdateOneWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
+  workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
+  changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
+  classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
+}
+
+export type SubmissionUncheckedUpdateWithoutReminderLogsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  submissionType?: Prisma.NullableEnumSubmissionTypeFieldUpdateOperationsInput | $Enums.SubmissionType | null
+  sequenceNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  receivedDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completenessStatus?: Prisma.EnumCompletenessStatusFieldUpdateOperationsInput | $Enums.CompletenessStatus
+  completenessRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
+  classificationDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  exemptNotificationDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  revisionDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  continuingReviewDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalReportDueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resultsNotifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finalDecision?: Prisma.NullableEnumReviewDecisionFieldUpdateOperationsInput | $Enums.ReviewDecision | null
+  finalDecisionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  remarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  staffInChargeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  classification?: Prisma.ClassificationUncheckedUpdateOneWithoutSubmissionNestedInput
+  classificationDecision?: Prisma.ClassificationDecisionUncheckedUpdateOneWithoutSubmissionNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSubmissionNestedInput
+  reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutSubmissionNestedInput
+  decision?: Prisma.SubmissionDecisionUncheckedUpdateOneWithoutSubmissionNestedInput
+  documents?: Prisma.SubmissionDocumentUncheckedUpdateManyWithoutSubmissionNestedInput
+  letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
+  workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
@@ -2469,6 +2682,7 @@ export type SubmissionCreateWithoutReviewsInput = {
   letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
@@ -2505,6 +2719,7 @@ export type SubmissionUncheckedCreateWithoutReviewsInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
@@ -2556,6 +2771,7 @@ export type SubmissionUpdateWithoutReviewsInput = {
   letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
@@ -2592,6 +2808,7 @@ export type SubmissionUncheckedUpdateWithoutReviewsInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
@@ -2627,6 +2844,7 @@ export type SubmissionCreateWithoutReviewAssignmentsInput = {
   letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
@@ -2663,6 +2881,7 @@ export type SubmissionUncheckedCreateWithoutReviewAssignmentsInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
@@ -2714,6 +2933,7 @@ export type SubmissionUpdateWithoutReviewAssignmentsInput = {
   letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
@@ -2750,6 +2970,7 @@ export type SubmissionUncheckedUpdateWithoutReviewAssignmentsInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
@@ -2785,6 +3006,7 @@ export type SubmissionCreateWithoutDocumentsInput = {
   letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
@@ -2821,6 +3043,7 @@ export type SubmissionUncheckedCreateWithoutDocumentsInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
@@ -2872,6 +3095,7 @@ export type SubmissionUpdateWithoutDocumentsInput = {
   letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
@@ -2908,6 +3132,7 @@ export type SubmissionUncheckedUpdateWithoutDocumentsInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
@@ -2943,6 +3168,7 @@ export type SubmissionCreateWithoutDecisionInput = {
   letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
@@ -2979,6 +3205,7 @@ export type SubmissionUncheckedCreateWithoutDecisionInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
@@ -3030,6 +3257,7 @@ export type SubmissionUpdateWithoutDecisionInput = {
   letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
@@ -3066,6 +3294,7 @@ export type SubmissionUncheckedUpdateWithoutDecisionInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
@@ -3101,6 +3330,7 @@ export type SubmissionCreateWithoutLetterDraftsInput = {
   documents?: Prisma.SubmissionDocumentCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
@@ -3137,6 +3367,7 @@ export type SubmissionUncheckedCreateWithoutLetterDraftsInput = {
   documents?: Prisma.SubmissionDocumentUncheckedCreateNestedManyWithoutSubmissionInput
   workflowEvents?: Prisma.WorkflowEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
@@ -3188,6 +3419,7 @@ export type SubmissionUpdateWithoutLetterDraftsInput = {
   documents?: Prisma.SubmissionDocumentUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
@@ -3224,6 +3456,7 @@ export type SubmissionUncheckedUpdateWithoutLetterDraftsInput = {
   documents?: Prisma.SubmissionDocumentUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
@@ -3259,6 +3492,7 @@ export type SubmissionCreateWithoutWorkflowEventsInput = {
   documents?: Prisma.SubmissionDocumentCreateNestedManyWithoutSubmissionInput
   letterDrafts?: Prisma.LetterDraftCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteCreateNestedManyWithoutSubmissionInput
@@ -3295,6 +3529,7 @@ export type SubmissionUncheckedCreateWithoutWorkflowEventsInput = {
   documents?: Prisma.SubmissionDocumentUncheckedCreateNestedManyWithoutSubmissionInput
   letterDrafts?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutSubmissionInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutSubmissionInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutSubmissionInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutSourceSubmissionInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutSubmissionInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedCreateNestedManyWithoutSubmissionInput
@@ -3346,6 +3581,7 @@ export type SubmissionUpdateWithoutWorkflowEventsInput = {
   documents?: Prisma.SubmissionDocumentUpdateManyWithoutSubmissionNestedInput
   letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
@@ -3382,6 +3618,7 @@ export type SubmissionUncheckedUpdateWithoutWorkflowEventsInput = {
   documents?: Prisma.SubmissionDocumentUncheckedUpdateManyWithoutSubmissionNestedInput
   letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
@@ -3465,6 +3702,7 @@ export type SubmissionUpdateWithoutCreatedByInput = {
   letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
@@ -3501,6 +3739,7 @@ export type SubmissionUncheckedUpdateWithoutCreatedByInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
@@ -3560,6 +3799,7 @@ export type SubmissionUpdateWithoutStaffInChargeInput = {
   letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
@@ -3596,6 +3836,7 @@ export type SubmissionUncheckedUpdateWithoutStaffInChargeInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
@@ -3679,6 +3920,7 @@ export type SubmissionUpdateWithoutProjectInput = {
   letterDrafts?: Prisma.LetterDraftUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUpdateManyWithoutSubmissionNestedInput
@@ -3715,6 +3957,7 @@ export type SubmissionUncheckedUpdateWithoutProjectInput = {
   letterDrafts?: Prisma.LetterDraftUncheckedUpdateManyWithoutSubmissionNestedInput
   workflowEvents?: Prisma.WorkflowEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusHistory?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutSubmissionNestedInput
+  reminderLogs?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutSubmissionNestedInput
   projectChangeLogs?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutSourceSubmissionNestedInput
   changeLogs?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutSubmissionNestedInput
   classificationVotes?: Prisma.ClassificationVoteUncheckedUpdateManyWithoutSubmissionNestedInput
@@ -3756,6 +3999,7 @@ export type SubmissionCountOutputType = {
   letterDrafts: number
   workflowEvents: number
   statusHistory: number
+  reminderLogs: number
   projectChangeLogs: number
   changeLogs: number
   classificationVotes: number
@@ -3768,6 +4012,7 @@ export type SubmissionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extens
   letterDrafts?: boolean | SubmissionCountOutputTypeCountLetterDraftsArgs
   workflowEvents?: boolean | SubmissionCountOutputTypeCountWorkflowEventsArgs
   statusHistory?: boolean | SubmissionCountOutputTypeCountStatusHistoryArgs
+  reminderLogs?: boolean | SubmissionCountOutputTypeCountReminderLogsArgs
   projectChangeLogs?: boolean | SubmissionCountOutputTypeCountProjectChangeLogsArgs
   changeLogs?: boolean | SubmissionCountOutputTypeCountChangeLogsArgs
   classificationVotes?: boolean | SubmissionCountOutputTypeCountClassificationVotesArgs
@@ -3828,6 +4073,13 @@ export type SubmissionCountOutputTypeCountStatusHistoryArgs<ExtArgs extends runt
 /**
  * SubmissionCountOutputType without action
  */
+export type SubmissionCountOutputTypeCountReminderLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SubmissionReminderLogWhereInput
+}
+
+/**
+ * SubmissionCountOutputType without action
+ */
 export type SubmissionCountOutputTypeCountProjectChangeLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ProjectChangeLogWhereInput
 }
@@ -3882,6 +4134,7 @@ export type SubmissionSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   letterDrafts?: boolean | Prisma.Submission$letterDraftsArgs<ExtArgs>
   workflowEvents?: boolean | Prisma.Submission$workflowEventsArgs<ExtArgs>
   statusHistory?: boolean | Prisma.Submission$statusHistoryArgs<ExtArgs>
+  reminderLogs?: boolean | Prisma.Submission$reminderLogsArgs<ExtArgs>
   projectChangeLogs?: boolean | Prisma.Submission$projectChangeLogsArgs<ExtArgs>
   changeLogs?: boolean | Prisma.Submission$changeLogsArgs<ExtArgs>
   classificationVotes?: boolean | Prisma.Submission$classificationVotesArgs<ExtArgs>
@@ -3983,6 +4236,7 @@ export type SubmissionInclude<ExtArgs extends runtime.Types.Extensions.InternalA
   letterDrafts?: boolean | Prisma.Submission$letterDraftsArgs<ExtArgs>
   workflowEvents?: boolean | Prisma.Submission$workflowEventsArgs<ExtArgs>
   statusHistory?: boolean | Prisma.Submission$statusHistoryArgs<ExtArgs>
+  reminderLogs?: boolean | Prisma.Submission$reminderLogsArgs<ExtArgs>
   projectChangeLogs?: boolean | Prisma.Submission$projectChangeLogsArgs<ExtArgs>
   changeLogs?: boolean | Prisma.Submission$changeLogsArgs<ExtArgs>
   classificationVotes?: boolean | Prisma.Submission$classificationVotesArgs<ExtArgs>
@@ -4014,6 +4268,7 @@ export type $SubmissionPayload<ExtArgs extends runtime.Types.Extensions.Internal
     letterDrafts: Prisma.$LetterDraftPayload<ExtArgs>[]
     workflowEvents: Prisma.$WorkflowEventPayload<ExtArgs>[]
     statusHistory: Prisma.$SubmissionStatusHistoryPayload<ExtArgs>[]
+    reminderLogs: Prisma.$SubmissionReminderLogPayload<ExtArgs>[]
     projectChangeLogs: Prisma.$ProjectChangeLogPayload<ExtArgs>[]
     changeLogs: Prisma.$SubmissionChangeLogPayload<ExtArgs>[]
     classificationVotes: Prisma.$ClassificationVotePayload<ExtArgs>[]
@@ -4447,6 +4702,7 @@ export interface Prisma__SubmissionClient<T, Null = never, ExtArgs extends runti
   letterDrafts<T extends Prisma.Submission$letterDraftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$letterDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LetterDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   workflowEvents<T extends Prisma.Submission$workflowEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$workflowEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkflowEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   statusHistory<T extends Prisma.Submission$statusHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$statusHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubmissionStatusHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  reminderLogs<T extends Prisma.Submission$reminderLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$reminderLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubmissionReminderLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projectChangeLogs<T extends Prisma.Submission$projectChangeLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$projectChangeLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectChangeLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   changeLogs<T extends Prisma.Submission$changeLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$changeLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubmissionChangeLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   classificationVotes<T extends Prisma.Submission$classificationVotesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$classificationVotesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassificationVotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -5152,6 +5408,30 @@ export type Submission$statusHistoryArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.SubmissionStatusHistoryScalarFieldEnum | Prisma.SubmissionStatusHistoryScalarFieldEnum[]
+}
+
+/**
+ * Submission.reminderLogs
+ */
+export type Submission$reminderLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SubmissionReminderLog
+   */
+  select?: Prisma.SubmissionReminderLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SubmissionReminderLog
+   */
+  omit?: Prisma.SubmissionReminderLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SubmissionReminderLogInclude<ExtArgs> | null
+  where?: Prisma.SubmissionReminderLogWhereInput
+  orderBy?: Prisma.SubmissionReminderLogOrderByWithRelationInput | Prisma.SubmissionReminderLogOrderByWithRelationInput[]
+  cursor?: Prisma.SubmissionReminderLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SubmissionReminderLogScalarFieldEnum | Prisma.SubmissionReminderLogScalarFieldEnum[]
 }
 
 /**

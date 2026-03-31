@@ -344,6 +344,7 @@ export type UserWhereInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionListRelationFilter
   reviewAssignments?: Prisma.ReviewAssignmentListRelationFilter
   projectStatusHistories?: Prisma.ProjectStatusHistoryListRelationFilter
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
   authSessions?: Prisma.AuthSessionListRelationFilter
   approvedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -388,6 +389,7 @@ export type UserOrderByWithRelationInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionOrderByRelationAggregateInput
   reviewAssignments?: Prisma.ReviewAssignmentOrderByRelationAggregateInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryOrderByRelationAggregateInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogOrderByRelationAggregateInput
   auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
   authSessions?: Prisma.AuthSessionOrderByRelationAggregateInput
   approvedBy?: Prisma.UserOrderByWithRelationInput
@@ -435,6 +437,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionListRelationFilter
   reviewAssignments?: Prisma.ReviewAssignmentListRelationFilter
   projectStatusHistories?: Prisma.ProjectStatusHistoryListRelationFilter
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
   authSessions?: Prisma.AuthSessionListRelationFilter
   approvedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -528,6 +531,7 @@ export type UserCreateInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -572,6 +576,7 @@ export type UserUncheckedCreateInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -611,6 +616,7 @@ export type UserUpdateInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -655,6 +661,7 @@ export type UserUncheckedUpdateInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -1196,6 +1203,22 @@ export type UserUpdateOneWithoutStatusChangesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutStatusChangesInput, Prisma.UserUpdateWithoutStatusChangesInput>, Prisma.UserUncheckedUpdateWithoutStatusChangesInput>
 }
 
+export type UserCreateNestedOneWithoutSubmissionReminderLogsCreatedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSubmissionReminderLogsCreatedInput, Prisma.UserUncheckedCreateWithoutSubmissionReminderLogsCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSubmissionReminderLogsCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutSubmissionReminderLogsCreatedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSubmissionReminderLogsCreatedInput, Prisma.UserUncheckedCreateWithoutSubmissionReminderLogsCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSubmissionReminderLogsCreatedInput
+  upsert?: Prisma.UserUpsertWithoutSubmissionReminderLogsCreatedInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSubmissionReminderLogsCreatedInput, Prisma.UserUpdateWithoutSubmissionReminderLogsCreatedInput>, Prisma.UserUncheckedUpdateWithoutSubmissionReminderLogsCreatedInput>
+}
+
 export type UserCreateNestedOneWithoutProjectStatusHistoriesInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutProjectStatusHistoriesInput, Prisma.UserUncheckedCreateWithoutProjectStatusHistoriesInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectStatusHistoriesInput
@@ -1319,6 +1342,7 @@ export type UserCreateWithoutApprovedUsersInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -1362,6 +1386,7 @@ export type UserUncheckedCreateWithoutApprovedUsersInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   rejectedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutRejectedByInput
@@ -1405,6 +1430,7 @@ export type UserCreateWithoutApprovedByInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserCreateNestedManyWithoutApprovedByInput
@@ -1447,6 +1473,7 @@ export type UserUncheckedCreateWithoutApprovedByInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -1496,6 +1523,7 @@ export type UserCreateWithoutRejectedUsersInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -1539,6 +1567,7 @@ export type UserUncheckedCreateWithoutRejectedUsersInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -1582,6 +1611,7 @@ export type UserCreateWithoutRejectedByInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -1624,6 +1654,7 @@ export type UserUncheckedCreateWithoutRejectedByInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -1684,6 +1715,7 @@ export type UserUpdateWithoutApprovedUsersInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -1727,6 +1759,7 @@ export type UserUncheckedUpdateWithoutApprovedUsersInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   rejectedUsers?: Prisma.UserUncheckedUpdateManyWithoutRejectedByNestedInput
@@ -1817,6 +1850,7 @@ export type UserUpdateWithoutRejectedUsersInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -1860,6 +1894,7 @@ export type UserUncheckedUpdateWithoutRejectedUsersInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -1914,6 +1949,7 @@ export type UserCreateWithoutAuthSessionsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
   approvedUsers?: Prisma.UserCreateNestedManyWithoutApprovedByInput
@@ -1957,6 +1993,7 @@ export type UserUncheckedCreateWithoutAuthSessionsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
   rejectedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutRejectedByInput
@@ -2011,6 +2048,7 @@ export type UserUpdateWithoutAuthSessionsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
   approvedUsers?: Prisma.UserUpdateManyWithoutApprovedByNestedInput
@@ -2054,6 +2092,7 @@ export type UserUncheckedUpdateWithoutAuthSessionsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
   rejectedUsers?: Prisma.UserUncheckedUpdateManyWithoutRejectedByNestedInput
@@ -2092,6 +2131,7 @@ export type UserCreateWithoutAuditLogsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
   approvedUsers?: Prisma.UserCreateNestedManyWithoutApprovedByInput
@@ -2135,6 +2175,7 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
   rejectedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutRejectedByInput
@@ -2189,6 +2230,7 @@ export type UserUpdateWithoutAuditLogsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
   approvedUsers?: Prisma.UserUpdateManyWithoutApprovedByNestedInput
@@ -2232,6 +2274,7 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
   rejectedUsers?: Prisma.UserUncheckedUpdateManyWithoutRejectedByNestedInput
@@ -2269,6 +2312,7 @@ export type UserCreateWithoutCommitteeMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -2312,6 +2356,7 @@ export type UserUncheckedCreateWithoutCommitteeMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -2366,6 +2411,7 @@ export type UserUpdateWithoutCommitteeMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -2409,6 +2455,7 @@ export type UserUncheckedUpdateWithoutCommitteeMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -2447,6 +2494,7 @@ export type UserCreateWithoutProjectsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -2490,6 +2538,7 @@ export type UserUncheckedCreateWithoutProjectsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -2544,6 +2593,7 @@ export type UserUpdateWithoutProjectsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -2587,6 +2637,7 @@ export type UserUncheckedUpdateWithoutProjectsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -2625,6 +2676,7 @@ export type UserCreateWithoutProjectChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -2668,6 +2720,7 @@ export type UserUncheckedCreateWithoutProjectChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -2722,6 +2775,7 @@ export type UserUpdateWithoutProjectChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -2765,6 +2819,7 @@ export type UserUncheckedUpdateWithoutProjectChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -2803,6 +2858,7 @@ export type UserCreateWithoutProjectSnapshotsChangedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -2846,6 +2902,7 @@ export type UserUncheckedCreateWithoutProjectSnapshotsChangedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -2900,6 +2957,7 @@ export type UserUpdateWithoutProjectSnapshotsChangedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -2943,6 +3001,7 @@ export type UserUncheckedUpdateWithoutProjectSnapshotsChangedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -2981,6 +3040,7 @@ export type UserCreateWithoutSubmissionsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -3024,6 +3084,7 @@ export type UserUncheckedCreateWithoutSubmissionsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -3067,6 +3128,7 @@ export type UserCreateWithoutAssignedSubmissionsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -3110,6 +3172,7 @@ export type UserUncheckedCreateWithoutAssignedSubmissionsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -3164,6 +3227,7 @@ export type UserUpdateWithoutSubmissionsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -3207,6 +3271,7 @@ export type UserUncheckedUpdateWithoutSubmissionsCreatedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -3256,6 +3321,7 @@ export type UserUpdateWithoutAssignedSubmissionsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -3299,6 +3365,7 @@ export type UserUncheckedUpdateWithoutAssignedSubmissionsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -3337,6 +3404,7 @@ export type UserCreateWithoutSubmissionChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -3380,6 +3448,7 @@ export type UserUncheckedCreateWithoutSubmissionChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -3434,6 +3503,7 @@ export type UserUpdateWithoutSubmissionChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -3477,6 +3547,7 @@ export type UserUncheckedUpdateWithoutSubmissionChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -3515,6 +3586,7 @@ export type UserCreateWithoutClassificationsMadeInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -3558,6 +3630,7 @@ export type UserUncheckedCreateWithoutClassificationsMadeInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -3612,6 +3685,7 @@ export type UserUpdateWithoutClassificationsMadeInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -3655,6 +3729,7 @@ export type UserUncheckedUpdateWithoutClassificationsMadeInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -3693,6 +3768,7 @@ export type UserCreateWithoutClassificationDecisionsRecordedInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotCreateNestedManyWithoutChangedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -3736,6 +3812,7 @@ export type UserUncheckedCreateWithoutClassificationDecisionsRecordedInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutChangedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -3790,6 +3867,7 @@ export type UserUpdateWithoutClassificationDecisionsRecordedInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUpdateManyWithoutChangedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -3833,6 +3911,7 @@ export type UserUncheckedUpdateWithoutClassificationDecisionsRecordedInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutChangedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -3871,6 +3950,7 @@ export type UserCreateWithoutStatusChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -3914,6 +3994,7 @@ export type UserUncheckedCreateWithoutStatusChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -3968,6 +4049,7 @@ export type UserUpdateWithoutStatusChangesInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -4001,6 +4083,189 @@ export type UserUncheckedUpdateWithoutStatusChangesInput = {
   submissionsCreated?: Prisma.SubmissionUncheckedUpdateManyWithoutCreatedByNestedInput
   classificationsMade?: Prisma.ClassificationUncheckedUpdateManyWithoutClassifiedByNestedInput
   reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
+  panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedUpdateManyWithoutApprovedByNestedInput
+  projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutChangedByNestedInput
+  classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
+  reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
+  projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
+  approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
+  rejectedUsers?: Prisma.UserUncheckedUpdateManyWithoutRejectedByNestedInput
+}
+
+export type UserCreateWithoutSubmissionReminderLogsCreatedInput = {
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  forcePasswordChange?: boolean
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
+  approvedAt?: Date | string | null
+  rejectedAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
+  submissionsCreated?: Prisma.SubmissionCreateNestedManyWithoutCreatedByInput
+  classificationsMade?: Prisma.ClassificationCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftCreateNestedManyWithoutApprovedByInput
+  projectSnapshotsChanged?: Prisma.ProjectSnapshotCreateNestedManyWithoutChangedByInput
+  classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
+  reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
+  projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
+  approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
+  approvedUsers?: Prisma.UserCreateNestedManyWithoutApprovedByInput
+  rejectedBy?: Prisma.UserCreateNestedOneWithoutRejectedUsersInput
+  rejectedUsers?: Prisma.UserCreateNestedManyWithoutRejectedByInput
+}
+
+export type UserUncheckedCreateWithoutSubmissionReminderLogsCreatedInput = {
+  id?: number
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  forcePasswordChange?: boolean
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
+  approvedById?: number | null
+  approvedAt?: Date | string | null
+  rejectedById?: number | null
+  rejectedAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
+  submissionsCreated?: Prisma.SubmissionUncheckedCreateNestedManyWithoutCreatedByInput
+  classificationsMade?: Prisma.ClassificationUncheckedCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewUncheckedCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutApprovedByInput
+  projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutChangedByInput
+  classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
+  reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
+  projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
+  approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
+  rejectedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutRejectedByInput
+}
+
+export type UserCreateOrConnectWithoutSubmissionReminderLogsCreatedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSubmissionReminderLogsCreatedInput, Prisma.UserUncheckedCreateWithoutSubmissionReminderLogsCreatedInput>
+}
+
+export type UserUpsertWithoutSubmissionReminderLogsCreatedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSubmissionReminderLogsCreatedInput, Prisma.UserUncheckedUpdateWithoutSubmissionReminderLogsCreatedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSubmissionReminderLogsCreatedInput, Prisma.UserUncheckedCreateWithoutSubmissionReminderLogsCreatedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSubmissionReminderLogsCreatedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSubmissionReminderLogsCreatedInput, Prisma.UserUncheckedUpdateWithoutSubmissionReminderLogsCreatedInput>
+}
+
+export type UserUpdateWithoutSubmissionReminderLogsCreatedInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forcePasswordChange?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUpdateManyWithoutCreatedByNestedInput
+  classificationsMade?: Prisma.ClassificationUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUpdateManyWithoutChangedByNestedInput
+  panelMemberships?: Prisma.PanelMemberUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUpdateManyWithoutApprovedByNestedInput
+  projectSnapshotsChanged?: Prisma.ProjectSnapshotUpdateManyWithoutChangedByNestedInput
+  classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
+  reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
+  projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
+  approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
+  approvedUsers?: Prisma.UserUpdateManyWithoutApprovedByNestedInput
+  rejectedBy?: Prisma.UserUpdateOneWithoutRejectedUsersNestedInput
+  rejectedUsers?: Prisma.UserUpdateManyWithoutRejectedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSubmissionReminderLogsCreatedInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forcePasswordChange?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rejectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  classificationsMade?: Prisma.ClassificationUncheckedUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
   panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
   assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
   projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
@@ -4049,6 +4314,7 @@ export type UserCreateWithoutProjectStatusHistoriesInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotCreateNestedManyWithoutChangedByInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -4092,6 +4358,7 @@ export type UserUncheckedCreateWithoutProjectStatusHistoriesInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutChangedByInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -4146,6 +4413,7 @@ export type UserUpdateWithoutProjectStatusHistoriesInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUpdateManyWithoutChangedByNestedInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -4189,6 +4457,7 @@ export type UserUncheckedUpdateWithoutProjectStatusHistoriesInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutChangedByNestedInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -4227,6 +4496,7 @@ export type UserCreateWithoutReviewsAssignedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -4270,6 +4540,7 @@ export type UserUncheckedCreateWithoutReviewsAssignedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -4324,6 +4595,7 @@ export type UserUpdateWithoutReviewsAssignedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -4367,6 +4639,7 @@ export type UserUncheckedUpdateWithoutReviewsAssignedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -4405,6 +4678,7 @@ export type UserCreateWithoutReviewAssignmentsInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotCreateNestedManyWithoutChangedByInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -4448,6 +4722,7 @@ export type UserUncheckedCreateWithoutReviewAssignmentsInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutChangedByInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -4502,6 +4777,7 @@ export type UserUpdateWithoutReviewAssignmentsInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUpdateManyWithoutChangedByNestedInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -4545,6 +4821,7 @@ export type UserUncheckedUpdateWithoutReviewAssignmentsInput = {
   projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutChangedByNestedInput
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -4583,6 +4860,7 @@ export type UserCreateWithoutLetterDraftsGeneratedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -4626,6 +4904,7 @@ export type UserUncheckedCreateWithoutLetterDraftsGeneratedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -4669,6 +4948,7 @@ export type UserCreateWithoutLetterDraftsApprovedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -4712,6 +4992,7 @@ export type UserUncheckedCreateWithoutLetterDraftsApprovedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -4766,6 +5047,7 @@ export type UserUpdateWithoutLetterDraftsGeneratedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -4809,6 +5091,7 @@ export type UserUncheckedUpdateWithoutLetterDraftsGeneratedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -4858,6 +5141,7 @@ export type UserUpdateWithoutLetterDraftsApprovedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -4901,6 +5185,7 @@ export type UserUncheckedUpdateWithoutLetterDraftsApprovedInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -4939,6 +5224,7 @@ export type UserCreateWithoutPanelMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
@@ -4982,6 +5268,7 @@ export type UserUncheckedCreateWithoutPanelMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
@@ -5036,6 +5323,7 @@ export type UserUpdateWithoutPanelMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -5079,6 +5367,7 @@ export type UserUncheckedUpdateWithoutPanelMembershipsInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -5160,6 +5449,7 @@ export type UserUpdateWithoutApprovedByInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUpdateManyWithoutApprovedByNestedInput
@@ -5202,6 +5492,7 @@ export type UserUncheckedUpdateWithoutApprovedByInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -5262,6 +5553,7 @@ export type UserUpdateWithoutRejectedByInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
@@ -5304,6 +5596,7 @@ export type UserUncheckedUpdateWithoutRejectedByInput = {
   classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
   reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
   projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
@@ -5353,6 +5646,7 @@ export type UserCountOutputType = {
   classificationDecisionsRecorded: number
   reviewAssignments: number
   projectStatusHistories: number
+  submissionReminderLogsCreated: number
   auditLogs: number
   authSessions: number
   approvedUsers: number
@@ -5376,6 +5670,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   classificationDecisionsRecorded?: boolean | UserCountOutputTypeCountClassificationDecisionsRecordedArgs
   reviewAssignments?: boolean | UserCountOutputTypeCountReviewAssignmentsArgs
   projectStatusHistories?: boolean | UserCountOutputTypeCountProjectStatusHistoriesArgs
+  submissionReminderLogsCreated?: boolean | UserCountOutputTypeCountSubmissionReminderLogsCreatedArgs
   auditLogs?: boolean | UserCountOutputTypeCountAuditLogsArgs
   authSessions?: boolean | UserCountOutputTypeCountAuthSessionsArgs
   approvedUsers?: boolean | UserCountOutputTypeCountApprovedUsersArgs
@@ -5507,6 +5802,13 @@ export type UserCountOutputTypeCountProjectStatusHistoriesArgs<ExtArgs extends r
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountSubmissionReminderLogsCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SubmissionReminderLogWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountAuditLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.AuditLogWhereInput
 }
@@ -5569,6 +5871,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   classificationDecisionsRecorded?: boolean | Prisma.User$classificationDecisionsRecordedArgs<ExtArgs>
   reviewAssignments?: boolean | Prisma.User$reviewAssignmentsArgs<ExtArgs>
   projectStatusHistories?: boolean | Prisma.User$projectStatusHistoriesArgs<ExtArgs>
+  submissionReminderLogsCreated?: boolean | Prisma.User$submissionReminderLogsCreatedArgs<ExtArgs>
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   authSessions?: boolean | Prisma.User$authSessionsArgs<ExtArgs>
   approvedBy?: boolean | Prisma.User$approvedByArgs<ExtArgs>
@@ -5666,6 +5969,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   classificationDecisionsRecorded?: boolean | Prisma.User$classificationDecisionsRecordedArgs<ExtArgs>
   reviewAssignments?: boolean | Prisma.User$reviewAssignmentsArgs<ExtArgs>
   projectStatusHistories?: boolean | Prisma.User$projectStatusHistoriesArgs<ExtArgs>
+  submissionReminderLogsCreated?: boolean | Prisma.User$submissionReminderLogsCreatedArgs<ExtArgs>
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
   authSessions?: boolean | Prisma.User$authSessionsArgs<ExtArgs>
   approvedBy?: boolean | Prisma.User$approvedByArgs<ExtArgs>
@@ -5702,6 +6006,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     classificationDecisionsRecorded: Prisma.$ClassificationDecisionPayload<ExtArgs>[]
     reviewAssignments: Prisma.$ReviewAssignmentPayload<ExtArgs>[]
     projectStatusHistories: Prisma.$ProjectStatusHistoryPayload<ExtArgs>[]
+    submissionReminderLogsCreated: Prisma.$SubmissionReminderLogPayload<ExtArgs>[]
     auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
     authSessions: Prisma.$AuthSessionPayload<ExtArgs>[]
     approvedBy: Prisma.$UserPayload<ExtArgs> | null
@@ -6139,6 +6444,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   classificationDecisionsRecorded<T extends Prisma.User$classificationDecisionsRecordedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$classificationDecisionsRecordedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassificationDecisionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviewAssignments<T extends Prisma.User$reviewAssignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReviewAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projectStatusHistories<T extends Prisma.User$projectStatusHistoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectStatusHistoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectStatusHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  submissionReminderLogsCreated<T extends Prisma.User$submissionReminderLogsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$submissionReminderLogsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubmissionReminderLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditLogs<T extends Prisma.User$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   authSessions<T extends Prisma.User$authSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$authSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuthSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approvedBy<T extends Prisma.User$approvedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -6970,6 +7276,30 @@ export type User$projectStatusHistoriesArgs<ExtArgs extends runtime.Types.Extens
   take?: number
   skip?: number
   distinct?: Prisma.ProjectStatusHistoryScalarFieldEnum | Prisma.ProjectStatusHistoryScalarFieldEnum[]
+}
+
+/**
+ * User.submissionReminderLogsCreated
+ */
+export type User$submissionReminderLogsCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SubmissionReminderLog
+   */
+  select?: Prisma.SubmissionReminderLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SubmissionReminderLog
+   */
+  omit?: Prisma.SubmissionReminderLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SubmissionReminderLogInclude<ExtArgs> | null
+  where?: Prisma.SubmissionReminderLogWhereInput
+  orderBy?: Prisma.SubmissionReminderLogOrderByWithRelationInput | Prisma.SubmissionReminderLogOrderByWithRelationInput[]
+  cursor?: Prisma.SubmissionReminderLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SubmissionReminderLogScalarFieldEnum | Prisma.SubmissionReminderLogScalarFieldEnum[]
 }
 
 /**
