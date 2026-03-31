@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -10,23 +10,43 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ColdStartToast } from "@/components/ColdStartToast";
-import { DashboardPage } from "@/pages/DashboardPageNew";
-import { ProjectDetailPage } from "@/pages/ProjectDetailPage";
-import { SubmissionDetailPage } from "@/pages/SubmissionDetailPage";
-import ImportProjectsPage from "@/pages/ImportProjectsPage";
-import NewProtocolPage from "@/pages/NewProtocolPage";
-import NewProtocolClassicPage from "@/pages/NewProtocolClassicPage";
-import ArchivesPage from "@/pages/ArchivesPage";
-import ReportsPage from "@/pages/ReportsPage";
-import QueuePage from "@/pages/QueuePage";
-import ExemptedPage from "@/pages/ExemptedPage";
-import HolidaysPage from "@/pages/HolidaysPage";
-import LoginPage from "@/pages/LoginPage";
-import SignupPage from "@/pages/SignupPage";
-import ChangePasswordPage from "@/pages/ChangePasswordPage";
-import AdminAccountManagementPage from "@/pages/AdminAccountManagementPage";
-import NotAuthorizedPage from "@/pages/NotAuthorizedPage";
 import DashboardShell from "@/components/DashboardShell";
+
+const DashboardPage = lazy(() =>
+  import("@/pages/DashboardPageNew").then((module) => ({ default: module.DashboardPage }))
+);
+const ProjectDetailPage = lazy(() =>
+  import("@/pages/ProjectDetailPage").then((module) => ({ default: module.ProjectDetailPage }))
+);
+const SubmissionDetailPage = lazy(() =>
+  import("@/pages/SubmissionDetailPage").then((module) => ({
+    default: module.SubmissionDetailPage,
+  }))
+);
+const ImportProjectsPage = lazy(() => import("@/pages/ImportProjectsPage"));
+const NewProtocolPage = lazy(() => import("@/pages/NewProtocolPage"));
+const NewProtocolClassicPage = lazy(() => import("@/pages/NewProtocolClassicPage"));
+const ArchivesPage = lazy(() => import("@/pages/ArchivesPage"));
+const ReportsPage = lazy(() => import("@/pages/ReportsPage"));
+const QueuePage = lazy(() => import("@/pages/QueuePage"));
+const ExemptedPage = lazy(() => import("@/pages/ExemptedPage"));
+const HolidaysPage = lazy(() => import("@/pages/HolidaysPage"));
+const LoginPage = lazy(() => import("@/pages/LoginPage"));
+const SignupPage = lazy(() => import("@/pages/SignupPage"));
+const ChangePasswordPage = lazy(() => import("@/pages/ChangePasswordPage"));
+const AdminAccountManagementPage = lazy(() => import("@/pages/AdminAccountManagementPage"));
+const NotAuthorizedPage = lazy(() => import("@/pages/NotAuthorizedPage"));
+
+function RouteFallback() {
+  return (
+    <div className="dashboard-page">
+      <div className="loading-state">
+        <h1>Loading...</h1>
+        <p>Preparing the page.</p>
+      </div>
+    </div>
+  );
+}
 
 // Layout wrapper that conditionally shows nav/footer
 function AppLayout({ children }: { children: React.ReactNode }) {
@@ -61,118 +81,120 @@ function App() {
       <AuthProvider>
         <ErrorBoundary>
           <ColdStartToast />
-          <AppLayout>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Navigate to="/login" replace />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignupPage />} />
-              <Route
-                path="/change-password"
-                element={
-                  <ProtectedRoute allowForcedPasswordChange>
-                    <ChangePasswordPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/not-authorized" element={<NotAuthorizedPage />} />
-
-              {/* Protected: Dashboard shell */}
-              <Route
-                element={
-                  <ProtectedRoute>
-                    <DashboardShell />
-                  </ProtectedRoute>
-                }
-              >
-                <Route path="/dashboard" element={<DashboardPage />} />
+          <Suspense fallback={<RouteFallback />}>
+            <AppLayout>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Navigate to="/login" replace />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<SignupPage />} />
                 <Route
-                  path="/queues/exempted"
+                  path="/change-password"
+                  element={
+                    <ProtectedRoute allowForcedPasswordChange>
+                      <ChangePasswordPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="/not-authorized" element={<NotAuthorizedPage />} />
+
+                {/* Protected: Dashboard shell */}
+                <Route
+                  element={
+                    <ProtectedRoute>
+                      <DashboardShell />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route
+                    path="/queues/exempted"
+                    element={
+                      <ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}>
+                        <ExemptedPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/queues/:queueKey" element={<QueuePage />} />
+                  <Route path="/holidays" element={<HolidaysPage />} />
+                  <Route
+                    path="/admin/users"
+                    element={
+                      <ProtectedRoute allowedRoles={["CHAIR", "ADMIN"]}>
+                        <Navigate to="/admin/account-management" replace />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/account-management"
+                    element={
+                      <ProtectedRoute allowedRoles={["CHAIR", "ADMIN"]}>
+                        <AdminAccountManagementPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                </Route>
+
+                {/* Protected: standalone pages */}
+                <Route
+                  path="/projects/new"
+                  element={
+                    <ProtectedRoute>
+                      <NewProtocolPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/projects/new-classic"
+                  element={
+                    <ProtectedRoute>
+                      <NewProtocolClassicPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/imports/projects"
                   element={
                     <ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}>
-                      <ExemptedPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/queues/:queueKey" element={<QueuePage />} />
-                <Route path="/holidays" element={<HolidaysPage />} />
-                <Route
-                  path="/admin/users"
-                  element={
-                    <ProtectedRoute allowedRoles={["CHAIR", "ADMIN"]}>
-                      <Navigate to="/admin/account-management" replace />
+                      <ImportProjectsPage />
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/admin/account-management"
+                  path="/reports"
                   element={
-                    <ProtectedRoute allowedRoles={["CHAIR", "ADMIN"]}>
-                      <AdminAccountManagementPage />
+                    <ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}>
+                      <ReportsPage />
                     </ProtectedRoute>
                   }
                 />
-              </Route>
-
-              {/* Protected: standalone pages */}
-              <Route
-                path="/projects/new"
-                element={
-                  <ProtectedRoute>
-                    <NewProtocolPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/projects/new-classic"
-                element={
-                  <ProtectedRoute>
-                    <NewProtocolClassicPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/imports/projects"
-                element={
-                  <ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}>
-                    <ImportProjectsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/reports"
-                element={
-                  <ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}>
-                    <ReportsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/archives"
-                element={
-                  <ProtectedRoute>
-                    <ArchivesPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/projects/:projectId"
-                element={
-                  <ProtectedRoute>
-                    <ProjectDetailPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/submissions/:submissionId"
-                element={
-                  <ProtectedRoute>
-                    <SubmissionDetailPage />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </AppLayout>
+                <Route
+                  path="/archives"
+                  element={
+                    <ProtectedRoute>
+                      <ArchivesPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/projects/:projectId"
+                  element={
+                    <ProtectedRoute>
+                      <ProjectDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/submissions/:submissionId"
+                  element={
+                    <ProtectedRoute>
+                      <SubmissionDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </AppLayout>
+          </Suspense>
         </ErrorBoundary>
       </AuthProvider>
     </Router>

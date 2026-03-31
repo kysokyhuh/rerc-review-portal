@@ -275,15 +275,22 @@ router.post(
                   funding:
                     pickRawValue(row.raw, ["Funding", "Funding Type"]) ??
                     (row.fundingType ?? null),
-                  typeOfResearchPhreb: pickRawValue(row.raw, ["Type of Research PHREB"]),
+                  typeOfResearchPhreb: pickRawValue(row.raw, [
+                    "Type of Research PHREB",
+                    "researchTypePHREB",
+                  ]),
                   typeOfResearchPhrebOther: pickRawValue(row.raw, [
                     "Type of Research PHREB (Specific for Others)",
+                    "researchTypePHREBOther",
                   ]),
                   status: pickRawValue(row.raw, ["Status"]),
                   finishDate: parseLooseDate(pickRawValue(row.raw, ["Finish Date"])),
                   monthOfClearance: pickRawValue(row.raw, ["Month of Clearance"]),
                   reviewDurationDays: parseLooseInt(
-                    pickRawValue(row.raw, ["Review Duration (Receipt to Finish date)"])
+                    pickRawValue(row.raw, [
+                      "Review Duration (Receipt to Finish date)",
+                      "reviewDurationReceiptToFinishDate",
+                    ])
                   ),
                   remarks: pickRawValue(row.raw, ["Remarks"]) ?? row.remarks,
                   panel: pickRawValue(row.raw, ["Panel"]),
@@ -299,7 +306,9 @@ router.post(
                     "Classification of Proposal (RERC)",
                   ]),
                   totalDays: parseLooseInt(pickRawValue(row.raw, ["Total days"])),
-                  submissionCount: parseLooseInt(pickRawValue(row.raw, ["# Submissions"])),
+                  submissionCount: parseLooseInt(
+                    pickRawValue(row.raw, ["# Submissions", "submissionCount"])
+                  ),
                   withdrawn:
                     pickRawValue(row.raw, ["Withdrawn"])?.toLowerCase() === "yes"
                       ? true
@@ -341,25 +350,43 @@ router.post(
                   amendmentSubmission: parseLooseDate(
                     pickRawValue(row.raw, ["Amendment [Submission]"])
                   ),
-                  amendmentStatusOfRequest: pickRawValue(row.raw, ["Status of Request"]),
+                  amendmentStatusOfRequest: pickRawValue(row.raw, [
+                    "Status of Request",
+                    "amendmentStatusOfRequest",
+                  ]),
                   amendmentApprovalDate: parseLooseDate(
-                    pickRawValue(row.raw, ["Approval Date"])
+                    pickRawValue(row.raw, ["Approval Date", "amendmentApprovalDate"])
                   ),
-                  amendmentDays: parseLooseInt(pickRawValue(row.raw, ["# of Days"])),
+                  amendmentDays: parseLooseInt(
+                    pickRawValue(row.raw, ["# of Days", "amendmentDays"])
+                  ),
                   continuingSubmission: parseLooseDate(
-                    pickRawValue(row.raw, ["Continuing [Submission]"])
+                    pickRawValue(row.raw, [
+                      "Continuing [Submission]",
+                      "continuingSubmission",
+                    ])
                   ),
                   continuingStatusOfRequest: pickRawValue(row.raw, [
                     "Continuing Status of Request",
+                    "continuingStatusOfRequest",
                   ]),
                   continuingApprovalDate: parseLooseDate(
-                    pickRawValue(row.raw, ["Continuing Approval Date"])
+                    pickRawValue(row.raw, [
+                      "Continuing Approval Date",
+                      "continuingApprovalDate",
+                    ])
                   ),
                   continuingDays: parseLooseInt(
-                    pickRawValue(row.raw, ["Continuing # of Days"])
+                    pickRawValue(row.raw, [
+                      "Continuing # of Days",
+                      "continuingDays",
+                    ])
                   ),
                   primaryReviewer: pickRawValue(row.raw, ["Primary Reviewer"]),
-                  finalLayReviewer: pickRawValue(row.raw, ["Lay Reviewer"]),
+                  finalLayReviewer: pickRawValue(row.raw, [
+                    "finalLayReviewer",
+                    "Lay Reviewer",
+                  ]),
                 },
                 create: {
                   projectId: created.projectId,

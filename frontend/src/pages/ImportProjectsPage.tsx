@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   type CsvUploadProgress,
   commitProjectsCsvImport,
@@ -86,6 +86,7 @@ const renderTransferMeta = (progress: RequestProgressState) => {
 };
 
 export default function ImportProjectsPage() {
+  const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<ProjectImportPreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -167,6 +168,8 @@ export default function ImportProjectsPage() {
       setEditablePreviewRows(previewResponse.previewRows.map((row) => ({ ...row })));
       if (previewResponse.missingRequiredFields.length > 0) {
         setStatusMessage("We can't read required headers from this file.");
+      } else if (previewResponse.detectedFormat === "legacy_headerless") {
+        setStatusMessage("Legacy no-header CSV detected. Preview ready using legacy column order.");
       } else {
         setStatusMessage("Preview ready. You can edit blank cells in the preview before import.");
       }
@@ -285,12 +288,22 @@ export default function ImportProjectsPage() {
 
   const previewHeaders = preview?.detectedHeaders ?? [];
   const previewRows = editablePreviewRows.slice(0, PREVIEW_ROWS_LIMIT);
+  const previewWarnings = preview?.warnings ?? [];
   const blockingWarnings =
     preview && preview.missingRequiredFields.length > 0
       ? ["We can't auto-detect required headers for import."]
       : [];
+  const visibleWarnings = Array.from(new Set([...previewWarnings, ...blockingWarnings]));
   const previewTransferMeta = renderTransferMeta(previewProgress);
   const importTransferMeta = renderTransferMeta(importProgress);
+  const handleBack = () => {
+    const historyIndex = window.history.state?.idx;
+    if (typeof historyIndex === "number" && historyIndex > 0) {
+      navigate(-1);
+      return;
+    }
+    navigate("/dashboard");
+  };
 
   return (
     <div className="import-page portal-page portal-page--dense">
@@ -302,14 +315,17 @@ export default function ImportProjectsPage() {
       />
 
       <header className="page-header portal-context">
-        <Link to="/dashboard" className="back-link">
+        <button type="button" className="back-link back-link-button" onClick={handleBack}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          Back to Dashboard
-        </Link>
+          Back
+        </button>
         <h1>Import Projects CSV</h1>
-        <p>Upload any CSV format. We auto-detect required headers and let you edit preview cells before import.</p>
+        <p>
+          Upload a header-based CSV or the known legacy no-header RERC export. We
+          auto-detect supported formats and let you edit preview cells before import.
+        </p>
       </header>
 
       <div className="portal-summary">
@@ -398,9 +414,9 @@ export default function ImportProjectsPage() {
 
               {!previewLoading && preview && (
                 <>
-                  {blockingWarnings.length > 0 && (
+                  {visibleWarnings.length > 0 && (
                     <div className="import-alert warning">
-                      {blockingWarnings.map((warning) => (
+                      {visibleWarnings.map((warning) => (
                         <p key={warning} className="import-alert-line">
                           {warning}
                         </p>
@@ -462,7 +478,9 @@ export default function ImportProjectsPage() {
                     : "Import CSV"}
                 </button>
               </div>
-              <p className="import-hint">Import stays disabled until required headers are auto-detected.</p>
+              <p className="import-hint">
+                Import stays disabled only when required fields cannot be auto-detected.
+              </p>
               {uploading && (
                 <div
                   className={`import-progress-shell${
@@ -516,9 +534,13 @@ export default function ImportProjectsPage() {
             <div className="import-card import-guide-card">
               <h3>Required headers</h3>
               <ul>
-                <li>Column 1: projectCode (fixed)</li>
+                <li>Header-based CSVs are supported.</li>
+                <li>The known legacy no-header RERC export is also supported.</li>
               </ul>
-              <p>Any CSV shape is accepted. Project code is read from column 1.</p>
+              <p>
+                In legacy mode, project code is read from column 1 and the remaining
+                columns follow the fixed legacy order.
+              </p>
             </div>
             <div className="import-card import-guide-card">
               <h3>Safety checks</h3>

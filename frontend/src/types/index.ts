@@ -353,6 +353,7 @@ export interface ImportResult {
 }
 
 export interface ProjectImportPreview {
+  detectedFormat: "headered" | "legacy_headered" | "legacy_headerless";
   detectedHeaders: string[];
   previewRowNumbers: number[];
   previewRows: Record<string, string>[];
@@ -411,8 +412,8 @@ export interface SubmissionDetail {
   reviews?: SubmissionReviewerEntry[];
   reviewAssignments?: SubmissionReviewAssignmentEntry[];
   documents?: SubmissionDocumentEntry[];
-  changeLogs?: ChangeLogEntry[];
   reminderLogs?: SubmissionReminderLogEntry[];
+  changeLogs?: ChangeLogEntry[];
   projectChangeLogs?: ChangeLogEntry[];
   classification?: {
     reviewType: string | null;

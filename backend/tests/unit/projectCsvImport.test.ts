@@ -1,5 +1,6 @@
 import {
   CsvImportError,
+  LEGACY_WIDE_COLUMNS,
   buildPreviewPayload,
   normalizeHeaderKey,
   parseProjectCsvUnknownFormat,
@@ -9,6 +10,25 @@ import {
 
 const buildCsv = (header: string[], rows: string[][]) =>
   [header.join(","), ...rows.map((row) => row.join(","))].join("\n");
+
+const buildLegacyRow = (overrides: Record<number, string>) => {
+  const row = Array.from({ length: LEGACY_WIDE_COLUMNS.length }, () => "");
+  for (const [index, value] of Object.entries(overrides)) {
+    row[Number(index)] = value;
+  }
+  return row;
+};
+
+const buildLegacyHeaderRow = () => {
+  const row = Array.from({ length: LEGACY_WIDE_COLUMNS.length }, () => "");
+  row[0] = "2025";
+  row[1] = "Title";
+  row[2] = "Project Leader";
+  row[3] = "College";
+  row[5] = "Date of Submission";
+  row[17] = "Panel";
+  return row;
+};
 
 describe("project CSV import mapping", () => {
   it("normalizes headers and auto-matches synonyms", () => {
@@ -47,10 +67,93 @@ describe("project CSV import mapping", () => {
     const parsed = parseProjectCsvUnknownFormat(csv);
     const preview = buildPreviewPayload(parsed);
 
+    expect(parsed.detectedFormat).toBe("headered");
+    expect(preview.detectedFormat).toBe("headered");
     expect(preview.detectedHeaders).toEqual(["Project Code", "PI", "Date Received"]);
     expect(preview.suggestedMapping.projectCode).toBe("Project Code");
     expect(preview.suggestedMapping.piName).toBe("PI");
     expect(preview.missingRequiredFields).toEqual([]);
+  });
+
+  it("parses legacy headered CSVs into canonical legacy headers", () => {
+    const dataRow = buildLegacyRow({
+      0: "2026-101A",
+      1: "Legacy Title",
+      2: "Dr. Legacy",
+      5: "2026-01-10",
+      9: "INTERNAL",
+      10: "BIOMEDICAL",
+      16: "Legacy remarks",
+      68: "Accepted",
+      70: "2026-08-01",
+      83: "Prof. Primary",
+    });
+    const csv = buildCsv(buildLegacyHeaderRow(), [dataRow]);
+
+    const parsed = parseProjectCsvUnknownFormat(csv);
+    const preview = buildPreviewPayload(parsed);
+
+    expect(parsed.detectedFormat).toBe("legacy_headered");
+    expect(parsed.detectedHeaders).toEqual(LEGACY_WIDE_COLUMNS);
+    expect(parsed.rows[0]).toEqual(
+      expect.objectContaining({
+        rowNumber: 2,
+        raw: expect.objectContaining({
+          projectCode: "2026-101A",
+          title: "Legacy Title",
+          fundingType: "INTERNAL",
+          progressReportStatus: "Accepted",
+          finalReportTargetDate: "2026-08-01",
+          primaryReviewer: "Prof. Primary",
+        }),
+      })
+    );
+    expect(preview.detectedFormat).toBe("legacy_headered");
+    expect(preview.warnings).toContain(
+      "Some core fields are missing in this file and will be left blank until backfilled."
+    );
+  });
+
+  it("parses headerless legacy CSVs and keeps CSV row numbers", () => {
+    const dataRow = buildLegacyRow({
+      0: "2026-102B",
+      1: "Headerless Legacy Title",
+      2: "Dr. No Header",
+      5: "2026-02-15",
+      9: "EXTERNAL",
+      67: "2026-07-01",
+      68: "Approved",
+      69: "12",
+    });
+    const csv = [dataRow.join(",")].join("\n");
+
+    const parsed = parseProjectCsvUnknownFormat(csv);
+    const preview = buildPreviewPayload(parsed);
+
+    expect(parsed.detectedFormat).toBe("legacy_headerless");
+    expect(parsed.detectedHeaders).toEqual(LEGACY_WIDE_COLUMNS);
+    expect(parsed.rows[0].rowNumber).toBe(1);
+    expect(parsed.rows[0].raw).toEqual(
+      expect.objectContaining({
+        projectCode: "2026-102B",
+        title: "Headerless Legacy Title",
+        progressReportApprovalDate: "2026-07-01",
+        progressReportStatus: "Approved",
+        progressReportDays: "12",
+      })
+    );
+    expect(preview.detectedFormat).toBe("legacy_headerless");
+    expect(preview.warnings).toContain(
+      "No header row detected; using legacy column order."
+    );
+  });
+
+  it("rejects unsupported headerless non-legacy CSVs", () => {
+    const csv = [["2026-001", "Title Only", "Dr. A"].join(",")].join("\n");
+
+    expect(() => parseProjectCsvUnknownFormat(csv)).toThrow(
+      "Headerless CSV is only supported for the known legacy RERC export layout."
+    );
   });
 
   it("rejects CSV beyond max rows", () => {

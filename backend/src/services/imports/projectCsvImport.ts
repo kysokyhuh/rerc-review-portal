@@ -42,6 +42,100 @@ export type MappableProjectField = (typeof MAPPABLE_PROJECT_FIELDS)[number];
 export type RequiredProjectField = (typeof REQUIRED_PROJECT_FIELDS)[number];
 export type ProjectField = (typeof PROJECT_IMPORT_HEADERS)[number];
 export type ColumnMapping = Record<MappableProjectField, string | null>;
+export type ParsedCsvFormat = "headered" | "legacy_headered" | "legacy_headerless";
+
+export const LEGACY_WIDE_COLUMNS = [
+  "projectCode",
+  "title",
+  "piName",
+  "college",
+  "department",
+  "dateOfSubmission",
+  "monthOfSubmission",
+  "typeOfReview",
+  "proponent",
+  "fundingType",
+  "researchTypePHREB",
+  "researchTypePHREBOther",
+  "status",
+  "finishDate",
+  "monthOfClearance",
+  "reviewDurationReceiptToFinishDate",
+  "remarks",
+  "panel",
+  "scientistReviewer",
+  "layReviewer",
+  "independentConsultant",
+  "honorariumStatusCoMsMaja",
+  "classificationOfProposalRerc",
+  "classificationDays",
+  "provisionOfProjectProposalDocumentsToPrimaryReviewer",
+  "provisionOfProjectProposalDocumentsToPrimaryReviewerDays",
+  "accomplishmentOfAssessmentForms",
+  "accomplishmentOfAssessmentFormsDays",
+  "fullReviewMeeting",
+  "fullReviewMeetingDays",
+  "finalizationOfReviewResults",
+  "finalizationOfReviewResultsDays",
+  "communicationOfReviewResultsToProjectLeader",
+  "communicationOfReviewResultsToProjectLeaderDays",
+  "resubmission1FromProponent",
+  "resubmission1FromProponentDays",
+  "reviewOfResubmission1",
+  "reviewOfResubmission1Days",
+  "finalizationOfReviewResultsResubmission1",
+  "finalizationOfReviewResultsResubmission1Days",
+  "resubmission2FromProponent",
+  "resubmission2FromProponentDays",
+  "reviewOfResubmission2",
+  "reviewOfResubmission2Days",
+  "finalizationOfReviewResultsResubmission2",
+  "finalizationOfReviewResultsResubmission2Days",
+  "resubmission3FromProponent",
+  "resubmission3FromProponentDays",
+  "reviewOfResubmission3",
+  "reviewOfResubmission3Days",
+  "finalizationOfReviewResultsResubmission3",
+  "finalizationOfReviewResultsResubmission3Days",
+  "resubmission4FromProponent",
+  "resubmission4FromProponentDays",
+  "reviewOfResubmission4",
+  "reviewOfResubmission4Days",
+  "finalizationOfReviewResultsResubmission4",
+  "finalizationOfReviewResultsResubmission4Days",
+  "issuanceOfEthicsClearance",
+  "issuanceOfEthicsClearanceDays",
+  "totalDays",
+  "submissionCount",
+  "withdrawn",
+  "projectEndDate6A",
+  "clearanceExpiration",
+  "progressReportTargetDate",
+  "progressReportSubmission",
+  "progressReportApprovalDate",
+  "progressReportStatus",
+  "progressReportDays",
+  "finalReportTargetDate",
+  "finalReportSubmission",
+  "finalReportCompletionDate",
+  "finalReportStatus",
+  "finalReportDays",
+  "amendmentSubmission",
+  "amendmentStatusOfRequest",
+  "amendmentApprovalDate",
+  "amendmentDays",
+  "continuingSubmission",
+  "continuingStatusOfRequest",
+  "continuingApprovalDate",
+  "continuingDays",
+  "primaryReviewer",
+  "finalLayReviewer",
+  "holidays",
+  "legacyTrailingValue",
+] as const;
+
+const LEGACY_HEADER_ROW_LENGTH = LEGACY_WIDE_COLUMNS.length;
+const PROJECT_CODE_PATTERN = /^\d{4}-\d{3}[A-Z]?$/i;
 
 const HEADER_SYNONYMS: Record<MappableProjectField, string[]> = {
   projectCode: [
@@ -88,6 +182,7 @@ export interface RawCsvRow {
 }
 
 export interface ParsedCsvData {
+  detectedFormat: ParsedCsvFormat;
   detectedHeaders: string[];
   rows: RawCsvRow[];
   receivedRows: number;
@@ -100,6 +195,7 @@ export interface RowError {
 }
 
 export interface PreviewPayload {
+  detectedFormat: ParsedCsvFormat;
   detectedHeaders: string[];
   previewRowNumbers: number[];
   previewRows: Record<string, string>[];
@@ -242,6 +338,27 @@ const getRawByCandidates = (raw: Record<string, string>, candidates: string[]) =
   return "";
 };
 
+const looksLikeLegacyHeaderRow = (row: string[]) => {
+  if (row.length !== LEGACY_HEADER_ROW_LENGTH) {
+    return false;
+  }
+
+  const firstCell = normalizeValue(row[0]);
+  return (
+    /^\d{4}$/.test(firstCell) &&
+    normalizeHeaderKey(normalizeHeader(row[1])) === normalizeHeaderKey("Title") &&
+    normalizeHeaderKey(normalizeHeader(row[2])) === normalizeHeaderKey("Project Leader") &&
+    normalizeHeaderKey(normalizeHeader(row[5])) === normalizeHeaderKey("Date of Submission") &&
+    normalizeHeaderKey(normalizeHeader(row[17])) === normalizeHeaderKey("Panel")
+  );
+};
+
+const looksLikeLegacyHeaderlessRow = (row: string[]) =>
+  row.length === LEGACY_HEADER_ROW_LENGTH && PROJECT_CODE_PATTERN.test(normalizeValue(row[0]));
+
+const looksLikeUnsupportedHeaderlessRow = (row: string[]) =>
+  PROJECT_CODE_PATTERN.test(normalizeValue(row[0]));
+
 export const parseProjectCsvUnknownFormat = (
   input: Buffer | string,
   config: ImportConfig = DEFAULT_IMPORT_CONFIG
@@ -259,12 +376,39 @@ export const parseProjectCsvUnknownFormat = (
     throw new CsvImportError("CSV file is empty.");
   }
 
-  const detectedHeaders = records[0].map(normalizeHeader);
-  if (!detectedHeaders.length || detectedHeaders.every((header) => !header)) {
-    throw new CsvImportError("CSV header row is empty.");
+  const firstRow = records[0] ?? [];
+  let detectedFormat: ParsedCsvFormat;
+  let detectedHeaders: string[];
+  let dataRows: string[][];
+  let firstDataRowNumber: number;
+
+  if (looksLikeLegacyHeaderRow(firstRow)) {
+    detectedFormat = "legacy_headered";
+    detectedHeaders = [...LEGACY_WIDE_COLUMNS];
+    dataRows = records.slice(1);
+    firstDataRowNumber = 2;
+  } else if (looksLikeLegacyHeaderlessRow(firstRow)) {
+    detectedFormat = "legacy_headerless";
+    detectedHeaders = [...LEGACY_WIDE_COLUMNS];
+    dataRows = records;
+    firstDataRowNumber = 1;
+  } else {
+    const normalizedHeaders = firstRow.map(normalizeHeader);
+    if (!normalizedHeaders.length || normalizedHeaders.every((header) => !header)) {
+      throw new CsvImportError("CSV header row is empty.");
+    }
+    if (looksLikeUnsupportedHeaderlessRow(firstRow)) {
+      throw new CsvImportError(
+        "Headerless CSV is only supported for the known legacy RERC export layout."
+      );
+    }
+
+    detectedFormat = "headered";
+    detectedHeaders = normalizedHeaders;
+    dataRows = records.slice(1);
+    firstDataRowNumber = 2;
   }
 
-  const dataRows = records.slice(1);
   if (!dataRows.length) {
     throw new CsvImportError("CSV file has no data rows.");
   }
@@ -281,12 +425,13 @@ export const parseProjectCsvUnknownFormat = (
     });
 
     return {
-      rowNumber: index + 2,
+      rowNumber: index + firstDataRowNumber,
       raw: record,
     };
   });
 
   return {
+    detectedFormat,
     detectedHeaders,
     rows,
     receivedRows: rows.length,
@@ -378,8 +523,12 @@ export const buildPreviewPayload = (
       "Some column headers look duplicated after normalization. Verify your mapping before import."
     );
   }
+  if (parsed.detectedFormat === "legacy_headerless") {
+    warnings.push("No header row detected; using legacy column order.");
+  }
 
   return {
+    detectedFormat: parsed.detectedFormat,
     detectedHeaders: parsed.detectedHeaders,
     previewRowNumbers: parsed.rows.slice(0, config.previewRows).map((row) => row.rowNumber),
     previewRows: parsed.rows.slice(0, config.previewRows).map((row) => row.raw),
@@ -535,7 +684,10 @@ export const validateMappedProjectRows = ({
       }
     }
 
-    const researchRaw = normalizeValue(row.raw.researchTypePHREB);
+    const researchRaw = getRawByCandidates(row.raw, [
+      "researchTypePHREB",
+      "Type of Research PHREB",
+    ]);
     const researchType = parseResearchType(researchRaw);
     if (researchRaw && !researchType) {
       rowErrors.push({ row: row.rowNumber, field: "researchTypePHREB", message: "Invalid researchTypePHREB." });
@@ -612,7 +764,7 @@ export const validateMappedProjectRows = ({
       committeeId: committeeId!,
       submissionType: submissionType ?? null,
       receivedDate: receivedDate ?? null,
-      remarks: normalizeValue(row.raw.remarks) || null,
+      remarks: getRawByCandidates(row.raw, ["remarks", "Remarks"]) || null,
     });
   }
 

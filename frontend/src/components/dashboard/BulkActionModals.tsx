@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   bulkAssignReviewers,
   bulkCreateReminders,
@@ -28,6 +28,7 @@ interface BulkModalShellProps {
   description: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  modalClassName?: string;
 }
 
 type ScreeningCompletenessStatus =
@@ -92,6 +93,8 @@ const REASON_REQUIRED_ACTIONS = new Set<BulkStatusAction>([
   "MARK_NOT_ACCEPTED",
 ]);
 
+const REVIEWER_REQUIRED_MESSAGE = "Select a reviewer before assigning this batch.";
+
 const selectionPreview = (selectedItems: DecoratedQueueItem[]) => {
   const codes = selectedItems
     .map((item) => item.projectCode)
@@ -115,6 +118,7 @@ function BulkModalShell({
   description,
   children,
   footer,
+  modalClassName,
 }: BulkModalShellProps) {
   useEffect(() => {
     if (!open) return undefined;
@@ -136,7 +140,10 @@ function BulkModalShell({
       aria-modal="true"
       onClick={onClose}
     >
-      <div className="bulk-modal" onClick={(event) => event.stopPropagation()}>
+      <div
+        className={modalClassName ? `bulk-modal ${modalClassName}` : "bulk-modal"}
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="bulk-modal-header">
           <div>
             <span className="bulk-modal-kicker">Dashboard bulk action</span>
@@ -160,6 +167,25 @@ function BulkModalShell({
     </div>
   );
 }
+
+const formatSubmissionCountLabel = (count: number) =>
+  `${count} submission${count === 1 ? "" : "s"} selected`;
+
+const formatReviewerCandidateMeta = (candidate: ReviewerCandidate) => {
+  if (candidate.reviewerExpertise.length > 0) {
+    return candidate.reviewerExpertise.slice(0, 2).join(" • ");
+  }
+
+  const roleLabels = candidate.roles
+    .map((role) => role.replace(/_/g, " ").toLowerCase())
+    .map((role) => role.replace(/\b\w/g, (char) => char.toUpperCase()));
+
+  if (candidate.isCommonReviewer) {
+    roleLabels.unshift("Common reviewer");
+  }
+
+  return roleLabels.slice(0, 2).join(" • ") || "Reviewer candidate";
+};
 
 function BulkResultSummary({
   result,
@@ -319,6 +345,8 @@ export function AssignReviewersBulkModal({
   const [candidates, setCandidates] = useState<ReviewerCandidate[]>([]);
   const [loadingCandidates, setLoadingCandidates] = useState(false);
   const [reviewerId, setReviewerId] = useState("");
+  const [reviewerQuery, setReviewerQuery] = useState("");
+  const [reviewerOpen, setReviewerOpen] = useState(false);
   const [reviewerRole, setReviewerRole] = useState<
     "SCIENTIST" | "LAY" | "INDEPENDENT_CONSULTANT"
   >("SCIENTIST");
@@ -327,10 +355,13 @@ export function AssignReviewersBulkModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<BulkActionResponse | null>(null);
+  const reviewerPickerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setReviewerId("");
+    setReviewerQuery("");
+    setReviewerOpen(false);
     setReviewerRole("SCIENTIST");
     setDueDate("");
     setIsPrimary(false);
@@ -363,9 +394,60 @@ export function AssignReviewersBulkModal({
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!reviewerOpen) return undefined;
+    const handlePointerDown = (event: MouseEvent) => {
+      if (
+        reviewerPickerRef.current &&
+        !reviewerPickerRef.current.contains(event.target as Node)
+      ) {
+        setReviewerOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", handlePointerDown);
+    return () => window.removeEventListener("mousedown", handlePointerDown);
+  }, [reviewerOpen]);
+
+  const selectedReviewer = useMemo(
+    () => candidates.find((candidate) => String(candidate.id) === reviewerId) ?? null,
+    [candidates, reviewerId]
+  );
+
+  const filteredCandidates = useMemo(() => {
+    const query = reviewerQuery.trim().toLowerCase();
+    if (!query) return candidates;
+    return candidates.filter((candidate) => {
+      const haystack = [
+        candidate.fullName,
+        candidate.email,
+        ...candidate.reviewerExpertise,
+        ...candidate.roles,
+        candidate.isCommonReviewer ? "common reviewer" : "",
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [candidates, reviewerQuery]);
+
+  const selectionPreviewItems = selectedItems.slice(0, 3);
+  const remainingSelectionCount = Math.max(0, selectedItems.length - selectionPreviewItems.length);
+  const reviewerFieldError = error === REVIEWER_REQUIRED_MESSAGE;
+  const generalError = reviewerFieldError ? null : error;
+  const canSubmit = Boolean(reviewerId) && !loadingCandidates && !submitting;
+
+  const handleSelectReviewer = (candidateId: number) => {
+    setReviewerId(String(candidateId));
+    setReviewerOpen(false);
+    setReviewerQuery("");
+    if (reviewerFieldError) {
+      setError(null);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!reviewerId) {
-      setError("Select a reviewer before running the assignment.");
+      setError(REVIEWER_REQUIRED_MESSAGE);
       return;
     }
 
@@ -396,82 +478,213 @@ export function AssignReviewersBulkModal({
       open={open}
       onClose={onClose}
       title="Assign reviewers"
-      description="Apply one reviewer configuration to every selected submission in this batch."
+      description="Apply one reviewer setup across the selected submission batch."
+      modalClassName="bulk-modal--assign"
       footer={
         <>
           <button className="ghost-btn" type="button" onClick={onClose}>
             Close
           </button>
-          <button className="primary-btn" type="button" onClick={handleSubmit} disabled={submitting || loadingCandidates}>
-            {submitting ? "Assigning…" : "Run bulk assignment"}
+          <button className="primary-btn" type="button" onClick={handleSubmit} disabled={!canSubmit}>
+            {submitting ? "Assigning…" : "Assign reviewers"}
           </button>
         </>
       }
     >
-      <div className="bulk-modal-selection">
-        <strong>{selectedItems.length} submissions selected</strong>
-        <span>{selectionPreview(selectedItems)}</span>
-      </div>
+      <section className="bulk-modal-selection bulk-modal-selection-strong">
+        <div className="bulk-modal-selection-copy">
+          <span className="bulk-section-label">Selected batch</span>
+          <strong>{formatSubmissionCountLabel(selectedItems.length)}</strong>
+          <span>
+            This reviewer setup will be applied to every eligible submission in the current batch.
+          </span>
+        </div>
+        <div className="bulk-selection-tags" aria-label="Selected submissions">
+          {selectionPreviewItems.map((item) => (
+            <div className="bulk-selection-tag" key={item.id}>
+              <strong>{item.projectCode || `Submission #${item.id}`}</strong>
+              {selectedItems.length === 1 ? <span>{item.projectTitle}</span> : null}
+            </div>
+          ))}
+          {remainingSelectionCount > 0 ? (
+            <div className="bulk-selection-tag bulk-selection-tag-muted">
+              <strong>+{remainingSelectionCount} more</strong>
+            </div>
+          ) : null}
+        </div>
+      </section>
 
-      <div className="bulk-form-grid bulk-form-grid-2">
-        <label className="bulk-form-field">
-          <span>Reviewer</span>
-          <select
-            className="field-input"
-            value={reviewerId}
-            onChange={(event) => setReviewerId(event.target.value)}
-            disabled={loadingCandidates || submitting}
+      <section className="bulk-modal-section">
+        <div className="bulk-section-header">
+          <span className="bulk-section-label">Reviewer assignment</span>
+          <h4>Choose who will receive this batch</h4>
+          <p>Set the reviewer, assign the role, and add an optional review deadline.</p>
+        </div>
+
+        <div className="bulk-form-grid bulk-form-grid-2 bulk-form-grid-assign">
+          <div
+            className={`bulk-form-field bulk-form-field-reviewer${
+              reviewerFieldError ? " is-invalid" : ""
+            }`}
           >
-            <option value="">Select reviewer</option>
-            {candidates.map((candidate) => (
-              <option key={candidate.id} value={candidate.id}>
-                {candidate.fullName} · {candidate.email}
-              </option>
-            ))}
-          </select>
-        </label>
+            <span>Reviewer</span>
+            <div className="bulk-reviewer-picker" ref={reviewerPickerRef}>
+              <button
+                type="button"
+                className={`bulk-reviewer-trigger${reviewerOpen ? " is-open" : ""}`}
+                onClick={() => {
+                  if (loadingCandidates || submitting) return;
+                  setReviewerOpen((current) => !current);
+                }}
+                disabled={loadingCandidates || submitting}
+                aria-haspopup="listbox"
+                aria-expanded={reviewerOpen}
+              >
+                <div className="bulk-reviewer-trigger-copy">
+                  <strong>
+                    {loadingCandidates
+                      ? "Loading reviewer directory…"
+                      : selectedReviewer?.fullName || "Select a reviewer"}
+                  </strong>
+                  <span>
+                    {selectedReviewer
+                      ? `${selectedReviewer.email} • ${formatReviewerCandidateMeta(selectedReviewer)}`
+                      : "Search by name, email, or expertise"}
+                  </span>
+                </div>
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path
+                    d="M6 8L10 12L14 8"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
 
-        <label className="bulk-form-field">
-          <span>Reviewer role</span>
-          <select
-            className="field-input"
-            value={reviewerRole}
-            onChange={(event) =>
-              setReviewerRole(
-                event.target.value as "SCIENTIST" | "LAY" | "INDEPENDENT_CONSULTANT"
-              )
-            }
-            disabled={submitting}
-          >
-            <option value="SCIENTIST">Scientist</option>
-            <option value="LAY">Lay</option>
-            <option value="INDEPENDENT_CONSULTANT">Independent consultant</option>
-          </select>
-        </label>
+              {reviewerOpen ? (
+                <div className="bulk-reviewer-popover">
+                  <div className="bulk-reviewer-search-shell">
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <path
+                        d="M8.75 14.5a5.75 5.75 0 1 1 0-11.5a5.75 5.75 0 0 1 0 11.5Z"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                      />
+                      <path
+                        d="m13 13l4 4"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <input
+                      className="bulk-reviewer-search"
+                      type="text"
+                      value={reviewerQuery}
+                      onChange={(event) => setReviewerQuery(event.target.value)}
+                      placeholder="Search reviewer directory"
+                      autoFocus
+                    />
+                  </div>
 
-        <label className="bulk-form-field">
-          <span>Due date</span>
-          <input
-            className="field-input"
-            type="date"
-            value={dueDate}
-            onChange={(event) => setDueDate(event.target.value)}
-            disabled={submitting}
-          />
-        </label>
+                  <div className="bulk-reviewer-results" role="listbox">
+                    {filteredCandidates.length === 0 ? (
+                      <div className="bulk-reviewer-empty">
+                        No reviewers match “{reviewerQuery.trim()}”.
+                      </div>
+                    ) : (
+                      filteredCandidates.map((candidate) => {
+                        const isSelected = String(candidate.id) === reviewerId;
+                        return (
+                          <button
+                            key={candidate.id}
+                            type="button"
+                            className={`bulk-reviewer-option${
+                              isSelected ? " is-selected" : ""
+                            }`}
+                            onClick={() => handleSelectReviewer(candidate.id)}
+                          >
+                            <div className="bulk-reviewer-option-copy">
+                              <strong>{candidate.fullName}</strong>
+                              <span>{candidate.email}</span>
+                              <small>{formatReviewerCandidateMeta(candidate)}</small>
+                            </div>
+                            {isSelected ? (
+                              <span className="bulk-reviewer-selected-mark">Selected</span>
+                            ) : null}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+            <small className={reviewerFieldError ? "bulk-field-error" : undefined}>
+              {reviewerFieldError
+                ? REVIEWER_REQUIRED_MESSAGE
+                : "Search the reviewer directory and apply one reviewer to every eligible submission."}
+            </small>
+          </div>
 
-        <label className="bulk-checkbox-field">
-          <input
-            type="checkbox"
-            checked={isPrimary}
-            onChange={(event) => setIsPrimary(event.target.checked)}
-            disabled={submitting}
-          />
-          <span>Mark this reviewer as primary for the batch</span>
-        </label>
-      </div>
+          <label className="bulk-form-field">
+            <span>Reviewer role</span>
+            <div className="bulk-select-shell">
+              <select
+                className="bulk-select-control"
+                value={reviewerRole}
+                onChange={(event) =>
+                  setReviewerRole(
+                    event.target.value as "SCIENTIST" | "LAY" | "INDEPENDENT_CONSULTANT"
+                  )
+                }
+                disabled={submitting}
+              >
+                <option value="SCIENTIST">Scientist</option>
+                <option value="LAY">Lay reviewer</option>
+                <option value="INDEPENDENT_CONSULTANT">Independent consultant</option>
+              </select>
+            </div>
+            <small>This role will be applied uniformly across the batch.</small>
+          </label>
 
-      {error ? <div className="bulk-form-error">{error}</div> : null}
+          <label className="bulk-form-field">
+            <span>Review due date</span>
+            <input
+              className="bulk-input-control"
+              type="date"
+              value={dueDate}
+              onChange={(event) => setDueDate(event.target.value)}
+              disabled={submitting}
+            />
+            <small>Optional. Leave blank if you do not want to set a deadline yet.</small>
+          </label>
+        </div>
+
+        <div className="bulk-options-card">
+          <div className="bulk-options-header">
+            <span className="bulk-section-label">Assignment options</span>
+            <p>Use this only when the same reviewer should be the lead reviewer for the batch.</p>
+          </div>
+
+          <label className="bulk-checkbox-card">
+            <input
+              type="checkbox"
+              checked={isPrimary}
+              onChange={(event) => setIsPrimary(event.target.checked)}
+              disabled={submitting}
+            />
+            <div className="bulk-checkbox-copy">
+              <strong>Mark as primary reviewer</strong>
+              <span>Assign this reviewer as the primary reviewer for every eligible submission.</span>
+            </div>
+          </label>
+        </div>
+      </section>
+
+      {generalError ? <div className="bulk-form-error">{generalError}</div> : null}
       {result ? <BulkResultSummary result={result} /> : null}
     </BulkModalShell>
   );
