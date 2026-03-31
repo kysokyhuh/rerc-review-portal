@@ -225,6 +225,12 @@ export default function HolidaysPage() {
   const selectedExistingCount = selectedDateKeys.filter((key) =>
     existingDateKeys.has(key)
   ).length;
+  const selectionRangeLabel =
+    normalizedRange.start === normalizedRange.end
+      ? formatDisplayDate(normalizedRange.start)
+      : `${formatDisplayDate(normalizedRange.start)} — ${formatDisplayDate(
+          normalizedRange.end
+        )}`;
 
   const monthLabel = calendarMonth.toLocaleDateString("en-US", {
     month: "long",
@@ -232,6 +238,17 @@ export default function HolidaysPage() {
     timeZone: "UTC",
   });
   const calendarCells = useMemo(() => buildCalendarCells(calendarMonth), [calendarMonth]);
+  const monthHolidayCount = useMemo(
+    () =>
+      items.filter((item) => {
+        const date = new Date(item.date);
+        return (
+          date.getUTCFullYear() === calendarMonth.getUTCFullYear() &&
+          date.getUTCMonth() === calendarMonth.getUTCMonth()
+        );
+      }).length,
+    [calendarMonth, items]
+  );
 
   const shiftMonth = (delta: number) => {
     setCalendarMonth(
@@ -343,11 +360,47 @@ export default function HolidaysPage() {
   };
 
   return (
-    <div className="dashboard-content queue-page-content portal-page portal-page--dense">
-      <header className="queue-page-header portal-context">
-        <span className="queue-page-eyebrow">Calendar administration</span>
-        <h1>Holiday Calendar</h1>
-        <p>Manage non-working days that affect SLA calculations. Drag on the calendar to select a date range.</p>
+    <div className="dashboard-content queue-page-content portal-page portal-page--dense hol-page">
+      <header className="queue-page-header portal-context hol-page-header">
+        <div className="portal-context-inline">
+          <div className="portal-context-copy">
+            <span className="queue-page-eyebrow">Calendar administration</span>
+            <h1>Holiday Calendar</h1>
+            <p>
+              Manage non-working days that affect SLA calculations. Drag across the
+              calendar to build a date range, then save it as one holiday event.
+            </p>
+          </div>
+
+          <div className="hol-header-summary" aria-label="Holiday calendar summary">
+            <div className="hol-header-summary-card primary">
+              <span className="hol-header-summary-label">Selected range</span>
+              <strong>{selectedCount}</strong>
+              <p>{selectionRangeLabel}</p>
+            </div>
+            <div className="hol-header-summary-card">
+              <span className="hol-header-summary-label">Upcoming holiday</span>
+              <strong>{nextHoliday ? nextHoliday.name : "None set"}</strong>
+              <p>
+                {nextHoliday
+                  ? nextHoliday.startDate === nextHoliday.endDate
+                    ? formatDisplayDate(nextHoliday.startDate)
+                    : `${formatDisplayDate(nextHoliday.startDate)} — ${formatDisplayDate(
+                        nextHoliday.endDate
+                      )}`
+                  : "Add your first non-working day."}
+              </p>
+            </div>
+            <div className="hol-header-summary-card">
+              <span className="hol-header-summary-label">Calendar coverage</span>
+              <strong>{eventGroups.length}</strong>
+              <p>
+                {items.length} marked day{items.length !== 1 ? "s" : ""} across{" "}
+                {totalByYear.length} year{totalByYear.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+          </div>
+        </div>
       </header>
 
       {/* Notices */}
@@ -366,17 +419,41 @@ export default function HolidaysPage() {
         </div>
       )}
 
-      {/* Calendar + Form side by side */}
       <div className="hol-layout portal-content">
         {/* Calendar Panel */}
         <section className="panel hol-calendar-panel">
           <div className="panel-header">
             <div>
               <h2 className="panel-title">Select Dates</h2>
-              <p className="panel-subtitle">Click a date or drag across multiple days</p>
+              <p className="panel-subtitle">
+                Click a date or drag across multiple days to define the next holiday block.
+              </p>
+            </div>
+            <div className="hol-panel-meta">
+              <span>{monthHolidayCount} marked this month</span>
             </div>
           </div>
           <div className="panel-body">
+            <div className="hol-selection-strip">
+              <div className="hol-selection-strip-copy">
+                <span className="hol-selection-strip-label">Current selection</span>
+                <strong>{selectionRangeLabel}</strong>
+                <p>
+                  {selectedCount} day{selectedCount !== 1 ? "s" : ""} ready for this
+                  event.
+                </p>
+              </div>
+              <div
+                className={`hol-selection-strip-badge ${
+                  selectedExistingCount > 0 ? "warning" : "ready"
+                }`}
+              >
+                {selectedExistingCount > 0
+                  ? `${selectedExistingCount} existing`
+                  : "Ready to create"}
+              </div>
+            </div>
+
             <div className="hol-cal-nav">
               <button type="button" className="hol-nav-btn" onClick={() => shiftMonth(-1)} disabled={saving} aria-label="Previous month">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
@@ -438,11 +515,28 @@ export default function HolidaysPage() {
           <div className="panel-header">
             <div>
               <h2 className="panel-title">Create Event</h2>
-              <p className="panel-subtitle">Define a holiday or non-working period</p>
+              <p className="panel-subtitle">
+                Name the event and confirm the selected range before saving.
+              </p>
             </div>
           </div>
           <div className="panel-body">
             <form className="hol-form" onSubmit={(e) => { void handleCreate(e); }}>
+              <div className="hol-form-selection-card">
+                <div>
+                  <span className="hol-form-selection-kicker">Selection preview</span>
+                  <strong>{selectionRangeLabel}</strong>
+                  <p>
+                    {selectedCount} day{selectedCount !== 1 ? "s" : ""} selected
+                    {selectedExistingCount > 0
+                      ? ` • ${selectedExistingCount} existing date${
+                          selectedExistingCount !== 1 ? "s" : ""
+                        } will be skipped`
+                      : " • no conflicts in the current range"}
+                  </p>
+                </div>
+              </div>
+
               <div className="hol-form-group">
                 <label className="hol-label" htmlFor="hol-name">Event Name</label>
                 <input
@@ -537,7 +631,11 @@ export default function HolidaysPage() {
         <div className="panel-header">
           <div>
             <h2 className="panel-title">Holidays</h2>
-            <p className="panel-subtitle">{eventGroups.length} event{eventGroups.length !== 1 ? "s" : ""} across {totalByYear.length} year{totalByYear.length !== 1 ? "s" : ""}</p>
+            <p className="panel-subtitle">
+              {eventGroups.length} event{eventGroups.length !== 1 ? "s" : ""} across{" "}
+              {totalByYear.length} year{totalByYear.length !== 1 ? "s" : ""} of configured
+              non-working days
+            </p>
           </div>
           <div className="hol-year-chips">
             {totalByYear.map(([year, count]) => (
