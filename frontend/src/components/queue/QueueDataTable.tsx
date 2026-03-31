@@ -2,21 +2,25 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import type { DecoratedQueueItem } from "@/types";
 
-const toDate = (value: string) =>
-  new Date(value).toLocaleDateString("en-US", {
+const toDate = (value?: string | null) => {
+  if (!value) return "—";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "—";
+  return parsed.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
+};
 
-const formatLabel = (value: string) =>
-  value
+const formatLabel = (value?: string | null) =>
+  (value || "UNKNOWN")
     .replace(/_/g, " ")
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
-const getStatusTone = (value: string) => {
-  const normalized = value.toUpperCase();
+const getStatusTone = (value?: string | null) => {
+  const normalized = (value || "UNKNOWN").toUpperCase();
 
   if (normalized.includes("OVERDUE") || normalized.includes("REJECT")) return "danger";
   if (
@@ -211,7 +215,7 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                         </td>
                         <td>
                           <div className="queue-sla-cell">
-                            <span className={`queue-sla-chip ${item.slaStatus.toLowerCase()}`}>
+                            <span className={`queue-sla-chip ${(item.slaStatus || "ON_TRACK").toLowerCase()}`}>
                               {formatLabel(item.slaStatus)}
                             </span>
                             <span className="queue-sla-meta">{getSlaMeta(item)}</span>

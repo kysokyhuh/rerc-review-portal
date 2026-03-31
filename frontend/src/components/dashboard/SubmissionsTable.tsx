@@ -294,69 +294,73 @@ export function SubmissionsTable({
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredItems.map((item) => (
-                    <tr
-                      key={item.id}
-                      className={selectedIds.has(item.id) ? "is-selected" : ""}
-                      onClick={() => onNavigate(`/submissions/${item.id}`)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <td>
-                        <input
-                          type="checkbox"
-                          aria-label={`Select ${item.projectCode}`}
-                          checked={selectedIds.has(item.id)}
-                          onChange={(e) => { e.stopPropagation(); onToggleSelection(item.id); }}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </td>
-                      <td>
-                        <div className="table-title">
-                          {item.projectCode}
-                          {isBlocked(item) && (
-                            <span className="blocked-indicator" title={blockReasonFor(item)} aria-label="Blocked">⚠</span>
-                          )}
-                        </div>
-                        <div className="table-subtitle" title={item.projectTitle}>{item.projectTitle}</div>
-                        <div className="table-meta">{item.piName}</div>
-                      </td>
-                      <td>
-                        <span className={`status-badge ${
-                          item.status.includes("REVISION") ? "pending" :
-                          item.status.includes("REVIEW") ? "on-track" : "pending"
-                        }`}>
-                          <span className="status-dot"></span>
-                          {formatStatusLabel(item.status)}
-                        </span>
-                        <span className={`status-badge sla-inline ${
-                          isPaused(item) ? "pending" :
-                          isOverdue(item) ? "overdue" :
-                          isDueSoon(item, dueSoonThreshold) ? "due-soon" : "on-track"
-                        }`}>
-                          {slaChipText(item, dueSoonThreshold)}
-                        </span>
-                        {(isOverdue(item) || isDueSoon(item, dueSoonThreshold)) &&
-                          renderOverdueOwnerBadge(item, isOverdue(item) ? "overdue" : "pending")}
-                      </td>
-                      <td className="table-actions">
-                        <div className="row-actions">
-                          <button type="button" className="row-action-btn" title="Quick view" aria-label="Quick view"
-                            onClick={(e) => { e.stopPropagation(); onQuickView(item); }}>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
-                              <circle cx="12" cy="12" r="3" />
-                            </svg>
-                          </button>
-                          <button type="button" className="row-action-btn" title="Open details" aria-label="Open submission details"
-                            onClick={(e) => { e.stopPropagation(); onNavigate(`/submissions/${item.id}`); }}>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M14 5l7 7-7 7M3 12h18" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredItems.map((item) => {
+                    const itemStatus = item.status ?? "UNKNOWN";
+
+                    return (
+                      <tr
+                        key={item.id}
+                        className={selectedIds.has(item.id) ? "is-selected" : ""}
+                        onClick={() => onNavigate(`/submissions/${item.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <td>
+                          <input
+                            type="checkbox"
+                            aria-label={`Select ${item.projectCode}`}
+                            checked={selectedIds.has(item.id)}
+                            onChange={(e) => { e.stopPropagation(); onToggleSelection(item.id); }}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </td>
+                        <td>
+                          <div className="table-title">
+                            {item.projectCode}
+                            {isBlocked(item) && (
+                              <span className="blocked-indicator" title={blockReasonFor(item)} aria-label="Blocked">⚠</span>
+                            )}
+                          </div>
+                          <div className="table-subtitle" title={item.projectTitle}>{item.projectTitle}</div>
+                          <div className="table-meta">{item.piName}</div>
+                        </td>
+                        <td>
+                          <span className={`status-badge ${
+                            itemStatus.includes("REVISION") ? "pending" :
+                            itemStatus.includes("REVIEW") ? "on-track" : "pending"
+                          }`}>
+                            <span className="status-dot"></span>
+                            {formatStatusLabel(itemStatus)}
+                          </span>
+                          <span className={`status-badge sla-inline ${
+                            isPaused(item) ? "pending" :
+                            isOverdue(item) ? "overdue" :
+                            isDueSoon(item, dueSoonThreshold) ? "due-soon" : "on-track"
+                          }`}>
+                            {slaChipText(item, dueSoonThreshold)}
+                          </span>
+                          {(isOverdue(item) || isDueSoon(item, dueSoonThreshold)) &&
+                            renderOverdueOwnerBadge(item, isOverdue(item) ? "overdue" : "pending")}
+                        </td>
+                        <td className="table-actions">
+                          <div className="row-actions">
+                            <button type="button" className="row-action-btn" title="Quick view" aria-label="Quick view"
+                              onClick={(e) => { e.stopPropagation(); onQuickView(item); }}>
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
+                                <circle cx="12" cy="12" r="3" />
+                              </svg>
+                            </button>
+                            <button type="button" className="row-action-btn" title="Open details" aria-label="Open submission details"
+                              onClick={(e) => { e.stopPropagation(); onNavigate(`/submissions/${item.id}`); }}>
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M14 5l7 7-7 7M3 12h18" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}

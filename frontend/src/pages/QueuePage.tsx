@@ -55,8 +55,8 @@ const matchesSearch = (item: DecoratedQueueItem, rawSearch: string) => {
     .includes(query);
 };
 
-const formatLabel = (value: string) =>
-  value
+const formatLabel = (value?: string | null) =>
+  (value || "UNKNOWN")
     .replace(/_/g, " ")
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());

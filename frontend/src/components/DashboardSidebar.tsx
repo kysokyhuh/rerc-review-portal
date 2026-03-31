@@ -56,7 +56,11 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
 
   const roleLabel = roleLabelMap[primaryRole] || "User";
   const displayName = user?.fullName?.trim() || "User";
-  const sidebarTagline = BRAND.tagline.replace(/\s+Portal$/i, "");
+  const sidebarTaglineSource =
+    typeof BRAND.tagline === "string" && BRAND.tagline.trim().length > 0
+      ? BRAND.tagline
+      : BRAND.name;
+  const sidebarTagline = sidebarTaglineSource.replace(/\s+Portal$/i, "");
 
   useEffect(() => {
     if (!isChair) {
