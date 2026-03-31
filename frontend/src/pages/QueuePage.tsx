@@ -248,17 +248,10 @@ export default function QueuePage() {
   return (
     <div className="dashboard-content queue-page-content portal-page">
       <header className="queue-page-header portal-context">
-        <div className="portal-context-inline">
-          <div className="portal-context-copy">
-            <span className="queue-page-eyebrow">Queue operations</span>
-            <h1>{meta.title}</h1>
-            <p>{meta.description}</p>
-          </div>
-          <span className="ui-info-pill">
-            {filteredItems.length === queueItems.length
-              ? `${filteredItems.length} visible`
-              : `${filteredItems.length} of ${queueItems.length} visible`}
-          </span>
+        <div className="queue-page-header-main">
+          <span className="queue-page-eyebrow">Queue operations</span>
+          <h1>{meta.title}</h1>
+          <p>{meta.description}</p>
         </div>
       </header>
 
@@ -278,15 +271,12 @@ export default function QueuePage() {
               <span className="queue-control-eyebrow">Controls</span>
               <h2>Search, filter, and focus the records that need action now.</h2>
             </div>
-            <div className="queue-control-summary">
-              <span className="queue-control-summary-value">{filteredItems.length}</span>
-              <span className="queue-control-summary-label">visible</span>
-            </div>
           </div>
 
           <QueueFilters
             search={search}
             sla={sla}
+            resultSummary={`${filteredItems.length} visible`}
             onSearchChange={(value) => updateParam("search", value)}
             onSlaChange={(value) => updateParam("sla", value)}
           />
@@ -294,8 +284,7 @@ export default function QueuePage() {
           {segmentTabs ? (
             <div className="queue-segment-block">
               <div className="queue-segment-block-heading">
-                <span className="queue-filter-label">Queue State</span>
-                <p>Switch between the operational lanes that matter for this queue.</p>
+                <span className="queue-filter-label">Queue state</span>
               </div>
               <div className="queue-segments" role="tablist" aria-label="Queue segment tabs">
                 {segmentTabs.map((tab) => (
@@ -340,7 +329,6 @@ export default function QueuePage() {
       <QueueDataTable
         title="Queue results"
         subtitle="Review active protocols in this lane, monitor SLA pressure, and open any row for the full submission record."
-        resultCountLabel={`${filteredItems.length} visible`}
         items={filteredItems}
         emptyMessage={meta.emptyTitle}
         emptyHint={

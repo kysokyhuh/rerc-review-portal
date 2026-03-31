@@ -3,6 +3,7 @@ import React from "react";
 type QueueFiltersProps = {
   search: string;
   sla: "all" | "on-track" | "due-soon" | "overdue" | "blocked";
+  resultSummary: string;
   onSearchChange: (value: string) => void;
   onSlaChange: (value: "all" | "on-track" | "due-soon" | "overdue" | "blocked") => void;
 };
@@ -10,13 +11,14 @@ type QueueFiltersProps = {
 export const QueueFilters: React.FC<QueueFiltersProps> = ({
   search,
   sla,
+  resultSummary,
   onSearchChange,
   onSlaChange,
 }) => {
   return (
     <section className="queue-filters portal-toolbar" aria-label="Queue filters">
       <label className="queue-filter-field queue-filter-search">
-        <span className="queue-filter-label">Search Queue</span>
+        <span className="queue-filter-label">Search</span>
         <div className="queue-filter-search-shell portal-search">
           <svg
             className="queue-filter-search-icon"
@@ -34,7 +36,7 @@ export const QueueFilters: React.FC<QueueFiltersProps> = ({
             type="search"
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search by project code, title, or principal investigator"
+            placeholder="Search by code, title, or principal investigator"
           />
           {search ? (
             <button
@@ -50,7 +52,7 @@ export const QueueFilters: React.FC<QueueFiltersProps> = ({
       </label>
 
       <label className="queue-filter-field queue-filter-select-field">
-        <span className="queue-filter-label">SLA Status</span>
+        <span className="queue-filter-label">SLA status</span>
         <div className="portal-select-shell">
           <select
             className="queue-filter-select"
@@ -69,6 +71,10 @@ export const QueueFilters: React.FC<QueueFiltersProps> = ({
           </select>
         </div>
       </label>
+
+      <div className="queue-filter-summary" aria-live="polite">
+        <span className="queue-filter-summary-value">{resultSummary}</span>
+      </div>
     </section>
   );
 };

@@ -17,30 +17,26 @@ export const QueueKpiCards: React.FC<QueueKpiCardsProps> = ({
     {
       label: "Total in Queue",
       value: total,
-      helper: "Active protocols in this lane.",
-      tone: "neutral",
-      marker: "Live",
+      helper: "Current workload in this lane.",
+      tone: "primary",
     },
     {
       label: "Overdue",
       value: overdue,
       helper: "Needs immediate follow-through.",
       tone: "danger",
-      marker: "Urgent",
     },
     {
       label: "Due Soon",
       value: dueSoon,
       helper: "Approaching SLA threshold.",
       tone: "warning",
-      marker: "Watch",
     },
     {
       label: "Blocked",
       value: blocked,
       helper: "Missing data or dependencies.",
       tone: "info",
-      marker: "Blocked",
     },
   ] as const;
 
@@ -50,7 +46,6 @@ export const QueueKpiCards: React.FC<QueueKpiCardsProps> = ({
         <article key={card.label} className={`queue-kpi-card ${card.tone}`}>
           <div className="queue-kpi-topline">
             <span className="queue-kpi-label">{card.label}</span>
-            <span className="queue-kpi-marker">{card.marker}</span>
           </div>
           <strong>{card.value}</strong>
           <p>{card.helper}</p>
