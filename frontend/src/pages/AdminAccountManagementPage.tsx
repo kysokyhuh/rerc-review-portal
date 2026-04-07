@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import api from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import "@/styles/admin-users.css";
@@ -131,7 +131,7 @@ export default function AdminAccountManagementPage() {
     setDrafts(next);
   };
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -144,11 +144,11 @@ export default function AdminAccountManagementPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [load]);
 
   useEffect(() => {
     if (!isChair && activeTab !== "APPROVED") {

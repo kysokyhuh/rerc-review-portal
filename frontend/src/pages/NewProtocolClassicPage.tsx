@@ -201,8 +201,12 @@ export default function NewProtocolPage() {
         setCommitteeLoading(true);
         const result = await fetchCommittees();
         setCommittees(result);
-        if (!form.committeeCode && result.length > 0) {
-          setForm((prev) => ({ ...prev, committeeCode: result[0].code }));
+        if (result.length > 0) {
+          setForm((prev) =>
+            prev.committeeCode
+              ? prev
+              : { ...prev, committeeCode: result[0].code }
+          );
         }
       } catch (error: any) {
         setCommitteeError(error?.message || "Failed to load committees.");

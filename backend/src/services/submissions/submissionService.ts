@@ -2,6 +2,7 @@
  * Submission service — business logic extracted from submissionRoutes.
  */
 import prisma from "../../config/prismaClient";
+import { logger } from "../../config/logger";
 import {
   Prisma,
   ProjectStatus,
@@ -387,6 +388,83 @@ export async function classifySubmission(
 /* ------------------------------------------------------------------ */
 /*  Get by ID                                                          */
 /* ------------------------------------------------------------------ */
+function isMissingOptionalRelationError(
+  error: unknown
+): error is Prisma.PrismaClientKnownRequestError {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    (error.code === "P2021" || error.code === "P2022")
+  );
+}
+
+async function loadOptionalSubmissionRelations(submissionId: number) {
+  const reviewAssignments = await prisma.reviewAssignment.findMany({
+    where: { submissionId },
+    include: { reviewer: true },
+    orderBy: [{ roundSequence: "asc" }, { assignedAt: "asc" }],
+  }).catch((error: unknown) => {
+    if (isMissingOptionalRelationError(error)) {
+      logger.warn(
+        {
+          submissionId,
+          relation: "reviewAssignments",
+          prismaCode: error.code,
+          message: error.message,
+        },
+        "Optional submission detail relation unavailable; returning empty list"
+      );
+      return [];
+    }
+    throw error;
+  });
+
+  const reminderLogs = await prisma.submissionReminderLog.findMany({
+    where: { submissionId },
+    include: { actor: true },
+    orderBy: { createdAt: "desc" },
+  }).catch((error: unknown) => {
+    if (isMissingOptionalRelationError(error)) {
+      logger.warn(
+        {
+          submissionId,
+          relation: "reminderLogs",
+          prismaCode: error.code,
+          message: error.message,
+        },
+        "Optional submission detail relation unavailable; returning empty list"
+      );
+      return [];
+    }
+    throw error;
+  });
+
+  const projectChangeLogs = await prisma.projectChangeLog.findMany({
+    where: { sourceSubmissionId: submissionId },
+    include: { changedBy: true },
+    orderBy: { createdAt: "desc" },
+  }).catch((error: unknown) => {
+    if (isMissingOptionalRelationError(error)) {
+      logger.warn(
+        {
+          submissionId,
+          relation: "projectChangeLogs",
+          prismaCode: error.code,
+          message: error.message,
+        },
+        "Optional submission detail relation unavailable; returning empty list"
+      );
+      return [];
+    }
+    throw error;
+  });
+
+  return {
+    reviewAssignments,
+    reminderLogs,
+    projectChangeLogs,
+  };
+}
+
 export async function getSubmissionById(id: number) {
   const submission = await prisma.submission.findUnique({
     where: { id },
@@ -410,31 +488,23 @@ export async function getSubmissionById(id: number) {
       },
       classification: { include: { panel: true, classifiedBy: true } },
       reviews: { include: { reviewer: true }, orderBy: { assignedAt: "asc" } },
-      reviewAssignments: {
-        include: { reviewer: true },
-        orderBy: [{ roundSequence: "asc" }, { assignedAt: "asc" }],
-      },
       documents: { orderBy: [{ type: "asc" }, { createdAt: "asc" }] },
       statusHistory: {
         include: { changedBy: true },
         orderBy: { effectiveDate: "asc" },
       },
-      reminderLogs: {
-        include: { actor: true },
-        orderBy: { createdAt: "desc" },
-      },
       changeLogs: {
-        include: { changedBy: true },
-        orderBy: { createdAt: "desc" },
-      },
-      projectChangeLogs: {
         include: { changedBy: true },
         orderBy: { createdAt: "desc" },
       },
     },
   });
   if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
-  return submission;
+  const optionalRelations = await loadOptionalSubmissionRelations(id);
+  return {
+    ...submission,
+    ...optionalRelations,
+  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -589,23 +659,7 @@ export async function updateSubmissionOverview(
 
   await prisma.$transaction(operations);
 
-  return prisma.submission.findUnique({
-    where: { id: submission.id },
-    include: {
-      project: { include: { committee: true } },
-      classification: { include: { panel: true, classifiedBy: true } },
-      reviews: { include: { reviewer: true }, orderBy: { assignedAt: "asc" } },
-      reviewAssignments: {
-        include: { reviewer: true },
-        orderBy: [{ roundSequence: "asc" }, { assignedAt: "asc" }],
-      },
-      documents: { orderBy: [{ type: "asc" }, { createdAt: "asc" }] },
-      statusHistory: { include: { changedBy: true }, orderBy: { effectiveDate: "asc" } },
-      reminderLogs: { include: { actor: true }, orderBy: { createdAt: "desc" } },
-      changeLogs: { include: { changedBy: true }, orderBy: { createdAt: "desc" } },
-      projectChangeLogs: { include: { changedBy: true }, orderBy: { createdAt: "desc" } },
-    },
-  });
+  return getSubmissionById(submission.id);
 }
 
 /* ------------------------------------------------------------------ */

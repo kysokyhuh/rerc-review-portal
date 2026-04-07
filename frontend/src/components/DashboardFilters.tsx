@@ -5,7 +5,7 @@
  * Filter state is read from / written to URL query params so links are shareable.
  */
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { fetchColleges } from "@/services/api";
 import { BRAND } from "@/config/branding";
@@ -113,8 +113,9 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
   const [expanded, setExpanded] = useState(() =>
     FILTER_KEYS.some((k) => !!searchParams.get(k))
   );
-  const [filters, setFilters] = useState<DashboardFilterValues>(() =>
-    readFiltersFromParams(searchParams)
+  const filters = useMemo(
+    () => readFiltersFromParams(searchParams),
+    [searchParams]
   );
   const [collegeOptions, setCollegeOptions] = useState<string[]>([]);
 
@@ -125,16 +126,13 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
       .catch(() => {});
   }, []);
 
-  // Sync URL → state on mount (only)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     onChange(filters);
-  }, []); // fire once on mount
+  }, [filters, onChange]);
 
   /** Write to URL and notify parent */
   const commit = useCallback(
     (next: DashboardFilterValues) => {
-      setFilters(next);
       // Preserve non-filter search params
       const newParams = new URLSearchParams(searchParams);
       for (const key of FILTER_KEYS) {
@@ -145,9 +143,8 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
         }
       }
       setSearchParams(newParams, { replace: true });
-      onChange(next);
     },
-    [searchParams, setSearchParams, onChange]
+    [searchParams, setSearchParams]
   );
 
   const handleChange = (key: keyof DashboardFilterValues, value: string) => {

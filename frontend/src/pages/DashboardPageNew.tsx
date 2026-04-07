@@ -115,8 +115,11 @@ export const DashboardPage: React.FC = () => {
   const visibleAnnouncements = announcements.filter((a) => !dismissedAnnouncements.includes(a.id));
 
   // ── Owner filter helpers ───────────────────────────────
-  const matchesOwnerFilter = (item: any) =>
-    overdueOwnerFilter === "all" || resolveOwnerRoleKey(item) === overdueOwnerFilter;
+  const matchesOwnerFilter = useCallback(
+    (item: DecoratedQueueItem) =>
+      overdueOwnerFilter === "all" || resolveOwnerRoleKey(item) === overdueOwnerFilter,
+    [overdueOwnerFilter]
+  );
 
   // ── Derived data ───────────────────────────────────────
   const baseItems = useMemo(() => {
@@ -130,7 +133,7 @@ export const DashboardPage: React.FC = () => {
       case "unassigned": return allItems.filter(isUnassigned);
       default: return allItems;
     }
-  }, [queueFilter, overdueOwnerFilter, classificationQueue, reviewQueue, revisionQueue, allItems]);
+  }, [queueFilter, classificationQueue, reviewQueue, revisionQueue, allItems, matchesOwnerFilter]);
 
   const searchedItems = useMemo(() => {
     if (!searchTerm) return baseItems;
