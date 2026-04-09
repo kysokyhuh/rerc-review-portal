@@ -527,6 +527,10 @@
   gap: 12px;
 }
 
+.dashboard-main--holidays {
+  max-width: 1720px;
+}
+
 .hol-page-header {
   gap: 10px;
 }
@@ -578,7 +582,7 @@
 
 .hol-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.28fr) minmax(320px, 0.92fr);
+  grid-template-columns: minmax(0, 1.45fr) minmax(360px, 1fr);
   gap: 12px;
   align-items: start;
 }
@@ -593,7 +597,7 @@
   top: 24px;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 1200px) {
   .hol-layout { grid-template-columns: 1fr; }
   .hol-form-panel { position: static; }
 }
