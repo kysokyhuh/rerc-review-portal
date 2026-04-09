@@ -20,8 +20,11 @@ const addDays = (date: Date, days: number) => {
 };
 
 export type ReportViewFilters = {
+  periodMode: "ACADEMIC" | "CUSTOM";
   ay: string;
   term: "ALL" | 1 | 2 | 3;
+  startDate: Date | null;
+  endDate: Date | null;
   committee: string;
   college: string;
   category: "ALL" | "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
@@ -32,7 +35,8 @@ export type ReportViewFilters = {
 
 export type TermWindow = {
   academicYear: string;
-  term: number;
+  term: number | null;
+  label: string;
   startDate: Date;
   endDateExclusive: Date;
 };
@@ -323,16 +327,54 @@ const parseCategory = (
   throw new Error("Invalid category filter");
 };
 
-export const parseReportFilters = (query: Record<string, unknown>): ReportViewFilters => ({
-  ay: String(query.ay ?? "ALL").trim() || "ALL",
-  term: parseTerm(query.term),
-  committee: String(query.committee ?? "ALL").trim() || "ALL",
-  college: String(query.college ?? "ALL").trim() || "ALL",
-  category: parseCategory(query.category),
-  reviewType: parseReviewType(query.reviewType),
-  status: parseStatus(query.status),
-  q: String(query.q ?? "").trim(),
-});
+const parsePeriodMode = (value: unknown): "ACADEMIC" | "CUSTOM" => {
+  const raw = String(value ?? "ACADEMIC").trim().toUpperCase();
+  if (!raw || raw === "ACADEMIC") return "ACADEMIC";
+  if (raw === "CUSTOM") return "CUSTOM";
+  throw new Error("Invalid periodMode filter");
+};
+
+const parseDateOnly = (value: unknown, fieldName: string): Date | null => {
+  const raw = String(value ?? "").trim();
+  if (!raw) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    throw new Error(`Invalid ${fieldName} filter`);
+  }
+  const parsed = new Date(`${raw}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error(`Invalid ${fieldName} filter`);
+  }
+  return parsed;
+};
+
+export const parseReportFilters = (query: Record<string, unknown>): ReportViewFilters => {
+  const periodMode = parsePeriodMode(query.periodMode);
+  const startDate = parseDateOnly(query.startDate, "startDate");
+  const endDate = parseDateOnly(query.endDate, "endDate");
+
+  if (periodMode === "CUSTOM") {
+    if (!startDate || !endDate) {
+      throw new Error("Custom date range requires both startDate and endDate.");
+    }
+    if (endDate < startDate) {
+      throw new Error("endDate must not be earlier than startDate.");
+    }
+  }
+
+  return {
+    periodMode,
+    ay: String(query.ay ?? "ALL").trim() || "ALL",
+    term: parseTerm(query.term),
+    startDate,
+    endDate,
+    committee: String(query.committee ?? "ALL").trim() || "ALL",
+    college: String(query.college ?? "ALL").trim() || "ALL",
+    category: parseCategory(query.category),
+    reviewType: parseReviewType(query.reviewType),
+    status: parseStatus(query.status),
+    q: String(query.q ?? "").trim(),
+  };
+};
 
 export async function getAcademicYearOptions() {
   const terms = await prisma.academicTerm.findMany({
@@ -387,9 +429,30 @@ export async function resolveTermWindows(
     .map((t) => ({
       academicYear: t.academicYear,
       term: t.term,
+      label: ay === "ALL" ? t.academicYear : `Term ${t.term}`,
       startDate: t.startDate,
       endDateExclusive: addDays(t.endDate, 1),
     }));
+}
+
+export async function resolveReportWindows(filters: ReportViewFilters): Promise<TermWindow[]> {
+  if (filters.periodMode === "CUSTOM") {
+    if (!filters.startDate || !filters.endDate) {
+      throw new Error("Custom date range requires both startDate and endDate.");
+    }
+
+    return [
+      {
+        academicYear: "Selected range",
+        term: null,
+        label: "Selected range",
+        startDate: filters.startDate,
+        endDateExclusive: addDays(filters.endDate, 1),
+      },
+    ];
+  }
+
+  return resolveTermWindows(filters.ay, filters.term);
 }
 
 export async function fetchReportSubmissions(filters: ReportViewFilters, termWindows: TermWindow[]) {
@@ -521,6 +584,9 @@ export async function buildAnnualSummaryPayload(
       -1
     ),
   };
+  const now = new Date();
+  const asOfDate = now < dateRange.endDate ? now : dateRange.endDate;
+  const isPartial = asOfDate.getTime() < dateRange.endDate.getTime();
 
   const summaryCounts = {
     received: 0,
@@ -659,7 +725,12 @@ export async function buildAnnualSummaryPayload(
 
   const termBuckets = new Map<string, { label: string; received: number; exempted: number; expedited: number; fullReview: number; withdrawn: number }>();
   for (const window of termWindows) {
-    const key = filters.ay === "ALL" ? window.academicYear : `Term ${window.term}`;
+    const key =
+      filters.periodMode === "CUSTOM"
+        ? window.label
+        : filters.ay === "ALL"
+        ? window.academicYear
+        : `Term ${window.term}`;
     if (!termBuckets.has(key)) {
       termBuckets.set(key, {
         label: key,
@@ -681,7 +752,12 @@ export async function buildAnnualSummaryPayload(
     });
     if (!window) continue;
 
-    const key = filters.ay === "ALL" ? window.academicYear : `Term ${window.term}`;
+    const key =
+      filters.periodMode === "CUSTOM"
+        ? window.label
+        : filters.ay === "ALL"
+        ? window.academicYear
+        : `Term ${window.term}`;
     const row = termBuckets.get(key)!;
     row.received += 1;
     const reviewType = resolveSubmissionReviewType(submission);
@@ -691,7 +767,7 @@ export async function buildAnnualSummaryPayload(
     if (isWithdrawn(submission)) row.withdrawn += 1;
   }
 
-  const proposalsPerTerm = filters.ay === "ALL"
+  const proposalsPerTerm = filters.periodMode === "CUSTOM" || filters.ay === "ALL"
     ? []
     : [1, 2, 3].map((term) => {
         const row = termBuckets.get(`Term ${term}`);
@@ -716,9 +792,12 @@ export async function buildAnnualSummaryPayload(
     topColleges.push({ label: "Other", count: other });
   }
 
-  const comparativeYears = Array.from(
-    new Set(termWindows.map((window) => window.academicYear))
-  ).sort((a, b) => a.localeCompare(b));
+  const comparativeYears =
+    filters.periodMode === "CUSTOM"
+      ? [termWindows[0].label]
+      : Array.from(new Set(termWindows.map((window) => window.academicYear))).sort((a, b) =>
+          a.localeCompare(b)
+        );
   const newYearCounts = () =>
     Object.fromEntries(comparativeYears.map((year) => [year, 0])) as Record<string, number>;
 
@@ -768,7 +847,7 @@ export async function buildAnnualSummaryPayload(
       });
     }
     const row = rowsByCollege.get(college)!;
-    const year = window.academicYear;
+    const year = filters.periodMode === "CUSTOM" ? window.label : window.academicYear;
     if (reviewType === "EXEMPT") row.exempted[year] += 1;
     if (reviewType === "EXPEDITED") row.expedited[year] += 1;
     if (reviewType === "FULL_BOARD") row.fullReview[year] += 1;
@@ -797,7 +876,7 @@ export async function buildAnnualSummaryPayload(
     return { category, years: comparativeYears, rows, totals };
   });
 
-  const monthBuckets = filters.ay === "ALL" ? [] : buildMonthBuckets(termWindows);
+  const monthBuckets = filters.periodMode === "ACADEMIC" && filters.ay === "ALL" ? [] : buildMonthBuckets(termWindows);
   const receivedByMonthMap = new Map(
     monthBuckets.map((bucket) => [bucket.key, { label: bucket.label, count: 0 }])
   );
@@ -908,10 +987,10 @@ export async function buildAnnualSummaryPayload(
     ["REVIEW", { within: 0, overdue: 0 }],
     ["REVISION_RESPONSE", { within: 0, overdue: 0 }],
   ]);
-  const now = new Date();
+  const slaReferenceDate = new Date();
 
   for (const submission of submissions) {
-    const summary = buildSubmissionSlaSummary(submission, slaConfigs, holidayDates, now);
+    const summary = buildSubmissionSlaSummary(submission, slaConfigs, holidayDates, slaReferenceDate);
     const complianceRows: Array<[StageComplianceKey, typeof summary.completeness]> = [
       ["COMPLETENESS", summary.completeness],
       ["CLASSIFICATION", summary.classification],
@@ -990,6 +1069,7 @@ export async function buildAnnualSummaryPayload(
 
   return {
     selection: {
+      periodMode: filters.periodMode,
       ay: filters.ay,
       term: filters.term,
       committee: filters.committee,
@@ -998,6 +1078,8 @@ export async function buildAnnualSummaryPayload(
       reviewType: filters.reviewType,
       status: filters.status,
       q: filters.q || null,
+      asOfDate,
+      isPartial,
       dateRange,
     },
     summaryCounts,

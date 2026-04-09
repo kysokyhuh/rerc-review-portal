@@ -8,7 +8,7 @@ import {
   fetchReportSubmissions,
   getAcademicYearOptions,
   parseReportFilters,
-  resolveTermWindows,
+  resolveReportWindows,
 } from "../services/reports/reportService";
 import { logAuditEvent } from "../services/audit/auditService";
 
@@ -47,7 +47,7 @@ export const getAcademicYearsHandler = async (_req: Request, res: Response, next
 export const getAnnualSummaryHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const filters = parseReportFilters(req.query as Record<string, unknown>);
-    const termWindows = await resolveTermWindows(filters.ay, filters.term);
+    const termWindows = await resolveReportWindows(filters);
     const submissions = await fetchReportSubmissions(filters, termWindows);
     return res.json(await buildAnnualSummaryPayload(filters, termWindows, submissions));
   } catch (error: any) {
@@ -65,7 +65,7 @@ export const getReportSubmissionsHandler = async (req: Request, res: Response, n
     const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize ?? 20) || 20));
     const sort = String(req.query.sort ?? "receivedDate:desc");
 
-    const termWindows = await resolveTermWindows(filters.ay, filters.term);
+    const termWindows = await resolveReportWindows(filters);
     const submissions = await fetchReportSubmissions(filters, termWindows);
 
     return res.json(buildSubmissionRecordsPayload(submissions, page, pageSize, sort));

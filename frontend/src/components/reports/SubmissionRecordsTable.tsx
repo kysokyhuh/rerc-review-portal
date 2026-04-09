@@ -15,6 +15,13 @@ const formatDate = (value: string | null) => {
   return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-US");
 };
 
+const formatLabel = (value: string) =>
+  value
+    .toLowerCase()
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+
 const SortButton = ({
   field,
   label,
@@ -52,20 +59,23 @@ export default function SubmissionRecordsTable({
   return (
     <section className="records-table-panel">
       <div className="records-meta">
-        <strong>{data.totalCount.toLocaleString("en-US")}</strong> matching submissions
+        <div>
+          <strong>{data.totalCount.toLocaleString("en-US")}</strong> matching submissions
+        </div>
+        <p>Click any row to open the submission or linked project record.</p>
       </div>
       <div className="report-table-wrap">
         <table className="report-table">
           <thead>
             <tr>
-              <th><SortButton field="projectCode" label="Project Code" sort={sort} onSort={onSort} /></th>
+              <th><SortButton field="projectCode" label="Project code" sort={sort} onSort={onSort} /></th>
               <th><SortButton field="title" label="Title" sort={sort} onSort={onSort} /></th>
               <th className="col-proponent">Proponent</th>
-              <th><SortButton field="college" label="COLLEGE / SERVICE UNIT" sort={sort} onSort={onSort} /></th>
-              <th><SortButton field="department" label="DEPARTMENT" sort={sort} onSort={onSort} /></th>
-              <th><SortButton field="reviewType" label="Type of Review" sort={sort} onSort={onSort} /></th>
+              <th><SortButton field="college" label="College / Unit" sort={sort} onSort={onSort} /></th>
+              <th><SortButton field="department" label="Department" sort={sort} onSort={onSort} /></th>
+              <th><SortButton field="reviewType" label="Review path" sort={sort} onSort={onSort} /></th>
               <th className="col-status"><SortButton field="status" label="Status" sort={sort} onSort={onSort} /></th>
-              <th><SortButton field="receivedDate" label="Received Date" sort={sort} onSort={onSort} /></th>
+              <th><SortButton field="receivedDate" label="Received" sort={sort} onSort={onSort} /></th>
             </tr>
           </thead>
           <tbody>
@@ -76,8 +86,8 @@ export default function SubmissionRecordsTable({
                 <td className="col-proponent">{item.proponent}</td>
                 <td>{item.college}</td>
                 <td>{item.department}</td>
-                <td>{item.reviewType}</td>
-                <td className="col-status">{item.status}</td>
+                <td>{formatLabel(item.reviewType)}</td>
+                <td className="col-status">{formatLabel(item.status)}</td>
                 <td>{formatDate(item.receivedDate)}</td>
               </tr>
             ))}

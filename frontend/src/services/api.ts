@@ -406,8 +406,8 @@ export function forceSessionExpiredRedirect(nextPath?: string | null) {
 const COLD_START_MAX_RETRIES = 3;
 const COLD_START_BACKOFF_MS = [1500, 3000, 6000];
 
-function isColdStartError(error: any): boolean {
-  if (!error.response) return true; // network error
+function isColdStartError(error: unknown): boolean {
+  if (!axios.isAxiosError(error) || !error.response) return true; // network error
   const status = error.response.status;
   return status === 502 || status === 503 || status === 504;
 }
@@ -523,7 +523,46 @@ export async function fetchDashboardQueues(
   const response = await api.get(`/dashboard/queues?${params.toString()}`);
 
   const data = response.data;
-  const transformQueue = (items: any[], queue: QueueType): QueueItem[] => {
+  type DashboardQueueApiItem = {
+    id: number;
+    project?: {
+      id?: number;
+      projectCode?: string | null;
+      title?: string | null;
+      piName?: string | null;
+      piAffiliation?: string | null;
+    } | null;
+    staffInCharge?: {
+      fullName?: string | null;
+    } | null;
+    submissionType?: string | null;
+    status?: string | null;
+    receivedDate?: string | null;
+    classification?: {
+      reviewType?: string | null;
+    } | null;
+    finalDecision?: string | null;
+    sla?: {
+      remainingDays?: number | null;
+      elapsedDays?: number | null;
+      targetDays?: number | null;
+      stage?: QueueItem["slaStage"];
+      dayMode?: QueueItem["slaDayMode"];
+      slaStatus?: QueueItem["slaStatus"];
+      dueDate?: string | null;
+      startedAt?: string | null;
+      ownerRole?: QueueItem["overdueOwnerRole"];
+      ownerLabel?: string | null;
+      ownerIcon?: string | null;
+      ownerReason?: string | null;
+      reason?: string | null;
+    } | null;
+  };
+
+  const transformQueue = (
+    items: DashboardQueueApiItem[],
+    queue: QueueType
+  ): QueueItem[] => {
     return items.map((item) => ({
       id: item.id,
       projectId: item.project?.id,
@@ -552,10 +591,10 @@ export async function fetchDashboardQueues(
           : "PANEL"
         : undefined,
       overdueOwnerRole: item.sla?.ownerRole,
-      overdueOwnerLabel: item.sla?.ownerLabel,
-      overdueOwnerIcon: item.sla?.ownerIcon,
-      overdueOwnerReason: item.sla?.ownerReason,
-      overdueReason: item.sla?.reason,
+      overdueOwnerLabel: item.sla?.ownerLabel ?? undefined,
+      overdueOwnerIcon: item.sla?.ownerIcon ?? undefined,
+      overdueOwnerReason: item.sla?.ownerReason ?? undefined,
+      overdueReason: item.sla?.reason ?? undefined,
     }));
   };
 
@@ -1067,8 +1106,11 @@ export async function fetchAcademicYearSummary(params: {
 }
 
 export async function fetchAnnualReportSummary(params: {
+  periodMode?: "ACADEMIC" | "CUSTOM";
   ay: string;
   term: "ALL" | 1 | 2 | 3;
+  startDate?: string;
+  endDate?: string;
   committee: string;
   college: string;
   category: "ALL" | "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
@@ -1077,12 +1119,15 @@ export async function fetchAnnualReportSummary(params: {
   q?: string;
 }) {
   const search = new URLSearchParams({
+    periodMode: params.periodMode ?? "ACADEMIC",
     ay: params.ay,
     term: String(params.term),
     committee: params.committee,
     college: params.college,
     category: params.category,
   });
+  if (params.startDate) search.set("startDate", params.startDate);
+  if (params.endDate) search.set("endDate", params.endDate);
   if (params.reviewType && params.reviewType !== "ALL") search.set("reviewType", params.reviewType);
   if (params.status && params.status !== "ALL") search.set("status", params.status);
   if (params.q) search.set("q", params.q);
@@ -1092,8 +1137,11 @@ export async function fetchAnnualReportSummary(params: {
 }
 
 export async function fetchAnnualReportSubmissions(params: {
+  periodMode?: "ACADEMIC" | "CUSTOM";
   ay: string;
   term: "ALL" | 1 | 2 | 3;
+  startDate?: string;
+  endDate?: string;
   committee: string;
   college: string;
   category: "ALL" | "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
@@ -1105,6 +1153,7 @@ export async function fetchAnnualReportSubmissions(params: {
   sort: string;
 }) {
   const search = new URLSearchParams({
+    periodMode: params.periodMode ?? "ACADEMIC",
     ay: params.ay,
     term: String(params.term),
     committee: params.committee,
@@ -1114,6 +1163,8 @@ export async function fetchAnnualReportSubmissions(params: {
     pageSize: String(params.pageSize),
     sort: params.sort,
   });
+  if (params.startDate) search.set("startDate", params.startDate);
+  if (params.endDate) search.set("endDate", params.endDate);
   if (params.reviewType && params.reviewType !== "ALL") search.set("reviewType", params.reviewType);
   if (params.status && params.status !== "ALL") search.set("status", params.status);
   if (params.q) search.set("q", params.q);

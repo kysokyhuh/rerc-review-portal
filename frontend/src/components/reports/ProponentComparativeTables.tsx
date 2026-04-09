@@ -10,6 +10,8 @@ type ProponentComparativeTablesProps = {
 
 const formatNumber = (value: number) => value.toLocaleString("en-US");
 const formatCell = (value: number) => (value === 0 ? "-" : formatNumber(value));
+const sumCounts = (counts: Record<string, number>, years: string[]) =>
+  years.reduce((sum, year) => sum + (counts[year] ?? 0), 0);
 
 const categoryLabel = (value: string) => {
   if (value === "UNDERGRAD") return "UNDERGRADUATE";
@@ -91,11 +93,14 @@ export default function ProponentComparativeTables({
 
   return (
     <div>
-      {visibleTables.map((table) => (
-        <div key={table.category} className={`proponent-comparative ${toneClass(table.category)}`}>
+      {visibleTables.map((table, index) => (
+        <details
+          key={table.category}
+          className={`proponent-comparative ${toneClass(table.category)}`}
+          open={selectedCategory !== "ALL" ? table.category === selectedCategory : index === 0}
+        >
           {(() => {
-            const displayedYears =
-              selectedAy === "ALL" && table.years.length > 3 ? table.years.slice(0, 3) : table.years;
+            const displayedYears = table.years;
             const rowMap = new Map(table.rows.map((row) => [row.college, row] as const));
             const baselineRows = DEFAULT_ROWS_BY_CATEGORY[table.category] ?? [];
             for (const college of baselineRows) {
@@ -126,126 +131,160 @@ export default function ProponentComparativeTables({
             ) : sortedRows;
             const groupedRows = [...primaryRows, ...secondaryRows];
             const showPerYearColumns = selectedAy === "ALL" && displayedYears.length > 1;
+            const nonZeroRows = groupedRows.filter((row) =>
+              allStatusColumns.some((column) => sumCounts(column.getCounts(row), displayedYears) > 0)
+            ).length;
+            const summaryMetrics = statusColumns.map((column) => ({
+              label: column.label,
+              value: sumCounts(column.getCounts(table.totals), displayedYears),
+            }));
+            const totalReceived = summaryMetrics.reduce((sum, item) => sum + item.value, 0);
             const metricColumnCount = showPerYearColumns
               ? statusColumns.length * displayedYears.length
               : statusColumns.length;
-            const totalColumns = 1 + metricColumnCount;
             const rowLabelHeader = table.category === "NON_TEACHING" ? "DEPARTMENT" : "COLLEGE / SERVICE UNIT";
 
             return (
-          <div className="report-table-wrap">
-            <table
-              className={`report-table proponent-comparative-table ${
-                showPerYearColumns ? "all-years-layout" : "single-year-layout"
-              }`}
-            >
-              <colgroup>
-                <col className="col-college-wide" />
-                {showPerYearColumns
-                  ? Array.from({ length: metricColumnCount }).map((_, index) => (
-                      <col key={`metric-${table.category}-${index}`} className="col-year-metric" />
-                    ))
-                  : statusColumns.map((column) => (
-                      <col key={`metric-${table.category}-${column.label}`} className="col-metric" />
+              <>
+                <summary className="proponent-comparative-summary">
+                  <div className="proponent-comparative-summary-copy">
+                    <span className="proponent-comparative-chip">{categoryLabel(table.category)}</span>
+                    <strong>{formatNumber(totalReceived)} total submissions</strong>
+                    <p>
+                      {nonZeroRows} active {rowLabelHeader.toLowerCase()} entries across {displayedYears.length}{" "}
+                      {displayedYears.length === 1 ? "academic year" : "academic years"}
+                    </p>
+                  </div>
+
+                  <div className="proponent-comparative-metrics" aria-hidden="true">
+                    {summaryMetrics.map((metric) => (
+                      <div key={`${table.category}-${metric.label}`} className="proponent-comparative-metric">
+                        <span>{metric.label}</span>
+                        <strong>{formatCell(metric.value)}</strong>
+                      </div>
                     ))}
-              </colgroup>
-              <thead>
-                <tr>
-                  <th colSpan={totalColumns}>{categoryLabel(table.category)}</th>
-                </tr>
-                {showPerYearColumns ? (
-                  <>
-                    <tr>
-                      <th className="col-college" rowSpan={2}>
-                        {rowLabelHeader}
-                      </th>
-                      {statusColumns.map((column) => (
-                        <th key={`status-${table.category}-${column.label}`} className="num" colSpan={displayedYears.length}>
-                          {column.label}
-                        </th>
-                      ))}
-                    </tr>
-                    <tr>
-                      {statusColumns.flatMap((column) =>
-                        displayedYears.map((year) => (
-                          <th key={`year-${table.category}-${column.label}-${year}`} className="num">
-                            {year}
-                          </th>
-                        ))
-                      )}
-                    </tr>
-                  </>
-                ) : (
-                  <>
-                    <tr>
-                      <th colSpan={totalColumns}>{displayedYears.join(" • ")}</th>
-                    </tr>
-                    <tr>
-                      <th className="col-college">{rowLabelHeader}</th>
-                      {statusColumns.map((column) => (
-                        <th key={`status-single-${table.category}-${column.label}`} className="num">
-                          {column.label}
-                        </th>
-                      ))}
-                    </tr>
-                  </>
-                )}
-              </thead>
-              <tbody>
-                {groupedRows.map((row, index) => {
-                  const isSecondary = index >= primaryRows.length;
-                  return (
-                  <Fragment key={`${table.category}-${row.college}`}>
-                  <tr>
-                    <td className={`col-college ${isSecondary ? "group-secondary" : "group-primary"}`}>{collegeLabel(row.college)}</td>
-                    {showPerYearColumns
-                      ? statusColumns.flatMap((column) =>
-                          displayedYears.map((year) => (
-                            <td
-                              key={`cell-${table.category}-${row.college}-${column.label}-${year}`}
-                              className={`num ${isSecondary ? "group-secondary" : "group-primary"}`}
-                            >
-                              {formatCell(column.getCounts(row)[year] ?? 0)}
-                            </td>
-                          ))
-                        )
-                      : statusColumns.map((column) => (
-                          <td
-                            key={`cell-single-${table.category}-${row.college}-${column.label}`}
-                            className={`num ${isSecondary ? "group-secondary" : "group-primary"}`}
-                          >
-                            {formatCell(
-                              displayedYears.reduce((sum, year) => sum + (column.getCounts(row)[year] ?? 0), 0)
-                            )}
-                          </td>
-                        ))}
-                  </tr>
-                  </Fragment>
-                );})}
-                <tr className="totals-row">
-                  <td className="col-college">{table.totals.college}</td>
-                  {showPerYearColumns
-                      ? statusColumns.flatMap((column) =>
-                          displayedYears.map((year) => (
-                          <td key={`total-${table.category}-${column.label}-${year}`} className="num">
-                            {formatCell(column.getCounts(table.totals)[year] ?? 0)}
-                          </td>
-                        ))
-                      )
-                    : statusColumns.map((column) => (
-                        <td key={`total-single-${table.category}-${column.label}`} className="num">
-                          {formatCell(
-                            displayedYears.reduce((sum, year) => sum + (column.getCounts(table.totals)[year] ?? 0), 0)
-                          )}
-                        </td>
-                      ))}
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                  </div>
+                </summary>
+
+                <div className="proponent-comparative-body">
+                  <div className="proponent-comparative-caption">
+                    <span>{displayedYears.join(" • ")}</span>
+                    <span>Detailed year and unit-level counts</span>
+                  </div>
+
+                  <div className="report-table-wrap">
+                    <table
+                      className={`report-table proponent-comparative-table ${
+                        showPerYearColumns ? "all-years-layout" : "single-year-layout"
+                      }`}
+                    >
+                      <colgroup>
+                        <col className="col-college-wide" />
+                        {showPerYearColumns
+                          ? Array.from({ length: metricColumnCount }).map((_, metricIndex) => (
+                              <col
+                                key={`metric-${table.category}-${metricIndex}`}
+                                className="col-year-metric"
+                              />
+                            ))
+                          : statusColumns.map((column) => (
+                              <col key={`metric-${table.category}-${column.label}`} className="col-metric" />
+                            ))}
+                      </colgroup>
+                      <thead>
+                        {showPerYearColumns ? (
+                          <>
+                            <tr>
+                              <th className="col-college" rowSpan={2}>
+                                {rowLabelHeader}
+                              </th>
+                              {statusColumns.map((column) => (
+                                <th
+                                  key={`status-${table.category}-${column.label}`}
+                                  className="num"
+                                  colSpan={displayedYears.length}
+                                >
+                                  {column.label}
+                                </th>
+                              ))}
+                            </tr>
+                            <tr>
+                              {statusColumns.flatMap((column) =>
+                                displayedYears.map((year) => (
+                                  <th key={`year-${table.category}-${column.label}-${year}`} className="num">
+                                    {year}
+                                  </th>
+                                ))
+                              )}
+                            </tr>
+                          </>
+                        ) : (
+                          <tr>
+                            <th className="col-college">{rowLabelHeader}</th>
+                            {statusColumns.map((column) => (
+                              <th key={`status-single-${table.category}-${column.label}`} className="num">
+                                {column.label}
+                              </th>
+                            ))}
+                          </tr>
+                        )}
+                      </thead>
+                      <tbody>
+                        {groupedRows.map((row, rowIndex) => {
+                          const isSecondary = rowIndex >= primaryRows.length;
+                          return (
+                            <Fragment key={`${table.category}-${row.college}`}>
+                              <tr>
+                                <td className={`col-college ${isSecondary ? "group-secondary" : "group-primary"}`}>
+                                  {collegeLabel(row.college)}
+                                </td>
+                                {showPerYearColumns
+                                  ? statusColumns.flatMap((column) =>
+                                      displayedYears.map((year) => (
+                                        <td
+                                          key={`cell-${table.category}-${row.college}-${column.label}-${year}`}
+                                          className={`num ${isSecondary ? "group-secondary" : "group-primary"}`}
+                                        >
+                                          {formatCell(column.getCounts(row)[year] ?? 0)}
+                                        </td>
+                                      ))
+                                    )
+                                  : statusColumns.map((column) => (
+                                      <td
+                                        key={`cell-single-${table.category}-${row.college}-${column.label}`}
+                                        className={`num ${isSecondary ? "group-secondary" : "group-primary"}`}
+                                      >
+                                        {formatCell(sumCounts(column.getCounts(row), displayedYears))}
+                                      </td>
+                                    ))}
+                              </tr>
+                            </Fragment>
+                          );
+                        })}
+                        <tr className="totals-row">
+                          <td className="col-college">{table.totals.college}</td>
+                          {showPerYearColumns
+                            ? statusColumns.flatMap((column) =>
+                                displayedYears.map((year) => (
+                                  <td key={`total-${table.category}-${column.label}-${year}`} className="num">
+                                    {formatCell(column.getCounts(table.totals)[year] ?? 0)}
+                                  </td>
+                                ))
+                              )
+                            : statusColumns.map((column) => (
+                                <td key={`total-single-${table.category}-${column.label}`} className="num">
+                                  {formatCell(sumCounts(column.getCounts(table.totals), displayedYears))}
+                                </td>
+                              ))}
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
             );
           })()}
-        </div>
+        </details>
       ))}
     </div>
   );

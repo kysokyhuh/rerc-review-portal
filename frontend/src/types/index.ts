@@ -458,6 +458,7 @@ export interface SubmissionDetail {
     approvalStartDate?: string | null;
     approvalEndDate?: string | null;
     protocolProfile?: ProtocolProfile | null;
+    protocolMilestones?: ProtocolMilestone[];
   } | null;
 }
 
@@ -724,6 +725,7 @@ export interface ReportsAcademicYearOption {
 
 export interface AnnualReportSummaryResponse {
   selection: {
+    periodMode: "ACADEMIC" | "CUSTOM";
     ay: string;
     term: "ALL" | 1 | 2 | 3;
     committee: string;
@@ -732,6 +734,8 @@ export interface AnnualReportSummaryResponse {
     reviewType: "ALL" | "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | "UNCLASSIFIED" | "WITHDRAWN";
     status: "ALL" | string;
     q: string | null;
+    asOfDate: string;
+    isPartial: boolean;
     dateRange: {
       startDate: string;
       endDate: string;

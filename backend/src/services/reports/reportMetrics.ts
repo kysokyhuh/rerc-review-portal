@@ -329,7 +329,7 @@ export const buildAcademicYearSummary = ({
 }: {
   submissions: ReportSubmissionRecord[];
   holidayDates: Date[];
-  termWindows: Array<{ term: number; startDate: Date; endDate: Date }>;
+  termWindows: Array<{ term: number | null; startDate: Date; endDate: Date }>;
 }): ReportSummary => {
   const proposalSubmissions = submissions.filter(
     (submission) => submission.sequenceNumber === PROPOSAL_SEQUENCE
@@ -445,6 +445,7 @@ export const buildAcademicYearSummary = ({
 
   const termVolumeByTerm = new Map<number, number>();
   for (const termWindow of termWindows) {
+    if (termWindow.term === null) continue;
     const start = new Date(termWindow.startDate).getTime();
     const endExclusive = new Date(termWindow.endDate).getTime();
 
