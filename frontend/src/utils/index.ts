@@ -12,3 +12,9 @@ export {
   decorateQueueItem,
   buildLetterReadiness,
 } from "./slaUtils";
+
+export {
+  getErrorData,
+  getErrorMessage,
+  getErrorStatus,
+} from "./errorUtils";
