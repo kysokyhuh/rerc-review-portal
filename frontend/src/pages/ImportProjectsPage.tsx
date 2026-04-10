@@ -609,12 +609,46 @@ export default function ImportProjectsPage() {
                                 <tr key={step.daysKey}>
                                   <td style={{ fontWeight: 500 }}>{step.label}</td>
                                   {previewRows.map((row, i) => {
-                                    const dateRaw = step.dateKey ? (row[step.dateKey] ?? "").trim() : "";
-                                    const daysRaw = (row[step.daysKey] ?? "").trim();
+                                    const dateRaw = step.dateKey ? (row[step.dateKey] ?? "") : "";
+                                    const daysRaw = row[step.daysKey] ?? "";
                                     return (
                                       <>
-                                        <td key={`${i}-date`} style={{ color: isErrorValue(dateRaw) ? "var(--neutral-400)" : undefined }}>{dateRaw || "—"}</td>
-                                        <td key={`${i}-days`} style={{ color: isErrorValue(daysRaw) ? "var(--neutral-400)" : undefined, textAlign: "right" }}>{daysRaw || "—"}</td>
+                                        {step.dateKey ? (
+                                          <td key={`${i}-date`}>
+                                            <input
+                                              type="text"
+                                              value={dateRaw}
+                                              onChange={(e) =>
+                                                setEditablePreviewRows((prev) =>
+                                                  prev.map((item, idx) =>
+                                                    idx === i ? { ...item, [step.dateKey!]: e.target.value } : item
+                                                  )
+                                                )
+                                              }
+                                              placeholder="—"
+                                              disabled={uploading}
+                                              style={{ color: isErrorValue(dateRaw) ? "var(--danger-red, #c0392b)" : undefined }}
+                                            />
+                                          </td>
+                                        ) : (
+                                          <td key={`${i}-date`} style={{ color: "var(--neutral-300)" }}>—</td>
+                                        )}
+                                        <td key={`${i}-days`}>
+                                          <input
+                                            type="text"
+                                            value={daysRaw}
+                                            onChange={(e) =>
+                                              setEditablePreviewRows((prev) =>
+                                                prev.map((item, idx) =>
+                                                  idx === i ? { ...item, [step.daysKey]: e.target.value } : item
+                                                )
+                                              )
+                                            }
+                                            placeholder="—"
+                                            disabled={uploading}
+                                            style={{ color: isErrorValue(daysRaw) ? "var(--danger-red, #c0392b)" : undefined }}
+                                          />
+                                        </td>
                                       </>
                                     );
                                   })}
