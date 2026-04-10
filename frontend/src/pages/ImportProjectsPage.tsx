@@ -24,6 +24,30 @@ const MAX_FILE_SIZE_MB = 5;
 const MAX_ERRORS_DISPLAY = 50;
 const PREVIEW_ROWS_LIMIT = 10;
 
+const MILESTONE_STEPS: Array<{ label: string; dateKey: string | null; daysKey: string }> = [
+  { label: "Classification",                     dateKey: null,                                                         daysKey: "classificationDays" },
+  { label: "Provision of documents",             dateKey: "provisionOfProjectProposalDocumentsToPrimaryReviewer",       daysKey: "provisionOfProjectProposalDocumentsToPrimaryReviewerDays" },
+  { label: "Accomplishment of assessment forms", dateKey: "accomplishmentOfAssessmentForms",                           daysKey: "accomplishmentOfAssessmentFormsDays" },
+  { label: "Full review meeting",                dateKey: "fullReviewMeeting",                                         daysKey: "fullReviewMeetingDays" },
+  { label: "Finalization of review results",     dateKey: "finalizationOfReviewResults",                               daysKey: "finalizationOfReviewResultsDays" },
+  { label: "Communication to project leader",    dateKey: "communicationOfReviewResultsToProjectLeader",               daysKey: "communicationOfReviewResultsToProjectLeaderDays" },
+  { label: "Resubmission 1 from proponent",      dateKey: "resubmission1FromProponent",                                daysKey: "resubmission1FromProponentDays" },
+  { label: "Review of resubmission 1",           dateKey: "reviewOfResubmission1",                                     daysKey: "reviewOfResubmission1Days" },
+  { label: "Finalization — resubmission 1",      dateKey: "finalizationOfReviewResultsResubmission1",                  daysKey: "finalizationOfReviewResultsResubmission1Days" },
+  { label: "Resubmission 2 from proponent",      dateKey: "resubmission2FromProponent",                                daysKey: "resubmission2FromProponentDays" },
+  { label: "Review of resubmission 2",           dateKey: "reviewOfResubmission2",                                     daysKey: "reviewOfResubmission2Days" },
+  { label: "Finalization — resubmission 2",      dateKey: "finalizationOfReviewResultsResubmission2",                  daysKey: "finalizationOfReviewResultsResubmission2Days" },
+  { label: "Resubmission 3 from proponent",      dateKey: "resubmission3FromProponent",                                daysKey: "resubmission3FromProponentDays" },
+  { label: "Review of resubmission 3",           dateKey: "reviewOfResubmission3",                                     daysKey: "reviewOfResubmission3Days" },
+  { label: "Finalization — resubmission 3",      dateKey: "finalizationOfReviewResultsResubmission3",                  daysKey: "finalizationOfReviewResultsResubmission3Days" },
+  { label: "Resubmission 4 from proponent",      dateKey: "resubmission4FromProponent",                                daysKey: "resubmission4FromProponentDays" },
+  { label: "Review of resubmission 4",           dateKey: "reviewOfResubmission4",                                     daysKey: "reviewOfResubmission4Days" },
+  { label: "Finalization — resubmission 4",      dateKey: "finalizationOfReviewResultsResubmission4",                  daysKey: "finalizationOfReviewResultsResubmission4Days" },
+  { label: "Issuance of ethics clearance",       dateKey: "issuanceOfEthicsClearance",                                 daysKey: "issuanceOfEthicsClearanceDays" },
+];
+
+const isErrorValue = (v: string) => /^[#]/.test(v);
+
 type RequestProgressState = {
   phase: "idle" | "uploading" | "processing";
   loaded: number;
@@ -118,6 +142,7 @@ export default function ImportProjectsPage() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [editablePreviewRows, setEditablePreviewRows] = useState<Record<string, string>[]>([]);
+  const [stepTimingsOpen, setStepTimingsOpen] = useState(false);
 
   const missingMappings = preview?.missingRequiredFields ?? [];
   const modeBlocked = preview?.modeFit === "blocked";
@@ -536,6 +561,71 @@ export default function ImportProjectsPage() {
                       </tbody>
                     </table>
                   </div>
+
+                  {(preview.detectedFormat === "legacy_headered" || preview.detectedFormat === "legacy_headerless") && (() => {
+                    const visibleSteps = MILESTONE_STEPS.filter((step) =>
+                      previewRows.some((row) => {
+                        const date = step.dateKey ? (row[step.dateKey] ?? "").trim() : "";
+                        const days = (row[step.daysKey] ?? "").trim();
+                        return date !== "" || days !== "";
+                      })
+                    );
+                    if (visibleSteps.length === 0) return null;
+                    const rowNumbers = preview.previewRowNumbers?.length === previewRows.length
+                      ? preview.previewRowNumbers
+                      : previewRows.map((_, i) => i + 2);
+                    return (
+                      <div className="preview-table-wrap" style={{ marginTop: "16px" }}>
+                        <h3
+                          style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", gap: "6px" }}
+                          onClick={() => setStepTimingsOpen((v) => !v)}
+                        >
+                          <span style={{ fontSize: "12px", color: "var(--neutral-400)" }}>{stepTimingsOpen ? "▾" : "▸"}</span>
+                          Review step timings ({visibleSteps.length} steps with data)
+                        </h3>
+                        {stepTimingsOpen && (
+                          <table className="preview-table" style={{ fontSize: "12px" }}>
+                            <thead>
+                              <tr>
+                                <th scope="col" style={{ minWidth: "200px" }}>Step</th>
+                                {previewRows.map((_, i) => (
+                                  <th key={i} scope="col" colSpan={2} style={{ textAlign: "center" }}>
+                                    Row {rowNumbers[i]}
+                                  </th>
+                                ))}
+                              </tr>
+                              <tr>
+                                <th scope="col" />
+                                {previewRows.map((_, i) => (
+                                  <>
+                                    <th key={`${i}-date`} scope="col" style={{ fontWeight: 500, color: "var(--neutral-500)" }}>Date</th>
+                                    <th key={`${i}-days`} scope="col" style={{ fontWeight: 500, color: "var(--neutral-500)" }}># Days</th>
+                                  </>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {visibleSteps.map((step) => (
+                                <tr key={step.daysKey}>
+                                  <td style={{ fontWeight: 500 }}>{step.label}</td>
+                                  {previewRows.map((row, i) => {
+                                    const dateRaw = step.dateKey ? (row[step.dateKey] ?? "").trim() : "";
+                                    const daysRaw = (row[step.daysKey] ?? "").trim();
+                                    return (
+                                      <>
+                                        <td key={`${i}-date`} style={{ color: isErrorValue(dateRaw) ? "var(--neutral-400)" : undefined }}>{dateRaw || "—"}</td>
+                                        <td key={`${i}-days`} style={{ color: isErrorValue(daysRaw) ? "var(--neutral-400)" : undefined, textAlign: "right" }}>{daysRaw || "—"}</td>
+                                      </>
+                                    );
+                                  })}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </>
               )}
             </section>

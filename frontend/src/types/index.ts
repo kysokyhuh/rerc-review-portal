@@ -431,6 +431,7 @@ export interface LegacyImportSnapshot {
   importedRemarks?: string | null;
   importedAt?: string;
   importBatch?: ImportBatchSummary | null;
+  rawRowJson?: Record<string, string> | null;
 }
 
 export interface ImportResult {
