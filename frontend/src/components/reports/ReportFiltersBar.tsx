@@ -12,6 +12,7 @@ export type ReportsDraftFilters = {
   category: "ALL" | "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
   reviewType: "ALL" | "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | "UNCLASSIFIED" | "WITHDRAWN";
   compareMode: "NONE" | "PRIOR_EQUIVALENT" | "CUSTOM";
+  compareSource: "ACTUAL" | "DEMO";
   compareStartDate: string;
   compareEndDate: string;
   status: string;
@@ -186,6 +187,15 @@ export default function ReportFiltersBar({
       });
     }
 
+    if (filters.compareMode !== "NONE" && filters.compareSource !== defaults.compareSource) {
+      chips.push({
+        key: "compareSource",
+        label: "Comparison values",
+        value: filters.compareSource === "DEMO" ? "Demo preview" : "Actual data",
+        resetValue: defaults.compareSource,
+      });
+    }
+
     if (filters.compareStartDate) {
       chips.push({
         key: "compareStartDate",
@@ -220,6 +230,7 @@ export default function ReportFiltersBar({
     defaults.category,
     defaults.committee,
     defaults.compareMode,
+    defaults.compareSource,
     defaults.periodMode,
     defaults.reviewType,
     defaults.term,
@@ -231,6 +242,7 @@ export default function ReportFiltersBar({
     filters.category !== defaults.category ||
     filters.reviewType !== defaults.reviewType ||
     filters.compareMode !== defaults.compareMode ||
+    filters.compareSource !== defaults.compareSource ||
     !!filters.compareStartDate ||
     !!filters.compareEndDate;
 
@@ -409,6 +421,19 @@ export default function ReportFiltersBar({
             </select>
           </label>
 
+          {filters.compareMode !== "NONE" ? (
+            <label>
+              Comparison values
+              <select
+                value={filters.compareSource}
+                onChange={(event) => onChange("compareSource", event.target.value)}
+              >
+                <option value="ACTUAL">Actual data</option>
+                <option value="DEMO">Demo preview</option>
+              </select>
+            </label>
+          ) : null}
+
           {compareRequiresDates ? (
             <>
               <label>
@@ -442,6 +467,12 @@ export default function ReportFiltersBar({
       {hasInvalidCompareRange ? (
         <p className="report-filters-note">
           Enter a valid comparison start and end date before applying the custom comparison.
+        </p>
+      ) : null}
+
+      {filters.compareMode !== "NONE" && filters.compareSource === "DEMO" ? (
+        <p className="report-filters-note">
+          Demo preview shows illustrative comparison values in the report cards without changing stored report records.
         </p>
       ) : null}
 

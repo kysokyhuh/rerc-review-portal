@@ -383,6 +383,20 @@
   color: #3f5d84;
 }
 
+.reports-demo-note {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px dashed #dec489;
+  border-radius: 999px;
+  background: #fff8ea;
+  color: #815d18;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
 .reports-overview-meta {
   display: flex;
   flex-direction: column;

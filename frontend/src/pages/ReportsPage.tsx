@@ -48,6 +48,10 @@ const parseCompareMode = (
   return "NONE";
 };
 
+const parseCompareSource = (
+  value: string | null
+): ReportsDraftFilters["compareSource"] => (value?.toUpperCase() === "DEMO" ? "DEMO" : "ACTUAL");
+
 const isDateInputValue = (value: string | null) =>
   !!value && /^\d{4}-\d{2}-\d{2}$/.test(value);
 
@@ -82,6 +86,9 @@ const toSearchParams = (
   next.set("category", filters.category);
   if (filters.reviewType !== "ALL") next.set("reviewType", filters.reviewType);
   if (filters.compareMode !== "NONE") next.set("compareMode", filters.compareMode);
+  if (filters.compareMode !== "NONE" && filters.compareSource !== "ACTUAL") {
+    next.set("compareSource", filters.compareSource);
+  }
   if (filters.compareStartDate) next.set("compareStartDate", filters.compareStartDate);
   if (filters.compareEndDate) next.set("compareEndDate", filters.compareEndDate);
   if (filters.q.trim()) next.set("q", filters.q.trim());
@@ -119,6 +126,37 @@ const formatRangeDate = (value: string) => {
       });
 };
 
+const buildDemoComparisonCounts = (summary: AnnualReportSummaryResponse) => {
+  const current = summary.summaryCounts;
+  const fallback = {
+    received: 14,
+    exempted: 5,
+    expedited: 4,
+    fullReview: 4,
+    withdrawn: 1,
+  };
+
+  if (current.received <= 0) {
+    return fallback;
+  }
+
+  const dateSeed = new Date(summary.selection.dateRange.startDate).getUTCMonth() + 1;
+  const variation = (dateSeed % 3) + 1;
+  const received = Math.max(1, Math.round(current.received * 0.82) + variation);
+  const exempted = Math.max(0, Math.round(current.exempted * 0.74) + (current.exempted > 0 ? 1 : 0));
+  const expedited = Math.max(0, Math.round(current.expedited * 0.88) + (variation % 2));
+  const fullReview = Math.max(0, Math.round(current.fullReview * 0.7) + 1);
+  const withdrawn = Math.max(0, Math.round(current.withdrawn * 0.5));
+
+  return {
+    received,
+    exempted: Math.min(received, exempted),
+    expedited: Math.min(received, expedited),
+    fullReview: Math.min(received, fullReview),
+    withdrawn,
+  };
+};
+
 const normalizeReportFilters = (filters: ReportsDraftFilters): ReportsDraftFilters => {
   const next = { ...filters };
 
@@ -130,6 +168,10 @@ const normalizeReportFilters = (filters: ReportsDraftFilters): ReportsDraftFilte
   if (next.compareMode !== "CUSTOM") {
     next.compareStartDate = "";
     next.compareEndDate = "";
+  }
+
+  if (next.compareMode === "NONE") {
+    next.compareSource = "ACTUAL";
   }
 
   return next;
@@ -163,6 +205,7 @@ export default function ReportsPage() {
       category: "ALL",
       reviewType: "ALL",
       compareMode: "NONE",
+      compareSource: "ACTUAL",
       compareStartDate: "",
       compareEndDate: "",
       status: "ALL",
@@ -190,6 +233,7 @@ export default function ReportsPage() {
       reviewType:
         (searchParams.get("reviewType") as ReportsDraftFilters["reviewType"]) || "ALL",
       compareMode: parseCompareMode(searchParams.get("compareMode")),
+      compareSource: parseCompareSource(searchParams.get("compareSource")),
       compareStartDate: isDateInputValue(searchParams.get("compareStartDate"))
         ? searchParams.get("compareStartDate") || ""
         : "",
@@ -312,7 +356,14 @@ export default function ReportsPage() {
   }, [appliedView, appliedFilters, page, pageSize, sort]);
 
   const comparisonRequest = useMemo<Parameters<typeof fetchAnnualReportSummary>[0] | null>(() => {
-    if (!summary || loadingSummary || appliedFilters.compareMode === "NONE") return null;
+    if (
+      !summary ||
+      loadingSummary ||
+      appliedFilters.compareMode === "NONE" ||
+      appliedFilters.compareSource === "DEMO"
+    ) {
+      return null;
+    }
 
     if (appliedFilters.compareMode === "CUSTOM") {
       if (
@@ -359,6 +410,13 @@ export default function ReportsPage() {
       q: appliedFilters.q,
     };
   }, [appliedFilters, loadingSummary, summary]);
+
+  const demoComparisonCounts = useMemo(() => {
+    if (!summary || appliedFilters.compareMode === "NONE" || appliedFilters.compareSource !== "DEMO") {
+      return null;
+    }
+    return buildDemoComparisonCounts(summary);
+  }, [appliedFilters.compareMode, appliedFilters.compareSource, summary]);
 
   useEffect(() => {
     if (!comparisonRequest) {
@@ -438,6 +496,11 @@ export default function ReportsPage() {
   }, [summary]);
 
   const comparisonLabel = useMemo(() => {
+    if (appliedFilters.compareMode !== "NONE" && appliedFilters.compareSource === "DEMO") {
+      return appliedFilters.compareMode === "CUSTOM"
+        ? "demo preview baseline for the custom comparison"
+        : "demo preview baseline";
+    }
     if (!comparisonSummary) return null;
     if (appliedFilters.compareMode === "CUSTOM") {
       return `${formatRangeDate(comparisonSummary.selection.dateRange.startDate)} to ${formatRangeDate(
@@ -450,7 +513,19 @@ export default function ReportsPage() {
     return `${formatRangeDate(comparisonSummary.selection.dateRange.startDate)} to ${formatRangeDate(
       comparisonSummary.selection.dateRange.endDate
     )}`;
-  }, [appliedFilters.compareMode, comparisonSummary, summary]);
+  }, [appliedFilters.compareMode, appliedFilters.compareSource, comparisonSummary, summary]);
+
+  const comparisonCounts = useMemo(() => {
+    if (demoComparisonCounts) return demoComparisonCounts;
+    if (!comparisonSummary) return null;
+    return {
+      received: comparisonSummary.summaryCounts.received,
+      exempted: comparisonSummary.summaryCounts.exempted,
+      expedited: comparisonSummary.summaryCounts.expedited,
+      fullReview: comparisonSummary.summaryCounts.fullReview,
+      withdrawn: comparisonSummary.summaryCounts.withdrawn,
+    };
+  }, [comparisonSummary, demoComparisonCounts]);
 
   const overviewInsight = useMemo(() => {
     if (!summary) return null;
@@ -495,6 +570,10 @@ export default function ReportsPage() {
       if (key === "compareMode" && value !== "CUSTOM") {
         next.compareStartDate = "";
         next.compareEndDate = "";
+      }
+
+      if (key === "compareMode" && value === "NONE") {
+        next.compareSource = "ACTUAL";
       }
 
       return next;
@@ -606,19 +685,24 @@ export default function ReportsPage() {
             <span className="section-kicker">Overview</span>
             <h2>{overviewInsight?.title ?? "Current reporting overview"}</h2>
             <p>{overviewInsight?.body ?? "Summary metrics will appear here once the report loads."}</p>
-            {partialDataLabel ? (
-              <div className={`reports-data-status ${summary.selection.isPartial ? "is-partial" : "is-closed"}`}>
-                {partialDataLabel}
-              </div>
-            ) : null}
-            {comparisonLabel ? (
-              <div className="reports-compare-note">
-                Comparing against <strong>{comparisonLabel}</strong>
-              </div>
-            ) : null}
-            <div className="reports-overview-meta">
-              <span>{selectionSummary}</span>
-              {reportingWindow ? <span>{reportingWindow}</span> : null}
+                {partialDataLabel ? (
+                  <div className={`reports-data-status ${summary.selection.isPartial ? "is-partial" : "is-closed"}`}>
+                    {partialDataLabel}
+                  </div>
+                ) : null}
+                {comparisonLabel ? (
+                  <div className="reports-compare-note">
+                    Comparing against <strong>{comparisonLabel}</strong>
+                  </div>
+                ) : null}
+                {appliedFilters.compareMode !== "NONE" && appliedFilters.compareSource === "DEMO" ? (
+                  <div className="reports-demo-note">
+                    Demo preview is enabled. Comparison values are illustrative only.
+                  </div>
+                ) : null}
+                <div className="reports-overview-meta">
+                  <span>{selectionSummary}</span>
+                  {reportingWindow ? <span>{reportingWindow}</span> : null}
             </div>
           </article>
 
@@ -630,17 +714,7 @@ export default function ReportsPage() {
             withdrawn={summary.summaryCounts.withdrawn}
             asOfLabel={partialDataLabel}
             comparisonLabel={comparisonLabel}
-            comparisonCounts={
-              comparisonSummary
-                ? {
-                    received: comparisonSummary.summaryCounts.received,
-                    exempted: comparisonSummary.summaryCounts.exempted,
-                    expedited: comparisonSummary.summaryCounts.expedited,
-                    fullReview: comparisonSummary.summaryCounts.fullReview,
-                    withdrawn: comparisonSummary.summaryCounts.withdrawn,
-                  }
-                : null
-            }
+            comparisonCounts={comparisonCounts}
             byCategory={summary.summaryCounts.byProponentCategory}
           />
         </section>
