@@ -368,11 +368,82 @@ export interface ImportRowError {
   message: string;
 }
 
+export type ImportMode = "INTAKE_IMPORT" | "LEGACY_MIGRATION";
+export type ImportModeFit = "match" | "warn" | "blocked";
+export type ProjectOrigin = "NATIVE_PORTAL" | "LEGACY_IMPORT";
+
+export interface ImportWarning {
+  code: string;
+  message: string;
+  row?: number;
+  field?: string;
+}
+
+export interface ImportBatchSummary {
+  id: number;
+  mode: ImportMode;
+  sourceFilename: string;
+  createdAt: string;
+}
+
+export interface LegacyImportSnapshot {
+  id: number;
+  projectId: number;
+  sourceRowNumber: number;
+  importedStatus?: string | null;
+  importedTypeOfReview?: string | null;
+  importedClassificationOfProposal?: string | null;
+  importedPanel?: string | null;
+  importedScientistReviewer?: string | null;
+  importedLayReviewer?: string | null;
+  importedPrimaryReviewer?: string | null;
+  importedFinalLayReviewer?: string | null;
+  importedIndependentConsultant?: string | null;
+  importedHonorariumStatus?: string | null;
+  importedTotalDays?: number | null;
+  importedSubmissionCount?: number | null;
+  importedReviewDurationDays?: number | null;
+  importedClassificationDays?: number | null;
+  importedFinishDate?: string | null;
+  importedClassificationDate?: string | null;
+  importedMonthOfClearance?: string | null;
+  importedWithdrawn?: boolean | null;
+  importedProjectEndDate6A?: string | null;
+  importedClearanceExpiration?: string | null;
+  importedProgressReportTargetDate?: string | null;
+  importedProgressReportSubmission?: string | null;
+  importedProgressReportApprovalDate?: string | null;
+  importedProgressReportStatus?: string | null;
+  importedProgressReportDays?: number | null;
+  importedFinalReportTargetDate?: string | null;
+  importedFinalReportSubmission?: string | null;
+  importedFinalReportCompletionDate?: string | null;
+  importedFinalReportStatus?: string | null;
+  importedFinalReportDays?: number | null;
+  importedAmendmentSubmission?: string | null;
+  importedAmendmentStatus?: string | null;
+  importedAmendmentApprovalDate?: string | null;
+  importedAmendmentDays?: number | null;
+  importedContinuingSubmission?: string | null;
+  importedContinuingStatus?: string | null;
+  importedContinuingApprovalDate?: string | null;
+  importedContinuingDays?: number | null;
+  importedRemarks?: string | null;
+  importedAt?: string;
+  importBatch?: ImportBatchSummary | null;
+}
+
 export interface ImportResult {
   entity?: string;
   receivedRows: number;
   insertedRows: number;
   failedRows: number;
+  warningRows?: number;
+  warnings?: ImportWarning[];
+  selectedMode?: ImportMode;
+  recommendedMode?: ImportMode;
+  modeFit?: ImportModeFit;
+  importBatch?: ImportBatchSummary;
   errors: ImportRowError[];
 }
 
@@ -384,6 +455,10 @@ export interface ProjectImportPreview {
   suggestedMapping: Record<string, string | null>;
   missingRequiredFields: string[];
   warnings: string[];
+  warningItems?: ImportWarning[];
+  selectedMode?: ImportMode;
+  recommendedMode?: ImportMode;
+  modeFit?: ImportModeFit;
 }
 
 export interface ProjectImportRowEdit {
@@ -446,6 +521,7 @@ export interface SubmissionDetail {
   } | null;
   project?: {
     id: number;
+    origin?: ProjectOrigin;
     projectCode: string;
     title: string | null;
     piName: string | null;
@@ -459,12 +535,14 @@ export interface SubmissionDetail {
     approvalEndDate?: string | null;
     protocolProfile?: ProtocolProfile | null;
     protocolMilestones?: ProtocolMilestone[];
+    legacyImportSnapshot?: LegacyImportSnapshot | null;
   } | null;
 }
 
 // Project details
 export interface ProjectDetail {
   id: number;
+  origin?: ProjectOrigin;
   projectCode: string;
   title: string | null;
   piName: string | null;
@@ -479,6 +557,7 @@ export interface ProjectDetail {
     code: string;
   };
   protocolProfile?: ProtocolProfile | null;
+  legacyImportSnapshot?: LegacyImportSnapshot | null;
   protocolMilestones?: ProtocolMilestone[];
   submissions: SubmissionDetail[];
   statusHistory?: StatusHistoryEntry[];

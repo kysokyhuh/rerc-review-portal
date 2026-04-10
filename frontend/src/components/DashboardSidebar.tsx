@@ -64,7 +64,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
 
   useEffect(() => {
     if (!isChair) {
-      setPendingApprovalCount(0);
       return;
     }
 

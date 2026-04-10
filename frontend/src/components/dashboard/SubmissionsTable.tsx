@@ -2,8 +2,8 @@ import React, { type RefObject } from "react";
 import {
   DashboardFilters,
   type DashboardFilterValues,
-  filtersToParams,
 } from "@/components/DashboardFilters";
+import type { DecoratedQueueItem } from "@/types";
 import {
   OWNER_BADGE_META,
   formatStatusLabel,
@@ -36,13 +36,13 @@ type OverdueOwnerFilter =
 
 interface SubmissionsTableProps {
   loading: boolean;
-  filteredItems: any[];
-  allItems: any[];
-  classificationQueue: any[];
-  reviewQueue: any[];
-  revisionQueue: any[];
-  overdueSubmissions: any[];
-  dueSoonSubmissions: any[];
+  filteredItems: DecoratedQueueItem[];
+  allItems: DecoratedQueueItem[];
+  classificationQueue: DecoratedQueueItem[];
+  reviewQueue: DecoratedQueueItem[];
+  revisionQueue: DecoratedQueueItem[];
+  overdueSubmissions: DecoratedQueueItem[];
+  dueSoonSubmissions: DecoratedQueueItem[];
   dueSoonThreshold: number;
 
   // Filters
@@ -74,7 +74,7 @@ interface SubmissionsTableProps {
   onPageChange: (page: number) => void;
 
   // Actions
-  onQuickView: (item: any) => void;
+  onQuickView: (item: DecoratedQueueItem) => void;
   onNavigate: (path: string) => void;
   onExportFiltered: () => void;
   onExportSelected: () => void;
@@ -99,7 +99,7 @@ export function SubmissionsTable({
   dueSoonThreshold,
   queueFilter,
   onQueueFilterChange,
-  searchTerm,
+  searchTerm: _searchTerm,
   onSearchTermChange,
   hasActiveFilters,
   activeFilters,
@@ -112,7 +112,7 @@ export function SubmissionsTable({
   onToggleSelectAll,
   onToggleSelection,
   onClearSelection,
-  currentPage,
+  currentPage: _currentPage,
   totalPages,
   safePage,
   startIdx,
@@ -167,7 +167,7 @@ export function SubmissionsTable({
                     { key: "classification", label: "Awaiting classification", count: classificationQueue.length },
                     { key: "review", label: "Under review", count: reviewQueue.length },
                     { key: "revision", label: "Revisions", count: revisionQueue.length },
-                    { key: "unassigned", label: "Unassigned", count: allItems.filter((i: any) => !i.staffInChargeName).length },
+                    { key: "unassigned", label: "Unassigned", count: allItems.filter((item) => !item.staffInChargeName).length },
                   ].map((tab) => (
                     <button
                       key={tab.key}

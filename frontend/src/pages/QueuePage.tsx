@@ -61,13 +61,14 @@ const formatLabel = (value?: string | null) =>
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
-export default function QueuePage() {
-  const { queueKey } = useParams<{ queueKey: QueueRouteKey }>();
-  const [searchParams, setSearchParams] = useSearchParams();
+const isQueueRouteKey = (value: string | undefined): value is QueueRouteKey =>
+  typeof value === "string" && value in QUEUE_META;
 
-  if (!queueKey || !(queueKey in QUEUE_META)) {
-    return <Navigate to="/dashboard" replace />;
-  }
+export default function QueuePage() {
+  const { queueKey: routeQueueKey } = useParams<{ queueKey: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queueKey = isQueueRouteKey(routeQueueKey) ? routeQueueKey : "classification";
+  const shouldRedirect = !isQueueRouteKey(routeQueueKey);
 
   const meta = QUEUE_META[queueKey];
   const search = searchParams.get("search") ?? "";
@@ -193,36 +194,41 @@ export default function QueuePage() {
     setSearchParams(new URLSearchParams(), { replace: true });
   };
 
-  const segmentTabs =
-    queueKey === "classification"
-      ? [
-          { value: "ALL", label: "View All", count: queueItems.length },
-          {
-            value: "AWAITING_CLASSIFICATION",
-            label: "Awaiting Classification",
-            count: queueItems.filter((item) => item.status === "AWAITING_CLASSIFICATION").length,
-          },
-          {
-            value: "UNDER_CLASSIFICATION",
-            label: "Under Classification",
-            count: queueItems.filter((item) => item.status === "UNDER_CLASSIFICATION").length,
-          },
-        ]
-      : queueKey === "under-review"
-      ? [
-          { value: "ALL", label: "View All", count: queueItems.length },
-          {
-            value: "EXPEDITED",
-            label: "Expedited",
-            count: queueItems.filter((item) => item.reviewType === "EXPEDITED").length,
-          },
-          {
-            value: "FULL_BOARD",
-            label: "Full Review",
-            count: queueItems.filter((item) => item.reviewType === "FULL_BOARD").length,
-          },
-        ]
-      : null;
+  const segmentTabs = useMemo(() => {
+    if (queueKey === "classification") {
+      return [
+        { value: "ALL", label: "View All", count: queueItems.length },
+        {
+          value: "AWAITING_CLASSIFICATION",
+          label: "Awaiting Classification",
+          count: queueItems.filter((item) => item.status === "AWAITING_CLASSIFICATION").length,
+        },
+        {
+          value: "UNDER_CLASSIFICATION",
+          label: "Under Classification",
+          count: queueItems.filter((item) => item.status === "UNDER_CLASSIFICATION").length,
+        },
+      ];
+    }
+
+    if (queueKey === "under-review") {
+      return [
+        { value: "ALL", label: "View All", count: queueItems.length },
+        {
+          value: "EXPEDITED",
+          label: "Expedited",
+          count: queueItems.filter((item) => item.reviewType === "EXPEDITED").length,
+        },
+        {
+          value: "FULL_BOARD",
+          label: "Full Review",
+          count: queueItems.filter((item) => item.reviewType === "FULL_BOARD").length,
+        },
+      ];
+    }
+
+    return [];
+  }, [queueItems, queueKey]);
 
   const activeFilters = useMemo(() => {
     const filters: string[] = [];
@@ -235,7 +241,7 @@ export default function QueuePage() {
       filters.push(`SLA: ${formatLabel(sla)}`);
     }
 
-    if (segmentTabs && effectiveSegment !== "ALL") {
+    if (segmentTabs.length > 0 && effectiveSegment !== "ALL") {
       const activeSegment = segmentTabs.find((tab) => tab.value === effectiveSegment);
       if (activeSegment) {
         filters.push(`State: ${activeSegment.label}`);
@@ -244,6 +250,10 @@ export default function QueuePage() {
 
     return filters;
   }, [effectiveSegment, search, segmentTabs, sla]);
+
+  if (shouldRedirect) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div className="dashboard-content queue-page-content portal-page">
@@ -281,7 +291,7 @@ export default function QueuePage() {
             onSlaChange={(value) => updateParam("sla", value)}
           />
 
-          {segmentTabs ? (
+          {segmentTabs.length > 0 ? (
             <div className="queue-segment-block">
               <div className="queue-segment-block-heading">
                 <span className="queue-filter-label">Queue state</span>

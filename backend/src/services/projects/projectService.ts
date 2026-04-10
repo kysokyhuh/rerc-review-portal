@@ -150,6 +150,7 @@ export async function getArchivedProjects(params: {
 
   const whereClause: any = {
     overallStatus: { in: archiveStatuses },
+    origin: { not: "LEGACY_IMPORT" as const },
   };
 
   if (committeeCode) whereClause.committee = { code: committeeCode };
@@ -231,6 +232,18 @@ export async function getProjectById(id: number) {
     include: {
       committee: true,
       createdBy: true,
+      legacyImportSnapshot: {
+        include: {
+          importBatch: {
+            select: {
+              id: true,
+              mode: true,
+              sourceFilename: true,
+              createdAt: true,
+            },
+          },
+        },
+      },
       submissions: { orderBy: { sequenceNumber: "asc" } },
     },
   });
@@ -248,6 +261,18 @@ export async function getProjectFull(id: number) {
       committee: true,
       createdBy: true,
       protocolProfile: true,
+      legacyImportSnapshot: {
+        include: {
+          importBatch: {
+            select: {
+              id: true,
+              mode: true,
+              sourceFilename: true,
+              createdAt: true,
+            },
+          },
+        },
+      },
       protocolMilestones: { orderBy: [{ orderIndex: "asc" }, { id: "asc" }] },
       changeLog: {
         orderBy: { createdAt: "desc" },
@@ -421,12 +446,30 @@ export async function getProjectProfile(projectId: number) {
     where: { id: projectId },
     select: {
       id: true,
+      origin: true,
       protocolProfile: true,
+      legacyImportSnapshot: {
+        include: {
+          importBatch: {
+            select: {
+              id: true,
+              mode: true,
+              sourceFilename: true,
+              createdAt: true,
+            },
+          },
+        },
+      },
       protocolMilestones: { orderBy: [{ orderIndex: "asc" }, { id: "asc" }] },
     },
   });
   if (!project) throw new AppError(404, "NOT_FOUND", "Project not found");
-  return { profile: project.protocolProfile, milestones: project.protocolMilestones };
+  return {
+    origin: project.origin,
+    profile: project.protocolProfile,
+    legacyImportSnapshot: project.legacyImportSnapshot,
+    milestones: project.protocolMilestones,
+  };
 }
 
 /* ------------------------------------------------------------------ */

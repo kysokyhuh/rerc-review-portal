@@ -1,11 +1,10 @@
 import React from "react";
 import { formatDateDisplay } from "@/utils/dateUtils";
-import type { CommitteeSummary, SubmissionDetail } from "@/types";
+import type { SubmissionDetail } from "@/types";
 import { SUBMISSION_TYPE_OPTIONS, FINAL_DECISION_OPTIONS } from "./submissionUtils";
 
 interface OverviewFormState {
   piName: string;
-  committeeId: string;
   submissionType: string;
   receivedDate: string;
   finalDecision: string;
@@ -20,7 +19,6 @@ interface SubmissionOverviewCardProps {
   saveError: string | null;
   formState: OverviewFormState;
   setFormState: React.Dispatch<React.SetStateAction<OverviewFormState>>;
-  committees: CommitteeSummary[];
   onEditStart: () => void;
   onEditCancel: () => void;
   onSave: () => void;
@@ -28,7 +26,7 @@ interface SubmissionOverviewCardProps {
 
 export function SubmissionOverviewCard({
   submission, isEditing, saving, saveError,
-  formState, setFormState, committees,
+  formState, setFormState,
   onEditStart, onEditCancel, onSave,
 }: SubmissionOverviewCardProps) {
   const updateField = (field: keyof OverviewFormState, value: string) =>
@@ -66,18 +64,6 @@ export function SubmissionOverviewCard({
               onChange={(e) => updateField("piName", e.target.value)} placeholder="Principal investigator name" />
           ) : (
             <p>{submission.project?.piName ?? "—"}</p>
-          )}
-        </div>
-        <div className="field">
-          <label>Committee</label>
-          {isEditing ? (
-            <select className="field-input" value={formState.committeeId}
-              onChange={(e) => updateField("committeeId", e.target.value)}>
-              <option value="">Select committee</option>
-              {committees.map((c) => <option key={c.id} value={c.id}>{c.code} – {c.name}</option>)}
-            </select>
-          ) : (
-            <p>{submission.project?.committee?.name ?? "—"}</p>
           )}
         </div>
         <div className="field">

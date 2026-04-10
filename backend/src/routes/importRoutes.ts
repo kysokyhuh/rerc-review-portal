@@ -1,17 +1,24 @@
+import { createHash } from "crypto";
 import { Router } from "express";
 import multer, { MulterError } from "multer";
 import prisma from "../config/prismaClient";
-import { RoleType } from "../generated/prisma/client";
-import { requireAnyRole } from "../middleware/auth";
 import {
-  CsvImportError,
-  DEFAULT_IMPORT_CONFIG,
-  PROJECT_IMPORT_HEADERS,
+  ImportMode,
+  ProjectOrigin,
+  RoleType,
+} from "../generated/prisma/client";
+import { requireRoles } from "../middleware/auth";
+import {
+  assessImportMode,
   buildPreviewPayload,
   chunkRows,
+  CsvImportError,
+  DEFAULT_IMPORT_CONFIG,
   normalizeCommitMapping,
   normalizeProjectCode,
+  parseImportMode,
   parseProjectCsvUnknownFormat,
+  PROJECT_IMPORT_HEADERS,
   suggestColumnMapping,
   validateMappedProjectRows,
 } from "../services/imports/projectCsvImport";
@@ -20,7 +27,6 @@ import {
   DuplicateProjectCodeError,
   ProjectCreateValidationError,
 } from "../services/projects/createProjectWithInitialSubmission";
-import { importCommitSchema } from "../schemas/imports";
 
 const MAX_FILE_SIZE_MB = Number(process.env.IMPORT_MAX_FILE_SIZE_MB || 5);
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -38,35 +44,6 @@ const upload = multer({
 });
 
 const router = Router();
-
-const normalizeHeader = (value: string) =>
-  value.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-const pickRawValue = (raw: Record<string, string>, candidates: string[]) => {
-  const lookup = new Map<string, string>();
-  for (const [header, value] of Object.entries(raw)) {
-    lookup.set(normalizeHeader(header), value);
-  }
-  for (const candidate of candidates) {
-    const match = lookup.get(normalizeHeader(candidate));
-    if (typeof match === "string" && match.trim()) {
-      return match.trim();
-    }
-  }
-  return null;
-};
-
-const parseLooseDate = (value: string | null) => {
-  if (!value) return null;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-};
-
-const parseLooseInt = (value: string | null) => {
-  if (!value) return null;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? Math.trunc(parsed) : null;
-};
 
 type RowEditPayload = Array<{
   rowNumber: number;
@@ -86,12 +63,14 @@ const parseRowEditsPayload = (value: unknown): RowEditPayload => {
   if (!Array.isArray(parsedValue)) {
     throw new CsvImportError("Invalid row edits payload.");
   }
+
   const edits: RowEditPayload = [];
   for (const item of parsedValue) {
     if (!item || typeof item !== "object") continue;
-    const rowNumber = Number((item as any).rowNumber);
-    const values = (item as any).values;
+    const rowNumber = Number((item as { rowNumber?: unknown }).rowNumber);
+    const values = (item as { values?: unknown }).values;
     if (!Number.isInteger(rowNumber) || !values || typeof values !== "object") continue;
+
     const normalizedValues: Record<string, string> = {};
     for (const [key, val] of Object.entries(values as Record<string, unknown>)) {
       if (typeof val === "string") {
@@ -100,6 +79,7 @@ const parseRowEditsPayload = (value: unknown): RowEditPayload => {
     }
     edits.push({ rowNumber, values: normalizedValues });
   }
+
   return edits;
 };
 
@@ -128,22 +108,51 @@ const getUploadFileOrThrow = (req: any) => {
   if (!file.size) {
     throw new CsvImportError("CSV file is empty.", 400);
   }
-  const sample = file.buffer.subarray(0, Math.min(file.buffer.length, 1024)).toString("utf8");
-  if (!sample.includes(",") && !sample.includes(";") && !sample.includes("\n")) {
-    throw new CsvImportError("Unsupported file content. Please upload a valid CSV file.", 415);
-  }
   return file;
+};
+
+const toJsonValue = <T>(value: T) => JSON.parse(JSON.stringify(value));
+
+const buildConfiguredDefaultCommittee = async () => {
+  const configuredDefaultCommitteeCode = String(
+    process.env.IMPORT_DEFAULT_COMMITTEE_CODE ?? ""
+  )
+    .trim()
+    .toUpperCase();
+  if (!configuredDefaultCommitteeCode) {
+    return {
+      defaultCommitteeCode: null,
+      defaultCommitteeId: null,
+    };
+  }
+
+  const committee = await prisma.committee.findFirst({
+    where: { code: { equals: configuredDefaultCommitteeCode, mode: "insensitive" } },
+    select: { id: true, code: true },
+  });
+  if (!committee) {
+    throw new CsvImportError(
+      `Configured default intake committee does not exist: ${configuredDefaultCommitteeCode}`,
+      500
+    );
+  }
+
+  return {
+    defaultCommitteeCode: committee.code.toUpperCase(),
+    defaultCommitteeId: committee.id,
+  };
 };
 
 router.post(
   "/imports/projects/preview",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   uploadSingleFile,
-  async (req, res, next) => {
-  try {
+  async (req, res) => {
+    try {
       const file = getUploadFileOrThrow(req);
+      const mode = parseImportMode(req.body?.mode);
       const parsed = parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
-      const preview = buildPreviewPayload(parsed, DEFAULT_IMPORT_CONFIG);
+      const preview = buildPreviewPayload(parsed, mode, DEFAULT_IMPORT_CONFIG);
       return res.json(preview);
     } catch (error) {
       if (error instanceof CsvImportError) {
@@ -159,24 +168,15 @@ router.post(
 
 router.post(
   "/imports/projects/commit",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   uploadSingleFile,
-  async (req, res, next) => {
-  try {
-      const parsedBody = importCommitSchema.safeParse(req.body ?? {});
-      if (!parsedBody.success) {
-        return res.status(400).json({
-          message: "Validation failed.",
-          errors: parsedBody.error.issues.map((issue) => ({
-            field: issue.path.join(".") || "body",
-            message: issue.message,
-          })),
-        });
-      }
-
+  async (req, res) => {
+    try {
       const file = getUploadFileOrThrow(req);
+      const mode = parseImportMode(req.body?.mode);
       const parsed = parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
-      const rowEdits = parseRowEditsPayload(parsedBody.data.rowEdits);
+      const rowEdits = parseRowEditsPayload(req.body?.rowEdits);
+
       if (rowEdits.length > 0) {
         const byRow = new Map(parsed.rows.map((row) => [row.rowNumber, row]));
         for (const edit of rowEdits) {
@@ -189,9 +189,11 @@ router.post(
           }
         }
       }
-      const mapping = parsedBody.data.mapping
-        ? normalizeCommitMapping(parsedBody.data.mapping, parsed.detectedHeaders)
+
+      const mapping = req.body?.mapping
+        ? normalizeCommitMapping(req.body.mapping, parsed.detectedHeaders)
         : suggestColumnMapping(parsed.detectedHeaders);
+      const modeAssessment = assessImportMode(parsed, mode);
 
       const codes = parsed.rows
         .map((row) => {
@@ -207,7 +209,8 @@ router.post(
       const committeeCodeMap = new Map(
         committees.map((committee) => [committee.code.toUpperCase(), committee.id])
       );
-      const defaultCommitteeId = committees[0]?.id ?? null;
+      const { defaultCommitteeCode, defaultCommitteeId } =
+        await buildConfiguredDefaultCommittee();
 
       const existingProjects = codes.length
         ? await prisma.project.findMany({
@@ -221,13 +224,45 @@ router.post(
           .filter(Boolean)
       );
 
-      const { validRows, errors } = validateMappedProjectRows({
+      const { validRows, errors, warnings } = validateMappedProjectRows({
         parsed,
         mapping,
         committeeCodeMap,
         defaultCommitteeId,
         existingProjectCodes,
         config: DEFAULT_IMPORT_CONFIG,
+        mode,
+      });
+
+      const warningRows = new Set(
+        validRows.filter((row) => row.warnings.length > 0).map((row) => row.rowNumber)
+      ).size;
+      const fileHash = createHash("sha256").update(file.buffer).digest("hex");
+      const importBatch = await prisma.importBatch.create({
+        data: {
+          mode,
+          sourceFilename: file.originalname || "project-import.csv",
+          sourceFileHash: fileHash,
+          uploadedById: req.user!.id,
+          receivedRows: parsed.receivedRows,
+          insertedRows: 0,
+          failedRows: 0,
+          warningRows,
+          notes: null,
+          summaryJson: toJsonValue({
+            detectedFormat: parsed.detectedFormat,
+            selectedMode: mode,
+            recommendedMode: modeAssessment.recommendedMode,
+            modeFit: modeAssessment.modeFit,
+            warnings,
+          }),
+        },
+        select: {
+          id: true,
+          mode: true,
+          sourceFilename: true,
+          createdAt: true,
+        },
       });
 
       let insertedRows = 0;
@@ -236,7 +271,7 @@ router.post(
       for (const batch of chunkRows(validRows, DEFAULT_IMPORT_CONFIG.batchSize)) {
         for (const row of batch) {
           try {
-            const created = await createProjectWithInitialSubmission(
+            await createProjectWithInitialSubmission(
               {
                 projectCode: row.projectCode,
                 title: row.title,
@@ -246,153 +281,26 @@ router.post(
                 proponentCategory: row.proponentCategory,
                 department: row.department,
                 proponent: row.proponent,
+                researchTypePHREB: row.researchTypePHREB,
+                researchTypePHREBOther: row.researchTypePHREBOther,
                 fundingType: row.fundingType,
                 committeeId: row.committeeId,
+                defaultCommitteeCode,
                 submissionType: row.submissionType,
                 receivedDate: row.receivedDate,
                 notes: row.remarks,
+                origin:
+                  mode === ImportMode.LEGACY_MIGRATION
+                    ? ProjectOrigin.LEGACY_IMPORT
+                    : ProjectOrigin.NATIVE_PORTAL,
+                importMode: mode,
+                importBatchId: importBatch.id,
+                importSourceRowNumber: row.rowNumber,
+                referenceProfile: row.referenceProfile,
+                legacySnapshot: row.legacySnapshot,
               },
               req.user!.id
             );
-            if (created?.projectId) {
-              await prisma.protocolProfile.upsert({
-                where: { projectId: created.projectId },
-                update: {
-                  title:
-                    pickRawValue(row.raw, ["Title", "Project Title"]) ?? row.title,
-                  projectLeader:
-                    pickRawValue(row.raw, ["Project Leader", "PI Name"]) ?? row.piName,
-                  college: pickRawValue(row.raw, ["College", "College/Unit"]),
-                  department: pickRawValue(row.raw, ["Department"]),
-                  dateOfSubmission:
-                    parseLooseDate(pickRawValue(row.raw, ["Date of Submission"])) ??
-                    row.receivedDate,
-                  monthOfSubmission: pickRawValue(row.raw, ["Month of Submission"]),
-                  typeOfReview:
-                    pickRawValue(row.raw, ["Type of Review"]) ??
-                    (row.submissionType ?? null),
-                  proponent: pickRawValue(row.raw, ["Proponent"]) ?? row.proponent,
-                  funding:
-                    pickRawValue(row.raw, ["Funding", "Funding Type"]) ??
-                    (row.fundingType ?? null),
-                  typeOfResearchPhreb: pickRawValue(row.raw, [
-                    "Type of Research PHREB",
-                    "researchTypePHREB",
-                  ]),
-                  typeOfResearchPhrebOther: pickRawValue(row.raw, [
-                    "Type of Research PHREB (Specific for Others)",
-                    "researchTypePHREBOther",
-                  ]),
-                  status: pickRawValue(row.raw, ["Status"]),
-                  finishDate: parseLooseDate(pickRawValue(row.raw, ["Finish Date"])),
-                  monthOfClearance: pickRawValue(row.raw, ["Month of Clearance"]),
-                  reviewDurationDays: parseLooseInt(
-                    pickRawValue(row.raw, [
-                      "Review Duration (Receipt to Finish date)",
-                      "reviewDurationReceiptToFinishDate",
-                    ])
-                  ),
-                  remarks: pickRawValue(row.raw, ["Remarks"]) ?? row.remarks,
-                  panel: pickRawValue(row.raw, ["Panel"]),
-                  scientistReviewer: pickRawValue(row.raw, ["Scientist Reviewer"]),
-                  layReviewer: pickRawValue(row.raw, ["Lay Reviewer"]),
-                  independentConsultant: pickRawValue(row.raw, [
-                    "Independent Consultant (if applicable)",
-                  ]),
-                  honorariumStatus: pickRawValue(row.raw, [
-                    "Honorarium Status (c/o Ms. Maja)",
-                  ]),
-                  classificationOfProposalRerc: pickRawValue(row.raw, [
-                    "Classification of Proposal (RERC)",
-                  ]),
-                  totalDays: parseLooseInt(pickRawValue(row.raw, ["Total days"])),
-                  submissionCount: parseLooseInt(
-                    pickRawValue(row.raw, ["# Submissions", "submissionCount"])
-                  ),
-                  withdrawn:
-                    pickRawValue(row.raw, ["Withdrawn"])?.toLowerCase() === "yes"
-                      ? true
-                      : pickRawValue(row.raw, ["Withdrawn"])?.toLowerCase() === "no"
-                        ? false
-                        : null,
-                  projectEndDate6A: parseLooseDate(
-                    pickRawValue(row.raw, ["Project End Date (6A)"])
-                  ),
-                  clearanceExpiration: parseLooseDate(
-                    pickRawValue(row.raw, ["Clearance Expiration"])
-                  ),
-                  progressReportTargetDate: parseLooseDate(
-                    pickRawValue(row.raw, ["Progress Report [Target Date]"])
-                  ),
-                  progressReportSubmission: parseLooseDate(
-                    pickRawValue(row.raw, ["Progress Report [Submission]"])
-                  ),
-                  progressReportApprovalDate: parseLooseDate(
-                    pickRawValue(row.raw, ["Progress Report [Approval Date]"])
-                  ),
-                  progressReportStatus: pickRawValue(row.raw, ["Progress Report Status"]),
-                  progressReportDays: parseLooseInt(
-                    pickRawValue(row.raw, ["Progress Report # of Days", "Progress Report # Days"])
-                  ),
-                  finalReportTargetDate: parseLooseDate(
-                    pickRawValue(row.raw, ["Final Report [Target Date]"])
-                  ),
-                  finalReportSubmission: parseLooseDate(
-                    pickRawValue(row.raw, ["Final Report [Submission]"])
-                  ),
-                  finalReportCompletionDate: parseLooseDate(
-                    pickRawValue(row.raw, ["Final Report [Completion Date]"])
-                  ),
-                  finalReportStatus: pickRawValue(row.raw, ["Final Report Status"]),
-                  finalReportDays: parseLooseInt(
-                    pickRawValue(row.raw, ["Final Report # of Days", "Final Report # Days"])
-                  ),
-                  amendmentSubmission: parseLooseDate(
-                    pickRawValue(row.raw, ["Amendment [Submission]"])
-                  ),
-                  amendmentStatusOfRequest: pickRawValue(row.raw, [
-                    "Status of Request",
-                    "amendmentStatusOfRequest",
-                  ]),
-                  amendmentApprovalDate: parseLooseDate(
-                    pickRawValue(row.raw, ["Approval Date", "amendmentApprovalDate"])
-                  ),
-                  amendmentDays: parseLooseInt(
-                    pickRawValue(row.raw, ["# of Days", "amendmentDays"])
-                  ),
-                  continuingSubmission: parseLooseDate(
-                    pickRawValue(row.raw, [
-                      "Continuing [Submission]",
-                      "continuingSubmission",
-                    ])
-                  ),
-                  continuingStatusOfRequest: pickRawValue(row.raw, [
-                    "Continuing Status of Request",
-                    "continuingStatusOfRequest",
-                  ]),
-                  continuingApprovalDate: parseLooseDate(
-                    pickRawValue(row.raw, [
-                      "Continuing Approval Date",
-                      "continuingApprovalDate",
-                    ])
-                  ),
-                  continuingDays: parseLooseInt(
-                    pickRawValue(row.raw, [
-                      "Continuing # of Days",
-                      "continuingDays",
-                    ])
-                  ),
-                  primaryReviewer: pickRawValue(row.raw, ["Primary Reviewer"]),
-                  finalLayReviewer: pickRawValue(row.raw, [
-                    "finalLayReviewer",
-                    "Lay Reviewer",
-                  ]),
-                },
-                create: {
-                  projectId: created.projectId,
-                },
-              });
-            }
             insertedRows += 1;
           } catch (error: any) {
             if (error instanceof ProjectCreateValidationError) {
@@ -438,14 +346,43 @@ router.post(
       });
       const failedRows = new Set(allErrors.map((error) => error.row)).size;
 
+      await prisma.importBatch.update({
+        where: { id: importBatch.id },
+        data: {
+          insertedRows,
+          failedRows,
+          warningRows,
+          notes:
+            mode === ImportMode.LEGACY_MIGRATION
+              ? "Legacy migration imported spreadsheet snapshot data without reconstructing live workflow."
+              : warnings.length > 0
+                ? "Import completed with warnings."
+                : "Import completed.",
+          summaryJson: toJsonValue({
+            detectedFormat: parsed.detectedFormat,
+            selectedMode: mode,
+            recommendedMode: modeAssessment.recommendedMode,
+            modeFit: modeAssessment.modeFit,
+            warnings,
+            errors: allErrors,
+          }),
+        },
+      });
+
       console.info(
-        `[imports] projects-commit user=${req.user?.id ?? "unknown"} received=${parsed.receivedRows} inserted=${insertedRows} failed=${failedRows} at=${new Date().toISOString()}`
+        `[imports] projects-commit user=${req.user?.id ?? "unknown"} mode=${mode} received=${parsed.receivedRows} inserted=${insertedRows} failed=${failedRows} at=${new Date().toISOString()}`
       );
 
       return res.json({
         receivedRows: parsed.receivedRows,
         insertedRows,
         failedRows,
+        warningRows,
+        warnings,
+        selectedMode: mode,
+        recommendedMode: modeAssessment.recommendedMode,
+        modeFit: modeAssessment.modeFit,
+        importBatch,
         errors: allErrors,
       });
     } catch (error) {
@@ -455,14 +392,15 @@ router.post(
           details: error.details,
         });
       }
-      next(error);
+      console.error("Import commit failed:", error);
+      return res.status(500).json({ message: "Import failed." });
     }
   }
 );
 
 router.get(
   "/api/imports/projects/template",
-  requireAnyRole([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   (_req, res) => {
     const header = PROJECT_IMPORT_HEADERS.join(",");
     res.setHeader("Content-Type", "text/csv; charset=utf-8");

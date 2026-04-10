@@ -29,12 +29,16 @@ export type AggregateProject = {
 export type ProjectAvgAggregateOutputType = {
   id: number | null
   committeeId: number | null
+  importBatchId: number | null
+  importSourceRowNumber: number | null
   createdById: number | null
 }
 
 export type ProjectSumAggregateOutputType = {
   id: number | null
   committeeId: number | null
+  importBatchId: number | null
+  importSourceRowNumber: number | null
   createdById: number | null
 }
 
@@ -56,10 +60,13 @@ export type ProjectMinAggregateOutputType = {
   proposedStartDate: Date | null
   proposedEndDate: Date | null
   committeeId: number | null
+  origin: $Enums.ProjectOrigin | null
   overallStatus: $Enums.ProjectStatus | null
   approvalStartDate: Date | null
   approvalEndDate: Date | null
   isArchived: boolean | null
+  importBatchId: number | null
+  importSourceRowNumber: number | null
   createdAt: Date | null
   updatedAt: Date | null
   createdById: number | null
@@ -83,10 +90,13 @@ export type ProjectMaxAggregateOutputType = {
   proposedStartDate: Date | null
   proposedEndDate: Date | null
   committeeId: number | null
+  origin: $Enums.ProjectOrigin | null
   overallStatus: $Enums.ProjectStatus | null
   approvalStartDate: Date | null
   approvalEndDate: Date | null
   isArchived: boolean | null
+  importBatchId: number | null
+  importSourceRowNumber: number | null
   createdAt: Date | null
   updatedAt: Date | null
   createdById: number | null
@@ -111,10 +121,13 @@ export type ProjectCountAggregateOutputType = {
   proposedStartDate: number
   proposedEndDate: number
   committeeId: number
+  origin: number
   overallStatus: number
   approvalStartDate: number
   approvalEndDate: number
   isArchived: number
+  importBatchId: number
+  importSourceRowNumber: number
   createdAt: number
   updatedAt: number
   createdById: number
@@ -125,12 +138,16 @@ export type ProjectCountAggregateOutputType = {
 export type ProjectAvgAggregateInputType = {
   id?: true
   committeeId?: true
+  importBatchId?: true
+  importSourceRowNumber?: true
   createdById?: true
 }
 
 export type ProjectSumAggregateInputType = {
   id?: true
   committeeId?: true
+  importBatchId?: true
+  importSourceRowNumber?: true
   createdById?: true
 }
 
@@ -152,10 +169,13 @@ export type ProjectMinAggregateInputType = {
   proposedStartDate?: true
   proposedEndDate?: true
   committeeId?: true
+  origin?: true
   overallStatus?: true
   approvalStartDate?: true
   approvalEndDate?: true
   isArchived?: true
+  importBatchId?: true
+  importSourceRowNumber?: true
   createdAt?: true
   updatedAt?: true
   createdById?: true
@@ -179,10 +199,13 @@ export type ProjectMaxAggregateInputType = {
   proposedStartDate?: true
   proposedEndDate?: true
   committeeId?: true
+  origin?: true
   overallStatus?: true
   approvalStartDate?: true
   approvalEndDate?: true
   isArchived?: true
+  importBatchId?: true
+  importSourceRowNumber?: true
   createdAt?: true
   updatedAt?: true
   createdById?: true
@@ -207,10 +230,13 @@ export type ProjectCountAggregateInputType = {
   proposedStartDate?: true
   proposedEndDate?: true
   committeeId?: true
+  origin?: true
   overallStatus?: true
   approvalStartDate?: true
   approvalEndDate?: true
   isArchived?: true
+  importBatchId?: true
+  importSourceRowNumber?: true
   createdAt?: true
   updatedAt?: true
   createdById?: true
@@ -322,10 +348,13 @@ export type ProjectGroupByOutputType = {
   proposedStartDate: Date | null
   proposedEndDate: Date | null
   committeeId: number
+  origin: $Enums.ProjectOrigin
   overallStatus: $Enums.ProjectStatus
   approvalStartDate: Date | null
   approvalEndDate: Date | null
   isArchived: boolean
+  importBatchId: number | null
+  importSourceRowNumber: number | null
   createdAt: Date
   updatedAt: Date
   createdById: number | null
@@ -373,14 +402,18 @@ export type ProjectWhereInput = {
   proposedStartDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   proposedEndDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   committeeId?: Prisma.IntFilter<"Project"> | number
+  origin?: Prisma.EnumProjectOriginFilter<"Project"> | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFilter<"Project"> | $Enums.ProjectStatus
   approvalStartDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   approvalEndDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   isArchived?: Prisma.BoolFilter<"Project"> | boolean
+  importBatchId?: Prisma.IntNullableFilter<"Project"> | number | null
+  importSourceRowNumber?: Prisma.IntNullableFilter<"Project"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   createdById?: Prisma.IntNullableFilter<"Project"> | number | null
   committee?: Prisma.XOR<Prisma.CommitteeScalarRelationFilter, Prisma.CommitteeWhereInput>
+  importBatch?: Prisma.XOR<Prisma.ImportBatchNullableScalarRelationFilter, Prisma.ImportBatchWhereInput> | null
   snapshots?: Prisma.ProjectSnapshotListRelationFilter
   statusHistory?: Prisma.ProjectStatusHistoryListRelationFilter
   submissions?: Prisma.SubmissionListRelationFilter
@@ -388,6 +421,7 @@ export type ProjectWhereInput = {
   members?: Prisma.ProjectMemberListRelationFilter
   changeLog?: Prisma.ProjectChangeLogListRelationFilter
   protocolProfile?: Prisma.XOR<Prisma.ProtocolProfileNullableScalarRelationFilter, Prisma.ProtocolProfileWhereInput> | null
+  legacyImportSnapshot?: Prisma.XOR<Prisma.LegacyImportSnapshotNullableScalarRelationFilter, Prisma.LegacyImportSnapshotWhereInput> | null
   protocolMilestones?: Prisma.ProtocolMilestoneListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
@@ -411,14 +445,18 @@ export type ProjectOrderByWithRelationInput = {
   proposedStartDate?: Prisma.SortOrderInput | Prisma.SortOrder
   proposedEndDate?: Prisma.SortOrderInput | Prisma.SortOrder
   committeeId?: Prisma.SortOrder
+  origin?: Prisma.SortOrder
   overallStatus?: Prisma.SortOrder
   approvalStartDate?: Prisma.SortOrderInput | Prisma.SortOrder
   approvalEndDate?: Prisma.SortOrderInput | Prisma.SortOrder
   isArchived?: Prisma.SortOrder
+  importBatchId?: Prisma.SortOrderInput | Prisma.SortOrder
+  importSourceRowNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrderInput | Prisma.SortOrder
   committee?: Prisma.CommitteeOrderByWithRelationInput
+  importBatch?: Prisma.ImportBatchOrderByWithRelationInput
   snapshots?: Prisma.ProjectSnapshotOrderByRelationAggregateInput
   statusHistory?: Prisma.ProjectStatusHistoryOrderByRelationAggregateInput
   submissions?: Prisma.SubmissionOrderByRelationAggregateInput
@@ -426,6 +464,7 @@ export type ProjectOrderByWithRelationInput = {
   members?: Prisma.ProjectMemberOrderByRelationAggregateInput
   changeLog?: Prisma.ProjectChangeLogOrderByRelationAggregateInput
   protocolProfile?: Prisma.ProtocolProfileOrderByWithRelationInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotOrderByWithRelationInput
   protocolMilestones?: Prisma.ProtocolMilestoneOrderByRelationAggregateInput
   createdBy?: Prisma.UserOrderByWithRelationInput
 }
@@ -452,14 +491,18 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   proposedStartDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   proposedEndDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   committeeId?: Prisma.IntFilter<"Project"> | number
+  origin?: Prisma.EnumProjectOriginFilter<"Project"> | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFilter<"Project"> | $Enums.ProjectStatus
   approvalStartDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   approvalEndDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   isArchived?: Prisma.BoolFilter<"Project"> | boolean
+  importBatchId?: Prisma.IntNullableFilter<"Project"> | number | null
+  importSourceRowNumber?: Prisma.IntNullableFilter<"Project"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   createdById?: Prisma.IntNullableFilter<"Project"> | number | null
   committee?: Prisma.XOR<Prisma.CommitteeScalarRelationFilter, Prisma.CommitteeWhereInput>
+  importBatch?: Prisma.XOR<Prisma.ImportBatchNullableScalarRelationFilter, Prisma.ImportBatchWhereInput> | null
   snapshots?: Prisma.ProjectSnapshotListRelationFilter
   statusHistory?: Prisma.ProjectStatusHistoryListRelationFilter
   submissions?: Prisma.SubmissionListRelationFilter
@@ -467,6 +510,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   members?: Prisma.ProjectMemberListRelationFilter
   changeLog?: Prisma.ProjectChangeLogListRelationFilter
   protocolProfile?: Prisma.XOR<Prisma.ProtocolProfileNullableScalarRelationFilter, Prisma.ProtocolProfileWhereInput> | null
+  legacyImportSnapshot?: Prisma.XOR<Prisma.LegacyImportSnapshotNullableScalarRelationFilter, Prisma.LegacyImportSnapshotWhereInput> | null
   protocolMilestones?: Prisma.ProtocolMilestoneListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id" | "projectCode">
@@ -490,10 +534,13 @@ export type ProjectOrderByWithAggregationInput = {
   proposedStartDate?: Prisma.SortOrderInput | Prisma.SortOrder
   proposedEndDate?: Prisma.SortOrderInput | Prisma.SortOrder
   committeeId?: Prisma.SortOrder
+  origin?: Prisma.SortOrder
   overallStatus?: Prisma.SortOrder
   approvalStartDate?: Prisma.SortOrderInput | Prisma.SortOrder
   approvalEndDate?: Prisma.SortOrderInput | Prisma.SortOrder
   isArchived?: Prisma.SortOrder
+  importBatchId?: Prisma.SortOrderInput | Prisma.SortOrder
+  importSourceRowNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -526,10 +573,13 @@ export type ProjectScalarWhereWithAggregatesInput = {
   proposedStartDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
   proposedEndDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
   committeeId?: Prisma.IntWithAggregatesFilter<"Project"> | number
+  origin?: Prisma.EnumProjectOriginWithAggregatesFilter<"Project"> | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusWithAggregatesFilter<"Project"> | $Enums.ProjectStatus
   approvalStartDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
   approvalEndDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
   isArchived?: Prisma.BoolWithAggregatesFilter<"Project"> | boolean
+  importBatchId?: Prisma.IntNullableWithAggregatesFilter<"Project"> | number | null
+  importSourceRowNumber?: Prisma.IntNullableWithAggregatesFilter<"Project"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Project"> | Date | string
   createdById?: Prisma.IntNullableWithAggregatesFilter<"Project"> | number | null
@@ -552,13 +602,16 @@ export type ProjectCreateInput = {
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  importBatch?: Prisma.ImportBatchCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
   statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
@@ -566,6 +619,7 @@ export type ProjectCreateInput = {
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -589,10 +643,13 @@ export type ProjectUncheckedCreateInput = {
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
   committeeId: number
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importBatchId?: number | null
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
@@ -603,6 +660,7 @@ export type ProjectUncheckedCreateInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -623,13 +681,16 @@ export type ProjectUpdateInput = {
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  importBatch?: Prisma.ImportBatchUpdateOneWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
   statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
@@ -637,6 +698,7 @@ export type ProjectUpdateInput = {
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -660,10 +722,13 @@ export type ProjectUncheckedUpdateInput = {
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -674,6 +739,7 @@ export type ProjectUncheckedUpdateInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -696,10 +762,13 @@ export type ProjectCreateManyInput = {
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
   committeeId: number
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importBatchId?: number | null
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
@@ -722,10 +791,12 @@ export type ProjectUpdateManyMutationInput = {
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -749,10 +820,13 @@ export type ProjectUncheckedUpdateManyInput = {
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -787,10 +861,13 @@ export type ProjectCountOrderByAggregateInput = {
   proposedStartDate?: Prisma.SortOrder
   proposedEndDate?: Prisma.SortOrder
   committeeId?: Prisma.SortOrder
+  origin?: Prisma.SortOrder
   overallStatus?: Prisma.SortOrder
   approvalStartDate?: Prisma.SortOrder
   approvalEndDate?: Prisma.SortOrder
   isArchived?: Prisma.SortOrder
+  importBatchId?: Prisma.SortOrder
+  importSourceRowNumber?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -799,6 +876,8 @@ export type ProjectCountOrderByAggregateInput = {
 export type ProjectAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   committeeId?: Prisma.SortOrder
+  importBatchId?: Prisma.SortOrder
+  importSourceRowNumber?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
 }
 
@@ -820,10 +899,13 @@ export type ProjectMaxOrderByAggregateInput = {
   proposedStartDate?: Prisma.SortOrder
   proposedEndDate?: Prisma.SortOrder
   committeeId?: Prisma.SortOrder
+  origin?: Prisma.SortOrder
   overallStatus?: Prisma.SortOrder
   approvalStartDate?: Prisma.SortOrder
   approvalEndDate?: Prisma.SortOrder
   isArchived?: Prisma.SortOrder
+  importBatchId?: Prisma.SortOrder
+  importSourceRowNumber?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -847,10 +929,13 @@ export type ProjectMinOrderByAggregateInput = {
   proposedStartDate?: Prisma.SortOrder
   proposedEndDate?: Prisma.SortOrder
   committeeId?: Prisma.SortOrder
+  origin?: Prisma.SortOrder
   overallStatus?: Prisma.SortOrder
   approvalStartDate?: Prisma.SortOrder
   approvalEndDate?: Prisma.SortOrder
   isArchived?: Prisma.SortOrder
+  importBatchId?: Prisma.SortOrder
+  importSourceRowNumber?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -859,6 +944,8 @@ export type ProjectMinOrderByAggregateInput = {
 export type ProjectSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   committeeId?: Prisma.SortOrder
+  importBatchId?: Prisma.SortOrder
+  importSourceRowNumber?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
 }
 
@@ -911,6 +998,48 @@ export type ProjectUncheckedUpdateManyWithoutCreatedByNestedInput = {
   connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
   update?: Prisma.ProjectUpdateWithWhereUniqueWithoutCreatedByInput | Prisma.ProjectUpdateWithWhereUniqueWithoutCreatedByInput[]
   updateMany?: Prisma.ProjectUpdateManyWithWhereWithoutCreatedByInput | Prisma.ProjectUpdateManyWithWhereWithoutCreatedByInput[]
+  deleteMany?: Prisma.ProjectScalarWhereInput | Prisma.ProjectScalarWhereInput[]
+}
+
+export type ProjectCreateNestedManyWithoutImportBatchInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutImportBatchInput, Prisma.ProjectUncheckedCreateWithoutImportBatchInput> | Prisma.ProjectCreateWithoutImportBatchInput[] | Prisma.ProjectUncheckedCreateWithoutImportBatchInput[]
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutImportBatchInput | Prisma.ProjectCreateOrConnectWithoutImportBatchInput[]
+  createMany?: Prisma.ProjectCreateManyImportBatchInputEnvelope
+  connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+}
+
+export type ProjectUncheckedCreateNestedManyWithoutImportBatchInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutImportBatchInput, Prisma.ProjectUncheckedCreateWithoutImportBatchInput> | Prisma.ProjectCreateWithoutImportBatchInput[] | Prisma.ProjectUncheckedCreateWithoutImportBatchInput[]
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutImportBatchInput | Prisma.ProjectCreateOrConnectWithoutImportBatchInput[]
+  createMany?: Prisma.ProjectCreateManyImportBatchInputEnvelope
+  connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+}
+
+export type ProjectUpdateManyWithoutImportBatchNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutImportBatchInput, Prisma.ProjectUncheckedCreateWithoutImportBatchInput> | Prisma.ProjectCreateWithoutImportBatchInput[] | Prisma.ProjectUncheckedCreateWithoutImportBatchInput[]
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutImportBatchInput | Prisma.ProjectCreateOrConnectWithoutImportBatchInput[]
+  upsert?: Prisma.ProjectUpsertWithWhereUniqueWithoutImportBatchInput | Prisma.ProjectUpsertWithWhereUniqueWithoutImportBatchInput[]
+  createMany?: Prisma.ProjectCreateManyImportBatchInputEnvelope
+  set?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  disconnect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  delete?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  update?: Prisma.ProjectUpdateWithWhereUniqueWithoutImportBatchInput | Prisma.ProjectUpdateWithWhereUniqueWithoutImportBatchInput[]
+  updateMany?: Prisma.ProjectUpdateManyWithWhereWithoutImportBatchInput | Prisma.ProjectUpdateManyWithWhereWithoutImportBatchInput[]
+  deleteMany?: Prisma.ProjectScalarWhereInput | Prisma.ProjectScalarWhereInput[]
+}
+
+export type ProjectUncheckedUpdateManyWithoutImportBatchNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutImportBatchInput, Prisma.ProjectUncheckedCreateWithoutImportBatchInput> | Prisma.ProjectCreateWithoutImportBatchInput[] | Prisma.ProjectUncheckedCreateWithoutImportBatchInput[]
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutImportBatchInput | Prisma.ProjectCreateOrConnectWithoutImportBatchInput[]
+  upsert?: Prisma.ProjectUpsertWithWhereUniqueWithoutImportBatchInput | Prisma.ProjectUpsertWithWhereUniqueWithoutImportBatchInput[]
+  createMany?: Prisma.ProjectCreateManyImportBatchInputEnvelope
+  set?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  disconnect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  delete?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  update?: Prisma.ProjectUpdateWithWhereUniqueWithoutImportBatchInput | Prisma.ProjectUpdateWithWhereUniqueWithoutImportBatchInput[]
+  updateMany?: Prisma.ProjectUpdateManyWithWhereWithoutImportBatchInput | Prisma.ProjectUpdateManyWithWhereWithoutImportBatchInput[]
   deleteMany?: Prisma.ProjectScalarWhereInput | Prisma.ProjectScalarWhereInput[]
 }
 
@@ -977,6 +1106,10 @@ export type NullableEnumFundingTypeFieldUpdateOperationsInput = {
   set?: $Enums.FundingType | null
 }
 
+export type EnumProjectOriginFieldUpdateOperationsInput = {
+  set?: $Enums.ProjectOrigin
+}
+
 export type EnumProjectStatusFieldUpdateOperationsInput = {
   set?: $Enums.ProjectStatus
 }
@@ -993,6 +1126,20 @@ export type ProjectUpdateOneRequiredWithoutProtocolProfileNestedInput = {
   upsert?: Prisma.ProjectUpsertWithoutProtocolProfileInput
   connect?: Prisma.ProjectWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutProtocolProfileInput, Prisma.ProjectUpdateWithoutProtocolProfileInput>, Prisma.ProjectUncheckedUpdateWithoutProtocolProfileInput>
+}
+
+export type ProjectCreateNestedOneWithoutLegacyImportSnapshotInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutLegacyImportSnapshotInput, Prisma.ProjectUncheckedCreateWithoutLegacyImportSnapshotInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutLegacyImportSnapshotInput
+  connect?: Prisma.ProjectWhereUniqueInput
+}
+
+export type ProjectUpdateOneRequiredWithoutLegacyImportSnapshotNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutLegacyImportSnapshotInput, Prisma.ProjectUncheckedCreateWithoutLegacyImportSnapshotInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutLegacyImportSnapshotInput
+  upsert?: Prisma.ProjectUpsertWithoutLegacyImportSnapshotInput
+  connect?: Prisma.ProjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutLegacyImportSnapshotInput, Prisma.ProjectUpdateWithoutLegacyImportSnapshotInput>, Prisma.ProjectUncheckedUpdateWithoutLegacyImportSnapshotInput>
 }
 
 export type ProjectCreateNestedOneWithoutProtocolMilestonesInput = {
@@ -1112,13 +1259,16 @@ export type ProjectCreateWithoutCreatedByInput = {
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  importBatch?: Prisma.ImportBatchCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
   statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
@@ -1126,6 +1276,7 @@ export type ProjectCreateWithoutCreatedByInput = {
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
 }
 
@@ -1148,10 +1299,13 @@ export type ProjectUncheckedCreateWithoutCreatedByInput = {
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
   committeeId: number
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importBatchId?: number | null
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   snapshots?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutProjectInput
@@ -1161,6 +1315,7 @@ export type ProjectUncheckedCreateWithoutCreatedByInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1212,13 +1367,119 @@ export type ProjectScalarWhereInput = {
   proposedStartDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   proposedEndDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   committeeId?: Prisma.IntFilter<"Project"> | number
+  origin?: Prisma.EnumProjectOriginFilter<"Project"> | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFilter<"Project"> | $Enums.ProjectStatus
   approvalStartDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   approvalEndDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   isArchived?: Prisma.BoolFilter<"Project"> | boolean
+  importBatchId?: Prisma.IntNullableFilter<"Project"> | number | null
+  importSourceRowNumber?: Prisma.IntNullableFilter<"Project"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   createdById?: Prisma.IntNullableFilter<"Project"> | number | null
+}
+
+export type ProjectCreateWithoutImportBatchInput = {
+  projectCode?: string | null
+  title?: string | null
+  piName?: string | null
+  piSurname?: string | null
+  piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
+  department?: string | null
+  proponent?: string | null
+  keywords?: Prisma.ProjectCreatekeywordsInput | string[]
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
+  fundingType?: $Enums.FundingType | null
+  initialSubmissionDate?: Date | string | null
+  proposedStartDate?: Date | string | null
+  proposedEndDate?: Date | string | null
+  origin?: $Enums.ProjectOrigin
+  overallStatus?: $Enums.ProjectStatus
+  approvalStartDate?: Date | string | null
+  approvalEndDate?: Date | string | null
+  isArchived?: boolean
+  importSourceRowNumber?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
+  submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
+  proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
+  members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
+  changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
+}
+
+export type ProjectUncheckedCreateWithoutImportBatchInput = {
+  id?: number
+  projectCode?: string | null
+  title?: string | null
+  piName?: string | null
+  piSurname?: string | null
+  piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
+  department?: string | null
+  proponent?: string | null
+  keywords?: Prisma.ProjectCreatekeywordsInput | string[]
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
+  fundingType?: $Enums.FundingType | null
+  initialSubmissionDate?: Date | string | null
+  proposedStartDate?: Date | string | null
+  proposedEndDate?: Date | string | null
+  committeeId: number
+  origin?: $Enums.ProjectOrigin
+  overallStatus?: $Enums.ProjectStatus
+  approvalStartDate?: Date | string | null
+  approvalEndDate?: Date | string | null
+  isArchived?: boolean
+  importSourceRowNumber?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: number | null
+  snapshots?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutProjectInput
+  submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
+  proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
+  members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
+  changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectCreateOrConnectWithoutImportBatchInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutImportBatchInput, Prisma.ProjectUncheckedCreateWithoutImportBatchInput>
+}
+
+export type ProjectCreateManyImportBatchInputEnvelope = {
+  data: Prisma.ProjectCreateManyImportBatchInput | Prisma.ProjectCreateManyImportBatchInput[]
+  skipDuplicates?: boolean
+}
+
+export type ProjectUpsertWithWhereUniqueWithoutImportBatchInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  update: Prisma.XOR<Prisma.ProjectUpdateWithoutImportBatchInput, Prisma.ProjectUncheckedUpdateWithoutImportBatchInput>
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutImportBatchInput, Prisma.ProjectUncheckedCreateWithoutImportBatchInput>
+}
+
+export type ProjectUpdateWithWhereUniqueWithoutImportBatchInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  data: Prisma.XOR<Prisma.ProjectUpdateWithoutImportBatchInput, Prisma.ProjectUncheckedUpdateWithoutImportBatchInput>
+}
+
+export type ProjectUpdateManyWithWhereWithoutImportBatchInput = {
+  where: Prisma.ProjectScalarWhereInput
+  data: Prisma.XOR<Prisma.ProjectUpdateManyMutationInput, Prisma.ProjectUncheckedUpdateManyWithoutImportBatchInput>
 }
 
 export type ProjectCreateWithoutCommitteeInput = {
@@ -1238,12 +1499,15 @@ export type ProjectCreateWithoutCommitteeInput = {
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  importBatch?: Prisma.ImportBatchCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
   statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
@@ -1251,6 +1515,7 @@ export type ProjectCreateWithoutCommitteeInput = {
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -1273,10 +1538,13 @@ export type ProjectUncheckedCreateWithoutCommitteeInput = {
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importBatchId?: number | null
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
@@ -1287,6 +1555,7 @@ export type ProjectUncheckedCreateWithoutCommitteeInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1333,19 +1602,23 @@ export type ProjectCreateWithoutProtocolProfileInput = {
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  importBatch?: Prisma.ImportBatchCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
   statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -1369,10 +1642,13 @@ export type ProjectUncheckedCreateWithoutProtocolProfileInput = {
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
   committeeId: number
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importBatchId?: number | null
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
@@ -1382,6 +1658,7 @@ export type ProjectUncheckedCreateWithoutProtocolProfileInput = {
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1418,19 +1695,23 @@ export type ProjectUpdateWithoutProtocolProfileInput = {
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  importBatch?: Prisma.ImportBatchUpdateOneWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
   statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -1454,10 +1735,13 @@ export type ProjectUncheckedUpdateWithoutProtocolProfileInput = {
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1467,6 +1751,177 @@ export type ProjectUncheckedUpdateWithoutProtocolProfileInput = {
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
+}
+
+export type ProjectCreateWithoutLegacyImportSnapshotInput = {
+  projectCode?: string | null
+  title?: string | null
+  piName?: string | null
+  piSurname?: string | null
+  piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
+  department?: string | null
+  proponent?: string | null
+  keywords?: Prisma.ProjectCreatekeywordsInput | string[]
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
+  fundingType?: $Enums.FundingType | null
+  initialSubmissionDate?: Date | string | null
+  proposedStartDate?: Date | string | null
+  proposedEndDate?: Date | string | null
+  origin?: $Enums.ProjectOrigin
+  overallStatus?: $Enums.ProjectStatus
+  approvalStartDate?: Date | string | null
+  approvalEndDate?: Date | string | null
+  isArchived?: boolean
+  importSourceRowNumber?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  importBatch?: Prisma.ImportBatchCreateNestedOneWithoutProjectsInput
+  snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
+  submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
+  proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
+  members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
+  changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
+}
+
+export type ProjectUncheckedCreateWithoutLegacyImportSnapshotInput = {
+  id?: number
+  projectCode?: string | null
+  title?: string | null
+  piName?: string | null
+  piSurname?: string | null
+  piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
+  department?: string | null
+  proponent?: string | null
+  keywords?: Prisma.ProjectCreatekeywordsInput | string[]
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
+  fundingType?: $Enums.FundingType | null
+  initialSubmissionDate?: Date | string | null
+  proposedStartDate?: Date | string | null
+  proposedEndDate?: Date | string | null
+  committeeId: number
+  origin?: $Enums.ProjectOrigin
+  overallStatus?: $Enums.ProjectStatus
+  approvalStartDate?: Date | string | null
+  approvalEndDate?: Date | string | null
+  isArchived?: boolean
+  importBatchId?: number | null
+  importSourceRowNumber?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: number | null
+  snapshots?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutProjectInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutProjectInput
+  submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
+  proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
+  members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
+  changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectCreateOrConnectWithoutLegacyImportSnapshotInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutLegacyImportSnapshotInput, Prisma.ProjectUncheckedCreateWithoutLegacyImportSnapshotInput>
+}
+
+export type ProjectUpsertWithoutLegacyImportSnapshotInput = {
+  update: Prisma.XOR<Prisma.ProjectUpdateWithoutLegacyImportSnapshotInput, Prisma.ProjectUncheckedUpdateWithoutLegacyImportSnapshotInput>
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutLegacyImportSnapshotInput, Prisma.ProjectUncheckedCreateWithoutLegacyImportSnapshotInput>
+  where?: Prisma.ProjectWhereInput
+}
+
+export type ProjectUpdateToOneWithWhereWithoutLegacyImportSnapshotInput = {
+  where?: Prisma.ProjectWhereInput
+  data: Prisma.XOR<Prisma.ProjectUpdateWithoutLegacyImportSnapshotInput, Prisma.ProjectUncheckedUpdateWithoutLegacyImportSnapshotInput>
+}
+
+export type ProjectUpdateWithoutLegacyImportSnapshotInput = {
+  projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
+  initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
+  overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  importBatch?: Prisma.ImportBatchUpdateOneWithoutProjectsNestedInput
+  snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
+  submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
+  proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
+  members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
+  changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
+}
+
+export type ProjectUncheckedUpdateWithoutLegacyImportSnapshotInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
+  initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
+  overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  snapshots?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutProjectNestedInput
+  submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
+  members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
+  changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -1487,13 +1942,16 @@ export type ProjectCreateWithoutProtocolMilestonesInput = {
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  importBatch?: Prisma.ImportBatchCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
   statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
@@ -1501,6 +1959,7 @@ export type ProjectCreateWithoutProtocolMilestonesInput = {
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
 
@@ -1523,10 +1982,13 @@ export type ProjectUncheckedCreateWithoutProtocolMilestonesInput = {
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
   committeeId: number
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importBatchId?: number | null
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
@@ -1537,6 +1999,7 @@ export type ProjectUncheckedCreateWithoutProtocolMilestonesInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutProtocolMilestonesInput = {
@@ -1572,13 +2035,16 @@ export type ProjectUpdateWithoutProtocolMilestonesInput = {
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  importBatch?: Prisma.ImportBatchUpdateOneWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
   statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
@@ -1586,6 +2052,7 @@ export type ProjectUpdateWithoutProtocolMilestonesInput = {
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
 
@@ -1608,10 +2075,13 @@ export type ProjectUncheckedUpdateWithoutProtocolMilestonesInput = {
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1622,6 +2092,7 @@ export type ProjectUncheckedUpdateWithoutProtocolMilestonesInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
 }
 
 export type ProjectCreateWithoutProponentsInput = {
@@ -1641,19 +2112,23 @@ export type ProjectCreateWithoutProponentsInput = {
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  importBatch?: Prisma.ImportBatchCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
   statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -1677,10 +2152,13 @@ export type ProjectUncheckedCreateWithoutProponentsInput = {
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
   committeeId: number
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importBatchId?: number | null
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
@@ -1690,6 +2168,7 @@ export type ProjectUncheckedCreateWithoutProponentsInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1726,19 +2205,23 @@ export type ProjectUpdateWithoutProponentsInput = {
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  importBatch?: Prisma.ImportBatchUpdateOneWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
   statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -1762,10 +2245,13 @@ export type ProjectUncheckedUpdateWithoutProponentsInput = {
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1775,6 +2261,7 @@ export type ProjectUncheckedUpdateWithoutProponentsInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -1795,19 +2282,23 @@ export type ProjectCreateWithoutMembersInput = {
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  importBatch?: Prisma.ImportBatchCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
   statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -1831,10 +2322,13 @@ export type ProjectUncheckedCreateWithoutMembersInput = {
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
   committeeId: number
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importBatchId?: number | null
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
@@ -1844,6 +2338,7 @@ export type ProjectUncheckedCreateWithoutMembersInput = {
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1880,19 +2375,23 @@ export type ProjectUpdateWithoutMembersInput = {
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  importBatch?: Prisma.ImportBatchUpdateOneWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
   statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -1916,10 +2415,13 @@ export type ProjectUncheckedUpdateWithoutMembersInput = {
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1929,6 +2431,7 @@ export type ProjectUncheckedUpdateWithoutMembersInput = {
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -1949,19 +2452,23 @@ export type ProjectCreateWithoutChangeLogInput = {
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  importBatch?: Prisma.ImportBatchCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
   statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -1985,10 +2492,13 @@ export type ProjectUncheckedCreateWithoutChangeLogInput = {
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
   committeeId: number
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importBatchId?: number | null
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
@@ -1998,6 +2508,7 @@ export type ProjectUncheckedCreateWithoutChangeLogInput = {
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -2034,19 +2545,23 @@ export type ProjectUpdateWithoutChangeLogInput = {
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  importBatch?: Prisma.ImportBatchUpdateOneWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
   statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -2070,10 +2585,13 @@ export type ProjectUncheckedUpdateWithoutChangeLogInput = {
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2083,6 +2601,7 @@ export type ProjectUncheckedUpdateWithoutChangeLogInput = {
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -2103,19 +2622,23 @@ export type ProjectCreateWithoutSnapshotsInput = {
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  importBatch?: Prisma.ImportBatchCreateNestedOneWithoutProjectsInput
   statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -2139,10 +2662,13 @@ export type ProjectUncheckedCreateWithoutSnapshotsInput = {
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
   committeeId: number
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importBatchId?: number | null
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
@@ -2152,6 +2678,7 @@ export type ProjectUncheckedCreateWithoutSnapshotsInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -2188,19 +2715,23 @@ export type ProjectUpdateWithoutSnapshotsInput = {
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  importBatch?: Prisma.ImportBatchUpdateOneWithoutProjectsNestedInput
   statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -2224,10 +2755,13 @@ export type ProjectUncheckedUpdateWithoutSnapshotsInput = {
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2237,6 +2771,7 @@ export type ProjectUncheckedUpdateWithoutSnapshotsInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -2257,19 +2792,23 @@ export type ProjectCreateWithoutSubmissionsInput = {
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  importBatch?: Prisma.ImportBatchCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
   statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -2293,10 +2832,13 @@ export type ProjectUncheckedCreateWithoutSubmissionsInput = {
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
   committeeId: number
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importBatchId?: number | null
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
@@ -2306,6 +2848,7 @@ export type ProjectUncheckedCreateWithoutSubmissionsInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -2342,19 +2885,23 @@ export type ProjectUpdateWithoutSubmissionsInput = {
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  importBatch?: Prisma.ImportBatchUpdateOneWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
   statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -2378,10 +2925,13 @@ export type ProjectUncheckedUpdateWithoutSubmissionsInput = {
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2391,6 +2941,7 @@ export type ProjectUncheckedUpdateWithoutSubmissionsInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -2411,19 +2962,23 @@ export type ProjectCreateWithoutStatusHistoryInput = {
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
+  importBatch?: Prisma.ImportBatchCreateNestedOneWithoutProjectsInput
   snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
   submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -2447,10 +3002,13 @@ export type ProjectUncheckedCreateWithoutStatusHistoryInput = {
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
   committeeId: number
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importBatchId?: number | null
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
@@ -2460,6 +3018,7 @@ export type ProjectUncheckedCreateWithoutStatusHistoryInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -2496,19 +3055,23 @@ export type ProjectUpdateWithoutStatusHistoryInput = {
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  importBatch?: Prisma.ImportBatchUpdateOneWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -2532,10 +3095,13 @@ export type ProjectUncheckedUpdateWithoutStatusHistoryInput = {
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2545,6 +3111,7 @@ export type ProjectUncheckedUpdateWithoutStatusHistoryInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -2567,10 +3134,13 @@ export type ProjectCreateManyCreatedByInput = {
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
   committeeId: number
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importBatchId?: number | null
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -2592,13 +3162,16 @@ export type ProjectUpdateWithoutCreatedByInput = {
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  importBatch?: Prisma.ImportBatchUpdateOneWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
   statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
@@ -2606,6 +3179,7 @@ export type ProjectUpdateWithoutCreatedByInput = {
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
 }
 
@@ -2628,10 +3202,13 @@ export type ProjectUncheckedUpdateWithoutCreatedByInput = {
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   snapshots?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutProjectNestedInput
@@ -2641,6 +3218,7 @@ export type ProjectUncheckedUpdateWithoutCreatedByInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -2663,12 +3241,152 @@ export type ProjectUncheckedUpdateManyWithoutCreatedByInput = {
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ProjectCreateManyImportBatchInput = {
+  id?: number
+  projectCode?: string | null
+  title?: string | null
+  piName?: string | null
+  piSurname?: string | null
+  piAffiliation?: string | null
+  collegeOrUnit?: string | null
+  proponentCategory?: $Enums.ProponentCategory | null
+  department?: string | null
+  proponent?: string | null
+  keywords?: Prisma.ProjectCreatekeywordsInput | string[]
+  researchTypePHREB?: $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: string | null
+  fundingType?: $Enums.FundingType | null
+  initialSubmissionDate?: Date | string | null
+  proposedStartDate?: Date | string | null
+  proposedEndDate?: Date | string | null
+  committeeId: number
+  origin?: $Enums.ProjectOrigin
+  overallStatus?: $Enums.ProjectStatus
+  approvalStartDate?: Date | string | null
+  approvalEndDate?: Date | string | null
+  isArchived?: boolean
+  importSourceRowNumber?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdById?: number | null
+}
+
+export type ProjectUpdateWithoutImportBatchInput = {
+  projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
+  initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
+  overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
+  snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
+  submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
+  proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
+  members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
+  changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
+}
+
+export type ProjectUncheckedUpdateWithoutImportBatchInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
+  initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
+  overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  snapshots?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutProjectNestedInput
+  statusHistory?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutProjectNestedInput
+  submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
+  members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
+  changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
+  protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
+  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
+}
+
+export type ProjectUncheckedUpdateManyWithoutImportBatchInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
+  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
+  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
+  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
+  initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  committeeId?: Prisma.IntFieldUpdateOperationsInput | number
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
+  overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type ProjectCreateManyCommitteeInput = {
@@ -2689,10 +3407,13 @@ export type ProjectCreateManyCommitteeInput = {
   initialSubmissionDate?: Date | string | null
   proposedStartDate?: Date | string | null
   proposedEndDate?: Date | string | null
+  origin?: $Enums.ProjectOrigin
   overallStatus?: $Enums.ProjectStatus
   approvalStartDate?: Date | string | null
   approvalEndDate?: Date | string | null
   isArchived?: boolean
+  importBatchId?: number | null
+  importSourceRowNumber?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   createdById?: number | null
@@ -2715,12 +3436,15 @@ export type ProjectUpdateWithoutCommitteeInput = {
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  importBatch?: Prisma.ImportBatchUpdateOneWithoutProjectsNestedInput
   snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
   statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
   submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
@@ -2728,6 +3452,7 @@ export type ProjectUpdateWithoutCommitteeInput = {
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -2750,10 +3475,13 @@ export type ProjectUncheckedUpdateWithoutCommitteeInput = {
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2764,6 +3492,7 @@ export type ProjectUncheckedUpdateWithoutCommitteeInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -2785,10 +3514,13 @@ export type ProjectUncheckedUpdateManyWithoutCommitteeInput = {
   initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
   overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2898,14 +3630,18 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   proposedStartDate?: boolean
   proposedEndDate?: boolean
   committeeId?: boolean
+  origin?: boolean
   overallStatus?: boolean
   approvalStartDate?: boolean
   approvalEndDate?: boolean
   isArchived?: boolean
+  importBatchId?: boolean
+  importSourceRowNumber?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   createdById?: boolean
   committee?: boolean | Prisma.CommitteeDefaultArgs<ExtArgs>
+  importBatch?: boolean | Prisma.Project$importBatchArgs<ExtArgs>
   snapshots?: boolean | Prisma.Project$snapshotsArgs<ExtArgs>
   statusHistory?: boolean | Prisma.Project$statusHistoryArgs<ExtArgs>
   submissions?: boolean | Prisma.Project$submissionsArgs<ExtArgs>
@@ -2913,6 +3649,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   members?: boolean | Prisma.Project$membersArgs<ExtArgs>
   changeLog?: boolean | Prisma.Project$changeLogArgs<ExtArgs>
   protocolProfile?: boolean | Prisma.Project$protocolProfileArgs<ExtArgs>
+  legacyImportSnapshot?: boolean | Prisma.Project$legacyImportSnapshotArgs<ExtArgs>
   protocolMilestones?: boolean | Prisma.Project$protocolMilestonesArgs<ExtArgs>
   createdBy?: boolean | Prisma.Project$createdByArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
@@ -2937,14 +3674,18 @@ export type ProjectSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   proposedStartDate?: boolean
   proposedEndDate?: boolean
   committeeId?: boolean
+  origin?: boolean
   overallStatus?: boolean
   approvalStartDate?: boolean
   approvalEndDate?: boolean
   isArchived?: boolean
+  importBatchId?: boolean
+  importSourceRowNumber?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   createdById?: boolean
   committee?: boolean | Prisma.CommitteeDefaultArgs<ExtArgs>
+  importBatch?: boolean | Prisma.Project$importBatchArgs<ExtArgs>
   createdBy?: boolean | Prisma.Project$createdByArgs<ExtArgs>
 }, ExtArgs["result"]["project"]>
 
@@ -2967,14 +3708,18 @@ export type ProjectSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   proposedStartDate?: boolean
   proposedEndDate?: boolean
   committeeId?: boolean
+  origin?: boolean
   overallStatus?: boolean
   approvalStartDate?: boolean
   approvalEndDate?: boolean
   isArchived?: boolean
+  importBatchId?: boolean
+  importSourceRowNumber?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   createdById?: boolean
   committee?: boolean | Prisma.CommitteeDefaultArgs<ExtArgs>
+  importBatch?: boolean | Prisma.Project$importBatchArgs<ExtArgs>
   createdBy?: boolean | Prisma.Project$createdByArgs<ExtArgs>
 }, ExtArgs["result"]["project"]>
 
@@ -2997,18 +3742,22 @@ export type ProjectSelectScalar = {
   proposedStartDate?: boolean
   proposedEndDate?: boolean
   committeeId?: boolean
+  origin?: boolean
   overallStatus?: boolean
   approvalStartDate?: boolean
   approvalEndDate?: boolean
   isArchived?: boolean
+  importBatchId?: boolean
+  importSourceRowNumber?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   createdById?: boolean
 }
 
-export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectCode" | "title" | "piName" | "piSurname" | "piAffiliation" | "collegeOrUnit" | "proponentCategory" | "department" | "proponent" | "keywords" | "researchTypePHREB" | "researchTypePHREBOther" | "fundingType" | "initialSubmissionDate" | "proposedStartDate" | "proposedEndDate" | "committeeId" | "overallStatus" | "approvalStartDate" | "approvalEndDate" | "isArchived" | "createdAt" | "updatedAt" | "createdById", ExtArgs["result"]["project"]>
+export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectCode" | "title" | "piName" | "piSurname" | "piAffiliation" | "collegeOrUnit" | "proponentCategory" | "department" | "proponent" | "keywords" | "researchTypePHREB" | "researchTypePHREBOther" | "fundingType" | "initialSubmissionDate" | "proposedStartDate" | "proposedEndDate" | "committeeId" | "origin" | "overallStatus" | "approvalStartDate" | "approvalEndDate" | "isArchived" | "importBatchId" | "importSourceRowNumber" | "createdAt" | "updatedAt" | "createdById", ExtArgs["result"]["project"]>
 export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   committee?: boolean | Prisma.CommitteeDefaultArgs<ExtArgs>
+  importBatch?: boolean | Prisma.Project$importBatchArgs<ExtArgs>
   snapshots?: boolean | Prisma.Project$snapshotsArgs<ExtArgs>
   statusHistory?: boolean | Prisma.Project$statusHistoryArgs<ExtArgs>
   submissions?: boolean | Prisma.Project$submissionsArgs<ExtArgs>
@@ -3016,16 +3765,19 @@ export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   members?: boolean | Prisma.Project$membersArgs<ExtArgs>
   changeLog?: boolean | Prisma.Project$changeLogArgs<ExtArgs>
   protocolProfile?: boolean | Prisma.Project$protocolProfileArgs<ExtArgs>
+  legacyImportSnapshot?: boolean | Prisma.Project$legacyImportSnapshotArgs<ExtArgs>
   protocolMilestones?: boolean | Prisma.Project$protocolMilestonesArgs<ExtArgs>
   createdBy?: boolean | Prisma.Project$createdByArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProjectIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   committee?: boolean | Prisma.CommitteeDefaultArgs<ExtArgs>
+  importBatch?: boolean | Prisma.Project$importBatchArgs<ExtArgs>
   createdBy?: boolean | Prisma.Project$createdByArgs<ExtArgs>
 }
 export type ProjectIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   committee?: boolean | Prisma.CommitteeDefaultArgs<ExtArgs>
+  importBatch?: boolean | Prisma.Project$importBatchArgs<ExtArgs>
   createdBy?: boolean | Prisma.Project$createdByArgs<ExtArgs>
 }
 
@@ -3033,6 +3785,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   name: "Project"
   objects: {
     committee: Prisma.$CommitteePayload<ExtArgs>
+    importBatch: Prisma.$ImportBatchPayload<ExtArgs> | null
     snapshots: Prisma.$ProjectSnapshotPayload<ExtArgs>[]
     statusHistory: Prisma.$ProjectStatusHistoryPayload<ExtArgs>[]
     submissions: Prisma.$SubmissionPayload<ExtArgs>[]
@@ -3040,6 +3793,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     members: Prisma.$ProjectMemberPayload<ExtArgs>[]
     changeLog: Prisma.$ProjectChangeLogPayload<ExtArgs>[]
     protocolProfile: Prisma.$ProtocolProfilePayload<ExtArgs> | null
+    legacyImportSnapshot: Prisma.$LegacyImportSnapshotPayload<ExtArgs> | null
     protocolMilestones: Prisma.$ProtocolMilestonePayload<ExtArgs>[]
     createdBy: Prisma.$UserPayload<ExtArgs> | null
   }
@@ -3062,10 +3816,13 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     proposedStartDate: Date | null
     proposedEndDate: Date | null
     committeeId: number
+    origin: $Enums.ProjectOrigin
     overallStatus: $Enums.ProjectStatus
     approvalStartDate: Date | null
     approvalEndDate: Date | null
     isArchived: boolean
+    importBatchId: number | null
+    importSourceRowNumber: number | null
     createdAt: Date
     updatedAt: Date
     createdById: number | null
@@ -3464,6 +4221,7 @@ readonly fields: ProjectFieldRefs;
 export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   committee<T extends Prisma.CommitteeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CommitteeDefaultArgs<ExtArgs>>): Prisma.Prisma__CommitteeClient<runtime.Types.Result.GetResult<Prisma.$CommitteePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  importBatch<T extends Prisma.Project$importBatchArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$importBatchArgs<ExtArgs>>): Prisma.Prisma__ImportBatchClient<runtime.Types.Result.GetResult<Prisma.$ImportBatchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   snapshots<T extends Prisma.Project$snapshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$snapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectSnapshotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   statusHistory<T extends Prisma.Project$statusHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$statusHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectStatusHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   submissions<T extends Prisma.Project$submissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$submissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3471,6 +4229,7 @@ export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.
   members<T extends Prisma.Project$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   changeLog<T extends Prisma.Project$changeLogArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$changeLogArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectChangeLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   protocolProfile<T extends Prisma.Project$protocolProfileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$protocolProfileArgs<ExtArgs>>): Prisma.Prisma__ProtocolProfileClient<runtime.Types.Result.GetResult<Prisma.$ProtocolProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  legacyImportSnapshot<T extends Prisma.Project$legacyImportSnapshotArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$legacyImportSnapshotArgs<ExtArgs>>): Prisma.Prisma__LegacyImportSnapshotClient<runtime.Types.Result.GetResult<Prisma.$LegacyImportSnapshotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   protocolMilestones<T extends Prisma.Project$protocolMilestonesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$protocolMilestonesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProtocolMilestonePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdBy<T extends Prisma.Project$createdByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$createdByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
@@ -3520,10 +4279,13 @@ export interface ProjectFieldRefs {
   readonly proposedStartDate: Prisma.FieldRef<"Project", 'DateTime'>
   readonly proposedEndDate: Prisma.FieldRef<"Project", 'DateTime'>
   readonly committeeId: Prisma.FieldRef<"Project", 'Int'>
+  readonly origin: Prisma.FieldRef<"Project", 'ProjectOrigin'>
   readonly overallStatus: Prisma.FieldRef<"Project", 'ProjectStatus'>
   readonly approvalStartDate: Prisma.FieldRef<"Project", 'DateTime'>
   readonly approvalEndDate: Prisma.FieldRef<"Project", 'DateTime'>
   readonly isArchived: Prisma.FieldRef<"Project", 'Boolean'>
+  readonly importBatchId: Prisma.FieldRef<"Project", 'Int'>
+  readonly importSourceRowNumber: Prisma.FieldRef<"Project", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Project", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Project", 'DateTime'>
   readonly createdById: Prisma.FieldRef<"Project", 'Int'>
@@ -3923,6 +4685,25 @@ export type ProjectDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
 }
 
 /**
+ * Project.importBatch
+ */
+export type Project$importBatchArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ImportBatch
+   */
+  select?: Prisma.ImportBatchSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ImportBatch
+   */
+  omit?: Prisma.ImportBatchOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ImportBatchInclude<ExtArgs> | null
+  where?: Prisma.ImportBatchWhereInput
+}
+
+/**
  * Project.snapshots
  */
 export type Project$snapshotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4083,6 +4864,25 @@ export type Project$protocolProfileArgs<ExtArgs extends runtime.Types.Extensions
    */
   include?: Prisma.ProtocolProfileInclude<ExtArgs> | null
   where?: Prisma.ProtocolProfileWhereInput
+}
+
+/**
+ * Project.legacyImportSnapshot
+ */
+export type Project$legacyImportSnapshotArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LegacyImportSnapshot
+   */
+  select?: Prisma.LegacyImportSnapshotSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the LegacyImportSnapshot
+   */
+  omit?: Prisma.LegacyImportSnapshotOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LegacyImportSnapshotInclude<ExtArgs> | null
+  where?: Prisma.LegacyImportSnapshotWhereInput
 }
 
 /**

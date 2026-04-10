@@ -5,6 +5,7 @@ import ExemptedTable from "@/components/exempted/ExemptedTable";
 import { BRAND } from "@/config/branding";
 import { fetchColleges, fetchExemptedQueue, issueExemption } from "@/services/api";
 import type { ExemptedQueueItem } from "@/types";
+import { getErrorMessage } from "@/utils";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
 
@@ -26,7 +27,7 @@ export default function ExemptedPage() {
 
   const page = parsePositiveInt(searchParams.get("page"), 1);
   const pageSizeRaw = parsePositiveInt(searchParams.get("pageSize"), 20);
-  const pageSize = PAGE_SIZE_OPTIONS.includes(pageSizeRaw as any) ? pageSizeRaw : 20;
+  const pageSize = PAGE_SIZE_OPTIONS.some((option) => option === pageSizeRaw) ? pageSizeRaw : 20;
   const q = searchParams.get("q") ?? "";
   const college = searchParams.get("college") ?? "";
   const committee = searchParams.get("committee") ?? BRAND.defaultCommitteeCode;
@@ -99,8 +100,8 @@ export default function ExemptedPage() {
       await issueExemption(selectedItem.id, { resultsNotifiedAt: parsed.toISOString() });
       await queryClient.invalidateQueries({ queryKey: ["exemptedQueue"] });
       setSelectedItem(null);
-    } catch (error: any) {
-      setNotifyError(error?.response?.data?.message || error?.message || "Failed to close submission");
+    } catch (error: unknown) {
+      setNotifyError(getErrorMessage(error, "Failed to close submission"));
     } finally {
       setBusyId(null);
     }
@@ -115,8 +116,7 @@ export default function ExemptedPage() {
 
   const queueErrorMessage = useMemo(() => {
     if (!exemptedQuery.error) return null;
-    const err = exemptedQuery.error as any;
-    return err?.response?.data?.message || err?.message || "Unable to fetch queue";
+    return getErrorMessage(exemptedQuery.error, "Unable to fetch queue");
   }, [exemptedQuery.error]);
 
   return (

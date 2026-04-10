@@ -36,7 +36,10 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
     const filterParams = parseDashboardFilterParams(req.query as Record<string, unknown>);
     const filterWhere = buildDashboardFiltersWhere(filterParams);
 
-    const baseProject = { committee: { code: committeeCode } };
+    const baseProject = {
+      committee: { code: committeeCode },
+      origin: { not: "LEGACY_IMPORT" as const },
+    };
     const isAssistant = req.user?.roles.includes(RoleType.RESEARCH_ASSISTANT);
     const roleScope = isAssistant
       ? { reviews: { some: { reviewerId: req.user!.id } } }
@@ -183,6 +186,7 @@ router.get("/dashboard/colleges", requireUser, async (req, res, next) => {
     const byAffiliation = await prisma.project.findMany({
       where: {
         committee: { code: committeeCode },
+        origin: { not: "LEGACY_IMPORT" },
         piAffiliation: { not: null },
       },
       select: { piAffiliation: true },
@@ -193,6 +197,7 @@ router.get("/dashboard/colleges", requireUser, async (req, res, next) => {
     const byCollegeOrUnit = await prisma.project.findMany({
       where: {
         committee: { code: committeeCode },
+        origin: { not: "LEGACY_IMPORT" },
         collegeOrUnit: { not: null },
       },
       select: { collegeOrUnit: true },
@@ -220,6 +225,7 @@ router.get("/dashboard/departments", requireUser, async (req, res, next) => {
     const departments = await prisma.project.findMany({
       where: {
         committee: { code: committeeCode },
+        origin: { not: "LEGACY_IMPORT" },
         department: { not: null },
       },
       select: { department: true },
@@ -239,6 +245,7 @@ router.get("/dashboard/proponents", requireUser, async (req, res, next) => {
     const proponents = await prisma.project.findMany({
       where: {
         committee: { code: committeeCode },
+        origin: { not: "LEGACY_IMPORT" },
         proponent: { not: null },
       },
       select: { proponent: true },
@@ -279,6 +286,7 @@ router.get("/dashboard/overdue", requireUser, async (req, res, next) => {
     const submissionWhere: Record<string, any> = {
       project: {
         committee: { code: committeeCode },
+        origin: { not: "LEGACY_IMPORT" },
       },
     };
     // Merge project-level filters

@@ -543,13 +543,13 @@ export function AssignReviewersBulkModal({
                 <div className="bulk-reviewer-trigger-copy">
                   <strong>
                     {loadingCandidates
-                      ? "Loading reviewer directory…"
+                      ? "Loading approved accounts…"
                       : selectedReviewer?.fullName || "Select a reviewer"}
                   </strong>
                   <span>
                     {selectedReviewer
                       ? `${selectedReviewer.email} • ${formatReviewerCandidateMeta(selectedReviewer)}`
-                      : "Search by name, email, or expertise"}
+                      : "Search approved accounts by name, email, or expertise"}
                   </span>
                 </div>
                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -584,7 +584,7 @@ export function AssignReviewersBulkModal({
                       type="text"
                       value={reviewerQuery}
                       onChange={(event) => setReviewerQuery(event.target.value)}
-                      placeholder="Search reviewer directory"
+                      placeholder="Search approved accounts"
                       autoFocus
                     />
                   </div>
@@ -625,7 +625,7 @@ export function AssignReviewersBulkModal({
             <small className={reviewerFieldError ? "bulk-field-error" : undefined}>
               {reviewerFieldError
                 ? REVIEWER_REQUIRED_MESSAGE
-                : "Search the reviewer directory and apply one reviewer to every eligible submission."}
+                : "Choose from active approved accounts and apply one reviewer to every eligible submission."}
             </small>
           </div>
 

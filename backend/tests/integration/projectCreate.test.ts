@@ -10,6 +10,12 @@ const txSubmissionStatusHistoryCreate = jest.fn();
 jest.mock("../../src/config/prismaClient", () => ({
   __esModule: true,
   default: {
+    configSLA: {
+      findMany: jest.fn(),
+    },
+    holiday: {
+      findMany: jest.fn(),
+    },
     committee: {
       findFirst: jest.fn(),
       findMany: jest.fn(),
@@ -33,6 +39,8 @@ jest.mock("../../src/config/prismaClient", () => ({
 }));
 
 const prisma = prismaClient as unknown as {
+  configSLA: { findMany: jest.Mock };
+  holiday: { findMany: jest.Mock };
   committee: { findFirst: jest.Mock; findMany: jest.Mock };
   project: {
     findFirst: jest.Mock;
@@ -55,6 +63,8 @@ describe("POST /projects", () => {
     jest.clearAllMocks();
 
     prisma.committee.findFirst.mockResolvedValue({ id: 10, code: "RERC-HUMAN" });
+    prisma.configSLA.findMany.mockResolvedValue([]);
+    prisma.holiday.findMany.mockResolvedValue([]);
     prisma.project.findFirst.mockResolvedValue(null);
     txProjectCreate.mockResolvedValue({ id: 101 });
     txSubmissionCreate.mockResolvedValue({ id: 202 });
@@ -217,6 +227,8 @@ describe("POST /intake/projects", () => {
     jest.clearAllMocks();
 
     prisma.committee.findFirst.mockResolvedValue({ id: 10, code: "RERC-HUMAN" });
+    prisma.configSLA.findMany.mockResolvedValue([]);
+    prisma.holiday.findMany.mockResolvedValue([]);
     prisma.project.findFirst.mockResolvedValue(null);
     txProjectCreate.mockResolvedValue({ id: 901 });
     txSubmissionCreate.mockResolvedValue({ id: 902 });

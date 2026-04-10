@@ -6,6 +6,7 @@ import {
   updateHoliday,
 } from "@/services/api";
 import type { HolidayItem } from "@/types";
+import { getErrorMessage, getErrorStatus } from "@/utils";
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -282,8 +283,8 @@ export default function HolidaysPage() {
         try {
           await createHoliday({ date, name: newName });
           created += 1;
-        } catch (err: any) {
-          const status = err?.response?.status;
+        } catch (err: unknown) {
+          const status = getErrorStatus(err);
           if (status === 409) {
             conflicts += 1;
             continue;
@@ -302,8 +303,8 @@ export default function HolidaysPage() {
 
       setNewName("");
       await load();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || "Failed to create holiday");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to create holiday"));
     } finally {
       setSaving(false);
     }
@@ -330,8 +331,8 @@ export default function HolidaysPage() {
       cancelEditEvent();
       await load();
       setNotice(`Updated event name for ${group.rows.length} day(s).`);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || "Failed to update event");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to update event"));
     } finally {
       setSaving(false);
     }
@@ -352,8 +353,8 @@ export default function HolidaysPage() {
       }
       await load();
       setNotice(`Deleted ${group.rows.length} day(s).`);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || "Failed to delete event");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to delete event"));
     } finally {
       setSaving(false);
     }

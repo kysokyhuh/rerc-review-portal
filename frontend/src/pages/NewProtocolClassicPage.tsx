@@ -6,6 +6,7 @@ import {
   type CommitteeSummary,
 } from "@/services/api";
 import { Breadcrumbs } from "@/components";
+import { getErrorData, getErrorMessage, getErrorStatus } from "@/utils";
 import "../styles/new-protocol.css";
 
 /* ── Form state shape ─────────────────────────────────────────────── */
@@ -94,7 +95,6 @@ const RESEARCH_TYPES = [
   "EPIDEMIOLOGICAL",
   "OTHER",
 ];
-const REVIEW_TYPES = ["EXEMPT", "EXPEDITED", "FULL_BOARD"];
 const STATUS_OPTIONS = ["RECEIVED", "CLEARED", "EXEMPTED", "WITHDRAWN"];
 const HONORARIUM_OPTIONS = ["PAID", "PROCESSING", "PENDING", "NOT_APPLICABLE"];
 
@@ -208,8 +208,8 @@ export default function NewProtocolPage() {
               : { ...prev, committeeCode: result[0].code }
           );
         }
-      } catch (error: any) {
-        setCommitteeError(error?.message || "Failed to load committees.");
+      } catch (error: unknown) {
+        setCommitteeError(getErrorMessage(error, "Failed to load committees."));
       } finally {
         setCommitteeLoading(false);
       }
@@ -276,9 +276,14 @@ export default function NewProtocolPage() {
         monthOfClearance: form.monthOfClearance || undefined,
       });
       setCreated(response);
-    } catch (error: any) {
-      if (error?.response?.status === 400) {
-        const fieldErrors = error?.response?.data?.errors as Array<{ field: string; message: string }> | undefined;
+    } catch (error: unknown) {
+      const responseData = getErrorData<{
+        errors?: Array<{ field: string; message: string }>;
+        projectId?: number;
+      }>(error);
+
+      if (getErrorStatus(error) === 400) {
+        const fieldErrors = responseData?.errors;
         if (fieldErrors?.length) {
           const mapped: FieldErrors = {};
           fieldErrors.forEach((fe) => {
@@ -291,13 +296,13 @@ export default function NewProtocolPage() {
         }
       }
 
-      if (error?.response?.status === 409 && error?.response?.data?.projectId) {
+      if (getErrorStatus(error) === 409 && responseData?.projectId) {
         setSubmitError("Project code already exists. You can open the existing project.");
-        setCreated({ projectId: error.response.data.projectId, submissionId: 0 });
+        setCreated({ projectId: responseData.projectId, submissionId: 0 });
         return;
       }
 
-      setSubmitError(error?.response?.data?.message || error?.message || "Failed to create protocol.");
+      setSubmitError(getErrorMessage(error, "Failed to create protocol."));
     } finally {
       setLoading(false);
     }

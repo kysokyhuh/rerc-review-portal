@@ -35,6 +35,7 @@ export async function listExemptedQueue(params: ListExemptedQueueParams) {
       reviewType: ReviewType.EXEMPT,
     },
     project: {
+      origin: { not: "LEGACY_IMPORT" as const },
       ...buildCommitteeWhere(params.committee),
       ...(params.college?.trim()
         ? {

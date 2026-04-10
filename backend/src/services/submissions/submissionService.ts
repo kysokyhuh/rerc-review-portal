@@ -7,7 +7,6 @@ import {
   Prisma,
   ProjectStatus,
   ReminderTarget,
-  RoleType,
   ReviewDecision,
   ReviewerRoleType,
   ReviewerRoundRole,
@@ -473,6 +472,18 @@ export async function getSubmissionById(id: number) {
         include: {
           committee: true,
           protocolProfile: true,
+          legacyImportSnapshot: {
+            include: {
+              importBatch: {
+                select: {
+                  id: true,
+                  mode: true,
+                  sourceFilename: true,
+                  createdAt: true,
+                },
+              },
+            },
+          },
           submissions: {
             orderBy: [{ sequenceNumber: "asc" }, { id: "asc" }],
             select: {
@@ -1305,10 +1316,6 @@ export async function listReviewerCandidates() {
     where: {
       isActive: true,
       status: UserStatus.APPROVED,
-      OR: [
-        { roles: { has: RoleType.REVIEWER } },
-        { isCommonReviewer: true },
-      ],
     },
     select: {
       id: true,

@@ -33,7 +33,8 @@ const DEPARTMENT_OPTIONS = [
   "SOE",
 ];
 
-const PROFILE_GROUPS: ProfileGroup[] = [
+/** Fields that represent true reference/identity data for the protocol. */
+const CORE_GROUPS: ProfileGroup[] = [
   {
     name: "Core Information",
     icon: "📋",
@@ -50,42 +51,58 @@ const PROFILE_GROUPS: ProfileGroup[] = [
       { key: "funding", label: "Funding", type: "text" },
       { key: "typeOfResearchPhreb", label: "Type of Research PHREB", type: "text" },
       { key: "typeOfResearchPhrebOther", label: "Type of Research PHREB (Other)", type: "text" },
-      { key: "status", label: "Status", type: "text" },
-      { key: "finishDate", label: "Finish Date", type: "date" },
-      { key: "monthOfClearance", label: "Month of Clearance", type: "text" },
-      { key: "reviewDurationDays", label: "Review Duration Days", type: "number" },
       { key: "remarks", label: "Remarks", type: "text" },
     ],
   },
   {
-    name: "Panel & Reviewers",
-    icon: "👥",
-    defaultOpen: true,
-    fields: [
-      { key: "panel", label: "Panel", type: "select", options: ["Panel 1", "Panel 2", "Panel 3"] },
-      { key: "scientistReviewer", label: "Scientist Reviewer", type: "text" },
-      { key: "layReviewer", label: "Lay Reviewer", type: "text" },
-      { key: "independentConsultant", label: "Independent Consultant", type: "text" },
-      { key: "primaryReviewer", label: "Primary Reviewer", type: "text" },
-      { key: "finalLayReviewer", label: "Lay Reviewer (Final)", type: "text" },
-      { key: "honorariumStatus", label: "Honorarium Status", type: "text" },
-    ],
-  },
-  {
-    name: "Classification & Summary",
-    icon: "📊",
+    name: "Clearance & Dates",
+    icon: "📅",
     defaultOpen: false,
     hasWithdrawn: true,
     fields: [
-      { key: "classificationOfProposalRerc", label: "Classification of Proposal (RERC)", type: "text" },
-      { key: "totalDays", label: "Total Days", type: "number" },
-      { key: "submissionCount", label: "# Submissions", type: "number" },
+      { key: "finishDate", label: "Finish Date", type: "date" },
+      { key: "monthOfClearance", label: "Month of Clearance", type: "text" },
       { key: "projectEndDate6A", label: "Project End Date (6A)", type: "date" },
       { key: "clearanceExpiration", label: "Clearance Expiration", type: "date" },
     ],
   },
+];
+
+/**
+ * Fields carried over from legacy spreadsheet imports. These are NOT the live
+ * operational source of truth — live workflow data is tracked via Submission,
+ * Classification, and ReviewAssignment records. These fields are kept for
+ * historical reference and should not be read as authoritative workflow state.
+ */
+const LEGACY_REFERENCE_GROUPS: ProfileGroup[] = [
   {
-    name: "Progress Report",
+    name: "Legacy Status & Counts",
+    icon: "📊",
+    defaultOpen: false,
+    fields: [
+      { key: "status", label: "Status (legacy)", type: "text" },
+      { key: "reviewDurationDays", label: "Review Duration Days (legacy)", type: "number" },
+      { key: "classificationOfProposalRerc", label: "Classification of Proposal (RERC)", type: "text" },
+      { key: "totalDays", label: "Total Days (legacy)", type: "number" },
+      { key: "submissionCount", label: "# Submissions (legacy)", type: "number" },
+    ],
+  },
+  {
+    name: "Legacy Panel & Reviewers",
+    icon: "👥",
+    defaultOpen: false,
+    fields: [
+      { key: "panel", label: "Panel (legacy)", type: "select", options: ["Panel 1", "Panel 2", "Panel 3"] },
+      { key: "scientistReviewer", label: "Scientist Reviewer (legacy)", type: "text" },
+      { key: "layReviewer", label: "Lay Reviewer (legacy)", type: "text" },
+      { key: "independentConsultant", label: "Independent Consultant (legacy)", type: "text" },
+      { key: "primaryReviewer", label: "Primary Reviewer (legacy)", type: "text" },
+      { key: "finalLayReviewer", label: "Lay Reviewer — Final (legacy)", type: "text" },
+      { key: "honorariumStatus", label: "Honorarium Status (legacy)", type: "text" },
+    ],
+  },
+  {
+    name: "Legacy Progress Report",
     icon: "📈",
     defaultOpen: false,
     fields: [
@@ -97,7 +114,7 @@ const PROFILE_GROUPS: ProfileGroup[] = [
     ],
   },
   {
-    name: "Final Report",
+    name: "Legacy Final Report",
     icon: "📄",
     defaultOpen: false,
     fields: [
@@ -109,7 +126,7 @@ const PROFILE_GROUPS: ProfileGroup[] = [
     ],
   },
   {
-    name: "Amendment",
+    name: "Legacy Amendment",
     icon: "✏️",
     defaultOpen: false,
     fields: [
@@ -120,7 +137,7 @@ const PROFILE_GROUPS: ProfileGroup[] = [
     ],
   },
   {
-    name: "Continuing Review",
+    name: "Legacy Continuing Review",
     icon: "🔄",
     defaultOpen: false,
     fields: [
@@ -131,6 +148,9 @@ const PROFILE_GROUPS: ProfileGroup[] = [
     ],
   },
 ];
+
+/** All groups combined — used by profileToFormState / formStateToPayload so every field round-trips correctly. */
+const PROFILE_GROUPS: ProfileGroup[] = [...CORE_GROUPS, ...LEGACY_REFERENCE_GROUPS];
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
 
@@ -250,7 +270,7 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
     setOpenGroups(next);
   };
 
-  const allOpen = PROFILE_GROUPS.every((g) => openGroups[g.name]);
+  const allOpen = CORE_GROUPS.every((g) => openGroups[g.name]);
 
   /** Count filled fields in a group. */
   const filledCount = (group: ProfileGroup) => {
@@ -271,6 +291,99 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
       return formatDateDisplay(raw);
     }
     return String(raw);
+  };
+
+  const renderGroup = (group: ProfileGroup) => {
+    const isOpen = openGroups[group.name] ?? group.defaultOpen;
+    const filled = filledCount(group);
+    const total = group.fields.length + (group.hasWithdrawn ? 1 : 0);
+
+    return (
+      <div className={`pp-group ${isOpen ? "pp-group-open" : ""}`} key={group.name}>
+        <button
+          type="button"
+          className="pp-group-toggle"
+          onClick={() => toggleGroup(group.name)}
+          aria-expanded={isOpen}
+        >
+          <Chevron open={isOpen} />
+          <span className="pp-group-icon">{group.icon}</span>
+          <span className="pp-group-name">{group.name}</span>
+          <span className="pp-group-count">{filled}/{total}</span>
+        </button>
+
+        {isOpen && (
+          <div className="pp-group-body">
+            <div className="pp-fields">
+              {group.fields.map((field) => {
+                const isEmpty = !profile?.[field.key as keyof ProtocolProfile] && !editing;
+                return (
+                  <div className={`pp-field ${isEmpty ? "pp-field-empty" : ""}`} key={field.key}>
+                    <label className="pp-field-label">{field.label}</label>
+                    {editing ? (
+                      field.type === "select" ? (
+                        (() => {
+                          const currentValue = profileForm[field.key] ?? "";
+                          const options = field.options ?? [];
+                          const hasCurrent = currentValue !== "" && options.includes(currentValue);
+                          return (
+                            <select
+                              className="pp-field-input"
+                              value={currentValue}
+                              onChange={(e) =>
+                                setProfileForm((prev) => ({ ...prev, [field.key]: e.target.value }))
+                              }
+                            >
+                              <option value="">Select...</option>
+                              {!hasCurrent ? <option value={currentValue}>{currentValue}</option> : null}
+                              {field.options?.map((opt) => (
+                                <option key={opt} value={opt}>{opt}</option>
+                              ))}
+                            </select>
+                          );
+                        })()
+                      ) : (
+                        <input
+                          className="pp-field-input"
+                          type={field.type}
+                          value={profileForm[field.key] ?? ""}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({ ...prev, [field.key]: e.target.value }))
+                          }
+                        />
+                      )
+                    ) : (
+                      <span className="pp-field-value">{formatValue(field)}</span>
+                    )}
+                  </div>
+                );
+              })}
+              {group.hasWithdrawn && (
+                <div className="pp-field" key="withdrawn">
+                  <label className="pp-field-label">Withdrawn</label>
+                  {editing ? (
+                    <select
+                      className="pp-field-input"
+                      value={profileForm.withdrawn ?? "false"}
+                      onChange={(e) =>
+                        setProfileForm((prev) => ({ ...prev, withdrawn: e.target.value }))
+                      }
+                    >
+                      <option value="false">No</option>
+                      <option value="true">Yes</option>
+                    </select>
+                  ) : (
+                    <span className="pp-field-value">
+                      {profile?.withdrawn ? "Yes" : "No"}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -306,103 +419,22 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
         </div>
       </div>
 
-      {/* Groups */}
+      {/* Core profile groups */}
       <div className="pp-groups">
-        {PROFILE_GROUPS.map((group) => {
-          const isOpen = openGroups[group.name] ?? group.defaultOpen;
-          const filled = filledCount(group);
-          const total = group.fields.length + (group.hasWithdrawn ? 1 : 0);
+        {CORE_GROUPS.map((group) => renderGroup(group))}
+      </div>
 
-          return (
-            <div className={`pp-group ${isOpen ? "pp-group-open" : ""}`} key={group.name}>
-              <button
-                type="button"
-                className="pp-group-toggle"
-                onClick={() => toggleGroup(group.name)}
-                aria-expanded={isOpen}
-              >
-                <Chevron open={isOpen} />
-                <span className="pp-group-icon">{group.icon}</span>
-                <span className="pp-group-name">{group.name}</span>
-                <span className="pp-group-count">
-                  {filled}/{total}
-                </span>
-              </button>
-
-              {isOpen && (
-                <div className="pp-group-body">
-                  <div className="pp-fields">
-                    {group.fields.map((field) => {
-                      const isEmpty = !profile?.[field.key as keyof ProtocolProfile] && !editing;
-                      return (
-                        <div className={`pp-field ${isEmpty ? "pp-field-empty" : ""}`} key={field.key}>
-                          <label className="pp-field-label">{field.label}</label>
-                          {editing ? (
-                            field.type === "select" ? (
-                              (() => {
-                                const currentValue = profileForm[field.key] ?? "";
-                                const options = field.options ?? [];
-                                const hasCurrent = currentValue !== "" && options.includes(currentValue);
-                                return (
-                              <select
-                                className="pp-field-input"
-                                value={currentValue}
-                                onChange={(e) =>
-                                  setProfileForm((prev) => ({ ...prev, [field.key]: e.target.value }))
-                                }
-                              >
-                                <option value="">Select...</option>
-                                {!hasCurrent ? <option value={currentValue}>{currentValue}</option> : null}
-                                {field.options?.map((opt) => (
-                                  <option key={opt} value={opt}>{opt}</option>
-                                ))}
-                              </select>
-                                );
-                              })()
-                            ) : (
-                              <input
-                                className="pp-field-input"
-                                type={field.type}
-                                value={profileForm[field.key] ?? ""}
-                                onChange={(e) =>
-                                  setProfileForm((prev) => ({ ...prev, [field.key]: e.target.value }))
-                                }
-                              />
-                            )
-                          ) : (
-                            <span className="pp-field-value">{formatValue(field)}</span>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {/* Withdrawn field in Classification group */}
-                    {group.hasWithdrawn && (
-                      <div className="pp-field" key="withdrawn">
-                        <label className="pp-field-label">Withdrawn</label>
-                        {editing ? (
-                          <select
-                            className="pp-field-input"
-                            value={profileForm.withdrawn ?? "false"}
-                            onChange={(e) =>
-                              setProfileForm((prev) => ({ ...prev, withdrawn: e.target.value }))
-                            }
-                          >
-                            <option value="false">No</option>
-                            <option value="true">Yes</option>
-                          </select>
-                        ) : (
-                          <span className="pp-field-value">
-                            {profile?.withdrawn ? "Yes" : "No"}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+      {/* Legacy reference fields — not live workflow truth */}
+      <div className="pp-legacy-section">
+        <div className="pp-legacy-header">
+          <span className="pp-legacy-label">Legacy reference fields</span>
+          <span className="pp-legacy-note">
+            Carried over from spreadsheet imports. Not the live operational source of truth — live status, reviewers, and classifications are tracked separately.
+          </span>
+        </div>
+        <div className="pp-groups">
+          {LEGACY_REFERENCE_GROUPS.map((group) => renderGroup(group))}
+        </div>
       </div>
 
       {/* Slot for extensions (milestones, etc.) */}

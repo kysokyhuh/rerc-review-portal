@@ -9,6 +9,7 @@ import {
 import { Breadcrumbs } from "@/components";
 import { BRAND } from "@/config/branding";
 import { useAuth } from "@/contexts/AuthContext";
+import { getErrorMessage } from "@/utils";
 import "../styles/archives.css";
 
 /**
@@ -150,9 +151,9 @@ export default function ArchivesPage() {
       });
       setItems(response.items);
       setTotal(response.total);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to load archives:", err);
-      setError(err?.message || "Failed to load archived projects");
+      setError(getErrorMessage(err, "Failed to load archived projects"));
     } finally {
       setLoading(false);
     }
@@ -204,10 +205,8 @@ export default function ArchivesPage() {
       await restoreProjectRecord(restoreTarget.projectId, { reason: trimmedReason });
       closeRestoreDialog();
       await loadArchives();
-    } catch (err: any) {
-      setRestoreError(
-        err?.response?.data?.message || err?.message || "Failed to restore archived protocol."
-      );
+    } catch (err: unknown) {
+      setRestoreError(getErrorMessage(err, "Failed to restore archived protocol."));
     } finally {
       setRestoreSubmitting(false);
     }

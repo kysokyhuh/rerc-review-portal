@@ -29,6 +29,11 @@ export type {
   SubmissionSlaSummary,
   CommitteeSummary,
   ImportResult,
+  ImportMode,
+  ImportModeFit,
+  ImportWarning,
+  ImportBatchSummary,
+  LegacyImportSnapshot,
   ProjectImportPreview,
   ProjectImportRowEdit,
   CreateProjectPayload,
@@ -69,6 +74,7 @@ import type {
   ProjectSearchResult,
   CommitteeSummary,
   ImportResult,
+  ImportMode,
   ProjectImportPreview,
   CreateProjectPayload,
   CreateProjectResponse,
@@ -975,11 +981,15 @@ const normalizeUploadProgress = (
 export async function previewProjectsCsv(
   file: File,
   options?: {
+    mode?: ImportMode;
     onUploadProgress?: (progress: CsvUploadProgress) => void;
   }
 ) {
   const formData = new FormData();
   formData.append("file", file);
+  if (options?.mode) {
+    formData.append("mode", options.mode);
+  }
   const response = await api.post("/imports/projects/preview", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
@@ -996,11 +1006,15 @@ export async function commitProjectsCsvImport(
   mapping?: Record<string, string | null>,
   rowEdits?: ProjectImportRowEdit[],
   options?: {
+    mode?: ImportMode;
     onUploadProgress?: (progress: CsvUploadProgress) => void;
   }
 ) {
   const formData = new FormData();
   formData.append("file", file);
+  if (options?.mode) {
+    formData.append("mode", options.mode);
+  }
   if (mapping) {
     formData.append("mapping", JSON.stringify(mapping));
   }

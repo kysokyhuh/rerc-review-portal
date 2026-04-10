@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom";
 import { useProjectDetail } from "@/hooks/useProjectDetail";
 import {
   archiveProjectRecord,
@@ -7,13 +7,13 @@ import {
   deleteProtocolMilestone,
   exportInitialAckCSV,
   exportInitialApprovalDocx,
-  fetchProjectDetail,
   restoreProjectRecord,
   updateProtocolMilestone,
   updateProtocolProfile,
 } from "@/services/api";
 import { Timeline } from "@/components/Timeline";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { LegacyImportSnapshotSection } from "@/components/LegacyImportSnapshotSection";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   ProtocolProfileSection,
@@ -21,6 +21,7 @@ import {
   formStateToPayload,
 } from "@/components/ProtocolProfileSection";
 import type { ProtocolMilestone } from "@/types";
+import { getErrorMessage } from "@/utils";
 
 const STANDARD_MILESTONES: { label: string; ownerRole: string }[] = [
   { label: "Classification of Proposal (RERC)", ownerRole: "RERC Staff" },
@@ -42,7 +43,6 @@ type ArchiveDialogState =
 
 export const ProjectDetailPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
-  const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const [exporting, setExporting] = useState<string | null>(null);
@@ -57,18 +57,24 @@ export const ProjectDetailPage: React.FC = () => {
   const [archiveSubmitting, setArchiveSubmitting] = useState(false);
   const [archiveError, setArchiveError] = useState<string | null>(null);
   const backTarget = `/dashboard${location.search ?? ""}`;
-
-  if (!projectId) {
-    return <div>Project ID is required</div>;
-  }
-
-  const { project, loading, error, reload: reloadProject } = useProjectDetail(parseInt(projectId));
+  const parsedProjectId = Number(projectId);
+  const hasValidProjectId = Number.isInteger(parsedProjectId) && parsedProjectId > 0;
+  const {
+    project,
+    loading,
+    error,
+    reload: reloadProject,
+  } = useProjectDetail(parsedProjectId);
 
   useEffect(() => {
     if (!project) return;
     setProfileForm(profileToFormState(project.protocolProfile));
     setMilestones(project.protocolMilestones ?? []);
   }, [project]);
+
+  if (!hasValidProjectId) {
+    return <div>Project ID is required</div>;
+  }
 
   if (error) {
     return (
@@ -107,6 +113,9 @@ export const ProjectDetailPage: React.FC = () => {
   const canArchiveAsWithdrawn =
     canManageArchive && !isArchived && latestSubmission?.status === "WITHDRAWN";
   const canRestoreArchive = canManageArchive && isArchived;
+  const isLegacyImport = project.origin === "LEGACY_IMPORT";
+  const legacySnapshot = project.legacyImportSnapshot ?? null;
+  const referenceProfile = project.protocolProfile ?? null;
   const latestArchiveEvent = (project.statusHistory ?? []).find(
     (entry) => entry.newStatus === "CLOSED" || entry.newStatus === "WITHDRAWN"
   );
@@ -133,7 +142,7 @@ export const ProjectDetailPage: React.FC = () => {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (err) {
+    } catch {
       alert("Failed to export acknowledgement letter");
     } finally {
       setExporting(null);
@@ -153,7 +162,7 @@ export const ProjectDetailPage: React.FC = () => {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (err) {
+    } catch {
       alert("Failed to export approval letter");
     } finally {
       setExporting(null);
@@ -216,10 +225,8 @@ export const ProjectDetailPage: React.FC = () => {
       }
       await reloadProject();
       closeArchiveDialog();
-    } catch (err: any) {
-      setArchiveError(
-        err?.response?.data?.message || err?.message || "Failed to update archive status."
-      );
+    } catch (err: unknown) {
+      setArchiveError(getErrorMessage(err, "Failed to update archive status."));
     } finally {
       setArchiveSubmitting(false);
     }
@@ -235,8 +242,8 @@ export const ProjectDetailPage: React.FC = () => {
       // Reload full project to pick up the new changeLog entries
       await reloadProject();
       setProfileEditing(false);
-    } catch (err: any) {
-      setProfileError(err?.response?.data?.message || err?.message || "Failed to save profile");
+    } catch (err: unknown) {
+      setProfileError(getErrorMessage(err, "Failed to save profile"));
     } finally {
       setProfileSaving(false);
     }
@@ -335,6 +342,9 @@ export const ProjectDetailPage: React.FC = () => {
             <span className={`badge badge-lg ${getStatusVariant(project.overallStatus)}`}>
               {project.overallStatus.replace(/_/g, ' ')}
             </span>
+            {isLegacyImport ? (
+              <span className="badge badge-lg badge-neutral">Legacy Imported Record</span>
+            ) : null}
             {canArchiveAsCompleted || canArchiveAsWithdrawn || canRestoreArchive ? (
               <div className="archive-hero-actions">
                 {canArchiveAsCompleted ? (
@@ -395,156 +405,263 @@ export const ProjectDetailPage: React.FC = () => {
         </section>
       ) : null}
 
-      <ProtocolProfileSection
-        profile={project.protocolProfile}
-        editing={profileEditing}
-        saving={profileSaving}
-        error={profileError}
-        profileForm={profileForm}
-        setProfileForm={setProfileForm}
-        onEdit={() => setProfileEditing(true)}
-        onSave={handleSaveProfile}
-        onCancel={() => setProfileEditing(false)}
-      >
-        {/* Milestones */}
-        <div style={{ marginTop: "1rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-            <h3 className="pp-group-name" style={{ margin: 0 }}>Milestones / # days</h3>
-            <button className="btn btn-ghost btn-sm" type="button" onClick={handleLoadStandardTimeline}>
-              Load Standard Timeline
-            </button>
+      {isLegacyImport ? (
+        <section className="card detail-card archive-summary-card">
+          <div className="section-title">
+            <h2>Legacy import notice</h2>
+            <span className="badge badge-neutral">Reference snapshot</span>
           </div>
-          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-            <input
-              className="pp-field-input"
-              type="text"
-              value={newMilestoneLabel}
-              onChange={(event) => setNewMilestoneLabel(event.target.value)}
-              placeholder="Add milestone label (e.g. Full Review Meeting)"
-              style={{ flex: 1 }}
-            />
-            <button className="btn btn-secondary btn-sm" type="button" onClick={handleAddMilestone}>
-              Add
-            </button>
+          <div className="archive-summary-grid">
+            <div className="field field-wide">
+              <label>What this means</label>
+              <p>
+                This record was imported from a legacy spreadsheet. The portal
+                preserved the historical values as read-only reference data, but
+                it did not reconstruct the full live workflow, reviewer
+                assignments, documents, or milestone history.
+              </p>
+            </div>
+            <div className="field">
+              <label>Portal workflow status</label>
+              <p>{latestSubmission?.status?.replace(/_/g, " ") || "—"}</p>
+            </div>
+            <div className="field">
+              <label>Imported spreadsheet status</label>
+              <p>{legacySnapshot?.importedStatus || "—"}</p>
+            </div>
           </div>
-          <table className="preview-table" style={{ marginTop: "0.5rem" }}>
-            <thead>
-              <tr>
-                <th></th>
-                <th>Label</th>
-                <th># days</th>
-                <th>Date</th>
-                <th>Owner</th>
-                <th>Notes</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {milestones.map((milestone) => {
-                const isDone = !!milestone.dateOccurred;
-                return (
-                  <tr key={milestone.id} style={{ opacity: isDone ? 1 : 0.75 }}>
-                    <td style={{ textAlign: "center" }}>
-                      {isDone ? (
-                        <span title="Completed" style={{ color: "var(--color-positive, #22c55e)", fontSize: 16 }}>✓</span>
-                      ) : (
-                        <span title="Pending" style={{ color: "var(--color-neutral, #94a3b8)", fontSize: 16 }}>○</span>
-                      )}
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        value={milestone.label}
-                        onChange={(event) =>
-                          setMilestones((prev) =>
-                            prev.map((item) =>
-                              item.id === milestone.id ? { ...item, label: event.target.value } : item
+        </section>
+      ) : null}
+
+      {isLegacyImport ? (
+        <>
+          <section className="card detail-card">
+            <div className="section-title">
+              <h2>Reference profile</h2>
+              <span className="badge">Read only</span>
+            </div>
+            <div className="header-grid">
+              <div className="field">
+                <label>Title</label>
+                <p>{referenceProfile?.title || "—"}</p>
+              </div>
+              <div className="field">
+                <label>Project leader</label>
+                <p>{referenceProfile?.projectLeader || "—"}</p>
+              </div>
+              <div className="field">
+                <label>College</label>
+                <p>{referenceProfile?.college || "—"}</p>
+              </div>
+              <div className="field">
+                <label>Department</label>
+                <p>{referenceProfile?.department || "—"}</p>
+              </div>
+              <div className="field">
+                <label>Date of submission</label>
+                <p>{formatDate(referenceProfile?.dateOfSubmission)}</p>
+              </div>
+              <div className="field">
+                <label>Month of submission</label>
+                <p>{referenceProfile?.monthOfSubmission || "—"}</p>
+              </div>
+              <div className="field">
+                <label>Type of review</label>
+                <p>{referenceProfile?.typeOfReview || "—"}</p>
+              </div>
+              <div className="field">
+                <label>Proponent</label>
+                <p>{referenceProfile?.proponent || "—"}</p>
+              </div>
+              <div className="field">
+                <label>Funding</label>
+                <p>{referenceProfile?.funding || "—"}</p>
+              </div>
+              <div className="field">
+                <label>Type of research PHREB</label>
+                <p>{referenceProfile?.typeOfResearchPhreb || "—"}</p>
+              </div>
+              <div className="field field-wide">
+                <label>Remarks</label>
+                <p>{referenceProfile?.remarks || "—"}</p>
+              </div>
+            </div>
+          </section>
+
+          {legacySnapshot ? <LegacyImportSnapshotSection snapshot={legacySnapshot} /> : null}
+
+          <section className="card detail-card">
+            <div className="section-title">
+              <h2>Workflow reconstruction status</h2>
+            </div>
+            <div className="header-grid">
+              <div className="field">
+                <label>Reviewer assignments</label>
+                <p>Not reconstructed from legacy import.</p>
+              </div>
+              <div className="field">
+                <label>Documents</label>
+                <p>No documents were imported; metadata-only migration.</p>
+              </div>
+              <div className="field">
+                <label>Milestones</label>
+                <p>Historical milestones were not converted into live milestone records.</p>
+              </div>
+            </div>
+          </section>
+        </>
+      ) : (
+        <ProtocolProfileSection
+          profile={project.protocolProfile}
+          editing={profileEditing}
+          saving={profileSaving}
+          error={profileError}
+          profileForm={profileForm}
+          setProfileForm={setProfileForm}
+          onEdit={() => setProfileEditing(true)}
+          onSave={handleSaveProfile}
+          onCancel={() => setProfileEditing(false)}
+        >
+          {/* Milestones */}
+          <div style={{ marginTop: "1rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <h3 className="pp-group-name" style={{ margin: 0 }}>Milestones / # days</h3>
+              <button className="btn btn-ghost btn-sm" type="button" onClick={handleLoadStandardTimeline}>
+                Load Standard Timeline
+              </button>
+            </div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <input
+                className="pp-field-input"
+                type="text"
+                value={newMilestoneLabel}
+                onChange={(event) => setNewMilestoneLabel(event.target.value)}
+                placeholder="Add milestone label (e.g. Full Review Meeting)"
+                style={{ flex: 1 }}
+              />
+              <button className="btn btn-secondary btn-sm" type="button" onClick={handleAddMilestone}>
+                Add
+              </button>
+            </div>
+            <table className="preview-table" style={{ marginTop: "0.5rem" }}>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Label</th>
+                  <th># days</th>
+                  <th>Date</th>
+                  <th>Owner</th>
+                  <th>Notes</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {milestones.map((milestone) => {
+                  const isDone = !!milestone.dateOccurred;
+                  return (
+                    <tr key={milestone.id} style={{ opacity: isDone ? 1 : 0.75 }}>
+                      <td style={{ textAlign: "center" }}>
+                        {isDone ? (
+                          <span title="Completed" style={{ color: "var(--color-positive, #22c55e)", fontSize: 16 }}>✓</span>
+                        ) : (
+                          <span title="Pending" style={{ color: "var(--color-neutral, #94a3b8)", fontSize: 16 }}>○</span>
+                        )}
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          value={milestone.label}
+                          onChange={(event) =>
+                            setMilestones((prev) =>
+                              prev.map((item) =>
+                                item.id === milestone.id ? { ...item, label: event.target.value } : item
+                              )
                             )
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        value={milestone.days ?? ""}
-                        onChange={(event) =>
-                          setMilestones((prev) =>
-                            prev.map((item) =>
-                              item.id === milestone.id
-                                ? { ...item, days: event.target.value ? Number(event.target.value) : null }
-                                : item
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          value={milestone.days ?? ""}
+                          onChange={(event) =>
+                            setMilestones((prev) =>
+                              prev.map((item) =>
+                                item.id === milestone.id
+                                  ? { ...item, days: event.target.value ? Number(event.target.value) : null }
+                                  : item
+                              )
                             )
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="date"
-                        value={milestone.dateOccurred ? milestone.dateOccurred.slice(0, 10) : ""}
-                        onChange={(event) =>
-                          setMilestones((prev) =>
-                            prev.map((item) =>
-                              item.id === milestone.id
-                                ? { ...item, dateOccurred: event.target.value || null }
-                                : item
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="date"
+                          value={milestone.dateOccurred ? milestone.dateOccurred.slice(0, 10) : ""}
+                          onChange={(event) =>
+                            setMilestones((prev) =>
+                              prev.map((item) =>
+                                item.id === milestone.id
+                                  ? { ...item, dateOccurred: event.target.value || null }
+                                  : item
+                              )
                             )
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        value={milestone.ownerRole ?? ""}
-                        onChange={(event) =>
-                          setMilestones((prev) =>
-                            prev.map((item) =>
-                              item.id === milestone.id
-                                ? { ...item, ownerRole: event.target.value || null }
-                                : item
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          value={milestone.ownerRole ?? ""}
+                          onChange={(event) =>
+                            setMilestones((prev) =>
+                              prev.map((item) =>
+                                item.id === milestone.id
+                                  ? { ...item, ownerRole: event.target.value || null }
+                                  : item
+                              )
                             )
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        value={milestone.notes ?? ""}
-                        onChange={(event) =>
-                          setMilestones((prev) =>
-                            prev.map((item) =>
-                              item.id === milestone.id
-                                ? { ...item, notes: event.target.value || null }
-                                : item
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          value={milestone.notes ?? ""}
+                          onChange={(event) =>
+                            setMilestones((prev) =>
+                              prev.map((item) =>
+                                item.id === milestone.id
+                                  ? { ...item, notes: event.target.value || null }
+                                  : item
+                              )
                             )
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <button className="btn btn-secondary btn-sm" type="button" onClick={() => handleMilestoneSave(milestone)}>
-                        Save
-                      </button>
-                      <button className="btn btn-ghost btn-sm" type="button" onClick={() => handleMilestoneDelete(milestone)}>
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-              {milestones.length === 0 && (
-                <tr><td colSpan={7}>No milestones yet.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </ProtocolProfileSection>
+                          }
+                        />
+                      </td>
+                      <td>
+                        <button className="btn btn-secondary btn-sm" type="button" onClick={() => handleMilestoneSave(milestone)}>
+                          Save
+                        </button>
+                        <button className="btn btn-ghost btn-sm" type="button" onClick={() => handleMilestoneDelete(milestone)}>
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {milestones.length === 0 && (
+                  <tr><td colSpan={7}>No milestones yet.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </ProtocolProfileSection>
+      )}
 
       {/* Latest Submission */}
-      {latestSubmission && (
+      {latestSubmission && !isLegacyImport && (
         <section className="card detail-card">
           <div className="section-title">
             <h2>Latest submission</h2>
@@ -577,8 +694,33 @@ export const ProjectDetailPage: React.FC = () => {
         </section>
       )}
 
+      {latestSubmission && isLegacyImport ? (
+        <section className="card detail-card">
+          <div className="section-title">
+            <h2>Portal submission shell</h2>
+            <span className="badge badge-neutral">
+              {latestSubmission.status.replace(/_/g, " ")}
+            </span>
+          </div>
+          <div className="header-grid">
+            <div className="field">
+              <label>Purpose</label>
+              <p>Compatibility shell for imported legacy metadata.</p>
+            </div>
+            <div className="field">
+              <label>Portal workflow status</label>
+              <p>{latestSubmission.status.replace(/_/g, " ")}</p>
+            </div>
+            <div className="field">
+              <label>Received date</label>
+              <p>{formatDate(latestSubmission.receivedDate)}</p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {/* Actions */}
-      {latestSubmission && (
+      {latestSubmission && !isLegacyImport && (
         <section className="card detail-card">
           <div className="section-title">
             <h2>Actions</h2>
@@ -613,7 +755,7 @@ export const ProjectDetailPage: React.FC = () => {
       )}
 
       {/* Timeline */}
-      {latestSubmission?.statusHistory && (
+      {latestSubmission?.statusHistory && !isLegacyImport && (
         <section className="card detail-card">
           <Timeline entries={latestSubmission.statusHistory} />
         </section>

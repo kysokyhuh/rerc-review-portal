@@ -8,6 +8,7 @@ import {
 } from "@/services/api";
 import { Breadcrumbs } from "@/components";
 import { BRAND } from "@/config/branding";
+import { getErrorData, getErrorMessage, getErrorStatus } from "@/utils";
 import "../styles/new-protocol.css";
 
 type FormState = {
@@ -211,9 +212,11 @@ export default function NewProtocolPage() {
           banner: "Protocol created. Next: classify the review type.",
         },
       });
-    } catch (error: any) {
-      if (error?.response?.status === 400) {
-        const fieldErrors = error?.response?.data?.errors as
+    } catch (error: unknown) {
+      if (getErrorStatus(error) === 400) {
+        const fieldErrors = getErrorData<{
+          errors?: Array<{ field: string; message: string }>;
+        }>(error)?.errors as
           | Array<{ field: string; message: string }>
           | undefined;
         if (fieldErrors?.length) {
@@ -227,7 +230,7 @@ export default function NewProtocolPage() {
           return;
         }
       }
-      setSubmitError(error?.response?.data?.message || error?.message || "Failed to create protocol.");
+      setSubmitError(getErrorMessage(error, "Failed to create protocol."));
     } finally {
       setLoading(false);
     }

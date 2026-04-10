@@ -7,6 +7,7 @@ import {
   MIN_PASSWORD_LENGTH,
   passwordMeetsRules,
 } from "@/utils/passwordStrength";
+import { getErrorMessage } from "@/utils";
 import "@/styles/profile-settings.css";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -100,8 +101,8 @@ export default function MyProfilePage() {
         email: nextProfile.email,
         currentPassword: "",
       });
-    } catch (error: any) {
-      setLoadError(error?.response?.data?.message || "Unable to load your account details.");
+    } catch (error: unknown) {
+      setLoadError(getErrorMessage(error, "Unable to load your account details."));
       if (user) {
         setProfile(user);
       }
@@ -192,8 +193,8 @@ export default function MyProfilePage() {
           ? "Profile updated. Your name and sign-in email are now current."
           : "Profile updated."
       );
-    } catch (error: any) {
-      setProfileError(error?.response?.data?.message || "Unable to save your profile.");
+    } catch (error: unknown) {
+      setProfileError(getErrorMessage(error, "Unable to save your profile."));
     } finally {
       setProfileSaving(false);
     }
@@ -233,8 +234,8 @@ export default function MyProfilePage() {
       setShowNewPassword(false);
       setShowConfirmPassword(false);
       setNotice("Password updated. Other active sessions were signed out.");
-    } catch (error: any) {
-      setPasswordError(error?.response?.data?.message || "Unable to update your password.");
+    } catch (error: unknown) {
+      setPasswordError(getErrorMessage(error, "Unable to update your password."));
     } finally {
       setPasswordSaving(false);
     }

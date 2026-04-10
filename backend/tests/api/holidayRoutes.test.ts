@@ -25,6 +25,12 @@ const prisma = prismaClient as unknown as {
   };
 };
 
+const csrfHeaders = {
+  Origin: "http://localhost:5173",
+  Cookie: "csrfToken=test-csrf",
+  "X-CSRF-Token": "test-csrf",
+};
+
 describe("holiday routes", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -71,6 +77,7 @@ describe("holiday routes", () => {
 
     const response = await request(app)
       .post("/holidays")
+      .set(csrfHeaders)
       .set("X-User-ID", "9")
       .set("X-User-Roles", "CHAIR")
       .send({
@@ -93,6 +100,7 @@ describe("holiday routes", () => {
 
     const response = await request(app)
       .post("/holidays")
+      .set(csrfHeaders)
       .set("X-User-ID", "9")
       .set("X-User-Roles", "CHAIR")
       .send({
@@ -122,6 +130,7 @@ describe("holiday routes", () => {
 
     const response = await request(app)
       .patch("/holidays/11")
+      .set(csrfHeaders)
       .set("X-User-ID", "9")
       .set("X-User-Roles", "RESEARCH_ASSOCIATE")
       .send({
@@ -154,6 +163,7 @@ describe("holiday routes", () => {
 
     const response = await request(app)
       .patch("/holidays/11")
+      .set(csrfHeaders)
       .set("X-User-ID", "9")
       .set("X-User-Roles", "RESEARCH_ASSOCIATE")
       .send({ date: "2026-11-02" });
@@ -173,6 +183,7 @@ describe("holiday routes", () => {
 
     const response = await request(app)
       .delete("/holidays/90")
+      .set(csrfHeaders)
       .set("X-User-ID", "9")
       .set("X-User-Roles", "CHAIR");
 

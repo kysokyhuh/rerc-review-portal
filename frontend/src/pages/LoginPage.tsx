@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { BRAND } from "@/config/branding";
 import { useAuth } from "@/contexts/AuthContext";
 import { ensureCsrfCookie, getSafeNextPath } from "@/services/api";
+import { getErrorData } from "@/utils";
 import "../styles/login.css";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -129,8 +130,8 @@ export default function LoginPage() {
     try {
       const result = await authLogin(email, password);
       await navigateAfterAuth(result.user, result.mustChangePassword);
-    } catch (err: any) {
-      const apiMessage = err?.response?.data?.message as string | undefined;
+    } catch (err: unknown) {
+      const apiMessage = getErrorData(err)?.message;
       setError(apiMessage ?? "Invalid email or password.");
       triggerShake();
     } finally {

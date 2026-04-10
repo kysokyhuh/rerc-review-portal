@@ -7,6 +7,7 @@ import {
   MIN_PASSWORD_LENGTH,
   passwordMeetsRules,
 } from "@/utils/passwordStrength";
+import { getErrorMessage } from "@/utils";
 import "../styles/login.css";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -116,8 +117,8 @@ export default function SignupPage() {
       setSuccessMessage(
         response.data?.message ?? "Your account has been submitted for approval."
       );
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Signup failed. Please try again.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Signup failed. Please try again."));
     } finally {
       setLoading(false);
     }

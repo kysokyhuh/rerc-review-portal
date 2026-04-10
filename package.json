@@ -9,7 +9,8 @@
     "dev:frontend": "npm --prefix frontend run dev",
     "db:generate": "npm --prefix backend exec -- prisma generate",
     "db:migrate": "npm --prefix backend exec -- prisma migrate deploy",
-    "db:seed": "npm --prefix backend run seed"
+    "db:seed": "npm --prefix backend run seed",
+    "db:seed:reports-demo": "npm --prefix backend run seed:reports-demo"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

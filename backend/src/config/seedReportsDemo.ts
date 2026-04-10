@@ -34,6 +34,24 @@ const date = (value: string) => new Date(value);
 
 const termSeeds = [
   {
+    academicYear: "2024-2025",
+    term: 1,
+    startDate: date("2024-06-01T00:00:00.000Z"),
+    endDate: date("2024-09-30T00:00:00.000Z"),
+  },
+  {
+    academicYear: "2024-2025",
+    term: 2,
+    startDate: date("2024-10-01T00:00:00.000Z"),
+    endDate: date("2025-01-31T00:00:00.000Z"),
+  },
+  {
+    academicYear: "2024-2025",
+    term: 3,
+    startDate: date("2025-02-01T00:00:00.000Z"),
+    endDate: date("2025-05-31T00:00:00.000Z"),
+  },
+  {
     academicYear: "2025-2026",
     term: 1,
     startDate: date("2025-06-01T00:00:00.000Z"),
@@ -54,6 +72,11 @@ const termSeeds = [
 ];
 
 const holidaySeeds = [
+  { date: date("2024-06-12T00:00:00.000Z"), name: "Independence Day" },
+  { date: date("2024-08-21T00:00:00.000Z"), name: "Ninoy Aquino Day" },
+  { date: date("2024-11-01T00:00:00.000Z"), name: "All Saints' Day" },
+  { date: date("2024-12-25T00:00:00.000Z"), name: "Christmas Day" },
+  { date: date("2025-01-01T00:00:00.000Z"), name: "New Year's Day" },
   { date: date("2025-06-12T00:00:00.000Z"), name: "Independence Day" },
   { date: date("2025-08-21T00:00:00.000Z"), name: "Ninoy Aquino Day" },
   { date: date("2025-11-01T00:00:00.000Z"), name: "All Saints' Day" },
@@ -62,6 +85,212 @@ const holidaySeeds = [
 ];
 
 const demoSubmissions: DemoSubmissionSeed[] = [
+  {
+    projectCode: "DEMO-RPT-101",
+    title: "Community Vaccination Follow-up Study",
+    piName: "Clarisse Navarro",
+    piSurname: "Navarro",
+    collegeOrUnit: "College of Science",
+    proponentCategory: ProponentCategory.FACULTY,
+    fundingType: FundingType.INTERNAL,
+    researchType: ResearchTypePHREB.PUBLIC_HEALTH,
+    receivedDate: date("2024-06-14T00:00:00.000Z"),
+    status: SubmissionStatus.CLOSED,
+    reviewType: ReviewType.EXPEDITED,
+    finalDecision: ReviewDecision.APPROVED,
+    finalDecisionDate: date("2024-06-24T00:00:00.000Z"),
+    approvalStartDate: date("2024-06-24T00:00:00.000Z"),
+    history: [
+      { newStatus: SubmissionStatus.RECEIVED, effectiveDate: date("2024-06-14T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.UNDER_REVIEW, effectiveDate: date("2024-06-18T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.CLOSED, effectiveDate: date("2024-06-24T00:00:00.000Z") },
+    ],
+  },
+  {
+    projectCode: "DEMO-RPT-102",
+    title: "Freshman Stress and Coping Survey",
+    piName: "Miguel Ramos",
+    piSurname: "Ramos",
+    collegeOrUnit: "College of Liberal Arts",
+    proponentCategory: ProponentCategory.UNDERGRAD,
+    fundingType: FundingType.NO_FUNDING,
+    researchType: ResearchTypePHREB.SOCIAL_BEHAVIORAL,
+    receivedDate: date("2024-07-09T00:00:00.000Z"),
+    status: SubmissionStatus.CLOSED,
+    reviewType: ReviewType.EXEMPT,
+    finalDecision: ReviewDecision.APPROVED,
+    finalDecisionDate: date("2024-07-16T00:00:00.000Z"),
+    approvalStartDate: date("2024-07-16T00:00:00.000Z"),
+    history: [
+      { newStatus: SubmissionStatus.RECEIVED, effectiveDate: date("2024-07-09T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.UNDER_REVIEW, effectiveDate: date("2024-07-12T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.CLOSED, effectiveDate: date("2024-07-16T00:00:00.000Z") },
+    ],
+  },
+  {
+    projectCode: "DEMO-RPT-103",
+    title: "Post-Operative Recovery Tracking Pilot",
+    piName: "Paula Mendoza",
+    piSurname: "Mendoza",
+    collegeOrUnit: "College of Science",
+    proponentCategory: ProponentCategory.GRAD,
+    fundingType: FundingType.EXTERNAL,
+    researchType: ResearchTypePHREB.CLINICAL_TRIAL,
+    receivedDate: date("2024-08-20T00:00:00.000Z"),
+    status: SubmissionStatus.CLOSED,
+    reviewType: ReviewType.FULL_BOARD,
+    finalDecision: ReviewDecision.APPROVED,
+    finalDecisionDate: date("2024-09-05T00:00:00.000Z"),
+    approvalStartDate: date("2024-09-05T00:00:00.000Z"),
+    history: [
+      { newStatus: SubmissionStatus.RECEIVED, effectiveDate: date("2024-08-20T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.UNDER_REVIEW, effectiveDate: date("2024-08-26T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.CLOSED, effectiveDate: date("2024-09-05T00:00:00.000Z") },
+    ],
+  },
+  {
+    projectCode: "DEMO-RPT-104",
+    title: "Campus Mobility Accessibility Audit",
+    piName: "Jillian Cruz",
+    piSurname: "Cruz",
+    collegeOrUnit: "Office of Campus Services",
+    proponentCategory: ProponentCategory.OTHER,
+    fundingType: FundingType.INTERNAL,
+    researchType: ResearchTypePHREB.EPIDEMIOLOGICAL,
+    receivedDate: date("2024-09-12T00:00:00.000Z"),
+    status: SubmissionStatus.UNDER_REVIEW,
+    reviewType: ReviewType.EXPEDITED,
+    finalDecision: null,
+    finalDecisionDate: null,
+    approvalStartDate: null,
+    history: [
+      { newStatus: SubmissionStatus.RECEIVED, effectiveDate: date("2024-09-12T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.UNDER_REVIEW, effectiveDate: date("2024-09-17T00:00:00.000Z") },
+    ],
+  },
+  {
+    projectCode: "DEMO-RPT-105",
+    title: "AI Literacy Baseline Assessment",
+    piName: "Kevin Sy",
+    piSurname: "Sy",
+    collegeOrUnit: "College of Computer Studies",
+    proponentCategory: ProponentCategory.GRAD,
+    fundingType: FundingType.SELF_FUNDED,
+    researchType: ResearchTypePHREB.SOCIAL_BEHAVIORAL,
+    receivedDate: date("2024-10-15T00:00:00.000Z"),
+    status: SubmissionStatus.CLOSED,
+    reviewType: ReviewType.EXEMPT,
+    finalDecision: ReviewDecision.APPROVED,
+    finalDecisionDate: date("2024-10-22T00:00:00.000Z"),
+    approvalStartDate: date("2024-10-22T00:00:00.000Z"),
+    history: [
+      { newStatus: SubmissionStatus.RECEIVED, effectiveDate: date("2024-10-15T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.UNDER_REVIEW, effectiveDate: date("2024-10-18T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.CLOSED, effectiveDate: date("2024-10-22T00:00:00.000Z") },
+    ],
+  },
+  {
+    projectCode: "DEMO-RPT-106",
+    title: "Nutrition Tracking for Student Athletes",
+    piName: "Felicia Co",
+    piSurname: "Co",
+    collegeOrUnit: "College of Science",
+    proponentCategory: ProponentCategory.FACULTY,
+    fundingType: FundingType.INTERNAL,
+    researchType: ResearchTypePHREB.PUBLIC_HEALTH,
+    receivedDate: date("2024-11-22T00:00:00.000Z"),
+    status: SubmissionStatus.AWAITING_REVISIONS,
+    reviewType: ReviewType.FULL_BOARD,
+    finalDecision: null,
+    finalDecisionDate: null,
+    approvalStartDate: null,
+    history: [
+      { newStatus: SubmissionStatus.RECEIVED, effectiveDate: date("2024-11-22T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.UNDER_REVIEW, effectiveDate: date("2024-11-28T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.AWAITING_REVISIONS, effectiveDate: date("2024-12-11T00:00:00.000Z") },
+    ],
+  },
+  {
+    projectCode: "DEMO-RPT-107",
+    title: "Remote Learning Inclusion Check",
+    piName: "Bianca Valdez",
+    piSurname: "Valdez",
+    collegeOrUnit: "College of Liberal Arts",
+    proponentCategory: ProponentCategory.UNDERGRAD,
+    fundingType: FundingType.NO_FUNDING,
+    researchType: ResearchTypePHREB.SOCIAL_BEHAVIORAL,
+    receivedDate: date("2025-01-11T00:00:00.000Z"),
+    status: SubmissionStatus.CLOSED,
+    reviewType: ReviewType.EXPEDITED,
+    finalDecision: ReviewDecision.APPROVED,
+    finalDecisionDate: date("2025-01-20T00:00:00.000Z"),
+    approvalStartDate: date("2025-01-20T00:00:00.000Z"),
+    history: [
+      { newStatus: SubmissionStatus.RECEIVED, effectiveDate: date("2025-01-11T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.UNDER_REVIEW, effectiveDate: date("2025-01-15T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.CLOSED, effectiveDate: date("2025-01-20T00:00:00.000Z") },
+    ],
+  },
+  {
+    projectCode: "DEMO-RPT-108",
+    title: "Primary Care Queue Optimization Study",
+    piName: "Samantha Uy",
+    piSurname: "Uy",
+    collegeOrUnit: "College of Science",
+    proponentCategory: ProponentCategory.GRAD,
+    fundingType: FundingType.EXTERNAL,
+    researchType: ResearchTypePHREB.BIOMEDICAL,
+    receivedDate: date("2025-02-18T00:00:00.000Z"),
+    status: SubmissionStatus.REVISION_SUBMITTED,
+    reviewType: ReviewType.FULL_BOARD,
+    finalDecision: null,
+    finalDecisionDate: null,
+    approvalStartDate: null,
+    history: [
+      { newStatus: SubmissionStatus.RECEIVED, effectiveDate: date("2025-02-18T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.UNDER_REVIEW, effectiveDate: date("2025-02-24T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.AWAITING_REVISIONS, effectiveDate: date("2025-03-05T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.REVISION_SUBMITTED, effectiveDate: date("2025-03-12T00:00:00.000Z") },
+    ],
+  },
+  {
+    projectCode: "DEMO-RPT-109",
+    title: "Digital Skills Baseline for Staff",
+    piName: "Harold Tiu",
+    piSurname: "Tiu",
+    collegeOrUnit: "College of Computer Studies",
+    proponentCategory: ProponentCategory.OTHER,
+    fundingType: FundingType.INTERNAL,
+    researchType: ResearchTypePHREB.OTHER,
+    receivedDate: date("2025-03-06T00:00:00.000Z"),
+    status: SubmissionStatus.RECEIVED,
+    reviewType: null,
+    finalDecision: null,
+    finalDecisionDate: null,
+    approvalStartDate: null,
+    history: [{ newStatus: SubmissionStatus.RECEIVED, effectiveDate: date("2025-03-06T00:00:00.000Z") }],
+  },
+  {
+    projectCode: "DEMO-RPT-110",
+    title: "Clinical Record Accuracy Review",
+    piName: "Therese Bautista",
+    piSurname: "Bautista",
+    collegeOrUnit: "College of Science",
+    proponentCategory: ProponentCategory.FACULTY,
+    fundingType: FundingType.EXTERNAL,
+    researchType: ResearchTypePHREB.CLINICAL_TRIAL,
+    receivedDate: date("2025-04-04T00:00:00.000Z"),
+    status: SubmissionStatus.WITHDRAWN,
+    reviewType: ReviewType.FULL_BOARD,
+    finalDecision: null,
+    finalDecisionDate: null,
+    approvalStartDate: null,
+    history: [
+      { newStatus: SubmissionStatus.RECEIVED, effectiveDate: date("2025-04-04T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.UNDER_REVIEW, effectiveDate: date("2025-04-08T00:00:00.000Z") },
+      { newStatus: SubmissionStatus.WITHDRAWN, effectiveDate: date("2025-04-11T00:00:00.000Z") },
+    ],
+  },
   {
     projectCode: "DEMO-RPT-001",
     title: "Community Nutrition Mapping",
@@ -449,14 +678,14 @@ async function main() {
 
   console.log("Report demo seed complete.");
   console.log("Created/updated:");
-  console.log("- 3 academic terms for 2025-2026");
+  console.log("- 6 academic terms across 2024-2025 and 2025-2026");
   console.log(`- ${holidaySeeds.length} holidays`);
   console.log(`- ${demoSubmissions.length} report demo submissions`);
   console.log("");
-  console.log("Try:");
-  console.log(
-    "GET /reports/academic-year-summary?academicYear=2025-2026&term=ALL&committeeCode=RERC-HUMAN"
-  );
+  console.log("Try comparing:");
+  console.log("- 2025-2026 vs prior equivalent period");
+  console.log("- 2024-2025 Term 3 vs 2025-2026 Term 3");
+  console.log("- Custom date range 2025-02-01 to 2025-04-09");
 }
 
 main()

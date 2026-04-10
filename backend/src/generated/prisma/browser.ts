@@ -23,6 +23,11 @@ export * from './enums';
  */
 export type User = Prisma.UserModel
 /**
+ * Model ImportBatch
+ * 
+ */
+export type ImportBatch = Prisma.ImportBatchModel
+/**
  * Model AuthSession
  * 
  */
@@ -57,6 +62,11 @@ export type Project = Prisma.ProjectModel
  * 
  */
 export type ProtocolProfile = Prisma.ProtocolProfileModel
+/**
+ * Model LegacyImportSnapshot
+ * 
+ */
+export type LegacyImportSnapshot = Prisma.LegacyImportSnapshotModel
 /**
  * Model ProtocolMilestone
  * 

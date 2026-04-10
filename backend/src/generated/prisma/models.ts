@@ -9,6 +9,7 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/User'
+export type * from './models/ImportBatch'
 export type * from './models/AuthSession'
 export type * from './models/AuditLog'
 export type * from './models/Committee'
@@ -16,6 +17,7 @@ export type * from './models/Panel'
 export type * from './models/CommitteeMember'
 export type * from './models/Project'
 export type * from './models/ProtocolProfile'
+export type * from './models/LegacyImportSnapshot'
 export type * from './models/ProtocolMilestone'
 export type * from './models/AcademicTerm'
 export type * from './models/Proponent'

@@ -35,8 +35,22 @@ export const CommandBar: React.FC<CommandBarProps> = ({
   onRefresh,
   onExportReport,
 }) => {
-  const isFresh =
-    lastUpdated && Date.now() - lastUpdated.getTime() < 90 * 1000;
+  const [now, setNow] = React.useState(() => Date.now());
+  const lastUpdatedMs = lastUpdated?.getTime() ?? null;
+
+  React.useEffect(() => {
+    if (!lastUpdatedMs) return undefined;
+
+    const primeTimer = window.setTimeout(() => setNow(Date.now()), 0);
+    const intervalId = window.setInterval(() => setNow(Date.now()), 30 * 1000);
+
+    return () => {
+      window.clearTimeout(primeTimer);
+      window.clearInterval(intervalId);
+    };
+  }, [lastUpdatedMs]);
+
+  const isFresh = lastUpdatedMs ? now - lastUpdatedMs < 90 * 1000 : false;
   const freshnessLabel = lastUpdated ? formatTimeAgo(lastUpdated) : "loading…";
 
   const chips: Array<{ key: StageFilter; label: string }> = [

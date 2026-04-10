@@ -464,9 +464,12 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
     where: {
       sequenceNumber: 1,
       OR: dateOr,
-      ...(filters.committee !== "ALL"
-        ? { project: { committee: { code: filters.committee } } }
-        : {}),
+      project: {
+        origin: { not: "LEGACY_IMPORT" as const },
+        ...(filters.committee !== "ALL"
+          ? { committee: { code: filters.committee } }
+          : {}),
+      },
     },
     include: {
       classification: { select: { reviewType: true, classificationDate: true } },

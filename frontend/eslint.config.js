@@ -67,6 +67,14 @@ export default [
     },
   },
   {
-    ignores: ["dist/**", "node_modules/**", "vite.config.*"],
+    ignores: [
+      "dist/**",
+      "node_modules/**",
+      "vite.config.*",
+      "src/**/* 2.ts",
+      "src/**/* 2.tsx",
+      "src/**/* 2.js",
+      "src/**/* 2.jsx",
+    ],
   },
 ];

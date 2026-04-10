@@ -7,6 +7,7 @@ import {
   MIN_PASSWORD_LENGTH,
   passwordMeetsRules,
 } from "@/utils/passwordStrength";
+import { getErrorMessage } from "@/utils";
 import "../styles/login.css";
 
 export default function ChangePasswordPage() {
@@ -62,8 +63,8 @@ export default function ChangePasswordPage() {
         return;
       }
       navigate("/dashboard", { replace: true });
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Unable to update password. Please try again.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Unable to update password. Please try again."));
     } finally {
       setLoading(false);
     }

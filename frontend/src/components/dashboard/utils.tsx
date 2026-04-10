@@ -1,4 +1,5 @@
 import React from "react";
+import type { DecoratedQueueItem } from "@/types";
 
 /**
  * Dashboard utility functions and constants.
@@ -81,25 +82,29 @@ export const OWNER_BADGE_META: Record<
 export type CollapsedPanels = { overdue: boolean };
 
 export const PAGE_SIZE = 15;
-const slaUnitShort = (item: any) => (item.slaDayMode === "CALENDAR" ? "d" : "wd");
+const slaUnitShort = (item: DecoratedQueueItem) =>
+  item.slaDayMode === "CALENDAR" ? "d" : "wd";
 
 // ── Row-level predicates ──────────────────────────────────
-export const isOverdue = (item: any) => item.slaStatus === "OVERDUE";
+export const isOverdue = (item: DecoratedQueueItem) => item.slaStatus === "OVERDUE";
 
-export const isDueSoon = (item: any, threshold: number) =>
-  item.slaStatus === "DUE_SOON" ||
-  ((item.daysRemaining ?? item.workingDaysRemaining) <= threshold &&
-    (item.daysRemaining ?? item.workingDaysRemaining) >= 0);
+export const isDueSoon = (item: DecoratedQueueItem, threshold: number) => {
+  const remaining = item.daysRemaining ?? item.workingDaysRemaining;
+  return (
+    item.slaStatus === "DUE_SOON" ||
+    (remaining != null && remaining <= threshold && remaining >= 0)
+  );
+};
 
-export const isBlocked = (item: any) =>
+export const isBlocked = (item: DecoratedQueueItem) =>
   item.missingFields && item.missingFields.length > 0;
 
-export const isUnassigned = (item: any) => !item.staffInChargeName;
+export const isUnassigned = (item: DecoratedQueueItem) => !item.staffInChargeName;
 
-export const isPaused = (item: any) =>
+export const isPaused = (item: DecoratedQueueItem) =>
   ["WITHDRAWN", "CLOSED"].includes(item.status);
 
-export function blockReasonFor(item: any): string {
+export function blockReasonFor(item: DecoratedQueueItem): string {
   if (!item.missingFields || item.missingFields.length === 0) return "—";
   const preview = item.missingFields.slice(0, 2).join(", ");
   return item.missingFields.length > 2
@@ -107,7 +112,7 @@ export function blockReasonFor(item: any): string {
     : `Missing: ${preview}`;
 }
 
-export function slaChipText(item: any, threshold: number): string {
+export function slaChipText(item: DecoratedQueueItem, threshold: number): string {
   if (isPaused(item)) return "SLA paused";
   const remaining = item.daysRemaining ?? item.workingDaysRemaining;
   const target = item.targetDays ?? item.targetWorkingDays;
@@ -118,7 +123,7 @@ export function slaChipText(item: any, threshold: number): string {
   return `${remaining} ${unit} left`;
 }
 
-export function priorityScore(item: any, threshold: number): number {
+export function priorityScore(item: DecoratedQueueItem, threshold: number): number {
   let score = 0;
   if (isOverdue(item)) score += 100;
   if (isDueSoon(item, threshold)) score += 60;
@@ -172,7 +177,7 @@ export function renderOverdueOwnerBadge(
 }
 
 // ── CSV export helper ─────────────────────────────────────
-export function exportRowsToCsv(rows: any[], filename: string): void {
+export function exportRowsToCsv(rows: DecoratedQueueItem[], filename: string): void {
   if (rows.length === 0) {
     window.alert("No submissions in the current view.");
     return;

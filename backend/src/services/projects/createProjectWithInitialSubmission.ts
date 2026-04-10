@@ -1,13 +1,19 @@
 import prisma from "../../config/prismaClient";
 import {
   FundingType,
+  ImportMode,
+  ProjectOrigin,
   ProponentCategory,
   ResearchTypePHREB,
   SLAStage,
   SubmissionStatus,
   SubmissionType,
 } from "../../generated/prisma/client";
-import { parseReceivedDate } from "../imports/projectCsvImport";
+import {
+  type LegacyImportSnapshotData,
+  parseReceivedDate,
+  type ProjectProfileReferenceData,
+} from "../imports/projectCsvImport";
 import {
   buildSlaConfigMap,
   computeDueDate,
@@ -43,29 +49,25 @@ export interface CreateProjectWithInitialSubmissionInput {
   piName?: string | null;
   committeeCode?: string;
   committeeId?: number;
-  submissionType?: string | null;
+  defaultCommitteeCode?: string | null;
+  origin?: ProjectOrigin;
+  importMode?: ImportMode;
+  importBatchId?: number | null;
+  importSourceRowNumber?: number | null;
+  submissionType?: string | SubmissionType | null;
   receivedDate?: string | Date | null;
-  fundingType?: string | null;
+  fundingType?: string | FundingType | null;
   notes?: string | null;
   piAffiliation?: string | null;
   collegeOrUnit?: string | null;
-  proponentCategory?: string | null;
+  proponentCategory?: string | ProponentCategory | null;
   department?: string | null;
   proponent?: string | null;
-  researchTypePHREB?: string | null;
+  researchTypePHREB?: string | ResearchTypePHREB | null;
   researchTypePHREBOther?: string | null;
-  // Extra ProtocolProfile fields
-  panel?: string | null;
-  scientistReviewer?: string | null;
-  layReviewer?: string | null;
-  independentConsultant?: string | null;
-  honorariumStatus?: string | null;
-  classificationDate?: string | Date | null;
-  finishDate?: string | Date | null;
-  status?: string | null;
-  monthOfSubmission?: string | null;
-  monthOfClearance?: string | null;
   documentLink?: string | null;
+  referenceProfile?: ProjectProfileReferenceData | null;
+  legacySnapshot?: LegacyImportSnapshotData | null;
 }
 
 const normalizeProjectCode = (value: string) => value.trim().toUpperCase();
@@ -73,7 +75,11 @@ const normalizeString = (value: unknown) => String(value ?? "").trim();
 const toMonthLabel = (value: Date) =>
   value.toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
 
-const parseFundingType = (value?: string | null): FundingType | null => {
+const parseFundingType = (value?: string | FundingType | null): FundingType | null => {
+  if (!value) return null;
+  if (typeof value !== "string") {
+    return value;
+  }
   const raw = normalizeString(value);
   if (!raw || raw.toUpperCase() === "N/A") return null;
   const normalized = raw.toUpperCase();
@@ -90,7 +96,13 @@ const parseFundingType = (value?: string | null): FundingType | null => {
   return null;
 };
 
-const parseSubmissionType = (value?: string | null): SubmissionType | null => {
+const parseSubmissionType = (
+  value?: string | SubmissionType | null
+): SubmissionType | null => {
+  if (!value) return null;
+  if (typeof value !== "string") {
+    return value;
+  }
   const normalized = normalizeString(value).toUpperCase().replace(/\s+/g, "_");
   if (!normalized) return null;
   if (normalized in SubmissionType) {
@@ -102,8 +114,12 @@ const parseSubmissionType = (value?: string | null): SubmissionType | null => {
 };
 
 const parseProponentCategory = (
-  value?: string | null
+  value?: string | ProponentCategory | null
 ): ProponentCategory | null => {
+  if (!value) return null;
+  if (typeof value !== "string") {
+    return value;
+  }
   const raw = normalizeString(value);
   if (!raw) return null;
   const normalized = raw.toUpperCase().replace(/\s+/g, "_");
@@ -116,8 +132,12 @@ const parseProponentCategory = (
 };
 
 const parseResearchTypePHREB = (
-  value?: string | null
+  value?: string | ResearchTypePHREB | null
 ): ResearchTypePHREB | null => {
+  if (!value) return null;
+  if (typeof value !== "string") {
+    return value;
+  }
   const raw = normalizeString(value);
   if (!raw) return null;
   const normalized = raw.toUpperCase().replace(/\s+/g, "_");
@@ -149,16 +169,26 @@ const parseDate = (value?: string | Date | null): Date | null => {
 
 const resolveCommitteeId = async (
   committeeCode: string,
-  committeeId?: number
+  committeeId?: number,
+  options?: {
+    allowFirstActiveFallback?: boolean;
+    defaultCommitteeCode?: string | null;
+  }
 ) => {
   if (committeeId) {
     return committeeId;
   }
 
+  const allowFirstActiveFallback = options?.allowFirstActiveFallback ?? true;
+  const fallbackCommitteeCode = normalizeString(options?.defaultCommitteeCode || "");
+  const resolvedCommitteeCode = committeeCode || fallbackCommitteeCode;
+
   const committee = await prisma.committee.findFirst({
-    where: committeeCode
-      ? { code: { equals: committeeCode, mode: "insensitive" } }
-      : { isActive: true },
+    where: resolvedCommitteeCode
+      ? { code: { equals: resolvedCommitteeCode, mode: "insensitive" } }
+      : allowFirstActiveFallback
+        ? { isActive: true }
+        : undefined,
     orderBy: { id: "asc" },
     select: { id: true },
   });
@@ -166,7 +196,11 @@ const resolveCommitteeId = async (
     throw new ProjectCreateValidationError([
       {
         field: "committeeCode",
-        message: committeeCode ? "committeeCode does not exist." : "No active committee found.",
+        message: resolvedCommitteeCode
+          ? "committeeCode does not exist."
+          : allowFirstActiveFallback
+            ? "No active committee found."
+            : "committeeCode is required unless a default intake committee is configured.",
       },
     ]);
   }
@@ -184,9 +218,22 @@ export async function createProjectWithInitialSubmission(
   const title = normalizeString(input.title);
   const piName = normalizeString(input.piName);
   const committeeCode = normalizeString(input.committeeCode || "");
+  const importMode = input.importMode ?? ImportMode.INTAKE_IMPORT;
+  const origin =
+    input.origin ??
+    (importMode === ImportMode.LEGACY_MIGRATION
+      ? ProjectOrigin.LEGACY_IMPORT
+      : ProjectOrigin.NATIVE_PORTAL);
+  const isLegacyImport = origin === ProjectOrigin.LEGACY_IMPORT;
 
   if (!projectCode) {
     fieldErrors.push({ field: "projectCode", message: "projectCode is required." });
+  }
+  if (isLegacyImport && !input.importBatchId) {
+    fieldErrors.push({
+      field: "importBatchId",
+      message: "importBatchId is required for legacy imports.",
+    });
   }
   if (fieldErrors.length) {
     throw new ProjectCreateValidationError(fieldErrors);
@@ -204,7 +251,10 @@ export async function createProjectWithInitialSubmission(
     throw new DuplicateProjectCodeError(projectCode, existing.id);
   }
 
-  const committeeId = await resolveCommitteeId(committeeCode, input.committeeId);
+  const committeeId = await resolveCommitteeId(committeeCode, input.committeeId, {
+    allowFirstActiveFallback: false,
+    defaultCommitteeCode: input.defaultCommitteeCode,
+  });
 
   const notes = normalizeString(input.notes || "") || null;
   const piAffiliation = normalizeString(input.piAffiliation || "") || null;
@@ -217,40 +267,55 @@ export async function createProjectWithInitialSubmission(
   const researchTypePHREBOther =
     normalizeString(input.researchTypePHREBOther || "") || null;
 
-  const [slaConfigs, holidayRows] = await Promise.all([
-    prisma.configSLA.findMany({
-      where: {
-        committeeId,
-        isActive: true,
-      },
-      select: {
-        committeeId: true,
-        stage: true,
-        reviewType: true,
-        workingDays: true,
-        dayMode: true,
-        description: true,
-      },
-    }),
-    prisma.holiday.findMany({
-      select: { date: true },
-    }),
-  ]);
-  const classificationConfig = getConfiguredSlaOrDefault(
-    buildSlaConfigMap(slaConfigs),
-    committeeId,
-    SLAStage.CLASSIFICATION,
-    null
-  );
-  const classificationDueDate =
-    receivedDate && classificationConfig
-      ? computeDueDate(
-          classificationConfig.dayMode,
-          receivedDate,
-          classificationConfig.targetDays,
-          holidayRows.map((row) => row.date)
-        )
-      : null;
+  const classificationDueDate = isLegacyImport
+    ? null
+    : await (async () => {
+        const [slaConfigs, holidayRows] = await Promise.all([
+          prisma.configSLA.findMany({
+            where: {
+              committeeId,
+              isActive: true,
+            },
+            select: {
+              committeeId: true,
+              stage: true,
+              reviewType: true,
+              workingDays: true,
+              dayMode: true,
+              description: true,
+            },
+          }),
+          prisma.holiday.findMany({
+            select: { date: true },
+          }),
+        ]);
+        const classificationConfig = getConfiguredSlaOrDefault(
+          buildSlaConfigMap(slaConfigs),
+          committeeId,
+          SLAStage.CLASSIFICATION,
+          null
+        );
+        return receivedDate && classificationConfig
+          ? computeDueDate(
+              classificationConfig.dayMode,
+              receivedDate,
+              classificationConfig.targetDays,
+              holidayRows.map((row) => row.date)
+            )
+          : null;
+      })();
+
+  const referenceProfile = input.referenceProfile;
+  const legacySnapshot = isLegacyImport ? input.legacySnapshot ?? null : null;
+  const submissionStatus = isLegacyImport
+    ? SubmissionStatus.RECEIVED
+    : SubmissionStatus.AWAITING_CLASSIFICATION;
+  const submissionHistoryReason = isLegacyImport
+    ? "Legacy spreadsheet import; workflow was not reconstructed"
+    : "Created through staff-assisted intake";
+  const profileSubmissionMonth =
+    referenceProfile?.monthOfSubmission ??
+    (receivedDate ? toMonthLabel(receivedDate) : null);
 
   const created = await prisma.$transaction(async (tx) => {
     const project = await tx.project.create({
@@ -269,6 +334,9 @@ export async function createProjectWithInitialSubmission(
         committeeId: committeeId!,
         initialSubmissionDate: receivedDate,
         createdById: actorId,
+        origin,
+        importBatchId: input.importBatchId ?? null,
+        importSourceRowNumber: input.importSourceRowNumber ?? null,
       },
       select: { id: true },
     });
@@ -278,7 +346,7 @@ export async function createProjectWithInitialSubmission(
         projectId: project.id,
         sequenceNumber: 1,
         submissionType,
-        status: SubmissionStatus.AWAITING_CLASSIFICATION,
+        status: submissionStatus,
         receivedDate,
         classificationDueDate,
         documentLink: normalizeString(input.documentLink || "") || null,
@@ -292,47 +360,97 @@ export async function createProjectWithInitialSubmission(
       data: {
         submissionId: submission.id,
         oldStatus: null,
-        newStatus: SubmissionStatus.AWAITING_CLASSIFICATION,
-        reason: "Created through staff-assisted intake",
+        newStatus: submissionStatus,
+        reason: submissionHistoryReason,
         changedById: actorId,
       },
     });
 
-    const profileFinishDate = input.finishDate
-      ? (typeof input.finishDate === 'string' ? new Date(input.finishDate) : input.finishDate)
-      : null;
-    const profileClassificationDate = input.classificationDate
-      ? (typeof input.classificationDate === 'string' ? new Date(input.classificationDate) : input.classificationDate)
-      : null;
-
     await tx.protocolProfile.create({
       data: {
         projectId: project.id,
-        title: title || null,
-        projectLeader: piName || null,
-        college: collegeOrUnit,
-        department,
-        dateOfSubmission: receivedDate,
-        monthOfSubmission: receivedDate ? toMonthLabel(receivedDate) : null,
-        typeOfReview: submissionType ?? null,
-        proponent,
-        funding: fundingType ?? null,
-        typeOfResearchPhreb: researchTypePHREB ?? null,
-        typeOfResearchPhrebOther: researchTypePHREBOther,
-        status: SubmissionStatus.AWAITING_CLASSIFICATION,
-        finishDate: profileFinishDate && !Number.isNaN(profileFinishDate.getTime()) ? profileFinishDate : null,
-        monthOfClearance:
-          profileFinishDate && !Number.isNaN(profileFinishDate.getTime())
-            ? toMonthLabel(profileFinishDate)
-            : null,
-        remarks: notes,
-        panel: normalizeString(input.panel || '') || null,
-        scientistReviewer: normalizeString(input.scientistReviewer || '') || null,
-        layReviewer: normalizeString(input.layReviewer || '') || null,
-        independentConsultant: normalizeString(input.independentConsultant || '') || null,
-        honorariumStatus: normalizeString(input.honorariumStatus || '') || null,
+        title: referenceProfile?.title ?? (title || null),
+        projectLeader: referenceProfile?.projectLeader ?? (piName || null),
+        college: referenceProfile?.college ?? collegeOrUnit,
+        department: referenceProfile?.department ?? department,
+        dateOfSubmission: referenceProfile?.dateOfSubmission ?? receivedDate,
+        monthOfSubmission: profileSubmissionMonth,
+        typeOfReview: referenceProfile?.typeOfReview ?? submissionType ?? null,
+        proponent: referenceProfile?.proponent ?? proponent,
+        funding: referenceProfile?.funding ?? (fundingType ?? null),
+        typeOfResearchPhreb:
+          referenceProfile?.typeOfResearchPhreb ?? (researchTypePHREB ?? null),
+        typeOfResearchPhrebOther:
+          referenceProfile?.typeOfResearchPhrebOther ?? researchTypePHREBOther,
+        remarks: referenceProfile?.remarks ?? notes,
       },
     });
+
+    if (legacySnapshot) {
+      await tx.legacyImportSnapshot.create({
+        data: {
+          projectId: project.id,
+          importBatchId: input.importBatchId!,
+          sourceRowNumber:
+            input.importSourceRowNumber ?? legacySnapshot.sourceRowNumber,
+          importedStatus: legacySnapshot.importedStatus,
+          importedTypeOfReview: legacySnapshot.importedTypeOfReview,
+          importedClassificationOfProposal:
+            legacySnapshot.importedClassificationOfProposal,
+          importedPanel: legacySnapshot.importedPanel,
+          importedScientistReviewer: legacySnapshot.importedScientistReviewer,
+          importedLayReviewer: legacySnapshot.importedLayReviewer,
+          importedPrimaryReviewer: legacySnapshot.importedPrimaryReviewer,
+          importedFinalLayReviewer: legacySnapshot.importedFinalLayReviewer,
+          importedIndependentConsultant:
+            legacySnapshot.importedIndependentConsultant,
+          importedHonorariumStatus: legacySnapshot.importedHonorariumStatus,
+          importedTotalDays: legacySnapshot.importedTotalDays,
+          importedSubmissionCount: legacySnapshot.importedSubmissionCount,
+          importedReviewDurationDays:
+            legacySnapshot.importedReviewDurationDays,
+          importedClassificationDays: legacySnapshot.importedClassificationDays,
+          importedFinishDate: legacySnapshot.importedFinishDate,
+          importedClassificationDate: legacySnapshot.importedClassificationDate,
+          importedMonthOfClearance: legacySnapshot.importedMonthOfClearance,
+          importedWithdrawn: legacySnapshot.importedWithdrawn,
+          importedProjectEndDate6A: legacySnapshot.importedProjectEndDate6A,
+          importedClearanceExpiration:
+            legacySnapshot.importedClearanceExpiration,
+          importedProgressReportTargetDate:
+            legacySnapshot.importedProgressReportTargetDate,
+          importedProgressReportSubmission:
+            legacySnapshot.importedProgressReportSubmission,
+          importedProgressReportApprovalDate:
+            legacySnapshot.importedProgressReportApprovalDate,
+          importedProgressReportStatus:
+            legacySnapshot.importedProgressReportStatus,
+          importedProgressReportDays: legacySnapshot.importedProgressReportDays,
+          importedFinalReportTargetDate:
+            legacySnapshot.importedFinalReportTargetDate,
+          importedFinalReportSubmission:
+            legacySnapshot.importedFinalReportSubmission,
+          importedFinalReportCompletionDate:
+            legacySnapshot.importedFinalReportCompletionDate,
+          importedFinalReportStatus: legacySnapshot.importedFinalReportStatus,
+          importedFinalReportDays: legacySnapshot.importedFinalReportDays,
+          importedAmendmentSubmission:
+            legacySnapshot.importedAmendmentSubmission,
+          importedAmendmentStatus: legacySnapshot.importedAmendmentStatus,
+          importedAmendmentApprovalDate:
+            legacySnapshot.importedAmendmentApprovalDate,
+          importedAmendmentDays: legacySnapshot.importedAmendmentDays,
+          importedContinuingSubmission:
+            legacySnapshot.importedContinuingSubmission,
+          importedContinuingStatus: legacySnapshot.importedContinuingStatus,
+          importedContinuingApprovalDate:
+            legacySnapshot.importedContinuingApprovalDate,
+          importedContinuingDays: legacySnapshot.importedContinuingDays,
+          importedRemarks: legacySnapshot.importedRemarks,
+          rawRowJson: legacySnapshot.rawRowJson,
+        },
+      });
+    }
 
     return {
       projectId: project.id,

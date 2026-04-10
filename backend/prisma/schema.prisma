@@ -54,6 +54,11 @@ enum ProjectStatus {
   CLOSED // final report accepted / archive
 }
 
+enum ProjectOrigin {
+  NATIVE_PORTAL
+  LEGACY_IMPORT
+}
+
 enum CompletenessStatus {
   COMPLETE
   MINOR_MISSING
@@ -89,6 +94,11 @@ enum SubmissionStatus {
   REVISION_SUBMITTED
   CLOSED
   WITHDRAWN
+}
+
+enum ImportMode {
+  INTAKE_IMPORT
+  LEGACY_MIGRATION
 }
 
 enum SLAStage {
@@ -250,6 +260,7 @@ model User {
   committeeMemberships            CommitteeMember[]
   projectsCreated                 Project[]                 @relation("ProjectsCreated")
   submissionsCreated              Submission[]              @relation("SubmissionsCreated")
+  importBatchesUploaded           ImportBatch[]             @relation("ImportBatchUploadedBy")
   classificationsMade             Classification[]          @relation("ClassificationsClassified")
   reviewsAssigned                 Review[]                  @relation("UserReviews")
   statusChanges                   SubmissionStatusHistory[] @relation("SubmissionStatusChanges")
@@ -273,6 +284,28 @@ model User {
 
   @@index([approvedById])
   @@index([rejectedById])
+}
+
+model ImportBatch {
+  id             Int          @id @default(autoincrement())
+  mode           ImportMode
+  sourceFilename String?
+  sourceFileHash String
+  receivedRows   Int          @default(0)
+  insertedRows   Int          @default(0)
+  failedRows     Int          @default(0)
+  warningRows    Int          @default(0)
+  notes          String?
+  summaryJson    Json?
+  createdAt      DateTime     @default(now())
+
+  uploadedBy   User?                  @relation("ImportBatchUploadedBy", fields: [uploadedById], references: [id])
+  uploadedById Int?
+  projects     Project[]
+  snapshots    LegacyImportSnapshot[]
+
+  @@index([uploadedById])
+  @@index([mode, createdAt])
 }
 
 model AuthSession {
@@ -380,10 +413,14 @@ model Project {
   proposedEndDate        DateTime?
   committee              Committee          @relation(fields: [committeeId], references: [id])
   committeeId            Int
+  origin                 ProjectOrigin      @default(NATIVE_PORTAL)
   overallStatus          ProjectStatus      @default(DRAFT)
   approvalStartDate      DateTime?
   approvalEndDate        DateTime?
   isArchived             Boolean            @default(false)
+  importBatch            ImportBatch?       @relation(fields: [importBatchId], references: [id])
+  importBatchId          Int?
+  importSourceRowNumber  Int?
   createdAt              DateTime           @default(now())
   updatedAt              DateTime           @updatedAt
 
@@ -395,11 +432,13 @@ model Project {
   members       ProjectMember[]
   changeLog     ProjectChangeLog[]
   protocolProfile ProtocolProfile?
+  legacyImportSnapshot LegacyImportSnapshot?
   protocolMilestones ProtocolMilestone[]
   createdBy     User?                  @relation("ProjectsCreated", fields: [createdById], references: [id])
   createdById   Int?
   @@index([committeeId])
   @@index([createdById])
+  @@index([importBatchId])
 }
 
 model ProtocolProfile {
@@ -455,6 +494,58 @@ model ProtocolProfile {
   finalLayReviewer               String?
   createdAt                      DateTime @default(now())
   updatedAt                      DateTime @updatedAt
+}
+
+model LegacyImportSnapshot {
+  id                               Int        @id @default(autoincrement())
+  project                          Project    @relation(fields: [projectId], references: [id])
+  projectId                        Int        @unique
+  importBatch                      ImportBatch? @relation(fields: [importBatchId], references: [id])
+  importBatchId                    Int?
+  sourceRowNumber                  Int?
+  importedStatus                   String?
+  importedTypeOfReview             String?
+  importedClassificationOfProposal String?
+  importedPanel                    String?
+  importedScientistReviewer        String?
+  importedLayReviewer              String?
+  importedPrimaryReviewer          String?
+  importedFinalLayReviewer         String?
+  importedIndependentConsultant    String?
+  importedHonorariumStatus         String?
+  importedTotalDays                Int?
+  importedSubmissionCount          Int?
+  importedReviewDurationDays       Int?
+  importedClassificationDays       Int?
+  importedFinishDate               DateTime?
+  importedClassificationDate       DateTime?
+  importedMonthOfClearance         String?
+  importedWithdrawn                Boolean?
+  importedProjectEndDate6A         DateTime?
+  importedClearanceExpiration      DateTime?
+  importedProgressReportTargetDate DateTime?
+  importedProgressReportSubmission DateTime?
+  importedProgressReportApprovalDate DateTime?
+  importedProgressReportStatus     String?
+  importedProgressReportDays       Int?
+  importedFinalReportTargetDate    DateTime?
+  importedFinalReportSubmission    DateTime?
+  importedFinalReportCompletionDate DateTime?
+  importedFinalReportStatus        String?
+  importedFinalReportDays          Int?
+  importedAmendmentSubmission      DateTime?
+  importedAmendmentStatus          String?
+  importedAmendmentApprovalDate    DateTime?
+  importedAmendmentDays            Int?
+  importedContinuingSubmission     DateTime?
+  importedContinuingStatus         String?
+  importedContinuingApprovalDate   DateTime?
+  importedContinuingDays           Int?
+  importedRemarks                  String?
+  rawRowJson                       Json
+  importedAt                       DateTime   @default(now())
+
+  @@index([importBatchId])
 }
 
 model ProtocolMilestone {

@@ -1,9 +1,28 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { DecoratedQueueItem } from "@/services/api";
 import { formatDateDisplay } from "@/utils/dateUtils";
 import { SLAStatusChip } from "./SLAStatusChip";
 import { EmptyState } from "./EmptyState";
+
+const EMPTY_SELECTED_IDS = new Set<number>();
+
+const compareNullableDate = (left: string | null, right: string | null) => {
+  if (left == null && right == null) return 0;
+  if (left == null) return 1;
+  if (right == null) return -1;
+
+  const leftTime = new Date(left).getTime();
+  const rightTime = new Date(right).getTime();
+  return leftTime - rightTime;
+};
+
+const compareNullableNumber = (left: number | null, right: number | null) => {
+  if (left == null && right == null) return 0;
+  if (left == null) return 1;
+  if (right == null) return -1;
+  return left - right;
+};
 
 type SortKey =
   | "projectCode"
@@ -37,27 +56,66 @@ export const QueueTable: React.FC<QueueTableProps> = ({
 }) => {
   const [sortKey, setSortKey] = useState<SortKey>("slaDueDate");
   const [direction, setDirection] = useState<"asc" | "desc">("asc");
-  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [pageState, setPageState] = useState<{ scope: string; value: number }>({
+    scope: "",
+    value: 1,
+  });
+  const [selectionState, setSelectionState] = useState<{
+    scope: string;
+    value: Set<number>;
+  }>({
+    scope: "",
+    value: new Set<number>(),
+  });
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const location = useLocation();
 
-  useEffect(() => {
-    setPage(1);
-    setSelectedIds(new Set());
-  }, [items, searchTerm, statusFilter]);
-
   const normalizedSearch = searchTerm.trim().toLowerCase();
+  const viewScope = useMemo(
+    () =>
+      JSON.stringify({
+        ids: items.map((item) => item.id),
+        normalizedSearch,
+        statusFilter,
+      }),
+    [items, normalizedSearch, statusFilter]
+  );
+  const page = pageState.scope === viewScope ? pageState.value : 1;
+  const selectedIds =
+    selectionState.scope === viewScope ? selectionState.value : EMPTY_SELECTED_IDS;
+
+  const setPage = (value: React.SetStateAction<number>) => {
+    setPageState((prev) => {
+      const prevValue = prev.scope === viewScope ? prev.value : 1;
+      return {
+        scope: viewScope,
+        value: typeof value === "function" ? value(prevValue) : value,
+      };
+    });
+  };
+
+  const updateSelectedIds = (
+    updater: (current: Set<number>) => Set<number>
+  ) => {
+    setSelectionState((prev) => {
+      const current = prev.scope === viewScope ? prev.value : EMPTY_SELECTED_IDS;
+      return {
+        scope: viewScope,
+        value: updater(current),
+      };
+    });
+  };
+
   const filteredItems = useMemo(() => {
     let result = items;
-    
+
     // Apply status filter if enabled
     if (showStatusFilter && statusFilter !== "ALL") {
       result = result.filter((item) => item.status === statusFilter);
     }
-    
+
     // Apply search filter
     if (normalizedSearch) {
       result = result.filter((item) => {
@@ -65,7 +123,7 @@ export const QueueTable: React.FC<QueueTableProps> = ({
         return haystack.includes(normalizedSearch);
       });
     }
-    
+
     return result;
   }, [items, normalizedSearch, showStatusFilter, statusFilter]);
 
@@ -77,24 +135,16 @@ export const QueueTable: React.FC<QueueTableProps> = ({
         return a.projectCode.localeCompare(b.projectCode) * factor;
       }
       if (sortKey === "receivedDate") {
-        return (
-          (new Date(a.receivedDate).getTime() -
-            new Date(b.receivedDate).getTime()) * factor
-        );
+        return compareNullableDate(a.receivedDate, b.receivedDate) * factor;
       }
       if (sortKey === "slaDueDate") {
-        return (
-          ((a.slaDueDate ? new Date(a.slaDueDate).getTime() : Number.MAX_SAFE_INTEGER) -
-            (b.slaDueDate ? new Date(b.slaDueDate).getTime() : Number.MAX_SAFE_INTEGER)) * factor
-        );
+        return compareNullableDate(a.slaDueDate, b.slaDueDate) * factor;
       }
       if (sortKey === "workingDaysElapsed") {
-        return (((a.workingDaysElapsed ?? Number.MAX_SAFE_INTEGER) -
-          (b.workingDaysElapsed ?? Number.MAX_SAFE_INTEGER)) * factor);
+        return compareNullableNumber(a.workingDaysElapsed, b.workingDaysElapsed) * factor;
       }
       if (sortKey === "workingDaysRemaining") {
-        return (((a.workingDaysRemaining ?? Number.MAX_SAFE_INTEGER) -
-          (b.workingDaysRemaining ?? Number.MAX_SAFE_INTEGER)) * factor);
+        return compareNullableNumber(a.workingDaysRemaining, b.workingDaysRemaining) * factor;
       }
       return 0;
     });
@@ -118,20 +168,22 @@ export const QueueTable: React.FC<QueueTableProps> = ({
 
   const toggleSelectAll = () => {
     if (selectedIds.size === filteredItems.length) {
-      setSelectedIds(new Set());
+      updateSelectedIds(() => new Set());
     } else {
-      setSelectedIds(new Set(filteredItems.map((i) => i.id)));
+      updateSelectedIds(() => new Set(filteredItems.map((i) => i.id)));
     }
   };
 
   const toggleSelect = (id: number) => {
-    const next = new Set(selectedIds);
-    if (next.has(id)) {
-      next.delete(id);
-    } else {
-      next.add(id);
-    }
-    setSelectedIds(next);
+    updateSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   };
 
   const toggleExpand = (id: number) => {
@@ -335,6 +387,7 @@ export const QueueTable: React.FC<QueueTableProps> = ({
               {pageItems.map((item) => {
                 const linkSuffix = preserve ? preserve : "";
                 const submissionLink = `/submissions/${item.id}${linkSuffix}`;
+                const workingDaysRemaining = item.workingDaysRemaining;
                 return (
                   <React.Fragment key={item.id}>
                     <tr className="queue-row">
@@ -367,19 +420,18 @@ export const QueueTable: React.FC<QueueTableProps> = ({
                           targetWorkingDays={item.targetWorkingDays}
                           dueDate={item.slaDueDate}
                           startedAt={item.startedAt}
-                          dayMode={item.slaDayMode}
                         />
                       </td>
                       <td>
-                        {item.workingDaysRemaining == null ? (
+                        {workingDaysRemaining == null ? (
                           <span className="badge">SLA pending</span>
-                        ) : item.workingDaysRemaining >= 0 ? (
+                        ) : workingDaysRemaining >= 0 ? (
                           <span className="badge badge-warning">
-                            {item.workingDaysRemaining} {item.slaDayMode === "CALENDAR" ? "d" : "wd"} left
+                            {workingDaysRemaining} wd left
                           </span>
                         ) : (
                           <span className="badge badge-danger">
-                            {Math.abs(item.workingDaysRemaining)} {item.slaDayMode === "CALENDAR" ? "d" : "wd"} over
+                            {Math.abs(workingDaysRemaining)} wd over
                           </span>
                         )}
                       </td>

@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  ImportBatch: 'ImportBatch',
   AuthSession: 'AuthSession',
   AuditLog: 'AuditLog',
   Committee: 'Committee',
@@ -392,6 +393,7 @@ export const ModelName = {
   CommitteeMember: 'CommitteeMember',
   Project: 'Project',
   ProtocolProfile: 'ProtocolProfile',
+  LegacyImportSnapshot: 'LegacyImportSnapshot',
   ProtocolMilestone: 'ProtocolMilestone',
   AcademicTerm: 'AcademicTerm',
   Proponent: 'Proponent',
@@ -432,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "authSession" | "auditLog" | "committee" | "panel" | "committeeMember" | "project" | "protocolProfile" | "protocolMilestone" | "academicTerm" | "proponent" | "projectProponent" | "projectMember" | "projectChangeLog" | "projectSnapshot" | "submission" | "submissionChangeLog" | "classification" | "classificationDecision" | "classificationVote" | "submissionStatusHistory" | "submissionReminderLog" | "projectStatusHistory" | "review" | "reviewAssignment" | "submissionDocument" | "submissionDecision" | "holiday" | "letterDraft" | "contractPeriod" | "panelMember" | "configSLA" | "workflowEvent"
+    modelProps: "user" | "importBatch" | "authSession" | "auditLog" | "committee" | "panel" | "committeeMember" | "project" | "protocolProfile" | "legacyImportSnapshot" | "protocolMilestone" | "academicTerm" | "proponent" | "projectProponent" | "projectMember" | "projectChangeLog" | "projectSnapshot" | "submission" | "submissionChangeLog" | "classification" | "classificationDecision" | "classificationVote" | "submissionStatusHistory" | "submissionReminderLog" | "projectStatusHistory" | "review" | "reviewAssignment" | "submissionDocument" | "submissionDecision" | "holiday" | "letterDraft" | "contractPeriod" | "panelMember" | "configSLA" | "workflowEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -507,6 +509,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    ImportBatch: {
+      payload: Prisma.$ImportBatchPayload<ExtArgs>
+      fields: Prisma.ImportBatchFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ImportBatchFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportBatchPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ImportBatchFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportBatchPayload>
+        }
+        findFirst: {
+          args: Prisma.ImportBatchFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportBatchPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ImportBatchFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportBatchPayload>
+        }
+        findMany: {
+          args: Prisma.ImportBatchFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportBatchPayload>[]
+        }
+        create: {
+          args: Prisma.ImportBatchCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportBatchPayload>
+        }
+        createMany: {
+          args: Prisma.ImportBatchCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ImportBatchCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportBatchPayload>[]
+        }
+        delete: {
+          args: Prisma.ImportBatchDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportBatchPayload>
+        }
+        update: {
+          args: Prisma.ImportBatchUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportBatchPayload>
+        }
+        deleteMany: {
+          args: Prisma.ImportBatchDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ImportBatchUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ImportBatchUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportBatchPayload>[]
+        }
+        upsert: {
+          args: Prisma.ImportBatchUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ImportBatchPayload>
+        }
+        aggregate: {
+          args: Prisma.ImportBatchAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateImportBatch>
+        }
+        groupBy: {
+          args: Prisma.ImportBatchGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImportBatchGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ImportBatchCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ImportBatchCountAggregateOutputType> | number
         }
       }
     }
@@ -1025,6 +1101,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ProtocolProfileCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProtocolProfileCountAggregateOutputType> | number
+        }
+      }
+    }
+    LegacyImportSnapshot: {
+      payload: Prisma.$LegacyImportSnapshotPayload<ExtArgs>
+      fields: Prisma.LegacyImportSnapshotFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LegacyImportSnapshotFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LegacyImportSnapshotFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>
+        }
+        findFirst: {
+          args: Prisma.LegacyImportSnapshotFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LegacyImportSnapshotFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>
+        }
+        findMany: {
+          args: Prisma.LegacyImportSnapshotFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>[]
+        }
+        create: {
+          args: Prisma.LegacyImportSnapshotCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>
+        }
+        createMany: {
+          args: Prisma.LegacyImportSnapshotCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LegacyImportSnapshotCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>[]
+        }
+        delete: {
+          args: Prisma.LegacyImportSnapshotDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>
+        }
+        update: {
+          args: Prisma.LegacyImportSnapshotUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>
+        }
+        deleteMany: {
+          args: Prisma.LegacyImportSnapshotDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LegacyImportSnapshotUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LegacyImportSnapshotUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>[]
+        }
+        upsert: {
+          args: Prisma.LegacyImportSnapshotUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>
+        }
+        aggregate: {
+          args: Prisma.LegacyImportSnapshotAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLegacyImportSnapshot>
+        }
+        groupBy: {
+          args: Prisma.LegacyImportSnapshotGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LegacyImportSnapshotGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LegacyImportSnapshotCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LegacyImportSnapshotCountAggregateOutputType> | number
         }
       }
     }
@@ -2942,6 +3092,24 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const ImportBatchScalarFieldEnum = {
+  id: 'id',
+  mode: 'mode',
+  sourceFilename: 'sourceFilename',
+  sourceFileHash: 'sourceFileHash',
+  receivedRows: 'receivedRows',
+  insertedRows: 'insertedRows',
+  failedRows: 'failedRows',
+  warningRows: 'warningRows',
+  notes: 'notes',
+  summaryJson: 'summaryJson',
+  createdAt: 'createdAt',
+  uploadedById: 'uploadedById'
+} as const
+
+export type ImportBatchScalarFieldEnum = (typeof ImportBatchScalarFieldEnum)[keyof typeof ImportBatchScalarFieldEnum]
+
+
 export const AuthSessionScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -3029,10 +3197,13 @@ export const ProjectScalarFieldEnum = {
   proposedStartDate: 'proposedStartDate',
   proposedEndDate: 'proposedEndDate',
   committeeId: 'committeeId',
+  origin: 'origin',
   overallStatus: 'overallStatus',
   approvalStartDate: 'approvalStartDate',
   approvalEndDate: 'approvalEndDate',
   isArchived: 'isArchived',
+  importBatchId: 'importBatchId',
+  importSourceRowNumber: 'importSourceRowNumber',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   createdById: 'createdById'
@@ -3096,6 +3267,57 @@ export const ProtocolProfileScalarFieldEnum = {
 } as const
 
 export type ProtocolProfileScalarFieldEnum = (typeof ProtocolProfileScalarFieldEnum)[keyof typeof ProtocolProfileScalarFieldEnum]
+
+
+export const LegacyImportSnapshotScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  importBatchId: 'importBatchId',
+  sourceRowNumber: 'sourceRowNumber',
+  importedStatus: 'importedStatus',
+  importedTypeOfReview: 'importedTypeOfReview',
+  importedClassificationOfProposal: 'importedClassificationOfProposal',
+  importedPanel: 'importedPanel',
+  importedScientistReviewer: 'importedScientistReviewer',
+  importedLayReviewer: 'importedLayReviewer',
+  importedPrimaryReviewer: 'importedPrimaryReviewer',
+  importedFinalLayReviewer: 'importedFinalLayReviewer',
+  importedIndependentConsultant: 'importedIndependentConsultant',
+  importedHonorariumStatus: 'importedHonorariumStatus',
+  importedTotalDays: 'importedTotalDays',
+  importedSubmissionCount: 'importedSubmissionCount',
+  importedReviewDurationDays: 'importedReviewDurationDays',
+  importedClassificationDays: 'importedClassificationDays',
+  importedFinishDate: 'importedFinishDate',
+  importedClassificationDate: 'importedClassificationDate',
+  importedMonthOfClearance: 'importedMonthOfClearance',
+  importedWithdrawn: 'importedWithdrawn',
+  importedProjectEndDate6A: 'importedProjectEndDate6A',
+  importedClearanceExpiration: 'importedClearanceExpiration',
+  importedProgressReportTargetDate: 'importedProgressReportTargetDate',
+  importedProgressReportSubmission: 'importedProgressReportSubmission',
+  importedProgressReportApprovalDate: 'importedProgressReportApprovalDate',
+  importedProgressReportStatus: 'importedProgressReportStatus',
+  importedProgressReportDays: 'importedProgressReportDays',
+  importedFinalReportTargetDate: 'importedFinalReportTargetDate',
+  importedFinalReportSubmission: 'importedFinalReportSubmission',
+  importedFinalReportCompletionDate: 'importedFinalReportCompletionDate',
+  importedFinalReportStatus: 'importedFinalReportStatus',
+  importedFinalReportDays: 'importedFinalReportDays',
+  importedAmendmentSubmission: 'importedAmendmentSubmission',
+  importedAmendmentStatus: 'importedAmendmentStatus',
+  importedAmendmentApprovalDate: 'importedAmendmentApprovalDate',
+  importedAmendmentDays: 'importedAmendmentDays',
+  importedContinuingSubmission: 'importedContinuingSubmission',
+  importedContinuingStatus: 'importedContinuingStatus',
+  importedContinuingApprovalDate: 'importedContinuingApprovalDate',
+  importedContinuingDays: 'importedContinuingDays',
+  importedRemarks: 'importedRemarks',
+  rawRowJson: 'rawRowJson',
+  importedAt: 'importedAt'
+} as const
+
+export type LegacyImportSnapshotScalarFieldEnum = (typeof LegacyImportSnapshotScalarFieldEnum)[keyof typeof LegacyImportSnapshotScalarFieldEnum]
 
 
 export const ProtocolMilestoneScalarFieldEnum = {
@@ -3502,6 +3724,13 @@ export const NullableJsonNullValueInput = {
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -3611,6 +3840,20 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
+ * Reference to a field of type 'ImportMode'
+ */
+export type EnumImportModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ImportMode'>
+    
+
+
+/**
+ * Reference to a field of type 'ImportMode[]'
+ */
+export type ListEnumImportModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ImportMode[]'>
+    
+
+
+/**
  * Reference to a field of type 'Json'
  */
 export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -3663,6 +3906,20 @@ export type EnumFundingTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
  * Reference to a field of type 'FundingType[]'
  */
 export type ListEnumFundingTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FundingType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ProjectOrigin'
+ */
+export type EnumProjectOriginFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProjectOrigin'>
+    
+
+
+/**
+ * Reference to a field of type 'ProjectOrigin[]'
+ */
+export type ListEnumProjectOriginFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProjectOrigin[]'>
     
 
 
@@ -4069,6 +4326,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  importBatch?: Prisma.ImportBatchOmit
   authSession?: Prisma.AuthSessionOmit
   auditLog?: Prisma.AuditLogOmit
   committee?: Prisma.CommitteeOmit
@@ -4076,6 +4334,7 @@ export type GlobalOmitConfig = {
   committeeMember?: Prisma.CommitteeMemberOmit
   project?: Prisma.ProjectOmit
   protocolProfile?: Prisma.ProtocolProfileOmit
+  legacyImportSnapshot?: Prisma.LegacyImportSnapshotOmit
   protocolMilestone?: Prisma.ProtocolMilestoneOmit
   academicTerm?: Prisma.AcademicTermOmit
   proponent?: Prisma.ProponentOmit

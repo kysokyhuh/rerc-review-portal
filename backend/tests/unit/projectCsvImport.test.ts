@@ -1,12 +1,14 @@
 import {
   CsvImportError,
   LEGACY_WIDE_COLUMNS,
+  assessImportMode,
   buildPreviewPayload,
   normalizeHeaderKey,
   parseProjectCsvUnknownFormat,
   parseReceivedDate,
   suggestColumnMapping,
 } from "../../src/services/imports/projectCsvImport";
+import { ImportMode } from "../../src/generated/prisma/enums";
 
 const buildCsv = (header: string[], rows: string[][]) =>
   [header.join(","), ...rows.map((row) => row.join(","))].join("\n");
@@ -170,5 +172,76 @@ describe("project CSV import mapping", () => {
         previewRows: 20,
       })
     ).toThrow(CsvImportError);
+  });
+});
+
+describe("assessImportMode", () => {
+  it("returns match for INTAKE_IMPORT with a native narrow CSV", () => {
+    const csv = buildCsv(
+      ["Project Code", "PI", "Date Received"],
+      [["2026-001", "Dr. A", "2026-01-10"]]
+    );
+    const parsed = parseProjectCsvUnknownFormat(csv);
+    const result = assessImportMode(parsed, ImportMode.INTAKE_IMPORT);
+    expect(result.modeFit).toBe("match");
+    expect(result.recommendedMode).toBe(ImportMode.INTAKE_IMPORT);
+  });
+
+  it("blocks INTAKE_IMPORT when the CSV is legacy_headerless", () => {
+    const csv = [buildLegacyRow({ 0: "2026-001" }).join(",")].join("\n");
+    const parsed = parseProjectCsvUnknownFormat(csv);
+    const result = assessImportMode(parsed, ImportMode.INTAKE_IMPORT);
+    expect(result.modeFit).toBe("blocked");
+    expect(result.recommendedMode).toBe(ImportMode.LEGACY_MIGRATION);
+    expect(result.warningItems.some((w) => w.code === "MODE_MISMATCH_BLOCKED")).toBe(true);
+  });
+
+  it("blocks INTAKE_IMPORT when a legacy_headered CSV has populated legacy workflow columns", () => {
+    // index 17 = "Panel" header in buildLegacyHeaderRow; a non-empty value triggers the block
+    const dataRow = buildLegacyRow({ 0: "2026-001", 17: "Panel 1" });
+    const csv = buildCsv(buildLegacyHeaderRow(), [dataRow]);
+    const parsed = parseProjectCsvUnknownFormat(csv);
+    const result = assessImportMode(parsed, ImportMode.INTAKE_IMPORT);
+    expect(result.modeFit).toBe("blocked");
+    expect(result.recommendedMode).toBe(ImportMode.LEGACY_MIGRATION);
+  });
+
+  it("warns (does not block) INTAKE_IMPORT on legacy_headered CSV with empty legacy columns", () => {
+    // Legacy header row present, but data row only has standard fields — no legacy-only values
+    const dataRow = buildLegacyRow({ 0: "2026-001", 1: "Title Only" });
+    const csv = buildCsv(buildLegacyHeaderRow(), [dataRow]);
+    const parsed = parseProjectCsvUnknownFormat(csv);
+    const result = assessImportMode(parsed, ImportMode.INTAKE_IMPORT);
+    expect(result.modeFit).toBe("warn");
+    expect(result.recommendedMode).toBe(ImportMode.LEGACY_MIGRATION);
+    expect(result.warningItems.some((w) => w.code === "MODE_MISMATCH_WARNING")).toBe(true);
+  });
+
+  it("returns match for LEGACY_MIGRATION with a legacy_headered CSV", () => {
+    const dataRow = buildLegacyRow({ 0: "2026-001", 17: "Panel 1" });
+    const csv = buildCsv(buildLegacyHeaderRow(), [dataRow]);
+    const parsed = parseProjectCsvUnknownFormat(csv);
+    const result = assessImportMode(parsed, ImportMode.LEGACY_MIGRATION);
+    expect(result.modeFit).toBe("match");
+    expect(result.recommendedMode).toBe(ImportMode.LEGACY_MIGRATION);
+  });
+
+  it("returns match for LEGACY_MIGRATION with a legacy_headerless CSV", () => {
+    const csv = [buildLegacyRow({ 0: "2026-001" }).join(",")].join("\n");
+    const parsed = parseProjectCsvUnknownFormat(csv);
+    const result = assessImportMode(parsed, ImportMode.LEGACY_MIGRATION);
+    expect(result.modeFit).toBe("match");
+  });
+
+  it("warns for LEGACY_MIGRATION with a native narrow intake CSV", () => {
+    const csv = buildCsv(
+      ["Project Code", "PI", "Date Received"],
+      [["2026-001", "Dr. A", "2026-01-10"]]
+    );
+    const parsed = parseProjectCsvUnknownFormat(csv);
+    const result = assessImportMode(parsed, ImportMode.LEGACY_MIGRATION);
+    expect(result.modeFit).toBe("warn");
+    expect(result.recommendedMode).toBe(ImportMode.INTAKE_IMPORT);
+    expect(result.warningItems.some((w) => w.code === "MODE_MISMATCH_WARNING")).toBe(true);
   });
 });

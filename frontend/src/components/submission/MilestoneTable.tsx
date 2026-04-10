@@ -16,7 +16,11 @@ export function MilestoneTable({
   milestones, setMilestones, newMilestoneLabel, setNewMilestoneLabel,
   onAddMilestone, onLoadStandardTimeline, onSaveMilestone, onDeleteMilestone,
 }: MilestoneTableProps) {
-  const updateField = (id: number, field: string, value: any) =>
+  const updateField = <K extends keyof ProtocolMilestone>(
+    id: number,
+    field: K,
+    value: ProtocolMilestone[K]
+  ) =>
     setMilestones((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
     );

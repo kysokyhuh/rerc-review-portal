@@ -4,6 +4,7 @@ import {
   type CsvUploadProgress,
   commitProjectsCsvImport,
   fetchProjectImportTemplate,
+  type ImportMode,
   previewProjectsCsv,
   type ImportResult,
   type ProjectImportPreview,
@@ -16,6 +17,7 @@ import {
   ImportSummary,
   RowErrorsTable,
 } from "@/components";
+import { getErrorData, getErrorMessage } from "@/utils";
 import "../styles/imports.css";
 
 const MAX_FILE_SIZE_MB = 5;
@@ -35,6 +37,23 @@ const IDLE_PROGRESS: RequestProgressState = {
   total: null,
   percent: null,
 };
+
+const IMPORT_MODE_OPTIONS: Array<{
+  value: ImportMode;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: "INTAKE_IMPORT",
+    label: "Intake import",
+    description: "Creates native portal-ready records and ignores spreadsheet-only workflow history.",
+  },
+  {
+    value: "LEGACY_MIGRATION",
+    label: "Legacy migration",
+    description: "Imports historical spreadsheet data as a read-only legacy snapshot without reconstructing workflow.",
+  },
+];
 
 const formatBytes = (bytes: number) => {
   if (bytes < 1024) return `${bytes} B`;
@@ -60,11 +79,11 @@ const buildErrorsCsv = (result: ImportResult) => {
   return [header, ...lines].join("\n");
 };
 
-const resolveImportErrorMessage = (err: any, fallback: string) => {
-  if (err?.response?.data?.code === "INVALID_CSRF_TOKEN") {
+const resolveImportErrorMessage = (err: unknown, fallback: string) => {
+  if (getErrorData(err)?.code === "INVALID_CSRF_TOKEN") {
     return "Your session was refreshed. Please try the upload again.";
   }
-  return err?.response?.data?.message || err?.message || fallback;
+  return getErrorMessage(err, fallback);
 };
 
 const resolveProgressState = (progress: CsvUploadProgress): RequestProgressState => ({
@@ -87,6 +106,7 @@ const renderTransferMeta = (progress: RequestProgressState) => {
 
 export default function ImportProjectsPage() {
   const navigate = useNavigate();
+  const [importMode, setImportMode] = useState<ImportMode>("INTAKE_IMPORT");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<ProjectImportPreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -100,12 +120,14 @@ export default function ImportProjectsPage() {
   const [editablePreviewRows, setEditablePreviewRows] = useState<Record<string, string>[]>([]);
 
   const missingMappings = preview?.missingRequiredFields ?? [];
+  const modeBlocked = preview?.modeFit === "blocked";
   const canImport =
     Boolean(selectedFile) &&
     Boolean(preview) &&
     !previewLoading &&
     !uploading &&
-    missingMappings.length === 0;
+    missingMappings.length === 0 &&
+    !modeBlocked;
   const currentStep: 1 | 2 | 3 = result ? 3 : preview ? 2 : 1;
 
   const fileMeta = useMemo(() => {
@@ -115,6 +137,52 @@ export default function ImportProjectsPage() {
       formattedSize: formatBytes(selectedFile.size),
     };
   }, [selectedFile]);
+
+  const loadPreview = async (file: File, mode: ImportMode) => {
+    setPreviewLoading(true);
+    setPreviewProgress({
+      phase: "uploading",
+      loaded: 0,
+      total: file.size,
+      percent: 0,
+    });
+    setStatusMessage("Uploading CSV for preview...");
+
+    try {
+      const previewResponse = await previewProjectsCsv(file, {
+        mode,
+        onUploadProgress: (progress) => {
+          const next = resolveProgressState(progress);
+          setPreviewProgress(next);
+          if (next.phase === "processing") {
+            setStatusMessage("Analyzing file and auto-detecting required headers...");
+          }
+        },
+      });
+      setPreview(previewResponse);
+      setEditablePreviewRows(previewResponse.previewRows.map((row) => ({ ...row })));
+      if (previewResponse.modeFit === "blocked") {
+        setStatusMessage("Selected import mode does not fit this file. Review the recommended mode before importing.");
+      } else if (previewResponse.missingRequiredFields.length > 0) {
+        setStatusMessage("We can't read required headers from this file.");
+      } else if (previewResponse.modeFit === "warn") {
+        setStatusMessage("Preview ready with warnings. Review the recommended import mode before committing.");
+      } else if (previewResponse.detectedFormat === "legacy_headerless") {
+        setStatusMessage("Legacy no-header CSV detected. Preview ready using legacy column order.");
+      } else {
+        setStatusMessage("Preview ready. You can edit blank cells in the preview before import.");
+      }
+    } catch (err: unknown) {
+      const message = resolveImportErrorMessage(err, "Failed to preview CSV.");
+      setError(message);
+      setStatusMessage(null);
+      setPreview(null);
+      setEditablePreviewRows([]);
+    } finally {
+      setPreviewLoading(false);
+      setPreviewProgress(IDLE_PROGRESS);
+    }
+  };
 
   const handleFileSelect = async (file: File | null) => {
     setError(null);
@@ -145,44 +213,7 @@ export default function ImportProjectsPage() {
     }
 
     setSelectedFile(file);
-    setPreviewLoading(true);
-    setPreviewProgress({
-      phase: "uploading",
-      loaded: 0,
-      total: file.size,
-      percent: 0,
-    });
-    setStatusMessage("Uploading CSV for preview...");
-
-    try {
-      const previewResponse = await previewProjectsCsv(file, {
-        onUploadProgress: (progress) => {
-          const next = resolveProgressState(progress);
-          setPreviewProgress(next);
-          if (next.phase === "processing") {
-            setStatusMessage("Analyzing file and auto-detecting required headers...");
-          }
-        },
-      });
-      setPreview(previewResponse);
-      setEditablePreviewRows(previewResponse.previewRows.map((row) => ({ ...row })));
-      if (previewResponse.missingRequiredFields.length > 0) {
-        setStatusMessage("We can't read required headers from this file.");
-      } else if (previewResponse.detectedFormat === "legacy_headerless") {
-        setStatusMessage("Legacy no-header CSV detected. Preview ready using legacy column order.");
-      } else {
-        setStatusMessage("Preview ready. You can edit blank cells in the preview before import.");
-      }
-    } catch (err: any) {
-      const message = resolveImportErrorMessage(err, "Failed to preview CSV.");
-      setError(message);
-      setStatusMessage(null);
-      setPreview(null);
-      setEditablePreviewRows([]);
-    } finally {
-      setPreviewLoading(false);
-      setPreviewProgress(IDLE_PROGRESS);
-    }
+    await loadPreview(file, importMode);
   };
 
   const handleTemplateDownload = async () => {
@@ -249,6 +280,7 @@ export default function ImportProjectsPage() {
         .filter((edit) => Object.keys(edit.values).length > 0);
 
       const response = await commitProjectsCsvImport(selectedFile, undefined, rowEdits, {
+        mode: importMode,
         onUploadProgress: (progress) => {
           const next = resolveProgressState(progress);
           setImportProgress(next);
@@ -261,7 +293,7 @@ export default function ImportProjectsPage() {
       setStatusMessage(
         `Import finished: ${response.insertedRows} inserted, ${response.failedRows} failed.`
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       const message = resolveImportErrorMessage(err, "Failed to import CSV.");
       setStatusMessage(null);
       setError(message);
@@ -292,6 +324,8 @@ export default function ImportProjectsPage() {
   const blockingWarnings =
     preview && preview.missingRequiredFields.length > 0
       ? ["We can't auto-detect required headers for import."]
+      : preview?.modeFit === "blocked"
+        ? ["The selected import mode is blocked for this file."]
       : [];
   const visibleWarnings = Array.from(new Set([...previewWarnings, ...blockingWarnings]));
   const previewTransferMeta = renderTransferMeta(previewProgress);
@@ -350,6 +384,34 @@ export default function ImportProjectsPage() {
                 >
                   {templateDownloading ? "Downloading template..." : "Download Template"}
                 </button>
+              </div>
+
+              <div className="field">
+                <label htmlFor="import-mode">Import mode</label>
+                <select
+                  id="import-mode"
+                  value={importMode}
+                  onChange={(event) => {
+                    const nextMode = event.target.value as ImportMode;
+                    setImportMode(nextMode);
+                    if (selectedFile) {
+                      void loadPreview(selectedFile, nextMode);
+                    }
+                  }}
+                  disabled={uploading || previewLoading}
+                >
+                  {IMPORT_MODE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="import-hint">
+                  {
+                    IMPORT_MODE_OPTIONS.find((option) => option.value === importMode)
+                      ?.description
+                  }
+                </p>
               </div>
 
               <CsvDropzone
@@ -414,6 +476,17 @@ export default function ImportProjectsPage() {
 
               {!previewLoading && preview && (
                 <>
+                  <div className="import-alert info">
+                    <p className="import-alert-line">
+                      <strong>Selected mode:</strong> {preview.selectedMode?.replace("_", " ").toLowerCase()}
+                    </p>
+                    <p className="import-alert-line">
+                      <strong>Recommended mode:</strong> {preview.recommendedMode?.replace("_", " ").toLowerCase()}
+                    </p>
+                    <p className="import-alert-line">
+                      <strong>Mode fit:</strong> {preview.modeFit}
+                    </p>
+                  </div>
                   {visibleWarnings.length > 0 && (
                     <div className="import-alert warning">
                       {visibleWarnings.map((warning) => (
@@ -479,7 +552,7 @@ export default function ImportProjectsPage() {
                 </button>
               </div>
               <p className="import-hint">
-                Import stays disabled only when required fields cannot be auto-detected.
+                Import stays disabled when required fields are missing or the selected mode is blocked for the file.
               </p>
               {uploading && (
                 <div

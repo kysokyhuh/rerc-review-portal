@@ -192,6 +192,36 @@
   }
 }
 
+/* ── Legacy reference section ──────────────────────────────────────── */
+
+.pp-legacy-section {
+  margin-top: 1.5rem;
+  border-top: 1px dashed var(--border, #ddd);
+  padding-top: 1rem;
+}
+
+.pp-legacy-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.pp-legacy-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted, #888);
+}
+
+.pp-legacy-note {
+  font-size: 0.75rem;
+  color: var(--text-muted, #888);
+  font-style: italic;
+}
+
 @media (max-width: 600px) {
   .pp-fields {
     grid-template-columns: 1fr;

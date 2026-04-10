@@ -4,6 +4,7 @@ import type {
   AttentionMetrics,
   DecoratedQueueItem,
   LetterTemplateReadiness,
+  QueueItem,
   QueueCounts,
 } from "@/types";
 import { fetchDashboardQueues } from "@/services/api";
@@ -54,7 +55,10 @@ export function useDashboardQueues(
       };
     }
 
-    const decorateFromBackend = (item: any, queue: DecoratedQueueItem["queue"]): DecoratedQueueItem => {
+    const decorateFromBackend = (
+      item: QueueItem,
+      queue: DecoratedQueueItem["queue"]
+    ): DecoratedQueueItem => {
       const missingFields = findMissingFields(item);
 
       return {
@@ -87,16 +91,16 @@ export function useDashboardQueues(
       };
     };
 
-    const decoratedClassification = data.classificationQueue.map((item: any) =>
+    const decoratedClassification = data.classificationQueue.map((item) =>
       decorateFromBackend(item, "classification")
     );
-    const decoratedReview = data.reviewQueue.map((item: any) =>
+    const decoratedReview = data.reviewQueue.map((item) =>
       decorateFromBackend(item, "review")
     );
-    const decoratedExempted = data.exemptedQueue.map((item: any) =>
+    const decoratedExempted = data.exemptedQueue.map((item) =>
       decorateFromBackend(item, "review")
     );
-    const decoratedRevision = data.revisionQueue.map((item: any) =>
+    const decoratedRevision = data.revisionQueue.map((item) =>
       decorateFromBackend(item, "revision")
     );
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import {
   fetchCommittees,
   fetchSubmissionDetail,
@@ -35,17 +35,16 @@ import type { OverviewFormState } from "@/components/submission";
 import type { CommitteeSummary, ProtocolMilestone, SubmissionDetail } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 
-const CLASSIFICATION_STATUS_STAGES = [
-  "AWAITING_CLASSIFICATION",
-  "UNDER_CLASSIFICATION",
-  "CLASSIFIED",
-] as const;
+type ClassificationStatusStage =
+  | "AWAITING_CLASSIFICATION"
+  | "UNDER_CLASSIFICATION"
+  | "CLASSIFIED";
 
 const REVIEW_TYPE_OPTIONS = ["", "EXEMPT", "EXPEDITED", "FULL_BOARD"] as const;
 
 const normalizeClassificationStatus = (
   value: string
-): (typeof CLASSIFICATION_STATUS_STAGES)[number] => {
+): ClassificationStatusStage => {
   if (
     value === "RECEIVED" ||
     value === "UNDER_COMPLETENESS_CHECK" ||
@@ -67,7 +66,6 @@ const normalizeClassificationStatus = (
 function SubmissionDetailLoadingState() {
   const overviewFields = [
     "Principal investigator",
-    "Committee",
     "Submission type",
     "Received",
     "Current status",
@@ -215,7 +213,6 @@ function SubmissionDetailLoadingState() {
 
 export const SubmissionDetailPage: React.FC = () => {
   const { submissionId } = useParams<{ submissionId: string }>();
-  const navigate = useNavigate();
   const location = useLocation();
 
   const { user } = useAuth();
@@ -234,7 +231,7 @@ export const SubmissionDetailPage: React.FC = () => {
   const [milestones, setMilestones] = useState<ProtocolMilestone[]>([]);
   const [newMilestoneLabel, setNewMilestoneLabel] = useState("");
   const [formState, setFormState] = useState<OverviewFormState>({
-    piName: "", committeeId: "", submissionType: "", receivedDate: "",
+    piName: "", submissionType: "", receivedDate: "",
     finalDecision: "", finalDecisionDate: "", changeReason: "",
   });
   const [classificationStatusPending, setClassificationStatusPending] = useState<
@@ -260,7 +257,6 @@ export const SubmissionDetailPage: React.FC = () => {
   const resetFormState = (source: SubmissionDetail) => {
     setFormState({
       piName: source.project?.piName ?? "",
-      committeeId: source.project?.committee?.id ? String(source.project.committee.id) : "",
       submissionType: source.submissionType ?? "",
       receivedDate: toInputDate(source.receivedDate),
       finalDecision: source.finalDecision ?? "",
@@ -282,7 +278,7 @@ export const SubmissionDetailPage: React.FC = () => {
     if (!submission) return;
     resetFormState(submission);
     setProfileForm(profileToFormState(submission.project?.protocolProfile));
-    setMilestones((submission.project as any)?.protocolMilestones ?? []);
+    setMilestones(submission.project?.protocolMilestones ?? []);
     const normalized = normalizeClassificationStatus(submission.status);
     setClassificationStatusPending(
       normalized === "UNDER_CLASSIFICATION"
@@ -394,7 +390,6 @@ export const SubmissionDetailPage: React.FC = () => {
         finalDecision: formState.finalDecision || null,
         finalDecisionDate: formState.finalDecisionDate ? new Date(formState.finalDecisionDate).toISOString() : null,
         piName: formState.piName.trim() || undefined,
-        committeeId: formState.committeeId ? Number(formState.committeeId) : undefined,
         changeReason: formState.changeReason.trim() || undefined,
       };
       const updated = await updateSubmissionOverview(numericId, payload);
@@ -428,7 +423,6 @@ export const SubmissionDetailPage: React.FC = () => {
     classificationStatusPending === "UNDER_CLASSIFICATION" ||
     currentStatus === "CLASSIFIED" ||
     currentReviewType !== "";
-  const statusDisplay = currentReviewType ? "CLASSIFIED" : classificationStatusPending;
   const controlsDirty =
     classificationStatusPending !==
       (currentStatus === "UNDER_CLASSIFICATION"
@@ -535,6 +529,9 @@ export const SubmissionDetailPage: React.FC = () => {
   if (loading || !submission) {
     return <SubmissionDetailLoadingState />;
   }
+  if (submission.project?.origin === "LEGACY_IMPORT" && submission.project.id) {
+    return <Navigate to={`/projects/${submission.project.id}`} replace />;
+  }
 
   const projectCode = submission.project?.projectCode ?? "N/A";
   const title = submission.project?.title ?? "Untitled submission";
@@ -575,7 +572,6 @@ export const SubmissionDetailPage: React.FC = () => {
         submission={submission} isEditing={isEditing}
         saving={saving} saveError={saveError}
         formState={formState} setFormState={setFormState}
-        committees={committees}
         onEditStart={handleEditStart} onEditCancel={handleEditCancel} onSave={handleSave}
       />
 

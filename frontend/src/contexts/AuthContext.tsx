@@ -22,6 +22,7 @@ import type {
   ChangePasswordPayload,
   UpdateProfilePayload,
 } from "@/types";
+import { getErrorStatus } from "@/utils";
 
 export type AuthUser = AuthProfile;
 
@@ -74,8 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const profile = await fetchMyProfile();
       setAuthenticatedUser(profile);
       return;
-    } catch (error: any) {
-      if (error?.response?.status === 401) {
+    } catch (error: unknown) {
+      if (getErrorStatus(error) === 401) {
         try {
           await refreshAccessSession();
           const retry = await fetchMyProfile();
@@ -99,6 +100,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clearAuthState]);
 
   useEffect(() => {
+    // Initial session bootstrap is an external sync step on mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refreshMe();
   }, [refreshMe]);
 

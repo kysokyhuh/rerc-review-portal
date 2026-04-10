@@ -66,6 +66,14 @@ export const ProjectStatus = {
 export type ProjectStatus = (typeof ProjectStatus)[keyof typeof ProjectStatus]
 
 
+export const ProjectOrigin = {
+  NATIVE_PORTAL: 'NATIVE_PORTAL',
+  LEGACY_IMPORT: 'LEGACY_IMPORT'
+} as const
+
+export type ProjectOrigin = (typeof ProjectOrigin)[keyof typeof ProjectOrigin]
+
+
 export const CompletenessStatus = {
   COMPLETE: 'COMPLETE',
   MINOR_MISSING: 'MINOR_MISSING',
@@ -113,6 +121,14 @@ export const SubmissionStatus = {
 } as const
 
 export type SubmissionStatus = (typeof SubmissionStatus)[keyof typeof SubmissionStatus]
+
+
+export const ImportMode = {
+  INTAKE_IMPORT: 'INTAKE_IMPORT',
+  LEGACY_MIGRATION: 'LEGACY_MIGRATION'
+} as const
+
+export type ImportMode = (typeof ImportMode)[keyof typeof ImportMode]
 
 
 export const SLAStage = {

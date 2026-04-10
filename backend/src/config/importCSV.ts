@@ -17,11 +17,6 @@ import {
   HonorariumStatus,
 } from "../generated/prisma/enums";
 
-const PANEL_DEFINITIONS = Array.from({ length: 4 }, (_, index) => ({
-  name: `Panel ${index + 1}`,
-  code: `P${index + 1}`,
-}));
-
 // Parse date from various formats in CSV
 function parseDate(dateStr: string): Date | null {
   if (!dateStr || dateStr.trim() === "" || dateStr === "-") return null;
@@ -149,31 +144,20 @@ async function importCSV() {
 
   // Create panels
   const panelMap: Record<string, number> = {};
-  for (const panelDefinition of PANEL_DEFINITIONS) {
+  for (const panelName of ["Panel 1", "Panel 2", "Panel 3"]) {
     let panel = await prisma.panel.findFirst({
-      where: {
-        committeeId: committee.id,
-        OR: [{ code: panelDefinition.code }, { name: panelDefinition.name }],
-      },
+      where: { name: panelName, committeeId: committee.id },
     });
     if (!panel) {
       panel = await prisma.panel.create({
         data: {
-          name: panelDefinition.name,
-          code: panelDefinition.code,
+          name: panelName,
+          code: panelName.replace(" ", ""),
           committeeId: committee.id,
         },
       });
-    } else if (panel.name !== panelDefinition.name || panel.code !== panelDefinition.code) {
-      panel = await prisma.panel.update({
-        where: { id: panel.id },
-        data: {
-          name: panelDefinition.name,
-          code: panelDefinition.code,
-        },
-      });
     }
-    panelMap[panelDefinition.name.toLowerCase()] = panel.id;
+    panelMap[panelName.toLowerCase()] = panel.id;
   }
 
   // Track created reviewers

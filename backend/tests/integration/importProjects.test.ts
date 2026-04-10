@@ -7,6 +7,7 @@ const txProjectCreate = jest.fn();
 const txSubmissionCreate = jest.fn();
 const txProtocolProfileCreate = jest.fn();
 const txSubmissionStatusHistoryCreate = jest.fn();
+const txLegacyImportSnapshotCreate = jest.fn();
 
 jest.mock("../../src/config/prismaClient", () => {
   return {
@@ -31,7 +32,11 @@ jest.mock("../../src/config/prismaClient", () => {
         create: jest.fn(),
       },
       protocolProfile: {
-        upsert: jest.fn(),
+        create: jest.fn(),
+      },
+      importBatch: {
+        create: jest.fn(),
+        update: jest.fn(),
       },
       $transaction: jest.fn(async (callback: any) =>
         callback({
@@ -39,6 +44,7 @@ jest.mock("../../src/config/prismaClient", () => {
           submission: { create: txSubmissionCreate },
           protocolProfile: { create: txProtocolProfileCreate },
           submissionStatusHistory: { create: txSubmissionStatusHistoryCreate },
+          legacyImportSnapshot: { create: txLegacyImportSnapshotCreate },
         })
       ),
     },
@@ -51,7 +57,8 @@ const prisma = prismaClient as unknown as {
   holiday: { findMany: jest.Mock };
   project: { findMany: jest.Mock; findFirst: jest.Mock; create: jest.Mock };
   submission: { create: jest.Mock };
-  protocolProfile: { upsert: jest.Mock };
+  protocolProfile: { create: jest.Mock };
+  importBatch: { create: jest.Mock; update: jest.Mock };
   $transaction: jest.Mock;
 };
 
@@ -110,6 +117,7 @@ const csrfHeaders = {
 describe("project import routes", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env.IMPORT_DEFAULT_COMMITTEE_CODE = "RERC-HUMAN";
     prisma.committee.findMany.mockResolvedValue([{ id: 1, code: "RERC-HUMAN" }]);
     prisma.committee.findFirst.mockResolvedValue({ id: 1, code: "RERC-HUMAN" });
     prisma.configSLA.findMany.mockResolvedValue([]);
@@ -120,7 +128,19 @@ describe("project import routes", () => {
     txSubmissionCreate.mockResolvedValue({ id: 10 });
     txProtocolProfileCreate.mockResolvedValue({ id: 20 });
     txSubmissionStatusHistoryCreate.mockResolvedValue({ id: 30 });
-    prisma.protocolProfile.upsert.mockResolvedValue({ id: 20 });
+    txLegacyImportSnapshotCreate.mockResolvedValue({ id: 40 });
+    prisma.importBatch.create.mockResolvedValue({
+      id: 99,
+      mode: "INTAKE_IMPORT",
+      sourceFilename: "projects.csv",
+      createdAt: "2026-04-10T00:00:00.000Z",
+    });
+    prisma.importBatch.update.mockResolvedValue({
+      id: 99,
+      insertedRows: 1,
+      failedRows: 0,
+      warningRows: 0,
+    });
   });
 
   describe("POST /imports/projects/preview", () => {
@@ -364,6 +384,7 @@ describe("project import routes", () => {
           .set("X-User-Email", "ra@example.com")
           .set("X-User-Name", "RA")
           .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+          .field("mode", "LEGACY_MIGRATION")
           .attach(
             "file",
             Buffer.from(buildLegacyCsv([legacyRow], includeHeader)),
@@ -377,11 +398,13 @@ describe("project import routes", () => {
 
       const headeredProjectArgs = txProjectCreate.mock.calls[0][0];
       const headeredSubmissionArgs = txSubmissionCreate.mock.calls[0][0];
-      const headeredProfileArgs = prisma.protocolProfile.upsert.mock.calls[0][0];
+      const headeredProfileArgs = txProtocolProfileCreate.mock.calls[0][0];
+      const headeredSnapshotArgs = txLegacyImportSnapshotCreate.mock.calls[0][0];
 
       txProjectCreate.mockClear();
       txSubmissionCreate.mockClear();
-      prisma.protocolProfile.upsert.mockClear();
+      txProtocolProfileCreate.mockClear();
+      txLegacyImportSnapshotCreate.mockClear();
 
       const headerlessResponse = await performCommit(false);
       expect(headerlessResponse.status).toBe(200);
@@ -390,20 +413,157 @@ describe("project import routes", () => {
 
       const headerlessProjectArgs = txProjectCreate.mock.calls[0][0];
       const headerlessSubmissionArgs = txSubmissionCreate.mock.calls[0][0];
-      const headerlessProfileArgs = prisma.protocolProfile.upsert.mock.calls[0][0];
+      const headerlessProfileArgs = txProtocolProfileCreate.mock.calls[0][0];
+      const headerlessSnapshotArgs = txLegacyImportSnapshotCreate.mock.calls[0][0];
 
-      expect(headerlessProjectArgs).toEqual(headeredProjectArgs);
-      expect(headerlessSubmissionArgs).toEqual(headeredSubmissionArgs);
-      expect(headerlessProfileArgs).toEqual(headeredProfileArgs);
-      expect(headerlessProfileArgs.update).toEqual(
+      expect(headerlessProjectArgs).toEqual(
         expect.objectContaining({
-          progressReportStatus: "Accepted",
-          finalReportStatus: "Complete",
-          amendmentStatusOfRequest: "Approved",
-          continuingStatusOfRequest: "Approved",
-          finalLayReviewer: "Ms. Final Lay",
+          ...headeredProjectArgs,
+          data: expect.objectContaining({
+            ...headeredProjectArgs.data,
+            importSourceRowNumber: 1,
+          }),
         })
       );
+      expect(headerlessSubmissionArgs).toEqual(headeredSubmissionArgs);
+      expect(headerlessProfileArgs).toEqual(headeredProfileArgs);
+      expect(headerlessSnapshotArgs).toEqual(
+        expect.objectContaining({
+          ...headeredSnapshotArgs,
+          data: expect.objectContaining({
+            ...headeredSnapshotArgs.data,
+            sourceRowNumber: 1,
+          }),
+        })
+      );
+      expect(headerlessSnapshotArgs.data).toEqual(
+        expect.objectContaining({
+          importedProgressReportStatus: "Accepted",
+          importedFinalReportStatus: "Complete",
+          importedAmendmentStatus: "Approved",
+          importedContinuingStatus: "Approved",
+          importedFinalLayReviewer: "Ms. Final Lay",
+        })
+      );
+    });
+
+    it("INTAKE_IMPORT creates project with origin=NATIVE_PORTAL and submission with AWAITING_CLASSIFICATION", async () => {
+      const csv = buildCsv([
+        ["2026-401", "Intake Title", "Dr. Intake", "Science", "Biology", "", "INTERNAL", "", "", "RERC-HUMAN", "INITIAL", "2026-01-10", ""],
+      ]);
+      const mapping = {
+        projectCode: "projectCode",
+        title: "title",
+        piName: "piName",
+        fundingType: "fundingType",
+        committeeCode: "committeeCode",
+        submissionType: "submissionType",
+        receivedDate: "receivedDate",
+      };
+
+      const response = await request(app)
+        .post("/imports/projects/commit")
+        .set(csrfHeaders)
+        .set("X-User-ID", "1")
+        .set("X-User-Email", "ra@example.com")
+        .set("X-User-Name", "RA")
+        .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+        .field("mode", "INTAKE_IMPORT")
+        .field("mapping", JSON.stringify(mapping))
+        .attach("file", Buffer.from(csv), "intake.csv");
+
+      expect(response.status).toBe(200);
+      expect(response.body.insertedRows).toBe(1);
+      expect(txProjectCreate).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ origin: "NATIVE_PORTAL" }) })
+      );
+      expect(txSubmissionCreate).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ status: "AWAITING_CLASSIFICATION" }) })
+      );
+      expect(txLegacyImportSnapshotCreate).not.toHaveBeenCalled();
+    });
+
+    it("LEGACY_MIGRATION creates project with origin=LEGACY_IMPORT and submission with RECEIVED", async () => {
+      const legacyRow = buildLegacyRow({
+        0: "2026-402",
+        1: "Legacy Title",
+        2: "Dr. Legacy",
+        5: "2026-03-01",
+        9: "INTERNAL",
+        17: "Panel 1",
+      });
+
+      const response = await request(app)
+        .post("/imports/projects/commit")
+        .set(csrfHeaders)
+        .set("X-User-ID", "1")
+        .set("X-User-Email", "ra@example.com")
+        .set("X-User-Name", "RA")
+        .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+        .field("mode", "LEGACY_MIGRATION")
+        .attach("file", Buffer.from(buildLegacyCsv([legacyRow], true)), "legacy.csv");
+
+      expect(response.status).toBe(200);
+      expect(response.body.insertedRows).toBe(1);
+      expect(txProjectCreate).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ origin: "LEGACY_IMPORT" }) })
+      );
+      expect(txSubmissionCreate).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ status: "RECEIVED" }) })
+      );
+      expect(txLegacyImportSnapshotCreate).toHaveBeenCalled();
+    });
+
+    it("rejects with 400 when INTAKE_IMPORT is used with a legacy_headerless CSV (modeFit=blocked)", async () => {
+      const legacyRow = buildLegacyRow({ 0: "2026-403", 1: "Blocked Title", 5: "2026-03-01" });
+      const csv = [legacyRow.join(",")].join("\n"); // no header row → legacy_headerless
+
+      const response = await request(app)
+        .post("/imports/projects/commit")
+        .set(csrfHeaders)
+        .set("X-User-ID", "1")
+        .set("X-User-Email", "ra@example.com")
+        .set("X-User-Name", "RA")
+        .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+        .field("mode", "INTAKE_IMPORT")
+        .attach("file", Buffer.from(csv), "legacy-headerless.csv");
+
+      // validateMappedProjectRows throws CsvImportError(400) when modeFit=blocked
+      expect(response.status).toBe(400);
+      expect(response.body.details).toMatchObject({
+        selectedMode: "INTAKE_IMPORT",
+        recommendedMode: "LEGACY_MIGRATION",
+      });
+      expect(txProjectCreate).not.toHaveBeenCalled();
+    });
+
+    it("response includes selectedMode, recommendedMode, modeFit, and warnings for a LEGACY_MIGRATION commit", async () => {
+      // Row with totalDays=9999 (exceeds 3650 bound) → SUSPICIOUS_LEGACY_NUMBER warning
+      const legacyRow = buildLegacyRow({
+        0: "2026-404",
+        1: "Warning Title",
+        5: "2026-03-01",
+        60: "9999", // totalDays column (index 60) — out of range triggers warning
+      });
+
+      const response = await request(app)
+        .post("/imports/projects/commit")
+        .set(csrfHeaders)
+        .set("X-User-ID", "1")
+        .set("X-User-Email", "ra@example.com")
+        .set("X-User-Name", "RA")
+        .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+        .field("mode", "LEGACY_MIGRATION")
+        .attach("file", Buffer.from(buildLegacyCsv([legacyRow], true)), "legacy-warnings.csv");
+
+      expect(response.status).toBe(200);
+      expect(response.body.selectedMode).toBe("LEGACY_MIGRATION");
+      expect(response.body.recommendedMode).toBe("LEGACY_MIGRATION");
+      expect(response.body.modeFit).toBe("match");
+      expect(response.body.warnings).toBeDefined();
+      expect(Array.isArray(response.body.warnings)).toBe(true);
+      expect(response.body.warningRows).toBeGreaterThanOrEqual(1);
+      expect(response.body.importBatch).toBeDefined();
     });
   });
 });

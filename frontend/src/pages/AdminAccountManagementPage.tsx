@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import api from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { getErrorMessage } from "@/utils";
 import "@/styles/admin-users.css";
 
 type UserStatus = "PENDING" | "APPROVED" | "REJECTED" | "DISABLED";
@@ -118,6 +119,7 @@ export default function AdminAccountManagementPage() {
   const [activeTab, setActiveTab] = useState<AccountTab>("PENDING");
   const [savingId, setSavingId] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [openActionMenuId, setOpenActionMenuId] = useState<number | null>(null);
 
   const hydrateDrafts = (items: UserRow[]) => {
     const next: Record<number, UserDraft> = {};
@@ -139,8 +141,8 @@ export default function AdminAccountManagementPage() {
       const items = (res.data.users || []) as UserRow[];
       setUsers(items);
       hydrateDrafts(items);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to load accounts.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to load accounts."));
     } finally {
       setLoading(false);
     }
@@ -155,6 +157,36 @@ export default function AdminAccountManagementPage() {
       setActiveTab("APPROVED");
     }
   }, [activeTab, isChair]);
+
+  useEffect(() => {
+    if (openActionMenuId === null) return undefined;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest(".admin-actions-menu-shell")) {
+        return;
+      }
+      setOpenActionMenuId(null);
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpenActionMenuId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [openActionMenuId]);
+
+  useEffect(() => {
+    setOpenActionMenuId(null);
+  }, [activeTab, editingId, search]);
 
   const tabCounts = useMemo(() => {
     return {
@@ -292,8 +324,8 @@ export default function AdminAccountManagementPage() {
       await api.post(`/admin/users/${entry.id}/approve`, { role });
       setNotice("Account approved.");
       await load();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to approve account.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to approve account."));
     } finally {
       setSavingId(null);
     }
@@ -310,8 +342,8 @@ export default function AdminAccountManagementPage() {
       await api.post(`/admin/users/${entry.id}/reject`, note.trim() ? { note: note.trim() } : {});
       setNotice("Account rejected.");
       await load();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to reject account.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to reject account."));
     } finally {
       setSavingId(null);
     }
@@ -328,10 +360,11 @@ export default function AdminAccountManagementPage() {
     try {
       await api.post(`/admin/users/${entry.id}/disable`, note.trim() ? { note: note.trim() } : {});
       setEditingId(null);
+      setOpenActionMenuId(null);
       setNotice("Account disabled.");
       await load();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to disable account.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to disable account."));
     } finally {
       setSavingId(null);
     }
@@ -347,10 +380,11 @@ export default function AdminAccountManagementPage() {
     clearMessages();
     try {
       await api.post(`/admin/users/${entry.id}/enable`, note.trim() ? { note: note.trim() } : {});
+      setOpenActionMenuId(null);
       setNotice("Account enabled.");
       await load();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to enable account.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to enable account."));
     } finally {
       setSavingId(null);
     }
@@ -372,10 +406,11 @@ export default function AdminAccountManagementPage() {
       await api.post(`/admin/users/${entry.id}/reset-password`, {
         temporaryPassword: temporaryPassword.trim(),
       });
+      setOpenActionMenuId(null);
       setNotice("Temporary password saved. The user must change it at next sign-in.");
       await load();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to reset password.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to reset password."));
     } finally {
       setSavingId(null);
     }
@@ -402,6 +437,7 @@ export default function AdminAccountManagementPage() {
 
     if (Object.keys(payload).length === 0) {
       setEditingId(null);
+      setOpenActionMenuId(null);
       return;
     }
 
@@ -410,10 +446,11 @@ export default function AdminAccountManagementPage() {
     try {
       await api.patch(`/admin/users/${entry.id}`, payload);
       setEditingId(null);
+      setOpenActionMenuId(null);
       setNotice("Account updated.");
       await load();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to save account changes.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to save account changes."));
     } finally {
       setSavingId(null);
     }
@@ -580,18 +617,7 @@ export default function AdminAccountManagementPage() {
                     const isEditing = editingId === entry.id;
                     const currentRole = firstEditableRole(entry.roles);
                     const dateParts = formatDateTimeParts(getDateValue(entry));
-                    const actionClassName = [
-                      "admin-actions clean",
-                      activeTab === "PENDING" && isChair ? "pending" : "",
-                      activeTab === "APPROVED" && !isEditing && isChair ? "approved" : "",
-                      activeTab === "APPROVED" && isEditing && isChair ? "edit" : "",
-                      (activeTab === "APPROVED" && !isEditing && !isChair) ||
-                      (activeTab === "DISABLED" && isChair)
-                        ? "single"
-                        : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ");
+                    const isActionMenuOpen = openActionMenuId === entry.id;
 
                     return (
                       <tr key={entry.id} className={isEditing ? "admin-row-editing" : undefined}>
@@ -656,9 +682,7 @@ export default function AdminAccountManagementPage() {
                               ))}
                             </select>
                           ) : (
-                            <span
-                              className={`admin-role-pill ${currentRole ? "" : "unassigned"}`.trim()}
-                            >
+                            <span className={`admin-role-text ${currentRole ? "" : "unassigned"}`.trim()}>
                               {roleText(currentRole)}
                             </span>
                           )}
@@ -687,7 +711,7 @@ export default function AdminAccountManagementPage() {
                           )}
                         </td>
                         <td className="table-actions">
-                          <div className={actionClassName}>
+                          <div className="admin-actions clean">
                             {activeTab === "PENDING" && isChair ? (
                               <>
                                 <button
@@ -708,37 +732,81 @@ export default function AdminAccountManagementPage() {
                             ) : null}
 
                             {activeTab === "APPROVED" && !isEditing && isChair ? (
-                              <>
+                              <div className="admin-actions-approved-row">
                                 <button
                                   className="admin-btn secondary"
-                                  onClick={() => setEditingId(entry.id)}
+                                  onClick={() => {
+                                    setEditingId(entry.id);
+                                    setOpenActionMenuId(null);
+                                  }}
                                   disabled={busy}
                                 >
                                   Edit
                                 </button>
-                                <button
-                                  className="admin-btn ghost"
-                                  onClick={() => void handleResetPassword(entry)}
-                                  disabled={busy || !canResetPasswords}
+                                <div
+                                  className={`admin-actions-menu-shell${
+                                    isActionMenuOpen ? " is-open" : ""
+                                  }`}
                                 >
-                                  Reset Password
-                                </button>
-                                <button
-                                  className="admin-btn danger"
-                                  type="button"
-                                  aria-label={`Disable ${entry.email}`}
-                                  data-span="full"
-                                  onClick={() => void handleDisable(entry)}
-                                  disabled={busy}
-                                >
-                                  Disable
-                                </button>
-                              </>
+                                  <button
+                                    className="admin-btn ghost admin-menu-trigger"
+                                    type="button"
+                                    aria-haspopup="menu"
+                                    aria-expanded={isActionMenuOpen}
+                                    aria-label={`More actions for ${entry.email}`}
+                                    onClick={() =>
+                                      setOpenActionMenuId((current) =>
+                                        current === entry.id ? null : entry.id
+                                      )
+                                    }
+                                    disabled={busy}
+                                  >
+                                    More
+                                    <svg
+                                      viewBox="0 0 16 16"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      aria-hidden="true"
+                                    >
+                                      <path
+                                        d="M4 6L8 10L12 6"
+                                        stroke="currentColor"
+                                        strokeWidth="1.6"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                  </button>
+
+                                  {isActionMenuOpen ? (
+                                    <div className="admin-actions-menu" role="menu">
+                                      <button
+                                        className="admin-actions-menu-item"
+                                        type="button"
+                                        role="menuitem"
+                                        onClick={() => void handleResetPassword(entry)}
+                                        disabled={busy || !canResetPasswords}
+                                      >
+                                        Reset password
+                                      </button>
+                                      <button
+                                        className="admin-actions-menu-item danger"
+                                        type="button"
+                                        role="menuitem"
+                                        onClick={() => void handleDisable(entry)}
+                                        disabled={busy}
+                                      >
+                                        Disable account
+                                      </button>
+                                    </div>
+                                  ) : null}
+                                </div>
+                              </div>
                             ) : null}
 
                             {activeTab === "APPROVED" && !isEditing && !isChair ? (
                               <button
-                                className="admin-btn primary"
+                                className="admin-btn secondary"
                                 onClick={() => void handleResetPassword(entry)}
                                 disabled={busy || !canResetPasswords}
                               >
@@ -747,7 +815,7 @@ export default function AdminAccountManagementPage() {
                             ) : null}
 
                             {activeTab === "APPROVED" && isEditing && isChair ? (
-                              <>
+                              <div className="admin-edit-actions">
                                 <button
                                   className="admin-btn primary"
                                   onClick={() => void saveApprovedUser(entry)}
@@ -759,13 +827,14 @@ export default function AdminAccountManagementPage() {
                                   className="admin-btn ghost"
                                   onClick={() => {
                                     setEditingId(null);
+                                    setOpenActionMenuId(null);
                                     hydrateDrafts(users);
                                   }}
                                   disabled={busy}
                                 >
                                   Cancel
                                 </button>
-                              </>
+                              </div>
                             ) : null}
 
                             {activeTab === "DISABLED" && isChair ? (

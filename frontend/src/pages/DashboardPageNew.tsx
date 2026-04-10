@@ -29,7 +29,6 @@ import {
   priorityScore,
   resolveOwnerRoleKey,
   exportRowsToCsv,
-  type CollapsedPanels,
 } from "@/components/dashboard/utils";
 import "../styles/dashboard.css";
 
@@ -54,7 +53,6 @@ export const DashboardPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [queueFilter, setQueueFilter] = useState<QueueFilter>("all");
   const [dismissedAnnouncements, setDismissedAnnouncements] = useState<string[]>([]);
-  const [overdueTab, setOverdueTab] = useState<"submissions" | "reviewers" | "endorsements" | "due-soon">("submissions");
   const [overdueOwnerFilter, setOverdueOwnerFilter] = useState<OverdueOwnerFilter>("all");
   const [searchResults, setSearchResults] = useState<ProjectSearchResult[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -71,13 +69,6 @@ export const DashboardPage: React.FC = () => {
   const [quickViewError, setQuickViewError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkModal, setBulkModal] = useState<"assign" | "reminders" | "status" | null>(null);
-  const [collapsedPanels, setCollapsedPanels] = useState<CollapsedPanels>(() => {
-    if (typeof window === "undefined") return { overdue: false };
-    try {
-      const stored = window.localStorage.getItem("dashboardCollapsedPanels");
-      return stored ? JSON.parse(stored) : { overdue: false };
-    } catch { return { overdue: false }; }
-  });
   const [dashboardFilters, setDashboardFilters] = useState<Record<string, string>>({});
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -100,10 +91,10 @@ export const DashboardPage: React.FC = () => {
     attention, allItems, lastUpdated, refresh, loading, error,
   } = useDashboardQueues(BRAND.defaultCommitteeCode, dashboardFilters);
 
-  const {
-    overdueReviews, overdueEndorsements,
-    loading: overdueLoading, error: overdueError, refresh: refreshOverdue,
-  } = useDashboardOverdue(BRAND.defaultCommitteeCode, dashboardFilters);
+  const { refresh: refreshOverdue } = useDashboardOverdue(
+    BRAND.defaultCommitteeCode,
+    dashboardFilters
+  );
 
   const handleRefresh = () => { refresh(); refreshOverdue(); };
 
@@ -258,10 +249,6 @@ export const DashboardPage: React.FC = () => {
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
   }, [quickViewOpen]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") window.localStorage.setItem("dashboardCollapsedPanels", JSON.stringify(collapsedPanels));
-  }, [collapsedPanels]);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
