@@ -397,7 +397,11 @@ const LEGACY_MILESTONE_ONLY_CANDIDATES = [
 ];
 
 const normalizeHeader = (value: unknown) => String(value ?? "").trim();
-const normalizeValue = (value: unknown) => String(value ?? "").trim();
+const EXCEL_ERROR_RE = /^#(NAME|VALUE|REF|DIV\/0!|N\/A|NULL!|NUM!)[!?]?$|^#{3,}$/i;
+const normalizeValue = (value: unknown) => {
+  const str = String(value ?? "").trim();
+  return EXCEL_ERROR_RE.test(str) ? "" : str;
+};
 
 export const normalizeHeaderKey = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]/g, "");
