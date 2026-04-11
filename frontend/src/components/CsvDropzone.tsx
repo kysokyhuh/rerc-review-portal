@@ -12,6 +12,8 @@ interface CsvDropzoneProps {
   disabled?: boolean;
   maxFileSizeMb: number;
   onFileSelected: (file: File | null) => void;
+  /** Which file types to accept. Defaults to CSV + XLSX. */
+  accept?: "csv" | "xlsx" | "both";
 }
 
 export function CsvDropzone({
@@ -19,6 +21,7 @@ export function CsvDropzone({
   disabled = false,
   maxFileSizeMb,
   onFileSelected,
+  accept = "both",
 }: CsvDropzoneProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -63,13 +66,37 @@ export function CsvDropzone({
     onFileSelected(file);
   };
 
+  const acceptAttr =
+    accept === "csv"
+      ? ".csv,text/csv"
+      : accept === "xlsx"
+        ? ".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        : ".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+  const dropzoneLabel =
+    accept === "xlsx"
+      ? "XLSX upload drop zone"
+      : accept === "csv"
+        ? "CSV upload drop zone"
+        : "CSV or XLSX upload drop zone";
+
+  const titleText =
+    accept === "xlsx"
+      ? "Drag and drop an XLSX file here"
+      : accept === "csv"
+        ? "Drag and drop a CSV here"
+        : "Drag and drop a CSV or XLSX file here";
+
+  const buttonText =
+    accept === "xlsx" ? "Browse XLSX" : accept === "csv" ? "Browse CSV" : "Browse file";
+
   return (
     <div className="csv-dropzone-wrap">
       <div
         className={`csv-dropzone${dragActive ? " is-drag-active" : ""}${disabled ? " is-disabled" : ""}`}
         role="button"
         tabIndex={disabled ? -1 : 0}
-        aria-label="CSV upload drop zone"
+        aria-label={dropzoneLabel}
         aria-describedby="csv-upload-hint"
         onClick={openFilePicker}
         onKeyDown={handleKeyDown}
@@ -77,7 +104,7 @@ export function CsvDropzone({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <p className="csv-dropzone-title">Drag and drop a CSV here</p>
+        <p className="csv-dropzone-title">{titleText}</p>
         <p className="csv-dropzone-subtitle">or click to browse from your device</p>
         <button
           className="btn btn-secondary"
@@ -88,21 +115,26 @@ export function CsvDropzone({
           }}
           disabled={disabled}
         >
-          Browse CSV
+          {buttonText}
         </button>
         <input
           ref={inputRef}
           className="csv-input-hidden"
           id="project-csv-input"
           type="file"
-          accept=".csv,text/csv"
+          accept={acceptAttr}
           onChange={(event) => onFileSelected(event.target.files?.[0] ?? null)}
           disabled={disabled}
         />
       </div>
 
       <p id="csv-upload-hint" className="import-hint">
-        Max {maxFileSizeMb}MB. Use the template for exact column headers.
+        Max {maxFileSizeMb}MB.{" "}
+        {accept === "xlsx"
+          ? "XLSX required for legacy migration — preserves formula-computed fields."
+          : accept === "csv"
+            ? "Use the template for exact column headers."
+            : "Use CSV for intake import or XLSX for legacy migration."}
       </p>
 
       {fileDetails ? (

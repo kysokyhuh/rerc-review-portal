@@ -444,6 +444,7 @@ export default function ImportProjectsPage() {
                 onFileSelected={handleFileSelect}
                 maxFileSizeMb={MAX_FILE_SIZE_MB}
                 disabled={uploading || previewLoading}
+                accept={importMode === "LEGACY_MIGRATION" ? "xlsx" : "csv"}
               />
             </section>
 

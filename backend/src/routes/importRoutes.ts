@@ -22,21 +22,33 @@ import {
   suggestColumnMapping,
   validateMappedProjectRows,
 } from "../services/imports/projectCsvImport";
+import { parseProjectXlsxForLegacyMigration } from "../services/imports/projectXlsxImport";
 import {
   createProjectWithInitialSubmission,
   DuplicateProjectCodeError,
   ProjectCreateValidationError,
 } from "../services/projects/createProjectWithInitialSubmission";
 
-const MAX_FILE_SIZE_MB = Number(process.env.IMPORT_MAX_FILE_SIZE_MB || 5);
+const MAX_FILE_SIZE_MB = Number(process.env.IMPORT_MAX_FILE_SIZE_MB || 10);
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-const ALLOWED_MIME_TYPES = new Set([
+const CSV_MIME_TYPES = new Set([
   "text/csv",
   "application/csv",
-  "application/vnd.ms-excel",
   "text/plain",
 ]);
+
+const XLSX_MIME_TYPES = new Set([
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/zip", // some browsers report XLSX as zip
+  "application/octet-stream", // generic fallback
+]);
+
+const detectSourceType = (file: Express.Multer.File): "csv" | "xlsx" => {
+  const ext = (file.originalname ?? "").toLowerCase().split(".").pop();
+  if (ext === "xlsx") return "xlsx";
+  return "csv";
+};
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -100,15 +112,16 @@ const uploadSingleFile = (req: any, res: any, next: any) => {
 const getUploadFileOrThrow = (req: any) => {
   const file = req.file as Express.Multer.File | undefined;
   if (!file) {
-    throw new CsvImportError("CSV file is required.", 400);
-  }
-  if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
-    throw new CsvImportError("Unsupported file type. Please upload a CSV file.", 415);
+    throw new CsvImportError("A file is required.", 400);
   }
   if (!file.size) {
-    throw new CsvImportError("CSV file is empty.", 400);
+    throw new CsvImportError("The uploaded file is empty.", 400);
   }
-  return file;
+  const sourceType = detectSourceType(file);
+  if (sourceType === "csv" && !CSV_MIME_TYPES.has(file.mimetype) && file.mimetype !== "application/vnd.ms-excel") {
+    throw new CsvImportError("Unsupported file type. Please upload a CSV or XLSX file.", 415);
+  }
+  return { file, sourceType };
 };
 
 const toJsonValue = <T>(value: T) => JSON.parse(JSON.stringify(value));
@@ -149,11 +162,26 @@ router.post(
   uploadSingleFile,
   async (req, res) => {
     try {
-      const file = getUploadFileOrThrow(req);
+      const { file, sourceType } = getUploadFileOrThrow(req);
       const mode = parseImportMode(req.body?.mode);
-      const parsed = parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
+
+      if (mode === ImportMode.LEGACY_MIGRATION && sourceType === "csv") {
+        throw new CsvImportError(
+          "Legacy migration requires an XLSX file (.xlsx). " +
+          "CSV exports lose formula-derived fields (day counts, clearance dates, etc.) " +
+          "and cannot be used for reliable legacy migration. " +
+          "Please re-export your spreadsheet as XLSX and upload that instead.",
+          400
+        );
+      }
+
+      const parsed =
+        sourceType === "xlsx"
+          ? await parseProjectXlsxForLegacyMigration(file.buffer, DEFAULT_IMPORT_CONFIG)
+          : parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
+
       const preview = buildPreviewPayload(parsed, mode, DEFAULT_IMPORT_CONFIG);
-      return res.json(preview);
+      return res.json({ ...preview, sourceType });
     } catch (error) {
       if (error instanceof CsvImportError) {
         return res.status(error.status).json({
@@ -172,9 +200,24 @@ router.post(
   uploadSingleFile,
   async (req, res) => {
     try {
-      const file = getUploadFileOrThrow(req);
+      const { file, sourceType } = getUploadFileOrThrow(req);
       const mode = parseImportMode(req.body?.mode);
-      const parsed = parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
+
+      if (mode === ImportMode.LEGACY_MIGRATION && sourceType === "csv") {
+        throw new CsvImportError(
+          "Legacy migration requires an XLSX file (.xlsx). " +
+          "CSV exports lose formula-derived fields (day counts, clearance dates, etc.) " +
+          "and cannot be used for reliable legacy migration. " +
+          "Please re-export your spreadsheet as XLSX and upload that instead.",
+          400
+        );
+      }
+
+      const parsed =
+        sourceType === "xlsx"
+          ? await parseProjectXlsxForLegacyMigration(file.buffer, DEFAULT_IMPORT_CONFIG)
+          : parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
+
       const rowEdits = parseRowEditsPayload(req.body?.rowEdits);
 
       if (rowEdits.length > 0) {
@@ -241,7 +284,7 @@ router.post(
       const importBatch = await prisma.importBatch.create({
         data: {
           mode,
-          sourceFilename: file.originalname || "project-import.csv",
+          sourceFilename: file.originalname || `project-import.${sourceType}`,
           sourceFileHash: fileHash,
           uploadedById: req.user!.id,
           receivedRows: parsed.receivedRows,
@@ -382,6 +425,7 @@ router.post(
         selectedMode: mode,
         recommendedMode: modeAssessment.recommendedMode,
         modeFit: modeAssessment.modeFit,
+        sourceType,
         importBatch,
         errors: allErrors,
       });
