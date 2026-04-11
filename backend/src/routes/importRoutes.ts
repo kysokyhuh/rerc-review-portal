@@ -165,23 +165,20 @@ router.post(
       const { file, sourceType } = getUploadFileOrThrow(req);
       const mode = parseImportMode(req.body?.mode);
 
-      if (mode === ImportMode.LEGACY_MIGRATION && sourceType === "csv") {
-        throw new CsvImportError(
-          "Legacy migration requires an XLSX file (.xlsx). " +
-          "CSV exports lose formula-derived fields (day counts, clearance dates, etc.) " +
-          "and cannot be used for reliable legacy migration. " +
-          "Please re-export your spreadsheet as XLSX and upload that instead.",
-          400
-        );
-      }
-
       const parsed =
         sourceType === "xlsx"
           ? await parseProjectXlsxForLegacyMigration(file.buffer, DEFAULT_IMPORT_CONFIG)
           : parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
 
       const preview = buildPreviewPayload(parsed, mode, DEFAULT_IMPORT_CONFIG);
-      return res.json({ ...preview, sourceType });
+      const sourceWarnings =
+        mode === ImportMode.LEGACY_MIGRATION && sourceType === "csv"
+          ? [
+              "CSV source detected for legacy migration. Formula-derived fields (day counts computed by NETWORKDAYS, clearance dates from EDATE, etc.) will be blank because Excel does not export formula results to CSV. Upload the original .xlsx workbook for complete data recovery.",
+            ]
+          : [];
+
+      return res.json({ ...preview, sourceType, sourceWarnings });
     } catch (error) {
       if (error instanceof CsvImportError) {
         return res.status(error.status).json({
@@ -202,16 +199,6 @@ router.post(
     try {
       const { file, sourceType } = getUploadFileOrThrow(req);
       const mode = parseImportMode(req.body?.mode);
-
-      if (mode === ImportMode.LEGACY_MIGRATION && sourceType === "csv") {
-        throw new CsvImportError(
-          "Legacy migration requires an XLSX file (.xlsx). " +
-          "CSV exports lose formula-derived fields (day counts, clearance dates, etc.) " +
-          "and cannot be used for reliable legacy migration. " +
-          "Please re-export your spreadsheet as XLSX and upload that instead.",
-          400
-        );
-      }
 
       const parsed =
         sourceType === "xlsx"

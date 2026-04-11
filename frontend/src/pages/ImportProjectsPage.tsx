@@ -444,7 +444,7 @@ export default function ImportProjectsPage() {
                 onFileSelected={handleFileSelect}
                 maxFileSizeMb={MAX_FILE_SIZE_MB}
                 disabled={uploading || previewLoading}
-                accept={importMode === "LEGACY_MIGRATION" ? "xlsx" : "csv"}
+                accept={importMode === "LEGACY_MIGRATION" ? "both" : "csv"}
               />
             </section>
 
@@ -513,6 +513,14 @@ export default function ImportProjectsPage() {
                       <strong>Mode fit:</strong> {preview.modeFit}
                     </p>
                   </div>
+                  {(preview.sourceWarnings ?? []).length > 0 && (
+                    <div className="import-alert warning">
+                      <p className="import-alert-line"><strong>Source warning:</strong></p>
+                      {(preview.sourceWarnings ?? []).map((w) => (
+                        <p key={w} className="import-alert-line">{w}</p>
+                      ))}
+                    </div>
+                  )}
                   {visibleWarnings.length > 0 && (
                     <div className="import-alert warning">
                       {visibleWarnings.map((warning) => (

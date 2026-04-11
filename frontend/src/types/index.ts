@@ -460,6 +460,8 @@ export interface ProjectImportPreview {
   selectedMode?: ImportMode;
   recommendedMode?: ImportMode;
   modeFit?: ImportModeFit;
+  sourceType?: "csv" | "xlsx";
+  sourceWarnings?: string[];
 }
 
 export interface ProjectImportRowEdit {
