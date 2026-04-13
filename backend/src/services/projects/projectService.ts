@@ -9,6 +9,7 @@ import {
   type SubmissionType,
   type CompletenessStatus,
 } from "../../generated/prisma/client";
+import { promoteImportedSubmissionsToWorkflow } from "../imports/importedWorkflowPromotion";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers (moved from routes)                                        */
@@ -60,6 +61,24 @@ const compareNullableDates = (
   const leftTime = left ? new Date(left).getTime() : Number.NEGATIVE_INFINITY;
   const rightTime = right ? new Date(right).getTime() : Number.NEGATIVE_INFINITY;
   return dir === "asc" ? leftTime - rightTime : rightTime - leftTime;
+};
+
+const promoteImportedProjectSubmissions = async (projectId: number) => {
+  const submissions = await prisma.submission.findMany({
+    where: {
+      projectId,
+      sequenceNumber: 1,
+    },
+    select: { id: true },
+  });
+
+  if (submissions.length === 0) {
+    return;
+  }
+
+  await promoteImportedSubmissionsToWorkflow({
+    submissionIds: submissions.map((submission) => submission.id),
+  });
 };
 
 /* ------------------------------------------------------------------ */
@@ -151,7 +170,6 @@ export async function getArchivedProjects(params: {
 
   const whereClause: any = {
     overallStatus: { in: archiveStatuses },
-    origin: { not: "LEGACY_IMPORT" as const },
   };
 
   if (committeeCode) whereClause.committee = { code: committeeCode };
@@ -228,6 +246,7 @@ export async function getArchivedProjects(params: {
 /*  Get project by ID                                                  */
 /* ------------------------------------------------------------------ */
 export async function getProjectById(id: number) {
+  await promoteImportedProjectSubmissions(id);
   const project = await prisma.project.findUnique({
     where: { id },
     include: {
@@ -256,6 +275,7 @@ export async function getProjectById(id: number) {
 /*  Get full project lifecycle                                         */
 /* ------------------------------------------------------------------ */
 export async function getProjectFull(id: number) {
+  await promoteImportedProjectSubmissions(id);
   const project = await prisma.project.findUnique({
     where: { id },
     include: {

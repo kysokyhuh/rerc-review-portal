@@ -56,6 +56,7 @@ export interface CreateProjectWithInitialSubmissionInput {
   importSourceRowNumber?: number | null;
   submissionType?: string | SubmissionType | null;
   receivedDate?: string | Date | null;
+  workflowReceivedDate?: string | Date | null;
   fundingType?: string | FundingType | null;
   notes?: string | null;
   piAffiliation?: string | null;
@@ -224,12 +225,13 @@ export async function createProjectWithInitialSubmission(
     (importMode === ImportMode.LEGACY_MIGRATION
       ? ProjectOrigin.LEGACY_IMPORT
       : ProjectOrigin.NATIVE_PORTAL);
-  const isLegacyImport = origin === ProjectOrigin.LEGACY_IMPORT;
+  const hasLegacySnapshot = Boolean(input.legacySnapshot);
+  const isImportedUpload = Boolean(input.importBatchId);
 
   if (!projectCode) {
     fieldErrors.push({ field: "projectCode", message: "projectCode is required." });
   }
-  if (isLegacyImport && !input.importBatchId) {
+  if (hasLegacySnapshot && !input.importBatchId) {
     fieldErrors.push({
       field: "importBatchId",
       message: "importBatchId is required for legacy imports.",
@@ -241,7 +243,9 @@ export async function createProjectWithInitialSubmission(
 
   const fundingType = parseFundingType(input.fundingType);
   const submissionType = parseSubmissionType(input.submissionType);
-  const receivedDate = parseDate(input.receivedDate);
+  const referenceReceivedDate = parseDate(input.receivedDate);
+  const workflowReceivedDate =
+    parseDate(input.workflowReceivedDate) ?? referenceReceivedDate;
 
   const existing = await prisma.project.findFirst({
     where: { projectCode },
@@ -267,9 +271,7 @@ export async function createProjectWithInitialSubmission(
   const researchTypePHREBOther =
     normalizeString(input.researchTypePHREBOther || "") || null;
 
-  const classificationDueDate = isLegacyImport
-    ? null
-    : await (async () => {
+  const classificationDueDate = await (async () => {
         const [slaConfigs, holidayRows] = await Promise.all([
           prisma.configSLA.findMany({
             where: {
@@ -295,10 +297,10 @@ export async function createProjectWithInitialSubmission(
           SLAStage.CLASSIFICATION,
           null
         );
-        return receivedDate && classificationConfig
+        return workflowReceivedDate && classificationConfig
           ? computeDueDate(
               classificationConfig.dayMode,
-              receivedDate,
+              workflowReceivedDate,
               classificationConfig.targetDays,
               holidayRows.map((row) => row.date)
             )
@@ -306,16 +308,14 @@ export async function createProjectWithInitialSubmission(
       })();
 
   const referenceProfile = input.referenceProfile;
-  const legacySnapshot = isLegacyImport ? input.legacySnapshot ?? null : null;
-  const submissionStatus = isLegacyImport
-    ? SubmissionStatus.RECEIVED
-    : SubmissionStatus.AWAITING_CLASSIFICATION;
-  const submissionHistoryReason = isLegacyImport
-    ? "Legacy spreadsheet import; workflow was not reconstructed"
+  const legacySnapshot = hasLegacySnapshot ? input.legacySnapshot ?? null : null;
+  const submissionStatus = SubmissionStatus.AWAITING_CLASSIFICATION;
+  const submissionHistoryReason = isImportedUpload
+    ? "Imported through CSV upload and entered the live workflow."
     : "Created through staff-assisted intake";
   const profileSubmissionMonth =
     referenceProfile?.monthOfSubmission ??
-    (receivedDate ? toMonthLabel(receivedDate) : null);
+    (referenceReceivedDate ? toMonthLabel(referenceReceivedDate) : null);
 
   const created = await prisma.$transaction(async (tx) => {
     const project = await tx.project.create({
@@ -332,7 +332,7 @@ export async function createProjectWithInitialSubmission(
         researchTypePHREB,
         researchTypePHREBOther,
         committeeId: committeeId!,
-        initialSubmissionDate: receivedDate,
+        initialSubmissionDate: workflowReceivedDate,
         createdById: actorId,
         origin,
         importBatchId: input.importBatchId ?? null,
@@ -347,7 +347,7 @@ export async function createProjectWithInitialSubmission(
         sequenceNumber: 1,
         submissionType,
         status: submissionStatus,
-        receivedDate,
+        receivedDate: workflowReceivedDate,
         classificationDueDate,
         documentLink: normalizeString(input.documentLink || "") || null,
         remarks: notes,
@@ -373,7 +373,8 @@ export async function createProjectWithInitialSubmission(
         projectLeader: referenceProfile?.projectLeader ?? (piName || null),
         college: referenceProfile?.college ?? collegeOrUnit,
         department: referenceProfile?.department ?? department,
-        dateOfSubmission: referenceProfile?.dateOfSubmission ?? receivedDate,
+        dateOfSubmission:
+          referenceProfile?.dateOfSubmission ?? referenceReceivedDate ?? workflowReceivedDate,
         monthOfSubmission: profileSubmissionMonth,
         typeOfReview: referenceProfile?.typeOfReview ?? submissionType ?? null,
         proponent: referenceProfile?.proponent ?? proponent,

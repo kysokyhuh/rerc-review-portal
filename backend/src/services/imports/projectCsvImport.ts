@@ -145,9 +145,6 @@ export interface PreviewPayload {
   missingRequiredFields: RequiredProjectField[];
   warnings: string[];
   warningItems: ImportWarning[];
-  selectedMode: ImportMode;
-  recommendedMode: ImportMode;
-  modeFit: ImportModeFit;
 }
 
 export interface ValidatedProjectRow {
@@ -904,9 +901,9 @@ const collectRowPreviewWarnings = (parsed: ParsedCsvData, mode: ImportMode, prev
 
 export const buildPreviewPayload = (
   parsed: ParsedCsvData,
-  selectedMode: ImportMode = ImportMode.INTAKE_IMPORT,
   config: ImportConfig = DEFAULT_IMPORT_CONFIG
 ): PreviewPayload => {
+  const selectedMode = inferImportMode(parsed);
   const suggestedMapping = suggestColumnMapping(parsed.detectedHeaders);
   const missingRequiredFields = REQUIRED_PROJECT_FIELDS.filter(
     (field) => !suggestedMapping[field]
@@ -973,9 +970,6 @@ export const buildPreviewPayload = (
     missingRequiredFields,
     warnings: toWarningMessages(warnings),
     warningItems: uniqueWarnings(warnings),
-    selectedMode: assessment.selectedMode,
-    recommendedMode: assessment.recommendedMode,
-    modeFit: assessment.modeFit,
   };
 };
 
@@ -1275,13 +1269,6 @@ export const validateMappedProjectRows = ({
   mode: ImportMode;
 }): { validRows: ValidatedProjectRow[]; errors: RowError[]; warnings: ImportWarning[] } => {
   const assessment = assessImportMode(parsed, mode);
-  if (assessment.modeFit === "blocked") {
-    throw new CsvImportError("Selected import mode does not fit this CSV.", 400, {
-      selectedMode: mode,
-      recommendedMode: assessment.recommendedMode,
-      warnings: assessment.warningItems,
-    });
-  }
 
   const missingRequiredMapping = REQUIRED_PROJECT_FIELDS.filter((field) => !mapping[field]);
   if (missingRequiredMapping.length > 0) {

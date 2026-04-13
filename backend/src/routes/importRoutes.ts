@@ -9,7 +9,6 @@ import {
 } from "../generated/prisma/client";
 import { requireRoles } from "../middleware/auth";
 import {
-  assessImportMode,
   buildPreviewPayload,
   chunkRows,
   CsvImportError,
@@ -17,7 +16,6 @@ import {
   inferImportMode,
   normalizeCommitMapping,
   normalizeProjectCode,
-  parseImportMode,
   parseProjectCsvUnknownFormat,
   PROJECT_IMPORT_HEADERS,
   suggestColumnMapping,
@@ -169,10 +167,8 @@ router.post(
         sourceType === "xlsx"
           ? await parseProjectXlsxForLegacyMigration(file.buffer, DEFAULT_IMPORT_CONFIG)
           : parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
-
-      const mode = req.body?.mode ? parseImportMode(req.body.mode) : inferImportMode(parsed);
-
-      const preview = buildPreviewPayload(parsed, mode, DEFAULT_IMPORT_CONFIG);
+      const mode = inferImportMode(parsed);
+      const preview = buildPreviewPayload(parsed, DEFAULT_IMPORT_CONFIG);
       const sourceWarnings =
         mode === ImportMode.LEGACY_MIGRATION && sourceType === "csv"
           ? [
@@ -205,7 +201,7 @@ router.post(
         sourceType === "xlsx"
           ? await parseProjectXlsxForLegacyMigration(file.buffer, DEFAULT_IMPORT_CONFIG)
           : parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
-      const mode = req.body?.mode ? parseImportMode(req.body.mode) : inferImportMode(parsed);
+      const mode = inferImportMode(parsed);
 
       const rowEdits = parseRowEditsPayload(req.body?.rowEdits);
 
@@ -225,8 +221,6 @@ router.post(
       const mapping = req.body?.mapping
         ? normalizeCommitMapping(req.body.mapping, parsed.detectedHeaders)
         : suggestColumnMapping(parsed.detectedHeaders);
-      const modeAssessment = assessImportMode(parsed, mode);
-
       const codes = parsed.rows
         .map((row) => {
           const mappedHeader = mapping.projectCode;
@@ -293,9 +287,7 @@ router.post(
           notes: null,
           summaryJson: toJsonValue({
             detectedFormat: parsed.detectedFormat,
-            selectedMode: mode,
-            recommendedMode: modeAssessment.recommendedMode,
-            modeFit: modeAssessment.modeFit,
+            inferredMode: mode,
             warnings,
           }),
         },
@@ -338,6 +330,7 @@ router.post(
                 importMode: mode,
                 importBatchId: importBatch.id,
                 importSourceRowNumber: row.rowNumber,
+                workflowReceivedDate: importBatch.createdAt,
                 referenceProfile: row.referenceProfile,
                 legacySnapshot: row.legacySnapshot,
               },
@@ -396,15 +389,13 @@ router.post(
           warningRows,
           notes:
             mode === ImportMode.LEGACY_MIGRATION
-              ? "Legacy migration imported spreadsheet snapshot data without reconstructing live workflow."
+              ? "Import completed. Historical spreadsheet fields were preserved as reference data."
               : warnings.length > 0
                 ? "Import completed with warnings."
                 : "Import completed.",
           summaryJson: toJsonValue({
             detectedFormat: parsed.detectedFormat,
-            selectedMode: mode,
-            recommendedMode: modeAssessment.recommendedMode,
-            modeFit: modeAssessment.modeFit,
+            inferredMode: mode,
             warnings,
             errors: allErrors,
           }),
@@ -421,9 +412,6 @@ router.post(
         failedRows,
         warningRows,
         warnings,
-        selectedMode: mode,
-        recommendedMode: modeAssessment.recommendedMode,
-        modeFit: modeAssessment.modeFit,
         sourceType,
         importBatch,
         errors: allErrors,

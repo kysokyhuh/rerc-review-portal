@@ -30,10 +30,6 @@ type ReportSummaryCardsProps = {
     fullReview: number;
     withdrawn: number;
   } | null;
-  sourceCounts?: {
-    nativePortal: number;
-    legacyImport: number;
-  } | null;
   byCategory: {
     UNDERGRAD: number;
     GRAD: number;
@@ -51,7 +47,6 @@ export default function ReportSummaryCards({
   asOfLabel,
   comparisonLabel,
   comparisonCounts,
-  sourceCounts,
   byCategory,
 }: ReportSummaryCardsProps) {
   const secondaryCards = [
@@ -105,11 +100,6 @@ export default function ReportSummaryCards({
               )}).`
             : "All submissions included in the current reporting scope."}
         </p>
-        {sourceCounts ? (
-          <p className="report-summary-source-note">
-            Includes {formatNumber(sourceCounts.legacyImport)} legacy imported record{sourceCounts.legacyImport === 1 ? "" : "s"} and {formatNumber(sourceCounts.nativePortal)} native portal submission{sourceCounts.nativePortal === 1 ? "" : "s"}.
-          </p>
-        ) : null}
 
         <div className="report-summary-category-list" aria-label="Proponent category mix">
           {categoryBreakdown.map((item) => (

@@ -11,20 +11,42 @@ jest.mock("../../src/config/prismaClient", () => ({
     submission: {
       findMany: jest.fn(),
     },
+    project: {
+      update: jest.fn(),
+    },
+    submissionStatusHistory: {
+      create: jest.fn(),
+    },
     holiday: {
       findMany: jest.fn(),
     },
     configSLA: {
       findMany: jest.fn(),
     },
+    $transaction: jest.fn(async (callback: any) =>
+      callback({
+        submission: {
+          updateMany: jest.fn().mockResolvedValue({ count: 0 }),
+        },
+        project: {
+          update: jest.fn().mockResolvedValue(null),
+        },
+        submissionStatusHistory: {
+          create: jest.fn().mockResolvedValue(null),
+        },
+      })
+    ),
   },
 }));
 
 const prisma = prismaClient as unknown as {
   academicTerm: { findMany: jest.Mock };
   submission: { findMany: jest.Mock };
+  project: { update: jest.Mock };
+  submissionStatusHistory: { create: jest.Mock };
   holiday: { findMany: jest.Mock };
   configSLA: { findMany: jest.Mock };
+  $transaction: jest.Mock;
 };
 
 const createResponseMock = () => {

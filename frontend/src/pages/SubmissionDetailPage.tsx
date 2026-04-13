@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import {
   fetchCommittees,
   fetchSubmissionDetail,
@@ -528,9 +528,6 @@ export const SubmissionDetailPage: React.FC = () => {
   }
   if (loading || !submission) {
     return <SubmissionDetailLoadingState />;
-  }
-  if (submission.project?.origin === "LEGACY_IMPORT" && submission.project.id) {
-    return <Navigate to={`/projects/${submission.project.id}`} replace />;
   }
 
   const projectCode = submission.project?.projectCode ?? "N/A";

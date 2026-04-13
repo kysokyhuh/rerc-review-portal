@@ -319,7 +319,7 @@ describe("project import routes", () => {
         expect.objectContaining({
           data: expect.objectContaining({
             submissionType: null,
-            receivedDate: null,
+            receivedDate: expect.any(Date),
           }),
         })
       );
@@ -483,7 +483,7 @@ describe("project import routes", () => {
       expect(txLegacyImportSnapshotCreate).not.toHaveBeenCalled();
     });
 
-    it("LEGACY_MIGRATION creates project with origin=LEGACY_IMPORT and submission with RECEIVED", async () => {
+    it("legacy-shaped files still preserve LEGACY_IMPORT origin but enter the live workflow immediately", async () => {
       const legacyRow = buildLegacyRow({
         0: "2026-402",
         1: "Legacy Title",
@@ -509,12 +509,17 @@ describe("project import routes", () => {
         expect.objectContaining({ data: expect.objectContaining({ origin: "LEGACY_IMPORT" }) })
       );
       expect(txSubmissionCreate).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ status: "RECEIVED" }) })
+        expect.objectContaining({
+          data: expect.objectContaining({
+            status: "AWAITING_CLASSIFICATION",
+            receivedDate: expect.any(Date),
+          }),
+        })
       );
       expect(txLegacyImportSnapshotCreate).toHaveBeenCalled();
     });
 
-    it("rejects with 400 when INTAKE_IMPORT is used with a legacy_headerless CSV (modeFit=blocked)", async () => {
+    it("auto-detects legacy headerless CSVs and imports them into the live workflow", async () => {
       const legacyRow = buildLegacyRow({ 0: "2026-403", 1: "Blocked Title", 5: "2026-03-01" });
       const csv = [legacyRow.join(",")].join("\n"); // no header row → legacy_headerless
 
@@ -525,19 +530,21 @@ describe("project import routes", () => {
         .set("X-User-Email", "ra@example.com")
         .set("X-User-Name", "RA")
         .set("X-User-Roles", "RESEARCH_ASSOCIATE")
-        .field("mode", "INTAKE_IMPORT")
         .attach("file", Buffer.from(csv), "legacy-headerless.csv");
 
-      // validateMappedProjectRows throws CsvImportError(400) when modeFit=blocked
-      expect(response.status).toBe(400);
-      expect(response.body.details).toMatchObject({
-        selectedMode: "INTAKE_IMPORT",
-        recommendedMode: "LEGACY_MIGRATION",
-      });
-      expect(txProjectCreate).not.toHaveBeenCalled();
+      expect(response.status).toBe(200);
+      expect(response.body.insertedRows).toBe(1);
+      expect(txSubmissionCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            status: "AWAITING_CLASSIFICATION",
+          }),
+        })
+      );
+      expect(txLegacyImportSnapshotCreate).toHaveBeenCalled();
     });
 
-    it("response includes selectedMode, recommendedMode, modeFit, and warnings for a LEGACY_MIGRATION commit", async () => {
+    it("returns warnings and batch metadata without exposing a user-selected import mode", async () => {
       // Row with totalDays=9999 (exceeds 3650 bound) → SUSPICIOUS_LEGACY_NUMBER warning
       const legacyRow = buildLegacyRow({
         0: "2026-404",
@@ -553,13 +560,12 @@ describe("project import routes", () => {
         .set("X-User-Email", "ra@example.com")
         .set("X-User-Name", "RA")
         .set("X-User-Roles", "RESEARCH_ASSOCIATE")
-        .field("mode", "LEGACY_MIGRATION")
         .attach("file", Buffer.from(buildLegacyCsv([legacyRow], true)), "legacy-warnings.csv");
 
       expect(response.status).toBe(200);
-      expect(response.body.selectedMode).toBe("LEGACY_MIGRATION");
-      expect(response.body.recommendedMode).toBe("LEGACY_MIGRATION");
-      expect(response.body.modeFit).toBe("match");
+      expect(response.body.selectedMode).toBeUndefined();
+      expect(response.body.recommendedMode).toBeUndefined();
+      expect(response.body.modeFit).toBeUndefined();
       expect(response.body.warnings).toBeDefined();
       expect(Array.isArray(response.body.warnings)).toBe(true);
       expect(response.body.warningRows).toBeGreaterThanOrEqual(1);

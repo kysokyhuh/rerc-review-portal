@@ -58,7 +58,6 @@ export interface QueueCounts {
   forExempted?: number;
   awaitingRevisions: number;
   completed: number;
-  legacyImports?: number;
   dueSoon?: number;
   overdue?: number;
   missingLetterFields?: number;
@@ -212,27 +211,6 @@ export interface ProjectSearchResult {
   piName: string | null;
   updatedAt: string;
   origin?: ProjectOrigin;
-}
-
-export interface LegacyDashboardProject {
-  projectId: number;
-  projectCode: string;
-  title: string;
-  piName: string;
-  receivedDate: string | null;
-  reviewType: string | null;
-  status: string;
-  importedAt: string | null;
-  sourceFilename: string | null;
-}
-
-export interface LegacyDashboardProjectsResponse {
-  committeeCode: string;
-  q: string;
-  totalCount: number;
-  page: number;
-  pageSize: number;
-  items: LegacyDashboardProject[];
 }
 
 // Status history
@@ -464,9 +442,6 @@ export interface ImportResult {
   failedRows: number;
   warningRows?: number;
   warnings?: ImportWarning[];
-  selectedMode?: ImportMode;
-  recommendedMode?: ImportMode;
-  modeFit?: ImportModeFit;
   importBatch?: ImportBatchSummary;
   errors: ImportRowError[];
 }
@@ -480,9 +455,6 @@ export interface ProjectImportPreview {
   missingRequiredFields: string[];
   warnings: string[];
   warningItems?: ImportWarning[];
-  selectedMode?: ImportMode;
-  recommendedMode?: ImportMode;
-  modeFit?: ImportModeFit;
   sourceType?: "csv" | "xlsx";
   sourceWarnings?: string[];
 }
@@ -846,10 +818,6 @@ export interface AnnualReportSummaryResponse {
       endDate: string;
     };
   };
-  sourceCounts: {
-    nativePortal: number;
-    legacyImport: number;
-  };
   summaryCounts: {
     received: number;
     exempted: number;
@@ -985,8 +953,6 @@ export interface AnnualReportSubmissionsResponse {
     reviewType: "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | "UNCLASSIFIED";
     status: string;
     receivedDate: string | null;
-    origin: ProjectOrigin;
-    sourceLabel: string;
   }>;
 }
 

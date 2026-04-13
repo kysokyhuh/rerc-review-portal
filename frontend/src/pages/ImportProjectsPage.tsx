@@ -4,7 +4,6 @@ import {
   type CsvUploadProgress,
   commitProjectsCsvImport,
   fetchProjectImportTemplate,
-  type ImportMode,
   previewProjectsCsv,
   type ImportResult,
   type ProjectImportPreview,
@@ -127,14 +126,12 @@ export default function ImportProjectsPage() {
   const [stepTimingsOpen, setStepTimingsOpen] = useState(false);
 
   const missingMappings = preview?.missingRequiredFields ?? [];
-  const modeBlocked = preview?.modeFit === "blocked";
   const canImport =
     Boolean(selectedFile) &&
     Boolean(preview) &&
     !previewLoading &&
     !uploading &&
-    missingMappings.length === 0 &&
-    !modeBlocked;
+    missingMappings.length === 0;
   const currentStep: 1 | 2 | 3 = result ? 3 : preview ? 2 : 1;
 
   const fileMeta = useMemo(() => {
@@ -161,18 +158,14 @@ export default function ImportProjectsPage() {
           const next = resolveProgressState(progress);
           setPreviewProgress(next);
           if (next.phase === "processing") {
-            setStatusMessage("Analyzing file and auto-detecting the import path...");
+            setStatusMessage("Analyzing headers and preparing the import preview...");
           }
         },
       });
       setPreview(previewResponse);
       setEditablePreviewRows(previewResponse.previewRows.map((row) => ({ ...row })));
-      if (previewResponse.modeFit === "blocked") {
-        setStatusMessage("This file could not be matched to a safe import path. Review the warnings before importing.");
-      } else if (previewResponse.missingRequiredFields.length > 0) {
+      if (previewResponse.missingRequiredFields.length > 0) {
         setStatusMessage("We can't read required headers from this file.");
-      } else if (previewResponse.modeFit === "warn") {
-        setStatusMessage("Preview ready with warnings. Review the detected import path before committing.");
       } else if (previewResponse.detectedFormat === "legacy_headerless") {
         setStatusMessage("Legacy no-header CSV detected. Preview ready using legacy column order.");
       } else {
@@ -327,27 +320,13 @@ export default function ImportProjectsPage() {
   const previewHeaders = preview?.detectedHeaders ?? [];
   const previewRows = editablePreviewRows.slice(0, PREVIEW_ROWS_LIMIT);
   const previewWarnings = preview?.warnings ?? [];
-  const importPathDetails: Record<ImportMode, { label: string; description: string }> = {
-    INTAKE_IMPORT: {
-      label: "Portal intake import",
-      description: "Creates native portal records that enter the live workflow and dashboard queues.",
-    },
-    LEGACY_MIGRATION: {
-      label: "Legacy historical import",
-      description: "Creates reference-only legacy records that remain visible in search, dashboard legacy views, and reports.",
-    },
-  };
   const blockingWarnings =
     preview && preview.missingRequiredFields.length > 0
       ? ["We can't auto-detect required headers for import."]
-      : preview?.modeFit === "blocked"
-        ? ["The detected import path is blocked for this file."]
-        : [];
+      : [];
   const visibleWarnings = Array.from(new Set([...previewWarnings, ...blockingWarnings]));
   const previewTransferMeta = renderTransferMeta(previewProgress);
   const importTransferMeta = renderTransferMeta(importProgress);
-  const detectedImportPath =
-    preview?.selectedMode ? importPathDetails[preview.selectedMode as ImportMode] : null;
   const handleBack = () => {
     const historyIndex = window.history.state?.idx;
     if (typeof historyIndex === "number" && historyIndex > 0) {
@@ -375,7 +354,7 @@ export default function ImportProjectsPage() {
         </button>
         <h1>Import Projects</h1>
         <p>
-          Upload a CSV or the original legacy XLSX workbook. The portal auto-detects whether the file should create live workflow records or legacy reference imports.
+          Upload a CSV or the original legacy XLSX workbook. The portal will detect the file structure automatically, preserve any historical spreadsheet fields for reference, and create live workflow records.
         </p>
       </header>
 
@@ -468,10 +447,10 @@ export default function ImportProjectsPage() {
                 <>
                   <div className="import-alert info">
                     <p className="import-alert-line">
-                      <strong>Detected import path:</strong> {detectedImportPath?.label ?? preview.selectedMode?.replace("_", " ").toLowerCase()}
+                      <strong>Import preview ready:</strong> The uploaded rows will be created as live workflow records after commit.
                     </p>
                     <p className="import-alert-line">
-                      {detectedImportPath?.description}
+                      Historical spreadsheet-only columns, when present, will be preserved in the project record for reference.
                     </p>
                   </div>
                   {(preview.sourceWarnings ?? []).length > 0 && (
@@ -646,7 +625,7 @@ export default function ImportProjectsPage() {
                 </button>
               </div>
               <p className="import-hint">
-                Import stays disabled when required fields are missing or the detected import path is blocked for the file.
+                Import stays disabled when required fields are missing from the uploaded file.
               </p>
               {uploading && (
                 <div

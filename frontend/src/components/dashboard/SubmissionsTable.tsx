@@ -38,7 +38,6 @@ interface SubmissionsTableProps {
   loading: boolean;
   filteredItems: DecoratedQueueItem[];
   allItems: DecoratedQueueItem[];
-  legacyImportCount: number;
   classificationQueue: DecoratedQueueItem[];
   reviewQueue: DecoratedQueueItem[];
   revisionQueue: DecoratedQueueItem[];
@@ -92,7 +91,6 @@ export function SubmissionsTable({
   loading,
   filteredItems,
   allItems,
-  legacyImportCount,
   classificationQueue,
   reviewQueue,
   revisionQueue,
@@ -130,14 +128,6 @@ export function SubmissionsTable({
   onBulkStatusChange,
   tableRef,
 }: SubmissionsTableProps) {
-  const showLegacyImportHint =
-    !loading &&
-    filteredItems.length === 0 &&
-    allItems.length === 0 &&
-    legacyImportCount > 0 &&
-    !hasActiveFilters &&
-    queueFilter === "all";
-
   return (
     <>
       <div className="content-grid rail-collapsed">
@@ -285,12 +275,8 @@ export function SubmissionsTable({
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <h3>{showLegacyImportHint ? "No active workflow submissions" : "No submissions match this view"}</h3>
-                <p>
-                  {showLegacyImportHint
-                    ? `${legacyImportCount} legacy imported record${legacyImportCount === 1 ? "" : "s"} exist in this committee. They are reference-only and do not appear in workflow queues. Open the legacy imports section below to review them.`
-                    : "Clear filters or switch to “All” to see more."}
-                </p>
+                <h3>No submissions match this view</h3>
+                <p>Clear filters or switch to “All” to see more.</p>
                 <button className="ghost-btn" type="button" onClick={() => { onQueueFilterChange("all"); onSearchTermChange(""); }}>
                   Reset filters
                 </button>

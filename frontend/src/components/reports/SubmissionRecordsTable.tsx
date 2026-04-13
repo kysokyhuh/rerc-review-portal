@@ -62,7 +62,7 @@ export default function SubmissionRecordsTable({
         <div>
           <strong>{data.totalCount.toLocaleString("en-US")}</strong> matching submissions
         </div>
-        <p>Click any row to open the linked submission or project record. Legacy imported rows open the project detail directly.</p>
+        <p>Click any row to open the linked submission or project record.</p>
       </div>
       <div className="report-table-wrap">
         <table className="report-table">
@@ -71,7 +71,6 @@ export default function SubmissionRecordsTable({
               <th><SortButton field="projectCode" label="Project code" sort={sort} onSort={onSort} /></th>
               <th><SortButton field="title" label="Title" sort={sort} onSort={onSort} /></th>
               <th className="col-proponent">Proponent</th>
-              <th>Source</th>
               <th><SortButton field="college" label="College / Unit" sort={sort} onSort={onSort} /></th>
               <th><SortButton field="department" label="Department" sort={sort} onSort={onSort} /></th>
               <th><SortButton field="reviewType" label="Review path" sort={sort} onSort={onSort} /></th>
@@ -85,11 +84,6 @@ export default function SubmissionRecordsTable({
                 <td>{item.projectCode}</td>
                 <td>{item.title}</td>
                 <td className="col-proponent">{item.proponent}</td>
-                <td>
-                  <span className={`records-source-badge ${item.origin === "LEGACY_IMPORT" ? "is-legacy" : "is-native"}`}>
-                    {item.sourceLabel}
-                  </span>
-                </td>
                 <td>{item.college}</td>
                 <td>{item.department}</td>
                 <td>{formatLabel(item.reviewType)}</td>

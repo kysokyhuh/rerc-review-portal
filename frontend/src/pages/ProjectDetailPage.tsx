@@ -113,9 +113,7 @@ export const ProjectDetailPage: React.FC = () => {
   const canArchiveAsWithdrawn =
     canManageArchive && !isArchived && latestSubmission?.status === "WITHDRAWN";
   const canRestoreArchive = canManageArchive && isArchived;
-  const isLegacyImport = project.origin === "LEGACY_IMPORT";
   const legacySnapshot = project.legacyImportSnapshot ?? null;
-  const referenceProfile = project.protocolProfile ?? null;
   const latestArchiveEvent = (project.statusHistory ?? []).find(
     (entry) => entry.newStatus === "CLOSED" || entry.newStatus === "WITHDRAWN"
   );
@@ -342,9 +340,6 @@ export const ProjectDetailPage: React.FC = () => {
             <span className={`badge badge-lg ${getStatusVariant(project.overallStatus)}`}>
               {project.overallStatus.replace(/_/g, ' ')}
             </span>
-            {isLegacyImport ? (
-              <span className="badge badge-lg badge-neutral">Legacy Imported Record</span>
-            ) : null}
             {canArchiveAsCompleted || canArchiveAsWithdrawn || canRestoreArchive ? (
               <div className="archive-hero-actions">
                 {canArchiveAsCompleted ? (
@@ -405,123 +400,17 @@ export const ProjectDetailPage: React.FC = () => {
         </section>
       ) : null}
 
-      {isLegacyImport ? (
-        <section className="card detail-card archive-summary-card">
-          <div className="section-title">
-            <h2>Legacy import notice</h2>
-            <span className="badge badge-neutral">Reference snapshot</span>
-          </div>
-          <div className="archive-summary-grid">
-            <div className="field field-wide">
-              <label>What this means</label>
-              <p>
-                This record was imported from a legacy spreadsheet. The portal
-                preserved the historical values as read-only reference data, but
-                it did not reconstruct the full live workflow, reviewer
-                assignments, documents, or milestone history.
-              </p>
-            </div>
-            <div className="field">
-              <label>Portal workflow status</label>
-              <p>{latestSubmission?.status?.replace(/_/g, " ") || "—"}</p>
-            </div>
-            <div className="field">
-              <label>Imported spreadsheet status</label>
-              <p>{legacySnapshot?.importedStatus || "—"}</p>
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      {isLegacyImport ? (
-        <>
-          <section className="card detail-card">
-            <div className="section-title">
-              <h2>Reference profile</h2>
-              <span className="badge">Read only</span>
-            </div>
-            <div className="header-grid">
-              <div className="field">
-                <label>Title</label>
-                <p>{referenceProfile?.title || "—"}</p>
-              </div>
-              <div className="field">
-                <label>Project leader</label>
-                <p>{referenceProfile?.projectLeader || "—"}</p>
-              </div>
-              <div className="field">
-                <label>College</label>
-                <p>{referenceProfile?.college || "—"}</p>
-              </div>
-              <div className="field">
-                <label>Department</label>
-                <p>{referenceProfile?.department || "—"}</p>
-              </div>
-              <div className="field">
-                <label>Date of submission</label>
-                <p>{formatDate(referenceProfile?.dateOfSubmission)}</p>
-              </div>
-              <div className="field">
-                <label>Month of submission</label>
-                <p>{referenceProfile?.monthOfSubmission || "—"}</p>
-              </div>
-              <div className="field">
-                <label>Type of review</label>
-                <p>{referenceProfile?.typeOfReview || "—"}</p>
-              </div>
-              <div className="field">
-                <label>Proponent</label>
-                <p>{referenceProfile?.proponent || "—"}</p>
-              </div>
-              <div className="field">
-                <label>Funding</label>
-                <p>{referenceProfile?.funding || "—"}</p>
-              </div>
-              <div className="field">
-                <label>Type of research PHREB</label>
-                <p>{referenceProfile?.typeOfResearchPhreb || "—"}</p>
-              </div>
-              <div className="field field-wide">
-                <label>Remarks</label>
-                <p>{referenceProfile?.remarks || "—"}</p>
-              </div>
-            </div>
-          </section>
-
-          {legacySnapshot ? <LegacyImportSnapshotSection snapshot={legacySnapshot} /> : null}
-
-          <section className="card detail-card">
-            <div className="section-title">
-              <h2>Workflow reconstruction status</h2>
-            </div>
-            <div className="header-grid">
-              <div className="field">
-                <label>Reviewer assignments</label>
-                <p>Not reconstructed from legacy import.</p>
-              </div>
-              <div className="field">
-                <label>Documents</label>
-                <p>No documents were imported; metadata-only migration.</p>
-              </div>
-              <div className="field">
-                <label>Milestones</label>
-                <p>Historical milestones were not converted into live milestone records.</p>
-              </div>
-            </div>
-          </section>
-        </>
-      ) : (
-        <ProtocolProfileSection
-          profile={project.protocolProfile}
-          editing={profileEditing}
-          saving={profileSaving}
-          error={profileError}
-          profileForm={profileForm}
-          setProfileForm={setProfileForm}
-          onEdit={() => setProfileEditing(true)}
-          onSave={handleSaveProfile}
-          onCancel={() => setProfileEditing(false)}
-        >
+      <ProtocolProfileSection
+        profile={project.protocolProfile}
+        editing={profileEditing}
+        saving={profileSaving}
+        error={profileError}
+        profileForm={profileForm}
+        setProfileForm={setProfileForm}
+        onEdit={() => setProfileEditing(true)}
+        onSave={handleSaveProfile}
+        onCancel={() => setProfileEditing(false)}
+      >
           {/* Milestones */}
           <div style={{ marginTop: "1rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
@@ -657,11 +546,12 @@ export const ProjectDetailPage: React.FC = () => {
               </tbody>
             </table>
           </div>
-        </ProtocolProfileSection>
-      )}
+      </ProtocolProfileSection>
+
+      {legacySnapshot ? <LegacyImportSnapshotSection snapshot={legacySnapshot} /> : null}
 
       {/* Latest Submission */}
-      {latestSubmission && !isLegacyImport && (
+      {latestSubmission && (
         <section className="card detail-card">
           <div className="section-title">
             <h2>Latest submission</h2>
@@ -694,33 +584,8 @@ export const ProjectDetailPage: React.FC = () => {
         </section>
       )}
 
-      {latestSubmission && isLegacyImport ? (
-        <section className="card detail-card">
-          <div className="section-title">
-            <h2>Portal submission shell</h2>
-            <span className="badge badge-neutral">
-              {latestSubmission.status.replace(/_/g, " ")}
-            </span>
-          </div>
-          <div className="header-grid">
-            <div className="field">
-              <label>Purpose</label>
-              <p>Compatibility shell for imported legacy metadata.</p>
-            </div>
-            <div className="field">
-              <label>Portal workflow status</label>
-              <p>{latestSubmission.status.replace(/_/g, " ")}</p>
-            </div>
-            <div className="field">
-              <label>Received date</label>
-              <p>{formatDate(latestSubmission.receivedDate)}</p>
-            </div>
-          </div>
-        </section>
-      ) : null}
-
       {/* Actions */}
-      {latestSubmission && !isLegacyImport && (
+      {latestSubmission && (
         <section className="card detail-card">
           <div className="section-title">
             <h2>Actions</h2>
@@ -755,7 +620,7 @@ export const ProjectDetailPage: React.FC = () => {
       )}
 
       {/* Timeline */}
-      {latestSubmission?.statusHistory && !isLegacyImport && (
+      {latestSubmission?.statusHistory && (
         <section className="card detail-card">
           <Timeline entries={latestSubmission.statusHistory} />
         </section>

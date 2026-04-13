@@ -97,9 +97,6 @@ export function DashboardTopBar({
                   >
                     <div className="search-row">
                       <span className="search-code">{result.projectCode}</span>
-                      {result.origin === "LEGACY_IMPORT" ? (
-                        <span className="search-badge">Legacy</span>
-                      ) : null}
                     </div>
                     <span className="search-title">{result.title}</span>
                     <span className="search-pi">{result.piName}</span>

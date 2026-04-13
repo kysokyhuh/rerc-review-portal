@@ -19,6 +19,7 @@ import {
 } from "../../generated/prisma/client";
 import { AppError } from "../../middleware/errorHandler";
 import { logAuditEvent } from "../audit/auditService";
+import { promoteImportedSubmissionsToWorkflow } from "../imports/importedWorkflowPromotion";
 import {
   buildSlaConfigMap,
   buildSubmissionSlaSummary,
@@ -233,6 +234,7 @@ export async function classifySubmission(
   },
   classifiedById: number
 ) {
+  await promoteImportedSubmissionsToWorkflow({ submissionIds: [submissionId] });
   const submission = await prisma.submission.findUnique({
     where: { id: submissionId },
     include: {
@@ -465,6 +467,7 @@ async function loadOptionalSubmissionRelations(submissionId: number) {
 }
 
 export async function getSubmissionById(id: number) {
+  await promoteImportedSubmissionsToWorkflow({ submissionIds: [id] });
   const submission = await prisma.submission.findUnique({
     where: { id },
     include: {
@@ -1081,6 +1084,7 @@ export async function updateSubmissionStatus(
   reason: string | undefined,
   changedById: number
 ) {
+  await promoteImportedSubmissionsToWorkflow({ submissionIds: [id] });
   const submission = await prisma.submission.findUnique({
     where: { id }, select: { status: true },
   });
