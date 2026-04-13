@@ -655,11 +655,13 @@ const looksLikeLegacyHeaderRow = (row: string[]) => {
   }
 
   const firstCell = normalizeValue(row[0]);
+  const sixthHeader = normalizeHeaderKey(normalizeHeader(row[5]));
   return (
     /^\d{4}$/.test(firstCell) &&
     normalizeHeaderKey(normalizeHeader(row[1])) === normalizeHeaderKey("Title") &&
     normalizeHeaderKey(normalizeHeader(row[2])) === normalizeHeaderKey("Project Leader") &&
-    normalizeHeaderKey(normalizeHeader(row[5])) === normalizeHeaderKey("Date of Submission") &&
+    (sixthHeader === normalizeHeaderKey("Date of Submission") ||
+      sixthHeader === normalizeHeaderKey("Column 1")) &&
     normalizeHeaderKey(normalizeHeader(row[17])) === normalizeHeaderKey("Panel")
   );
 };

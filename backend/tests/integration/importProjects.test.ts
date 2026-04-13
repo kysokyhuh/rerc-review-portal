@@ -100,6 +100,12 @@ const buildLegacyHeaderRow = () => {
   return row;
 };
 
+const buildLegacyHeaderRowWithColumn1Date = () => {
+  const row = buildLegacyHeaderRow();
+  row[5] = "Column 1";
+  return row;
+};
+
 const buildLegacyCsv = (rows: string[][], includeHeader: boolean) =>
   [
     ...(includeHeader ? [buildLegacyHeaderRow()] : []),
@@ -171,6 +177,36 @@ describe("project import routes", () => {
       expect(response.body.detectedFormat).toBe("legacy_headered");
       expect(response.body.missingRequiredFields).toEqual([]);
       expect(response.body.detectedHeaders[0]).toBe("projectCode");
+    });
+
+    it("detects legacy headered CSVs when the date column header is exported as Column 1", async () => {
+      const csv = [
+        buildLegacyHeaderRowWithColumn1Date(),
+        buildLegacyRow({
+          0: "2026-201B",
+          1: "Legacy Variant Preview",
+          2: "Dr. Variant",
+          5: "2026-01-15",
+          7: "Exempted",
+          9: "INTERNAL",
+        }),
+      ]
+        .map((row) => row.join(","))
+        .join("\n");
+
+      const response = await request(app)
+        .post("/imports/projects/preview")
+        .set(csrfHeaders)
+        .set("X-User-ID", "1")
+        .set("X-User-Email", "ra@example.com")
+        .set("X-User-Name", "RA")
+        .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+        .attach("file", Buffer.from(csv), "legacy-column1-header.csv");
+
+      expect(response.status).toBe(200);
+      expect(response.body.detectedFormat).toBe("legacy_headered");
+      expect(response.body.detectedHeaders[5]).toBe("dateOfSubmission");
+      expect(response.body.detectedHeaders[7]).toBe("typeOfReview");
     });
 
     it("detects legacy headerless CSVs and returns a warning", async () => {
