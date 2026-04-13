@@ -1,15 +1,22 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDashboardQueues } from "@/hooks/useDashboardQueues";
 import { useDashboardOverdue } from "@/hooks/useDashboardOverdue";
 import { type DashboardFilterValues, filtersToParams } from "@/components/DashboardFilters";
-import { fetchSubmissionDetail, fetchSubmissionSlaSummary, searchProjects } from "@/services/api";
+import {
+  fetchDashboardLegacyProjects,
+  fetchSubmissionDetail,
+  fetchSubmissionSlaSummary,
+  searchProjects,
+} from "@/services/api";
 import type { DecoratedQueueItem, ProjectSearchResult, SubmissionDetail, SubmissionSlaSummary } from "@/types";
 import { DUE_SOON_THRESHOLD } from "@/constants";
 import { BRAND } from "@/config/branding";
 import {
   DashboardTopBar,
   AnnouncementBanner,
+  LegacyImportsPanel,
   StatsGrid,
   SubmissionsTable,
   QuickViewModal,
@@ -71,15 +78,19 @@ export const DashboardPage: React.FC = () => {
   const [bulkModal, setBulkModal] = useState<"assign" | "reminders" | "status" | null>(null);
   const [dashboardFilters, setDashboardFilters] = useState<Record<string, string>>({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [legacySearchTerm, setLegacySearchTerm] = useState("");
+  const [legacyPage, setLegacyPage] = useState(1);
 
   const tableRef = useRef<HTMLDivElement>(null!);
   const searchInputRef = useRef<HTMLInputElement>(null!);
   const fromLogin = Boolean((location.state as { fromLogin?: boolean } | null)?.fromLogin);
+  const deferredLegacySearchTerm = useDeferredValue(legacySearchTerm);
 
   // ── Effects ────────────────────────────────────────────
   useEffect(() => { document.title = "URERB Portal — Dashboard Overview"; }, []);
   useEffect(() => { if (queueFilter !== "overdue" && queueFilter !== "due-soon") setOverdueOwnerFilter("all"); }, [queueFilter]);
   useEffect(() => { setCurrentPage(1); }, [queueFilter, searchTerm, overdueOwnerFilter]);
+  useEffect(() => { setLegacyPage(1); }, [deferredLegacySearchTerm]);
 
   const handleDashboardFilterChange = useCallback((values: DashboardFilterValues) => {
     setDashboardFilters(filtersToParams(values));
@@ -95,6 +106,26 @@ export const DashboardPage: React.FC = () => {
     BRAND.defaultCommitteeCode,
     dashboardFilters
   );
+
+  const {
+    data: legacyProjects,
+    isLoading: legacyProjectsLoading,
+    error: legacyProjectsError,
+  } = useQuery({
+    queryKey: [
+      "dashboardLegacyProjects",
+      BRAND.defaultCommitteeCode,
+      deferredLegacySearchTerm,
+      legacyPage,
+    ],
+    queryFn: () =>
+      fetchDashboardLegacyProjects(BRAND.defaultCommitteeCode, {
+        q: deferredLegacySearchTerm.trim() || undefined,
+        page: legacyPage,
+        pageSize: 8,
+      }),
+    enabled: (counts?.legacyImports ?? 0) > 0 || deferredLegacySearchTerm.trim().length > 0,
+  });
 
   const handleRefresh = () => { refresh(); refreshOverdue(); };
 
@@ -362,6 +393,25 @@ export const DashboardPage: React.FC = () => {
           onBulkReminder={handleBulkReminder}
           onBulkStatusChange={handleBulkStatusChange}
           tableRef={tableRef}
+        />
+      </section>
+
+      <section className="portal-content">
+        <LegacyImportsPanel
+          totalLegacyCount={counts?.legacyImports ?? 0}
+          data={legacyProjects ?? null}
+          loading={legacyProjectsLoading}
+          error={
+            legacyProjectsError
+              ? legacyProjectsError instanceof Error
+                ? legacyProjectsError.message
+                : "Failed to load legacy imports"
+              : null
+          }
+          searchTerm={legacySearchTerm}
+          onSearchTermChange={setLegacySearchTerm}
+          onPageChange={setLegacyPage}
+          onNavigate={(path) => navigate(path)}
         />
       </section>
 

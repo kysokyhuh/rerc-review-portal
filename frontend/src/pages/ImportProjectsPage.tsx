@@ -62,23 +62,6 @@ const IDLE_PROGRESS: RequestProgressState = {
   percent: null,
 };
 
-const IMPORT_MODE_OPTIONS: Array<{
-  value: ImportMode;
-  label: string;
-  description: string;
-}> = [
-  {
-    value: "INTAKE_IMPORT",
-    label: "Intake import",
-    description: "Creates native portal-ready records and ignores spreadsheet-only workflow history.",
-  },
-  {
-    value: "LEGACY_MIGRATION",
-    label: "Legacy migration",
-    description: "Imports historical spreadsheet data as a read-only legacy snapshot without reconstructing workflow.",
-  },
-];
-
 const formatBytes = (bytes: number) => {
   if (bytes < 1024) return `${bytes} B`;
   const kb = bytes / 1024;
@@ -130,7 +113,6 @@ const renderTransferMeta = (progress: RequestProgressState) => {
 
 export default function ImportProjectsPage() {
   const navigate = useNavigate();
-  const [importMode, setImportMode] = useState<ImportMode>("INTAKE_IMPORT");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<ProjectImportPreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -163,7 +145,7 @@ export default function ImportProjectsPage() {
     };
   }, [selectedFile]);
 
-  const loadPreview = async (file: File, mode: ImportMode) => {
+  const loadPreview = async (file: File) => {
     setPreviewLoading(true);
     setPreviewProgress({
       phase: "uploading",
@@ -171,34 +153,33 @@ export default function ImportProjectsPage() {
       total: file.size,
       percent: 0,
     });
-    setStatusMessage("Uploading CSV for preview...");
+    setStatusMessage("Uploading file for preview...");
 
     try {
       const previewResponse = await previewProjectsCsv(file, {
-        mode,
         onUploadProgress: (progress) => {
           const next = resolveProgressState(progress);
           setPreviewProgress(next);
           if (next.phase === "processing") {
-            setStatusMessage("Analyzing file and auto-detecting required headers...");
+            setStatusMessage("Analyzing file and auto-detecting the import path...");
           }
         },
       });
       setPreview(previewResponse);
       setEditablePreviewRows(previewResponse.previewRows.map((row) => ({ ...row })));
       if (previewResponse.modeFit === "blocked") {
-        setStatusMessage("Selected import mode does not fit this file. Review the recommended mode before importing.");
+        setStatusMessage("This file could not be matched to a safe import path. Review the warnings before importing.");
       } else if (previewResponse.missingRequiredFields.length > 0) {
         setStatusMessage("We can't read required headers from this file.");
       } else if (previewResponse.modeFit === "warn") {
-        setStatusMessage("Preview ready with warnings. Review the recommended import mode before committing.");
+        setStatusMessage("Preview ready with warnings. Review the detected import path before committing.");
       } else if (previewResponse.detectedFormat === "legacy_headerless") {
         setStatusMessage("Legacy no-header CSV detected. Preview ready using legacy column order.");
       } else {
         setStatusMessage("Preview ready. You can edit blank cells in the preview before import.");
       }
     } catch (err: unknown) {
-      const message = resolveImportErrorMessage(err, "Failed to preview CSV.");
+      const message = resolveImportErrorMessage(err, "Failed to preview file.");
       setError(message);
       setStatusMessage(null);
       setPreview(null);
@@ -230,15 +211,16 @@ export default function ImportProjectsPage() {
       return;
     }
 
-    const isCsvName = file.name.toLowerCase().endsWith(".csv");
-    if (!isCsvName) {
-      setError("Please select a .csv file.");
+    const lowerName = file.name.toLowerCase();
+    const isSupportedFile = lowerName.endsWith(".csv") || lowerName.endsWith(".xlsx");
+    if (!isSupportedFile) {
+      setError("Please select a .csv or .xlsx file.");
       setSelectedFile(null);
       return;
     }
 
     setSelectedFile(file);
-    await loadPreview(file, importMode);
+    await loadPreview(file);
   };
 
   const handleTemplateDownload = async () => {
@@ -265,7 +247,7 @@ export default function ImportProjectsPage() {
   const handleImport = async () => {
     if (!selectedFile || !preview) return;
     if (missingMappings.length > 0) {
-      setError("Missing required header in CSV.");
+      setError("Missing required header in the uploaded file.");
       return;
     }
 
@@ -279,7 +261,7 @@ export default function ImportProjectsPage() {
         total: selectedFile.size,
         percent: 0,
       });
-      setStatusMessage("Uploading CSV for import...");
+      setStatusMessage("Uploading file for import...");
       const previewHeaders = preview.detectedHeaders;
       const rowNumbers =
         preview.previewRowNumbers && preview.previewRowNumbers.length === preview.previewRows.length
@@ -305,7 +287,6 @@ export default function ImportProjectsPage() {
         .filter((edit) => Object.keys(edit.values).length > 0);
 
       const response = await commitProjectsCsvImport(selectedFile, undefined, rowEdits, {
-        mode: importMode,
         onUploadProgress: (progress) => {
           const next = resolveProgressState(progress);
           setImportProgress(next);
@@ -319,7 +300,7 @@ export default function ImportProjectsPage() {
         `Import finished: ${response.insertedRows} inserted, ${response.failedRows} failed.`
       );
     } catch (err: unknown) {
-      const message = resolveImportErrorMessage(err, "Failed to import CSV.");
+      const message = resolveImportErrorMessage(err, "Failed to import file.");
       setStatusMessage(null);
       setError(message);
     } finally {
@@ -346,15 +327,27 @@ export default function ImportProjectsPage() {
   const previewHeaders = preview?.detectedHeaders ?? [];
   const previewRows = editablePreviewRows.slice(0, PREVIEW_ROWS_LIMIT);
   const previewWarnings = preview?.warnings ?? [];
+  const importPathDetails: Record<ImportMode, { label: string; description: string }> = {
+    INTAKE_IMPORT: {
+      label: "Portal intake import",
+      description: "Creates native portal records that enter the live workflow and dashboard queues.",
+    },
+    LEGACY_MIGRATION: {
+      label: "Legacy historical import",
+      description: "Creates reference-only legacy records that remain visible in search, dashboard legacy views, and reports.",
+    },
+  };
   const blockingWarnings =
     preview && preview.missingRequiredFields.length > 0
       ? ["We can't auto-detect required headers for import."]
       : preview?.modeFit === "blocked"
-        ? ["The selected import mode is blocked for this file."]
-      : [];
+        ? ["The detected import path is blocked for this file."]
+        : [];
   const visibleWarnings = Array.from(new Set([...previewWarnings, ...blockingWarnings]));
   const previewTransferMeta = renderTransferMeta(previewProgress);
   const importTransferMeta = renderTransferMeta(importProgress);
+  const detectedImportPath =
+    preview?.selectedMode ? importPathDetails[preview.selectedMode as ImportMode] : null;
   const handleBack = () => {
     const historyIndex = window.history.state?.idx;
     if (typeof historyIndex === "number" && historyIndex > 0) {
@@ -380,10 +373,9 @@ export default function ImportProjectsPage() {
           </svg>
           Back
         </button>
-        <h1>Import Projects CSV</h1>
+        <h1>Import Projects</h1>
         <p>
-          Upload a header-based CSV or the known legacy no-header RERC export. We
-          auto-detect supported formats and let you edit preview cells before import.
+          Upload a CSV or the original legacy XLSX workbook. The portal auto-detects whether the file should create live workflow records or legacy reference imports.
         </p>
       </header>
 
@@ -400,7 +392,7 @@ export default function ImportProjectsPage() {
           <div className="import-main-col">
             <section className="import-card" aria-labelledby="step-1-title">
               <div className="import-card-head">
-                <h2 id="step-1-title">Step 1: Upload CSV</h2>
+                <h2 id="step-1-title">Step 1: Upload file</h2>
                 <button
                   className="btn btn-secondary"
                   type="button"
@@ -411,40 +403,12 @@ export default function ImportProjectsPage() {
                 </button>
               </div>
 
-              <div className="field">
-                <label htmlFor="import-mode">Import mode</label>
-                <select
-                  id="import-mode"
-                  value={importMode}
-                  onChange={(event) => {
-                    const nextMode = event.target.value as ImportMode;
-                    setImportMode(nextMode);
-                    if (selectedFile) {
-                      void loadPreview(selectedFile, nextMode);
-                    }
-                  }}
-                  disabled={uploading || previewLoading}
-                >
-                  {IMPORT_MODE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <p className="import-hint">
-                  {
-                    IMPORT_MODE_OPTIONS.find((option) => option.value === importMode)
-                      ?.description
-                  }
-                </p>
-              </div>
-
               <CsvDropzone
                 selectedFile={selectedFile}
                 onFileSelected={handleFileSelect}
                 maxFileSizeMb={MAX_FILE_SIZE_MB}
                 disabled={uploading || previewLoading}
-                accept={importMode === "LEGACY_MIGRATION" ? "both" : "csv"}
+                accept="both"
               />
             </section>
 
@@ -467,7 +431,7 @@ export default function ImportProjectsPage() {
                     <strong>
                       {previewProgress.phase === "processing"
                         ? "Analyzing headers and generating preview"
-                        : "Uploading CSV for preview"}
+                        : "Uploading file for preview"}
                     </strong>
                     <span>
                       {previewProgress.phase === "processing"
@@ -504,13 +468,10 @@ export default function ImportProjectsPage() {
                 <>
                   <div className="import-alert info">
                     <p className="import-alert-line">
-                      <strong>Selected mode:</strong> {preview.selectedMode?.replace("_", " ").toLowerCase()}
+                      <strong>Detected import path:</strong> {detectedImportPath?.label ?? preview.selectedMode?.replace("_", " ").toLowerCase()}
                     </p>
                     <p className="import-alert-line">
-                      <strong>Recommended mode:</strong> {preview.recommendedMode?.replace("_", " ").toLowerCase()}
-                    </p>
-                    <p className="import-alert-line">
-                      <strong>Mode fit:</strong> {preview.modeFit}
+                      {detectedImportPath?.description}
                     </p>
                   </div>
                   {(preview.sourceWarnings ?? []).length > 0 && (
@@ -681,11 +642,11 @@ export default function ImportProjectsPage() {
                     ? importProgress.phase === "processing"
                       ? "Processing..."
                       : "Uploading..."
-                    : "Import CSV"}
+                    : "Import file"}
                 </button>
               </div>
               <p className="import-hint">
-                Import stays disabled when required fields are missing or the selected mode is blocked for the file.
+                Import stays disabled when required fields are missing or the detected import path is blocked for the file.
               </p>
               {uploading && (
                 <div
@@ -698,11 +659,11 @@ export default function ImportProjectsPage() {
                     <strong>
                       {importProgress.phase === "processing"
                         ? "Validating rows and importing records"
-                        : "Uploading CSV for import"}
+                        : "Uploading file for import"}
                     </strong>
                     <span>
                       {importProgress.phase === "processing"
-                        ? "The upload is finished. The server is still validating the file and creating records, so this can take a little longer on larger CSVs."
+                        ? "The upload is finished. The server is still validating the file and creating records, so this can take a little longer on larger files."
                         : importTransferMeta || "Sending the import file to the server."}
                     </span>
                   </div>
@@ -740,12 +701,12 @@ export default function ImportProjectsPage() {
             <div className="import-card import-guide-card">
               <h3>Required headers</h3>
               <ul>
-                <li>Header-based CSVs are supported.</li>
+                <li>Header-based CSV intake files are supported.</li>
                 <li>The known legacy no-header RERC export is also supported.</li>
+                <li>Original legacy XLSX workbooks preserve formula-derived snapshot fields better than CSV exports.</li>
               </ul>
               <p>
-                In legacy mode, project code is read from column 1 and the remaining
-                columns follow the fixed legacy order.
+                Legacy no-header files still use the fixed historical column order, while normal intake files rely on recognizable headers.
               </p>
             </div>
             <div className="import-card import-guide-card">

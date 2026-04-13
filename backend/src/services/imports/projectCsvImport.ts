@@ -887,6 +887,9 @@ export const assessImportMode = (
   };
 };
 
+export const inferImportMode = (parsed: ParsedCsvData): ImportMode =>
+  assessImportMode(parsed, ImportMode.INTAKE_IMPORT).recommendedMode;
+
 const collectRowPreviewWarnings = (parsed: ParsedCsvData, mode: ImportMode, previewRows: number) => {
   if (mode !== ImportMode.LEGACY_MIGRATION) {
     return [] as ImportWarning[];

@@ -288,7 +288,7 @@ export function SubmissionsTable({
                 <h3>{showLegacyImportHint ? "No active workflow submissions" : "No submissions match this view"}</h3>
                 <p>
                   {showLegacyImportHint
-                    ? `${legacyImportCount} legacy imported record${legacyImportCount === 1 ? "" : "s"} exist in this committee. They are reference-only and do not appear in workflow queues. Use the search bar above to open them.`
+                    ? `${legacyImportCount} legacy imported record${legacyImportCount === 1 ? "" : "s"} exist in this committee. They are reference-only and do not appear in workflow queues. Open the legacy imports section below to review them.`
                     : "Clear filters or switch to “All” to see more."}
                 </p>
                 <button className="ghost-btn" type="button" onClick={() => { onQueueFilterChange("all"); onSearchTermChange(""); }}>

@@ -22,6 +22,7 @@ export type {
   DashboardActivityEntry,
   OverdueReviewItem,
   ProjectSearchResult,
+  LegacyDashboardProjectsResponse,
   LetterTemplateReadiness,
   StatusHistoryEntry,
   SubmissionDetail,
@@ -72,6 +73,7 @@ import type {
   DashboardActivityEntry,
   OverdueReviewItem,
   ProjectSearchResult,
+  LegacyDashboardProjectsResponse,
   CommitteeSummary,
   ImportResult,
   ImportMode,
@@ -618,6 +620,22 @@ export async function fetchDashboardQueues(
     exemptedQueue: transformQueue(data.exemptedQueue || [], "review"),
     revisionQueue: transformQueue(data.revisionQueue || [], "revision"),
   };
+}
+
+export async function fetchDashboardLegacyProjects(
+  committeeCode: string,
+  options?: {
+    q?: string;
+    page?: number;
+    pageSize?: number;
+  }
+) {
+  const params = new URLSearchParams({ committeeCode });
+  if (options?.q) params.set("q", options.q);
+  if (options?.page) params.set("page", String(options.page));
+  if (options?.pageSize) params.set("pageSize", String(options.pageSize));
+  const response = await api.get(`/dashboard/legacy-projects?${params.toString()}`);
+  return response.data as LegacyDashboardProjectsResponse;
 }
 
 export async function fetchDashboardActivity(

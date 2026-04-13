@@ -214,6 +214,27 @@ export interface ProjectSearchResult {
   origin?: ProjectOrigin;
 }
 
+export interface LegacyDashboardProject {
+  projectId: number;
+  projectCode: string;
+  title: string;
+  piName: string;
+  receivedDate: string | null;
+  reviewType: string | null;
+  status: string;
+  importedAt: string | null;
+  sourceFilename: string | null;
+}
+
+export interface LegacyDashboardProjectsResponse {
+  committeeCode: string;
+  q: string;
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  items: LegacyDashboardProject[];
+}
+
 // Status history
 export interface StatusHistoryEntry {
   id: number;
@@ -825,6 +846,10 @@ export interface AnnualReportSummaryResponse {
       endDate: string;
     };
   };
+  sourceCounts: {
+    nativePortal: number;
+    legacyImport: number;
+  };
   summaryCounts: {
     received: number;
     exempted: number;
@@ -960,6 +985,8 @@ export interface AnnualReportSubmissionsResponse {
     reviewType: "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | "UNCLASSIFIED";
     status: string;
     receivedDate: string | null;
+    origin: ProjectOrigin;
+    sourceLabel: string;
   }>;
 }
 

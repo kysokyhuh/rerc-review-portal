@@ -1,6 +1,7 @@
 import prisma from "../../config/prismaClient";
 import {
   ProponentCategory,
+  ReviewDecision,
   ReviewType,
   SubmissionStatus,
   type Prisma,
@@ -56,8 +57,31 @@ type SubmissionForReports = Prisma.SubmissionGetPayload<{
         department: true;
         proponentCategory: true;
         committeeId: true;
+        origin: true;
         approvalStartDate: true;
-        protocolProfile: { select: { typeOfReview: true } };
+        protocolProfile: {
+          select: {
+            college: true;
+            department: true;
+            dateOfSubmission: true;
+            typeOfReview: true;
+            proponent: true;
+            status: true;
+            finishDate: true;
+            classificationOfProposalRerc: true;
+          };
+        };
+        legacyImportSnapshot: {
+          select: {
+            importedStatus: true;
+            importedTypeOfReview: true;
+            importedClassificationOfProposal: true;
+            importedClassificationDate: true;
+            importedFinishDate: true;
+            importedWithdrawn: true;
+            importedAt: true;
+          };
+        };
         committee: { select: { code: true; name: true } };
       };
     };
@@ -113,17 +137,24 @@ const normalizeCategoryFromText = (value: string | null | undefined): ProCategor
   return null;
 };
 
+const isLegacyImport = (submission: SubmissionForReports) =>
+  submission.project?.origin === "LEGACY_IMPORT";
+
 const resolveSubmissionCategory = (submission: SubmissionForReports): ProCategoryKey | null =>
   normalizeCategory(submission.project?.proponentCategory) ??
+  normalizeCategoryFromText(submission.project?.protocolProfile?.proponent) ??
   normalizeCategoryFromText(submission.project?.proponent);
+
+const resolveRawCollege = (submission: SubmissionForReports) =>
+  submission.project?.collegeOrUnit?.trim() ||
+  submission.project?.piAffiliation?.trim() ||
+  submission.project?.protocolProfile?.college?.trim() ||
+  "";
 
 const OTHERS_COLLEGE_LABEL = "Others (Indicate in next column)";
 
 const normalizeCollege = (submission: SubmissionForReports) => {
-  const raw =
-    submission.project?.collegeOrUnit?.trim() ||
-    submission.project?.piAffiliation?.trim() ||
-    "";
+  const raw = resolveRawCollege(submission);
   if (!raw) return OTHERS_COLLEGE_LABEL;
   if (/^unknown$/i.test(raw)) return OTHERS_COLLEGE_LABEL;
   if (/^others?\b/i.test(raw)) return OTHERS_COLLEGE_LABEL;
@@ -131,7 +162,10 @@ const normalizeCollege = (submission: SubmissionForReports) => {
 };
 
 const normalizeDepartment = (submission: SubmissionForReports) => {
-  const raw = submission.project?.department?.trim() || "";
+  const raw =
+    submission.project?.department?.trim() ||
+    submission.project?.protocolProfile?.department?.trim() ||
+    "";
   if (!raw) return OTHERS_COLLEGE_LABEL;
   if (/^unknown$/i.test(raw)) return OTHERS_COLLEGE_LABEL;
   if (/^others?\b/i.test(raw)) return OTHERS_COLLEGE_LABEL;
@@ -158,11 +192,73 @@ const resolveSubmissionReviewType = (
   submission: SubmissionForReports
 ): ResolvedReviewType | null =>
   normalizeReviewType(submission.classification?.reviewType) ??
-  normalizeReviewTypeFromText(submission.project?.protocolProfile?.typeOfReview);
+  normalizeReviewTypeFromText(submission.project?.protocolProfile?.typeOfReview) ??
+  normalizeReviewTypeFromText(submission.project?.protocolProfile?.classificationOfProposalRerc) ??
+  normalizeReviewTypeFromText(submission.project?.legacyImportSnapshot?.importedTypeOfReview) ??
+  normalizeReviewTypeFromText(
+    submission.project?.legacyImportSnapshot?.importedClassificationOfProposal
+  );
+
+const normalizeSubmissionStatusFromText = (value: string | null | undefined): SubmissionStatus | null => {
+  const raw = String(value ?? "").trim().toLowerCase();
+  if (!raw) return null;
+  if (raw.includes("withdraw")) return SubmissionStatus.WITHDRAWN;
+  if (raw.includes("clear") || raw.includes("approved") || raw.includes("finish") || raw.includes("closed")) {
+    return SubmissionStatus.CLOSED;
+  }
+  if (raw.includes("revision")) return SubmissionStatus.AWAITING_REVISIONS;
+  if (raw.includes("under review") || raw.includes("review")) return SubmissionStatus.UNDER_REVIEW;
+  if (raw.includes("classif")) return SubmissionStatus.CLASSIFIED;
+  return null;
+};
+
+const resolveSubmissionStatus = (submission: SubmissionForReports): SubmissionStatus => {
+  const liveStatus = submission.status;
+  if (!isLegacyImport(submission)) return liveStatus;
+  if (
+    liveStatus !== SubmissionStatus.RECEIVED ||
+    submission.statusHistory.length > 0
+  ) {
+    return liveStatus;
+  }
+
+  if (submission.project?.legacyImportSnapshot?.importedWithdrawn) {
+    return SubmissionStatus.WITHDRAWN;
+  }
+
+  return (
+    normalizeSubmissionStatusFromText(submission.project?.legacyImportSnapshot?.importedStatus) ??
+    normalizeSubmissionStatusFromText(submission.project?.protocolProfile?.status) ??
+    liveStatus
+  );
+};
+
+const resolveEffectiveReceivedDate = (submission: SubmissionForReports) =>
+  submission.receivedDate ?? submission.project?.protocolProfile?.dateOfSubmission ?? null;
+
+const resolveClassificationDate = (submission: SubmissionForReports) =>
+  submission.classification?.classificationDate ??
+  submission.project?.legacyImportSnapshot?.importedClassificationDate ??
+  null;
+
+const resolveClearanceDate = (submission: SubmissionForReports) =>
+  submission.project?.approvalStartDate ??
+  submission.project?.legacyImportSnapshot?.importedFinishDate ??
+  submission.project?.protocolProfile?.finishDate ??
+  null;
+
+const resolveSourceLabel = (submission: SubmissionForReports) =>
+  isLegacyImport(submission) ? "Legacy Imported" : "Portal Workflow";
 
 const isWithdrawn = (submission: SubmissionForReports) =>
-  submission.status === SubmissionStatus.WITHDRAWN ||
-  submission.statusHistory.some((entry) => entry.newStatus === SubmissionStatus.WITHDRAWN);
+  resolveSubmissionStatus(submission) === SubmissionStatus.WITHDRAWN ||
+  submission.statusHistory.some((entry) => entry.newStatus === SubmissionStatus.WITHDRAWN) ||
+  submission.project?.legacyImportSnapshot?.importedWithdrawn === true ||
+  /withdraw/i.test(
+    submission.project?.legacyImportSnapshot?.importedStatus ??
+      submission.project?.protocolProfile?.status ??
+      ""
+  );
 
 const nextScreeningStatusSet = new Set<SubmissionStatus>([
   SubmissionStatus.RETURNED_FOR_COMPLETION,
@@ -172,18 +268,51 @@ const nextScreeningStatusSet = new Set<SubmissionStatus>([
   SubmissionStatus.CLASSIFIED,
 ]);
 
+const toPrismaReviewType = (value: ResolvedReviewType | null): ReviewType | null => {
+  if (value === "EXEMPT") return ReviewType.EXEMPT;
+  if (value === "EXPEDITED") return ReviewType.EXPEDITED;
+  if (value === "FULL_BOARD") return ReviewType.FULL_BOARD;
+  return null;
+};
+
+const toPrismaProponentCategory = (value: ProCategoryKey | null): ProponentCategory | null => {
+  if (value === "UNDERGRAD") return ProponentCategory.UNDERGRAD;
+  if (value === "GRAD") return ProponentCategory.GRAD;
+  if (value === "FACULTY") return ProponentCategory.FACULTY;
+  if (value === "NON_TEACHING") return ProponentCategory.OTHER;
+  return null;
+};
+
+const buildSyntheticStatusHistory = (submission: SubmissionForReports) => {
+  const history = submission.statusHistory.map((entry) => ({
+    newStatus: entry.newStatus,
+    effectiveDate: entry.effectiveDate,
+  }));
+
+  if (history.length > 0) return history;
+  if (!isLegacyImport(submission)) return history;
+
+  const effectiveStatus = resolveSubmissionStatus(submission);
+  const effectiveDate = resolveClearanceDate(submission) ?? resolveEffectiveReceivedDate(submission);
+  if (!effectiveDate) return history;
+
+  return [{ newStatus: effectiveStatus, effectiveDate }];
+};
+
 const toMetricSubmission = (submission: SubmissionForReports): ReportSubmissionRecord => ({
   id: submission.id,
-  receivedDate: submission.receivedDate ?? submission.createdAt,
+  receivedDate: resolveEffectiveReceivedDate(submission) ?? submission.createdAt,
   sequenceNumber: submission.sequenceNumber,
-  status: submission.status,
-  resultsNotifiedAt: submission.resultsNotifiedAt ?? null,
-  finalDecision: submission.finalDecision ?? null,
-  finalDecisionDate: submission.finalDecisionDate ?? null,
-  classification: submission.classification
+  status: resolveSubmissionStatus(submission),
+  resultsNotifiedAt: submission.resultsNotifiedAt ?? resolveClearanceDate(submission),
+  finalDecision:
+    submission.finalDecision ??
+    (resolveClearanceDate(submission) && !isWithdrawn(submission) ? ReviewDecision.APPROVED : null),
+  finalDecisionDate: submission.finalDecisionDate ?? resolveClearanceDate(submission),
+  classification: toPrismaReviewType(resolveSubmissionReviewType(submission))
     ? {
-        reviewType: submission.classification.reviewType,
-        classificationDate: submission.classification.classificationDate,
+        reviewType: toPrismaReviewType(resolveSubmissionReviewType(submission))!,
+        classificationDate: resolveClassificationDate(submission),
       }
     : null,
   project: submission.project
@@ -191,16 +320,15 @@ const toMetricSubmission = (submission: SubmissionForReports): ReportSubmissionR
         id: submission.project.id,
         committee: { code: submission.project.committee.code },
         committeeId: submission.project.committeeId,
-        piAffiliation: submission.project.piAffiliation,
-        collegeOrUnit: submission.project.collegeOrUnit,
-        proponentCategory: submission.project.proponentCategory,
-        approvalStartDate: submission.project.approvalStartDate,
+        piAffiliation: resolveRawCollege(submission) || submission.project.piAffiliation,
+        collegeOrUnit: resolveRawCollege(submission) || submission.project.collegeOrUnit,
+        proponentCategory:
+          submission.project.proponentCategory ??
+          toPrismaProponentCategory(resolveSubmissionCategory(submission)),
+        approvalStartDate: resolveClearanceDate(submission),
       }
     : null,
-  statusHistory: submission.statusHistory.map((entry) => ({
-    newStatus: entry.newStatus,
-    effectiveDate: entry.effectiveDate,
-  })),
+  statusHistory: buildSyntheticStatusHistory(submission),
 });
 
 const getExclusiveOutcome = (submission: SubmissionForReports): ExclusiveOutcome => {
@@ -456,16 +584,10 @@ export async function resolveReportWindows(filters: ReportViewFilters): Promise<
 }
 
 export async function fetchReportSubmissions(filters: ReportViewFilters, termWindows: TermWindow[]) {
-  const dateOr = termWindows.map((window) => ({
-    receivedDate: { gte: window.startDate, lt: window.endDateExclusive },
-  }));
-
   const submissions = await prisma.submission.findMany({
     where: {
       sequenceNumber: 1,
-      OR: dateOr,
       project: {
-        origin: { not: "LEGACY_IMPORT" as const },
         ...(filters.committee !== "ALL"
           ? { committee: { code: filters.committee } }
           : {}),
@@ -485,8 +607,31 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
           department: true,
           proponentCategory: true,
           committeeId: true,
+          origin: true,
           approvalStartDate: true,
-          protocolProfile: { select: { typeOfReview: true } },
+          protocolProfile: {
+            select: {
+              college: true,
+              department: true,
+              dateOfSubmission: true,
+              typeOfReview: true,
+              proponent: true,
+              status: true,
+              finishDate: true,
+              classificationOfProposalRerc: true,
+            },
+          },
+          legacyImportSnapshot: {
+            select: {
+              importedStatus: true,
+              importedTypeOfReview: true,
+              importedClassificationOfProposal: true,
+              importedClassificationDate: true,
+              importedFinishDate: true,
+              importedWithdrawn: true,
+              importedAt: true,
+            },
+          },
           committee: { select: { code: true, name: true } },
         },
       },
@@ -505,10 +650,19 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
   });
 
   return submissions.filter((submission) => {
+    const effectiveReceivedDate = resolveEffectiveReceivedDate(submission);
+    if (!effectiveReceivedDate) return false;
+    const isInWindow = termWindows.some((window) => {
+      const timestamp = effectiveReceivedDate.getTime();
+      return timestamp >= window.startDate.getTime() && timestamp < window.endDateExclusive.getTime();
+    });
+    if (!isInWindow) return false;
+
     const college = normalizeCollege(submission);
     const category = resolveSubmissionCategory(submission);
     const reviewType = resolveSubmissionReviewType(submission);
     const withdrawn = isWithdrawn(submission);
+    const effectiveStatus = resolveSubmissionStatus(submission);
 
     // User rule: exclude records with empty/unknown proponent category from reports
     if (!category) return false;
@@ -522,7 +676,7 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
     } else if (filters.reviewType !== "ALL" && reviewType !== filters.reviewType) {
       return false;
     }
-    if (filters.status !== "ALL" && submission.status !== filters.status) return false;
+    if (filters.status !== "ALL" && effectiveStatus !== filters.status) return false;
 
     if (filters.q) {
       const hay = `${submission.project?.projectCode ?? ""} ${submission.project?.title ?? ""} ${
@@ -607,6 +761,10 @@ export async function buildAnnualSummaryPayload(
     NON_TEACHING: { exempted: 0, expedited: 0, fullReview: 0, withdrawn: 0, total: 0 },
     TOTAL: { exempted: 0, expedited: 0, fullReview: 0, withdrawn: 0, total: 0 },
   };
+  const sourceCounts = {
+    nativePortal: 0,
+    legacyImport: 0,
+  };
 
   const breakdownByCollege = new Map<
     string,
@@ -644,6 +802,8 @@ export async function buildAnnualSummaryPayload(
     const withdrawn = isWithdrawn(submission);
     const exclusiveOutcome = getExclusiveOutcome(submission);
     const committeeLabel = submission.project?.committee.code ?? "Unknown";
+    if (isLegacyImport(submission)) sourceCounts.legacyImport += 1;
+    else sourceCounts.nativePortal += 1;
 
     summaryCounts.received += 1;
     if (reviewType === "EXEMPT") summaryCounts.exempted += 1;
@@ -746,7 +906,8 @@ export async function buildAnnualSummaryPayload(
     }
   }
   for (const submission of submissions) {
-    const received = submission.receivedDate ? new Date(submission.receivedDate).getTime() : NaN;
+    const effectiveReceivedDate = resolveEffectiveReceivedDate(submission);
+    const received = effectiveReceivedDate ? effectiveReceivedDate.getTime() : NaN;
     if (!Number.isFinite(received)) continue;
     const window = termWindows.find((tw) => {
       const start = tw.startDate.getTime();
@@ -825,7 +986,8 @@ export async function buildAnnualSummaryPayload(
     const category = resolveSubmissionCategory(submission);
     if (!category) continue;
 
-    const received = submission.receivedDate ? new Date(submission.receivedDate).getTime() : NaN;
+    const effectiveReceivedDate = resolveEffectiveReceivedDate(submission);
+    const received = effectiveReceivedDate ? effectiveReceivedDate.getTime() : NaN;
     if (!Number.isFinite(received)) continue;
     const window = termWindows.find((tw) => {
       const start = tw.startDate.getTime();
@@ -903,7 +1065,7 @@ export async function buildAnnualSummaryPayload(
 
   for (const submission of submissions) {
     if (!monthBuckets.length) break;
-    const bucket = findBucketByDate(monthBuckets, submission.receivedDate ?? submission.createdAt);
+    const bucket = findBucketByDate(monthBuckets, resolveEffectiveReceivedDate(submission));
     if (!bucket) continue;
 
     receivedByMonthMap.get(bucket.key)!.count += 1;
@@ -1085,6 +1247,7 @@ export async function buildAnnualSummaryPayload(
       isPartial,
       dateRange,
     },
+    sourceCounts,
     summaryCounts,
     overviewTable: {
       rows: Array.from(termBuckets.values()),
@@ -1176,12 +1339,12 @@ export function buildSubmissionRecordsPayload(
         : sortField === "college"
         ? normalizeCollege(a)
         : sortField === "department"
-        ? a.project?.department ?? ""
+        ? normalizeDepartment(a)
         : sortField === "status"
-        ? a.status
+        ? resolveSubmissionStatus(a)
         : sortField === "reviewType"
         ? resolveSubmissionReviewType(a) ?? ""
-        : new Date(a.receivedDate ?? 0).getTime();
+        : new Date(resolveEffectiveReceivedDate(a) ?? 0).getTime();
 
     const vb =
       sortField === "projectCode"
@@ -1191,12 +1354,12 @@ export function buildSubmissionRecordsPayload(
         : sortField === "college"
         ? normalizeCollege(b)
         : sortField === "department"
-        ? b.project?.department ?? ""
+        ? normalizeDepartment(b)
         : sortField === "status"
-        ? b.status
+        ? resolveSubmissionStatus(b)
         : sortField === "reviewType"
         ? resolveSubmissionReviewType(b) ?? ""
-        : new Date(b.receivedDate ?? 0).getTime();
+        : new Date(resolveEffectiveReceivedDate(b) ?? 0).getTime();
 
     if (va < vb) return sortDir === "asc" ? -1 : 1;
     if (va > vb) return sortDir === "asc" ? 1 : -1;
@@ -1212,11 +1375,13 @@ export function buildSubmissionRecordsPayload(
     title: submission.project?.title ?? "Untitled",
     proponent: submission.project?.proponent ?? submission.project?.piName ?? "Unknown",
     college: normalizeCollege(submission),
-    department: submission.project?.department?.trim() || "—",
+    department: normalizeDepartment(submission),
     proponentCategory: resolveSubmissionCategory(submission) ?? "UNKNOWN",
     reviewType: resolveSubmissionReviewType(submission) ?? "UNCLASSIFIED",
-    status: submission.status,
-    receivedDate: submission.receivedDate,
+    status: resolveSubmissionStatus(submission),
+    receivedDate: resolveEffectiveReceivedDate(submission),
+    origin: submission.project?.origin ?? "NATIVE_PORTAL",
+    sourceLabel: resolveSourceLabel(submission),
   }));
 
   return {

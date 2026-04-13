@@ -14,6 +14,7 @@ import {
   chunkRows,
   CsvImportError,
   DEFAULT_IMPORT_CONFIG,
+  inferImportMode,
   normalizeCommitMapping,
   normalizeProjectCode,
   parseImportMode,
@@ -163,12 +164,13 @@ router.post(
   async (req, res) => {
     try {
       const { file, sourceType } = getUploadFileOrThrow(req);
-      const mode = parseImportMode(req.body?.mode);
 
       const parsed =
         sourceType === "xlsx"
           ? await parseProjectXlsxForLegacyMigration(file.buffer, DEFAULT_IMPORT_CONFIG)
           : parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
+
+      const mode = req.body?.mode ? parseImportMode(req.body.mode) : inferImportMode(parsed);
 
       const preview = buildPreviewPayload(parsed, mode, DEFAULT_IMPORT_CONFIG);
       const sourceWarnings =
@@ -198,12 +200,12 @@ router.post(
   async (req, res) => {
     try {
       const { file, sourceType } = getUploadFileOrThrow(req);
-      const mode = parseImportMode(req.body?.mode);
 
       const parsed =
         sourceType === "xlsx"
           ? await parseProjectXlsxForLegacyMigration(file.buffer, DEFAULT_IMPORT_CONFIG)
           : parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
+      const mode = req.body?.mode ? parseImportMode(req.body.mode) : inferImportMode(parsed);
 
       const rowEdits = parseRowEditsPayload(req.body?.rowEdits);
 

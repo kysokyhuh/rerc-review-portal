@@ -715,6 +715,7 @@ export default function ReportsPage() {
             asOfLabel={partialDataLabel}
             comparisonLabel={comparisonLabel}
             comparisonCounts={comparisonCounts}
+            sourceCounts={summary.sourceCounts}
             byCategory={summary.summaryCounts.byProponentCategory}
           />
         </section>
@@ -817,7 +818,9 @@ export default function ReportsPage() {
                 )
               }
               onRowClick={(item) => {
-                if (item.submissionId) navigate(`/submissions/${item.submissionId}`);
+                if (item.origin === "LEGACY_IMPORT" && item.projectId) {
+                  navigate(`/projects/${item.projectId}`);
+                } else if (item.submissionId) navigate(`/submissions/${item.submissionId}`);
                 else if (item.projectId) navigate(`/projects/${item.projectId}`);
               }}
             />

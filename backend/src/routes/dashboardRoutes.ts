@@ -186,6 +186,136 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
   }
 });
 
+router.get("/dashboard/legacy-projects", requireUser, async (req, res, next) => {
+  try {
+    const committeeCode = String(req.query.committeeCode || BRAND.defaultCommitteeCode || "RERC-HUMAN");
+    const q = String(req.query.q || "").trim();
+    const page = Math.max(1, Number(req.query.page ?? 1) || 1);
+    const pageSize = Math.min(50, Math.max(1, Number(req.query.pageSize ?? 8) || 8));
+
+    const projects = await prisma.project.findMany({
+      where: {
+        committee: { code: committeeCode },
+        origin: "LEGACY_IMPORT",
+        ...(q
+          ? {
+              OR: [
+                { projectCode: { contains: q, mode: "insensitive" } },
+                { title: { contains: q, mode: "insensitive" } },
+                { piName: { contains: q, mode: "insensitive" } },
+                { proponent: { contains: q, mode: "insensitive" } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        projectCode: true,
+        title: true,
+        piName: true,
+        proponent: true,
+        updatedAt: true,
+        importBatch: {
+          select: {
+            sourceFilename: true,
+          },
+        },
+        protocolProfile: {
+          select: {
+            dateOfSubmission: true,
+            typeOfReview: true,
+            status: true,
+          },
+        },
+        legacyImportSnapshot: {
+          select: {
+            importedAt: true,
+            importedStatus: true,
+            importedTypeOfReview: true,
+            importedClassificationOfProposal: true,
+            importedWithdrawn: true,
+          },
+        },
+        submissions: {
+          where: { sequenceNumber: 1 },
+          take: 1,
+          select: {
+            id: true,
+            receivedDate: true,
+            status: true,
+            classification: {
+              select: {
+                reviewType: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const items = projects
+      .map((project) => {
+        const submission = project.submissions[0] ?? null;
+        const receivedDate =
+          submission?.receivedDate ?? project.protocolProfile?.dateOfSubmission ?? null;
+        const reviewType =
+          submission?.classification?.reviewType ??
+          project.protocolProfile?.typeOfReview ??
+          project.legacyImportSnapshot?.importedTypeOfReview ??
+          project.legacyImportSnapshot?.importedClassificationOfProposal ??
+          null;
+        const status =
+          submission?.status && submission.status !== "RECEIVED"
+            ? submission.status
+            : project.legacyImportSnapshot?.importedWithdrawn
+              ? "WITHDRAWN"
+              : project.legacyImportSnapshot?.importedStatus ??
+                project.protocolProfile?.status ??
+                submission?.status ??
+                "RECEIVED";
+
+        return {
+          projectId: project.id,
+          projectCode: project.projectCode ?? "N/A",
+          title: project.title ?? "Untitled",
+          piName: project.piName ?? project.proponent ?? "Unknown",
+          receivedDate,
+          reviewType,
+          status,
+          importedAt: project.legacyImportSnapshot?.importedAt ?? null,
+          sourceFilename: project.importBatch?.sourceFilename ?? null,
+          updatedAt: project.updatedAt,
+        };
+      })
+      .sort((left, right) => {
+        const leftTime =
+          (left.receivedDate ? new Date(left.receivedDate).getTime() : Number.NEGATIVE_INFINITY) ||
+          Number.NEGATIVE_INFINITY;
+        const rightTime =
+          (right.receivedDate ? new Date(right.receivedDate).getTime() : Number.NEGATIVE_INFINITY) ||
+          Number.NEGATIVE_INFINITY;
+        if (leftTime !== rightTime) return rightTime - leftTime;
+
+        return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
+      });
+
+    const totalCount = items.length;
+    const start = (page - 1) * pageSize;
+
+    return res.json({
+      committeeCode,
+      q,
+      totalCount,
+      page,
+      pageSize,
+      items: items.slice(start, start + pageSize),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Distinct college values for the filter dropdown
 router.get("/dashboard/colleges", requireUser, async (req, res, next) => {
   try {
