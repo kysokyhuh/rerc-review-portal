@@ -43,6 +43,7 @@ export type {
   ExemptedQueueItem,
   ExemptedQueueResponse,
   ReportsAcademicYearOption,
+  ReportsAcademicYearsResponse,
   ReportsSummaryResponse,
   AnnualReportSummaryResponse,
   AnnualReportSubmissionsResponse,
@@ -81,6 +82,7 @@ import type {
   ArchivedProjectsResponse,
   ExemptedQueueResponse,
   ReportsAcademicYearOption,
+  ReportsAcademicYearsResponse,
   ReportsSummaryResponse,
   AnnualReportSummaryResponse,
   AnnualReportSubmissionsResponse,
@@ -1090,7 +1092,7 @@ export async function issueExemption(submissionId: number, payload: { resultsNot
 
 export async function fetchReportAcademicYears() {
   const response = await api.get("/reports/academic-years");
-  return response.data as { items: ReportsAcademicYearOption[] };
+  return response.data as ReportsAcademicYearsResponse;
 }
 
 export async function fetchAcademicYearSummary(params: {

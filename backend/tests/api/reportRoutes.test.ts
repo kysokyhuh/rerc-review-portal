@@ -1,5 +1,8 @@
 import prismaClient from "../../src/config/prismaClient";
-import { getAcademicYearSummaryHandler } from "../../src/routes/reportRoutes";
+import {
+  getAcademicYearSummaryHandler,
+  getAcademicYearsHandler,
+} from "../../src/routes/reportRoutes";
 import { ReviewType, SubmissionStatus } from "../../src/generated/prisma/client";
 
 jest.mock("../../src/config/prismaClient", () => ({
@@ -23,6 +26,7 @@ jest.mock("../../src/config/prismaClient", () => ({
     configSLA: {
       findMany: jest.fn(),
     },
+    $queryRaw: jest.fn(),
     $transaction: jest.fn(async (callback: any) =>
       callback({
         submission: {
@@ -46,6 +50,7 @@ const prisma = prismaClient as unknown as {
   submissionStatusHistory: { create: jest.Mock };
   holiday: { findMany: jest.Mock };
   configSLA: { findMany: jest.Mock };
+  $queryRaw: jest.Mock;
   $transaction: jest.Mock;
 };
 
@@ -181,6 +186,34 @@ describe("GET /reports/academic-year-summary", () => {
         ],
       },
     ]);
+
+    prisma.$queryRaw.mockResolvedValue([
+      {
+        startDate: new Date("2025-06-12T00:00:00.000Z"),
+        endDate: new Date("2025-10-10T00:00:00.000Z"),
+      },
+    ]);
+  });
+
+  it("returns academic-year options with fallback metadata", async () => {
+    const res = createResponseMock();
+
+    await getAcademicYearsHandler({} as any, res as any, jest.fn());
+
+    expect(res.status).not.toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({
+      items: [
+        {
+          academicYear: "2025-2026",
+          terms: [1, 2],
+        },
+      ],
+      hasAcademicTerms: true,
+      fallbackRange: {
+        startDate: new Date("2025-06-12T00:00:00.000Z"),
+        endDate: new Date("2025-10-10T00:00:00.000Z"),
+      },
+    });
   });
 
   it("returns expanded analytics and performance payloads", async () => {

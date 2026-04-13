@@ -800,6 +800,17 @@ export interface ReportsAcademicYearOption {
   terms: number[];
 }
 
+export interface ReportFallbackRange {
+  startDate: string;
+  endDate: string;
+}
+
+export interface ReportsAcademicYearsResponse {
+  items: ReportsAcademicYearOption[];
+  hasAcademicTerms: boolean;
+  fallbackRange: ReportFallbackRange | null;
+}
+
 export interface AnnualReportSummaryResponse {
   selection: {
     periodMode: "ACADEMIC" | "CUSTOM";

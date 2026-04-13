@@ -23,6 +23,7 @@ import {
   type AnnualReportSummaryResponse,
   type CommitteeSummary,
   type ReportsAcademicYearOption,
+  type ReportsAcademicYearsResponse,
 } from "@/services/api";
 import { getErrorMessage } from "@/utils";
 import "../styles/reports.css";
@@ -69,6 +70,19 @@ const shiftDateInputByYears = (value: string, years: number) => {
   parsed.setUTCFullYear(parsed.getUTCFullYear() + years);
   return parsed.toISOString().slice(0, 10);
 };
+
+const applyMissingAcademicTermsFallback = (
+  filters: ReportsDraftFilters,
+  fallbackRange: ReportsAcademicYearsResponse["fallbackRange"]
+) =>
+  normalizeReportFilters({
+    ...filters,
+    periodMode: "CUSTOM",
+    ay: "ALL",
+    term: "ALL",
+    startDate: fallbackRange ? toDateInputValue(fallbackRange.startDate) : "",
+    endDate: fallbackRange ? toDateInputValue(fallbackRange.endDate) : "",
+  });
 
 const toSearchParams = (
   view: ReportView,
@@ -181,6 +195,7 @@ export default function ReportsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [years, setYears] = useState<ReportsAcademicYearOption[]>([]);
+  const [reportYearsMeta, setReportYearsMeta] = useState<ReportsAcademicYearsResponse | null>(null);
   const [committees, setCommittees] = useState<CommitteeSummary[]>([]);
   const [summary, setSummary] = useState<AnnualReportSummaryResponse | null>(null);
   const [comparisonSummary, setComparisonSummary] = useState<AnnualReportSummaryResponse | null>(null);
@@ -193,6 +208,8 @@ export default function ReportsPage() {
 
   const defaultAy = years[0]?.academicYear ?? "ALL";
   const defaultCommittee = committees[0]?.code ?? "ALL";
+  const hasAcademicTerms = reportYearsMeta?.hasAcademicTerms ?? years.length > 0;
+  const fallbackRange = reportYearsMeta?.fallbackRange ?? null;
   const defaultFilters = useMemo<ReportsDraftFilters>(
     () => ({
       periodMode: "ACADEMIC",
@@ -247,6 +264,25 @@ export default function ReportsPage() {
   );
 
   const [draftFilters, setDraftFilters] = useState<ReportsDraftFilters>(appliedFilters);
+  const requiresCustomRange =
+    appliedFilters.periodMode === "CUSTOM" &&
+    (!appliedFilters.startDate || !appliedFilters.endDate);
+  const shouldBlockAcademicMode = !hasAcademicTerms && appliedFilters.periodMode === "ACADEMIC";
+  const reportsInfoMessage = useMemo(() => {
+    if (hasAcademicTerms) return null;
+    if (appliedFilters.startDate && appliedFilters.endDate) {
+      return `Academic terms are not configured yet. Reports are using a custom range from ${formatRangeDate(
+        appliedFilters.startDate
+      )} to ${formatRangeDate(
+        appliedFilters.endDate
+      )} so imported records remain visible. Academic-year reporting becomes available once terms are seeded.`;
+    }
+    return "Academic terms are not configured yet. Reports switched to a custom view automatically, but there are no submissions available to build a reporting range yet.";
+  }, [
+    appliedFilters.endDate,
+    appliedFilters.startDate,
+    hasAcademicTerms,
+  ]);
 
   useEffect(() => {
     setDraftFilters(appliedFilters);
@@ -271,6 +307,7 @@ export default function ReportsPage() {
           fetchReportAcademicYears(),
           fetchCommittees(),
         ]);
+        setReportYearsMeta(yearsResponse);
         setYears(yearsResponse.items);
         setCommittees(committeesResponse);
       } catch (e: unknown) {
@@ -284,14 +321,57 @@ export default function ReportsPage() {
 
   useEffect(() => {
     if (loadingOptions) return;
-    if (!searchParams.get("ay") || !searchParams.get("committee")) {
-      const initialized = { ...defaultFilters };
-      setSearchParams(toSearchParams("summary", initialized), { replace: true });
+    const isMissingAy = !searchParams.get("ay");
+    const isMissingCommittee = !searchParams.get("committee");
+    const needsInitialization = isMissingAy || isMissingCommittee;
+    const needsMissingTermsFallback = !hasAcademicTerms && appliedFilters.periodMode === "ACADEMIC";
+
+    if (!needsInitialization && !needsMissingTermsFallback) {
+      return;
     }
-  }, [defaultFilters, loadingOptions, searchParams, setSearchParams]);
+
+    const initializedFilters: ReportsDraftFilters = needsInitialization
+      ? {
+          ...appliedFilters,
+          ay: isMissingAy ? defaultAy : appliedFilters.ay,
+          committee: isMissingCommittee ? defaultCommittee : appliedFilters.committee,
+        }
+      : appliedFilters;
+    const nextFilters = needsMissingTermsFallback || (!hasAcademicTerms && initializedFilters.periodMode === "ACADEMIC")
+      ? applyMissingAcademicTermsFallback(initializedFilters, fallbackRange)
+      : normalizeReportFilters(initializedFilters);
+
+    setSearchParams(
+      toSearchParams(appliedView, nextFilters, {
+        page: "1",
+        pageSize: String(pageSize),
+        sort,
+      }),
+      { replace: true }
+    );
+  }, [
+    appliedFilters,
+    appliedView,
+    defaultAy,
+    defaultCommittee,
+    fallbackRange,
+    hasAcademicTerms,
+    loadingOptions,
+    pageSize,
+    searchParams,
+    setSearchParams,
+    sort,
+  ]);
 
   useEffect(() => {
+    if (loadingOptions) return;
     if (!appliedFilters.ay || !appliedFilters.committee) return;
+    if (shouldBlockAcademicMode || requiresCustomRange) {
+      setSummary(null);
+      setComparisonSummary(null);
+      setError(null);
+      return;
+    }
     const loadSummary = async () => {
       try {
         setLoadingSummary(true);
@@ -319,11 +399,17 @@ export default function ReportsPage() {
       }
     };
     loadSummary();
-  }, [appliedFilters]);
+  }, [appliedFilters, loadingOptions, requiresCustomRange, shouldBlockAcademicMode]);
 
   useEffect(() => {
+    if (loadingOptions) return;
     if (appliedView !== "records") return;
     if (!appliedFilters.ay || !appliedFilters.committee) return;
+    if (shouldBlockAcademicMode || requiresCustomRange) {
+      setRecords(null);
+      setError(null);
+      return;
+    }
     const loadRecords = async () => {
       try {
         setLoadingRecords(true);
@@ -353,7 +439,16 @@ export default function ReportsPage() {
       }
     };
     loadRecords();
-  }, [appliedView, appliedFilters, page, pageSize, sort]);
+  }, [
+    appliedView,
+    appliedFilters,
+    loadingOptions,
+    page,
+    pageSize,
+    requiresCustomRange,
+    shouldBlockAcademicMode,
+    sort,
+  ]);
 
   const comparisonRequest = useMemo<Parameters<typeof fetchAnnualReportSummary>[0] | null>(() => {
     if (
@@ -593,7 +688,9 @@ export default function ReportsPage() {
   };
 
   const onReset = () => {
-    const reset: ReportsDraftFilters = normalizeReportFilters({ ...defaultFilters });
+    const reset: ReportsDraftFilters = hasAcademicTerms
+      ? normalizeReportFilters({ ...defaultFilters })
+      : applyMissingAcademicTermsFallback({ ...defaultFilters }, fallbackRange);
     setDraftFilters(reset);
     setSearchParams(
       toSearchParams(appliedView, reset, {
@@ -621,6 +718,14 @@ export default function ReportsPage() {
     };
     setSearchParams(toSearchParams("records", next, { page: "1", pageSize: String(pageSize), sort }));
   };
+
+  const visibleError =
+    error && error !== "No academic terms configured." ? error : null;
+  const showNoDataEmptyState =
+    !loadingSummary &&
+    !summary &&
+    !visibleError &&
+    requiresCustomRange;
 
   return (
     <div className="reports-page portal-page portal-page--dense">
@@ -671,11 +776,23 @@ export default function ReportsPage() {
         />
       </section>
 
-      {error ? <div className="reports-error portal-support">{error}</div> : null}
+      {reportsInfoMessage ? (
+        <div className="reports-info portal-support">{reportsInfoMessage}</div>
+      ) : null}
+
+      {visibleError ? <div className="reports-error portal-support">{visibleError}</div> : null}
 
       {loadingSummary && !summary ? (
         <section className="portal-summary">
           <div className="report-loading">Preparing report overview…</div>
+        </section>
+      ) : null}
+
+      {showNoDataEmptyState ? (
+        <section className="portal-summary">
+          <section className="report-empty">
+            No submissions are available yet for the current report scope.
+          </section>
         </section>
       ) : null}
 

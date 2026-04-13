@@ -37,8 +37,7 @@ router.use("/reports", (req, res, next) => {
 
 export const getAcademicYearsHandler = async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const items = await getAcademicYearOptions();
-    return res.json({ items });
+    return res.json(await getAcademicYearOptions());
   } catch (error) {
     next(error);
   }

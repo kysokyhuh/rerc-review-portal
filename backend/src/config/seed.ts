@@ -4,6 +4,7 @@ import path from "path";
 import { parse } from "csv-parse/sync";
 import bcrypt from "bcryptjs";
 import prisma from "./prismaClient";
+import { seedAcademicTerms } from "./academicTermsSeed";
 import {
   ClassificationType,
   DecisionStatus,
@@ -582,63 +583,6 @@ const ensureReviewAssignmentActiveIndex = async () => {
   );
 };
 
-const seedAcademicTerms = async () => {
-  const now = new Date();
-  const currentYear = now.getUTCFullYear();
-  // AY starts in September (Term 1), so Jan-Aug belongs to previous AY start year.
-  const startYear = now.getUTCMonth() >= 8 ? currentYear : currentYear - 1;
-  const firstStartYear = startYear - 4;
-  const terms: Array<{
-    academicYear: string;
-    term: number;
-    startDate: Date;
-    endDate: Date;
-  }> = [];
-
-  for (let ayStartYear = firstStartYear; ayStartYear <= startYear; ayStartYear += 1) {
-    const ayLabel = `${ayStartYear}-${ayStartYear + 1}`;
-    terms.push(
-      {
-        academicYear: ayLabel,
-        term: 1,
-        startDate: new Date(Date.UTC(ayStartYear, 8, 1)), // Sep 1
-        endDate: new Date(Date.UTC(ayStartYear, 11, 31)), // Dec 31
-      },
-      {
-        academicYear: ayLabel,
-        term: 2,
-        startDate: new Date(Date.UTC(ayStartYear + 1, 0, 1)), // Jan 1
-        endDate: new Date(Date.UTC(ayStartYear + 1, 3, 30)), // Apr 30
-      },
-      {
-        academicYear: ayLabel,
-        term: 3,
-        startDate: new Date(Date.UTC(ayStartYear + 1, 4, 1)), // May 1
-        endDate: new Date(Date.UTC(ayStartYear + 1, 7, 31)), // Aug 31
-      }
-    );
-  }
-
-  for (const term of terms) {
-    await prisma.academicTerm.upsert({
-      where: {
-        academicYear_term: {
-          academicYear: term.academicYear,
-          term: term.term,
-        },
-      },
-      update: {
-        startDate: term.startDate,
-        endDate: term.endDate,
-      },
-      create: term,
-    });
-  }
-  console.log(
-    `Seeded academic terms for AY ${firstStartYear}-${firstStartYear + 1} through ${startYear}-${startYear + 1}`
-  );
-};
-
 async function main() {
   const chairPassword = process.env.SEED_CHAIR_PASSWORD || "changeme123";
   const assocPassword = process.env.SEED_ASSOC_PASSWORD || "changeme123";
@@ -735,7 +679,10 @@ async function main() {
     },
   });
 
-  await seedAcademicTerms();
+  const academicTermSeed = await seedAcademicTerms(prisma);
+  console.log(
+    `Seeded academic terms for AY ${academicTermSeed.firstStartYear}-${academicTermSeed.firstStartYear + 1} through ${academicTermSeed.startYear}-${academicTermSeed.startYear + 1}`
+  );
 
   // 3) Ensure Panels 1-4 exist under that committee
   const panelsByCode = new Map<string, { id: number; name: string; code: string | null }>();

@@ -195,6 +195,15 @@ This seeds:
 
 If you did not override the seed env vars, all three default to `changeme123`.
 
+If reports are live but show `No academic terms configured.`, repair only the reporting calendar without reseeding users or demo data:
+
+```bash
+cd backend
+npm ci
+DATABASE_URL='<your direct Neon connection string>' npx prisma generate
+DATABASE_URL='<your direct Neon connection string>' npm run seed:academic-terms
+```
+
 ### MVP Auth Checklist
 
 Before go-live:

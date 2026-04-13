@@ -43,6 +43,20 @@ export type TermWindow = {
   endDateExclusive: Date;
 };
 
+export type ReportFallbackRange = {
+  startDate: Date;
+  endDate: Date;
+};
+
+export type ReportAcademicYearsResponse = {
+  items: Array<{
+    academicYear: string;
+    terms: number[];
+  }>;
+  hasAcademicTerms: boolean;
+  fallbackRange: ReportFallbackRange | null;
+};
+
 type SubmissionForReports = Prisma.SubmissionGetPayload<{
   include: {
     classification: { select: { reviewType: true; classificationDate: true } };
@@ -441,7 +455,31 @@ export const parseReportFilters = (query: Record<string, unknown>): ReportViewFi
   };
 };
 
-export async function getAcademicYearOptions() {
+export async function resolveReportFallbackRange(): Promise<ReportFallbackRange | null> {
+  await promoteImportedSubmissionsToWorkflow();
+
+  const rows = await prisma.$queryRaw<
+    Array<{ startDate: Date | null; endDate: Date | null }>
+  >`
+    SELECT
+      MIN(COALESCE("receivedDate", "createdAt")) AS "startDate",
+      MAX(COALESCE("receivedDate", "createdAt")) AS "endDate"
+    FROM "Submission"
+    WHERE "sequenceNumber" = 1
+  `;
+
+  const row = rows[0];
+  if (!row?.startDate || !row?.endDate) {
+    return null;
+  }
+
+  return {
+    startDate: row.startDate,
+    endDate: row.endDate,
+  };
+}
+
+export async function getAcademicYearOptions(): Promise<ReportAcademicYearsResponse> {
   const terms = await prisma.academicTerm.findMany({
     orderBy: [{ academicYear: "desc" }, { term: "asc" }],
     select: { academicYear: true, term: true },
@@ -453,13 +491,19 @@ export async function getAcademicYearOptions() {
     grouped.get(term.academicYear)!.add(term.term);
   }
 
-  return Array.from(grouped.entries())
+  const items = Array.from(grouped.entries())
     .map(([academicYear, termSet]) => ({
       academicYear,
       terms: Array.from(termSet.values()).sort((a, b) => a - b),
     }))
     .sort((a, b) => b.academicYear.localeCompare(a.academicYear))
     .slice(0, RECENT_AY_WINDOW);
+
+  return {
+    items,
+    hasAcademicTerms: items.length > 0,
+    fallbackRange: await resolveReportFallbackRange(),
+  };
 }
 
 export async function resolveTermWindows(
