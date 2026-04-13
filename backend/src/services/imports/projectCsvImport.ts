@@ -1294,6 +1294,7 @@ export const validateMappedProjectRows = ({
 
   for (const row of parsed.rows) {
     const rowErrors: RowError[] = [];
+    const rowWarnings: ImportWarning[] = [];
 
     const getMapped = (field: MappableProjectField) => {
       const header = mapping[field];
@@ -1302,6 +1303,11 @@ export const validateMappedProjectRows = ({
     };
 
     const projectCodeRaw = getMapped("projectCode");
+    const titleRaw = getMapped("title");
+    const piNameRaw = getMapped("piName");
+    const receivedRawEarly = getMapped("receivedDate");
+    // Skip rows where all core identifying fields are blank (trailing empty rows).
+    if (!projectCodeRaw && !titleRaw && !piNameRaw && !receivedRawEarly) continue;
     const title = getMapped("title");
     const piName = getMapped("piName");
     const fundingRaw = getMapped("fundingType");
@@ -1337,20 +1343,20 @@ export const validateMappedProjectRows = ({
 
     const fundingType = parseFundingType(fundingRaw);
     if (fundingRaw && !fundingType) {
-      rowErrors.push({
-        row: row.rowNumber,
-        field: "fundingType",
-        message: "Invalid fundingType.",
-      });
+      if (mode === ImportMode.LEGACY_MIGRATION) {
+        rowWarnings.push({ code: "LEGACY_UNRECOGNIZED_FUNDING_TYPE", field: "fundingType", row: row.rowNumber, message: `Unrecognized fundingType "${fundingRaw}" on row ${row.rowNumber} — stored as blank.` });
+      } else {
+        rowErrors.push({ row: row.rowNumber, field: "fundingType", message: "Invalid fundingType." });
+      }
     }
 
     const submissionType = parseSubmissionType(submissionRaw);
     if (submissionRaw && !submissionType) {
-      rowErrors.push({
-        row: row.rowNumber,
-        field: "submissionType",
-        message: "Invalid submissionType.",
-      });
+      if (mode === ImportMode.LEGACY_MIGRATION) {
+        rowWarnings.push({ code: "LEGACY_UNRECOGNIZED_SUBMISSION_TYPE", field: "submissionType", row: row.rowNumber, message: `Unrecognized submissionType "${submissionRaw}" on row ${row.rowNumber} — stored as blank.` });
+      } else {
+        rowErrors.push({ row: row.rowNumber, field: "submissionType", message: "Invalid submissionType." });
+      }
     }
 
     const receivedDate = parseReceivedDate(receivedRaw);
@@ -1397,11 +1403,11 @@ export const validateMappedProjectRows = ({
     ]);
     const researchType = parseResearchType(researchRaw);
     if (researchRaw && !researchType) {
-      rowErrors.push({
-        row: row.rowNumber,
-        field: "researchTypePHREB",
-        message: "Invalid researchTypePHREB.",
-      });
+      if (mode === ImportMode.LEGACY_MIGRATION) {
+        rowWarnings.push({ code: "LEGACY_UNRECOGNIZED_RESEARCH_TYPE", field: "researchTypePHREB", row: row.rowNumber, message: `Unrecognized researchTypePHREB "${researchRaw}" on row ${row.rowNumber} — stored as blank.` });
+      } else {
+        rowErrors.push({ row: row.rowNumber, field: "researchTypePHREB", message: "Invalid researchTypePHREB." });
+      }
     }
 
     const researchTypeOther =
@@ -1416,13 +1422,13 @@ export const validateMappedProjectRows = ({
     ]);
     const proponentCategory = parseProponentCategory(proponentCategoryRaw);
     if (proponentCategoryRaw && !proponentCategory) {
-      rowErrors.push({
-        row: row.rowNumber,
-        field: "proponentCategory",
-        message: "Invalid proponentCategory.",
-      });
+      if (mode === ImportMode.LEGACY_MIGRATION) {
+        rowWarnings.push({ code: "LEGACY_UNRECOGNIZED_PROPONENT_CATEGORY", field: "proponentCategory", row: row.rowNumber, message: `Unrecognized proponentCategory "${proponentCategoryRaw}" on row ${row.rowNumber} — stored as blank.` });
+      } else {
+        rowErrors.push({ row: row.rowNumber, field: "proponentCategory", message: "Invalid proponentCategory." });
+      }
     }
-    if (researchType === ResearchTypePHREB.OTHER && !researchTypeOther) {
+    if (researchType === ResearchTypePHREB.OTHER && !researchTypeOther && mode !== ImportMode.LEGACY_MIGRATION) {
       rowErrors.push({
         row: row.rowNumber,
         field: "researchTypePHREBOther",
@@ -1479,7 +1485,8 @@ export const validateMappedProjectRows = ({
         ? extractLegacySnapshot(row.raw, row.rowNumber, mode)
         : { snapshot: null, warnings: [] as ImportWarning[] };
 
-    warnings.push(...legacyResult.warnings);
+    const allRowWarnings = [...rowWarnings, ...legacyResult.warnings];
+    warnings.push(...allRowWarnings);
     validRows.push({
       rowNumber: row.rowNumber,
       raw: row.raw,
@@ -1500,7 +1507,7 @@ export const validateMappedProjectRows = ({
       remarks,
       referenceProfile,
       legacySnapshot: legacyResult.snapshot,
-      warnings: legacyResult.warnings,
+      warnings: allRowWarnings,
     });
   }
 

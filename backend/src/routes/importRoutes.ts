@@ -239,8 +239,18 @@ router.post(
       const committeeCodeMap = new Map(
         committees.map((committee) => [committee.code.toUpperCase(), committee.id])
       );
-      const { defaultCommitteeCode, defaultCommitteeId } =
+      const { defaultCommitteeCode: configuredDefaultCode, defaultCommitteeId: configuredDefaultId } =
         await buildConfiguredDefaultCommittee();
+
+      // For LEGACY_MIGRATION, fall back to the first available committee when no
+      // default committee is configured — legacy CSVs never included a committee column.
+      let defaultCommitteeId = configuredDefaultId;
+      let defaultCommitteeCode = configuredDefaultCode;
+      if (!defaultCommitteeId && mode === ImportMode.LEGACY_MIGRATION && committees.length > 0) {
+        const fallback = committees[0];
+        defaultCommitteeId = fallback.id;
+        defaultCommitteeCode = fallback.code.toUpperCase();
+      }
 
       const existingProjects = codes.length
         ? await prisma.project.findMany({
