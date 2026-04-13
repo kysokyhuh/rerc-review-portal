@@ -116,7 +116,13 @@ describe("GET /reports/academic-year-summary", () => {
           proponentCategory: "UNDERGRAD",
           committeeId: 10,
           approvalStartDate: new Date("2025-06-20T00:00:00.000Z"),
-          protocolProfile: { typeOfReview: "Expedited" },
+          protocolProfile: {
+            dateOfSubmission: new Date("2025-06-12T00:00:00.000Z"),
+            typeOfReview: "Expedited",
+            status: null,
+            finishDate: new Date("2025-06-20T00:00:00.000Z"),
+          },
+          legacyImportSnapshot: null,
           committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
         statusHistory: [
@@ -163,7 +169,13 @@ describe("GET /reports/academic-year-summary", () => {
           proponentCategory: "FACULTY",
           committeeId: 10,
           approvalStartDate: null,
-          protocolProfile: { typeOfReview: "Full board" },
+          protocolProfile: {
+            dateOfSubmission: new Date("2025-10-10T00:00:00.000Z"),
+            typeOfReview: "Full board",
+            status: "Withdrawn",
+            finishDate: null,
+          },
+          legacyImportSnapshot: null,
           committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
         statusHistory: [
@@ -184,6 +196,47 @@ describe("GET /reports/academic-year-summary", () => {
             effectiveDate: new Date("2025-10-18T00:00:00.000Z"),
           },
         ],
+      },
+      {
+        id: 103,
+        createdAt: new Date("2026-04-13T00:00:00.000Z"),
+        receivedDate: new Date("2026-04-13T00:00:00.000Z"),
+        sequenceNumber: 1,
+        status: SubmissionStatus.AWAITING_CLASSIFICATION,
+        resultsNotifiedAt: null,
+        finalDecision: null,
+        finalDecisionDate: null,
+        classification: null,
+        project: {
+          id: 3,
+          projectCode: "RERC-2024-003",
+          title: "Imported Protocol",
+          proponent: "Faculty Team",
+          piName: "Faculty Team",
+          piAffiliation: "College of Science",
+          collegeOrUnit: "College of Science",
+          department: "Physics",
+          proponentCategory: "FACULTY",
+          committeeId: 10,
+          approvalStartDate: null,
+          protocolProfile: {
+            dateOfSubmission: new Date("2025-09-15T00:00:00.000Z"),
+            typeOfReview: "Exempt",
+            status: "Exempted",
+            finishDate: null,
+          },
+          legacyImportSnapshot: {
+            importedStatus: "Exempted",
+            importedTypeOfReview: "Exempt",
+            importedClassificationOfProposal: null,
+            importedClassificationDate: null,
+            importedFinishDate: null,
+            importedWithdrawn: false,
+            importedAt: new Date("2026-04-13T00:00:00.000Z"),
+          },
+          committee: { code: "RERC-HUMAN", name: "RERC Human" },
+        },
+        statusHistory: [],
       },
     ]);
 
@@ -239,7 +292,8 @@ describe("GET /reports/academic-year-summary", () => {
     expect(body.charts).toHaveProperty("reviewTypeByMonth");
     expect(body.charts).toHaveProperty("committeeDistribution");
 
-    expect(body.summaryCounts.received).toBe(2);
+    expect(body.summaryCounts.received).toBe(3);
+    expect(body.summaryCounts.exempted).toBe(1);
     expect(body.summaryCounts.withdrawn).toBe(1);
     expect(body.summaryCounts.expedited).toBe(1);
     expect(body.summaryCounts.fullReview).toBe(1);
@@ -247,7 +301,7 @@ describe("GET /reports/academic-year-summary", () => {
       { label: "Jun", count: 1 },
       { label: "Jul", count: 0 },
       { label: "Aug", count: 0 },
-      { label: "Sep", count: 0 },
+      { label: "Sep", count: 1 },
       { label: "Oct", count: 1 },
       { label: "Nov", count: 0 },
       { label: "Dec", count: 0 },
@@ -256,7 +310,7 @@ describe("GET /reports/academic-year-summary", () => {
     expect(body.performanceCharts.averages.daysToResults[0].value).toBe(6);
     expect(body.performanceCharts.workflowFunnel[0]).toEqual({
       label: "Received",
-      count: 2,
+      count: 3,
     });
 
     const breakdownTotal = body.breakdownByCollege.reduce(

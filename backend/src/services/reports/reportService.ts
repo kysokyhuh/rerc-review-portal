@@ -191,26 +191,60 @@ const normalizeReviewType = (reviewType: ReviewType | null | undefined) => {
   return null;
 };
 
+const normalizeReviewTypeFromText = (
+  value: string | null | undefined
+): ResolvedReviewType | null => {
+  const text = String(value ?? "")
+    .trim()
+    .toLowerCase();
+  if (!text) return null;
+  if (text.includes("exempt")) return "EXEMPT";
+  if (text.includes("expedit")) return "EXPEDITED";
+  if (text.includes("full")) return "FULL_BOARD";
+  return null;
+};
+
 const resolveSubmissionReviewType = (
   submission: SubmissionForReports
 ): ResolvedReviewType | null =>
-  normalizeReviewType(submission.classification?.reviewType);
+  normalizeReviewType(submission.classification?.reviewType) ??
+  normalizeReviewTypeFromText(submission.project?.protocolProfile?.typeOfReview) ??
+  normalizeReviewTypeFromText(submission.project?.legacyImportSnapshot?.importedTypeOfReview) ??
+  normalizeReviewTypeFromText(
+    submission.project?.legacyImportSnapshot?.importedClassificationOfProposal
+  );
+
+const isLegacyWithdrawnFlag = (value: string | null | undefined) =>
+  String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .includes("withdraw");
 
 const resolveSubmissionStatus = (submission: SubmissionForReports): SubmissionStatus =>
   submission.status;
 
 const resolveEffectiveReceivedDate = (submission: SubmissionForReports) =>
-  submission.receivedDate ?? submission.createdAt;
+  submission.project?.protocolProfile?.dateOfSubmission ??
+  submission.receivedDate ??
+  submission.createdAt;
 
 const resolveClassificationDate = (submission: SubmissionForReports) =>
-  submission.classification?.classificationDate ?? null;
+  submission.classification?.classificationDate ??
+  submission.project?.legacyImportSnapshot?.importedClassificationDate ??
+  null;
 
 const resolveClearanceDate = (submission: SubmissionForReports) =>
-  submission.project?.approvalStartDate ?? null;
+  submission.project?.approvalStartDate ??
+  submission.project?.protocolProfile?.finishDate ??
+  submission.project?.legacyImportSnapshot?.importedFinishDate ??
+  null;
 
 const isWithdrawn = (submission: SubmissionForReports) =>
   resolveSubmissionStatus(submission) === SubmissionStatus.WITHDRAWN ||
-  submission.statusHistory.some((entry) => entry.newStatus === SubmissionStatus.WITHDRAWN);
+  submission.statusHistory.some((entry) => entry.newStatus === SubmissionStatus.WITHDRAWN) ||
+  submission.project?.legacyImportSnapshot?.importedWithdrawn === true ||
+  isLegacyWithdrawnFlag(submission.project?.protocolProfile?.status) ||
+  isLegacyWithdrawnFlag(submission.project?.legacyImportSnapshot?.importedStatus);
 
 const nextScreeningStatusSet = new Set<SubmissionStatus>([
   SubmissionStatus.RETURNED_FOR_COMPLETION,
@@ -462,10 +496,12 @@ export async function resolveReportFallbackRange(): Promise<ReportFallbackRange 
     Array<{ startDate: Date | null; endDate: Date | null }>
   >`
     SELECT
-      MIN(COALESCE("receivedDate", "createdAt")) AS "startDate",
-      MAX(COALESCE("receivedDate", "createdAt")) AS "endDate"
-    FROM "Submission"
-    WHERE "sequenceNumber" = 1
+      MIN(COALESCE(pp."dateOfSubmission", s."receivedDate", s."createdAt")) AS "startDate",
+      MAX(COALESCE(pp."dateOfSubmission", s."receivedDate", s."createdAt")) AS "endDate"
+    FROM "Submission" s
+    LEFT JOIN "Project" p ON p."id" = s."projectId"
+    LEFT JOIN "ProtocolProfile" pp ON pp."projectId" = p."id"
+    WHERE s."sequenceNumber" = 1
   `;
 
   const row = rows[0];
