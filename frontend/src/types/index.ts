@@ -58,6 +58,7 @@ export interface QueueCounts {
   forExempted?: number;
   awaitingRevisions: number;
   completed: number;
+  legacyImports?: number;
   dueSoon?: number;
   overdue?: number;
   missingLetterFields?: number;
@@ -210,6 +211,7 @@ export interface ProjectSearchResult {
   title: string | null;
   piName: string | null;
   updatedAt: string;
+  origin?: ProjectOrigin;
 }
 
 // Status history

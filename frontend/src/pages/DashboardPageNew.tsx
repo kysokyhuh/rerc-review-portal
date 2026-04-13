@@ -325,6 +325,7 @@ export const DashboardPage: React.FC = () => {
           loading={loading}
           filteredItems={filteredItems}
           allItems={allItems}
+          legacyImportCount={counts?.legacyImports ?? 0}
           classificationQueue={classificationQueue}
           reviewQueue={reviewQueue}
           revisionQueue={revisionQueue}

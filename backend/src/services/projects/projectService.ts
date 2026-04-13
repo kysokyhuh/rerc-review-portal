@@ -113,6 +113,7 @@ export async function searchProjects(
     take: limit,
     select: {
       id: true, projectCode: true, title: true, piName: true, updatedAt: true,
+      origin: true,
     },
   });
 

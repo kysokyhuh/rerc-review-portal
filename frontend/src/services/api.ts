@@ -611,6 +611,7 @@ export async function fetchDashboardQueues(
       forExempted: data.counts?.exempted || 0,
       awaitingRevisions: data.counts?.revision || 0,
       completed: data.counts?.completed || 0,
+      legacyImports: data.counts?.legacyImports || 0,
     },
     classificationQueue: transformQueue(data.classificationQueue || [], "classification"),
     reviewQueue: transformQueue(data.reviewQueue || [], "review"),

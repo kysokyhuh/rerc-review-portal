@@ -71,11 +71,11 @@ export function DashboardTopBar({
           </svg>
           <input
             type="text"
-            placeholder="Search submissions (⌘/Ctrl + K)"
+            placeholder="Search projects or submissions (⌘/Ctrl + K)"
             value={searchTerm}
             onChange={(e) => onSearchTermChange(e.target.value)}
             ref={searchInputRef}
-            aria-label="Search submissions"
+            aria-label="Search projects or submissions"
             onFocus={onSearchFocus}
             onBlur={onSearchBlur}
           />
@@ -95,7 +95,12 @@ export function DashboardTopBar({
                     type="button"
                     onClick={() => onNavigate(`/projects/${result.id}`)}
                   >
-                    <span className="search-code">{result.projectCode}</span>
+                    <div className="search-row">
+                      <span className="search-code">{result.projectCode}</span>
+                      {result.origin === "LEGACY_IMPORT" ? (
+                        <span className="search-badge">Legacy</span>
+                      ) : null}
+                    </div>
                     <span className="search-title">{result.title}</span>
                     <span className="search-pi">{result.piName}</span>
                   </button>

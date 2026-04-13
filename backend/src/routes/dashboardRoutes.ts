@@ -44,7 +44,7 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
     const roleScope = isAssistant
       ? { reviews: { some: { reviewerId: req.user!.id } } }
       : {};
-    const [holidayRows, slaConfigs] = await Promise.all([
+    const [holidayRows, slaConfigs, legacyImportCount] = await Promise.all([
       prisma.holiday.findMany({ select: { date: true } }),
       prisma.configSLA.findMany({
         where: { isActive: true },
@@ -55,6 +55,12 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
           workingDays: true,
           dayMode: true,
           description: true,
+        },
+      }),
+      prisma.project.count({
+        where: {
+          committee: { code: committeeCode },
+          origin: "LEGACY_IMPORT",
         },
       }),
     ]);
@@ -168,6 +174,7 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
         review: reviewQueue.length,
         exempted: exemptedQueue.length,
         revision: revisionQueue.length,
+        legacyImports: legacyImportCount,
       },
       classificationQueue: withSla(classificationQueue),
       reviewQueue: withSla(reviewQueue),
