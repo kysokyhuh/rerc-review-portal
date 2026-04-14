@@ -1,5 +1,6 @@
 import prisma from "../../config/prismaClient";
 import {
+  ProjectOrigin,
   ProponentCategory,
   ReviewDecision,
   ReviewType,
@@ -109,6 +110,17 @@ type SubmissionForReports = Prisma.SubmissionGetPayload<{
   };
 }>;
 
+type ReportDateSource = {
+  createdAt: Date;
+  receivedDate?: Date | null;
+  project?: {
+    origin?: ProjectOrigin | null;
+    protocolProfile?: {
+      dateOfSubmission?: Date | null;
+    } | null;
+  } | null;
+};
+
 const PRO_CATEGORY_KEYS = ["UNDERGRAD", "GRAD", "FACULTY", "NON_TEACHING"] as const;
 type ProCategoryKey = (typeof PRO_CATEGORY_KEYS)[number];
 type ResolvedReviewType = "EXEMPT" | "EXPEDITED" | "FULL_BOARD";
@@ -191,16 +203,12 @@ const normalizeReviewType = (reviewType: ReviewType | null | undefined) => {
   return null;
 };
 
-const normalizeReviewTypeFromText = (
-  value: string | null | undefined
-): ResolvedReviewType | null => {
-  const text = String(value ?? "")
-    .trim()
-    .toLowerCase();
-  if (!text) return null;
-  if (text.includes("exempt")) return "EXEMPT";
-  if (text.includes("expedit")) return "EXPEDITED";
-  if (text.includes("full")) return "FULL_BOARD";
+const normalizeReviewTypeFromText = (value: string | null | undefined) => {
+  const raw = String(value ?? "").trim().toLowerCase();
+  if (!raw) return null;
+  if (raw.includes("exempt")) return "EXEMPT" as const;
+  if (raw.includes("expedit")) return "EXPEDITED" as const;
+  if (raw.includes("full")) return "FULL_BOARD" as const;
   return null;
 };
 
@@ -209,24 +217,75 @@ const resolveSubmissionReviewType = (
 ): ResolvedReviewType | null =>
   normalizeReviewType(submission.classification?.reviewType) ??
   normalizeReviewTypeFromText(submission.project?.protocolProfile?.typeOfReview) ??
+  normalizeReviewTypeFromText(submission.project?.protocolProfile?.classificationOfProposalRerc) ??
   normalizeReviewTypeFromText(submission.project?.legacyImportSnapshot?.importedTypeOfReview) ??
   normalizeReviewTypeFromText(
     submission.project?.legacyImportSnapshot?.importedClassificationOfProposal
   );
 
-const isLegacyWithdrawnFlag = (value: string | null | undefined) =>
-  String(value ?? "")
-    .trim()
-    .toLowerCase()
-    .includes("withdraw");
+const normalizeSubmissionStatusFromText = (
+  value: string | null | undefined
+): SubmissionStatus | null => {
+  const raw = String(value ?? "").trim().toLowerCase();
+  if (!raw) return null;
+  if (raw.includes("withdraw")) return SubmissionStatus.WITHDRAWN;
+  if (
+    raw.includes("clear") ||
+    raw.includes("approved") ||
+    raw.includes("finish") ||
+    raw.includes("closed")
+  ) {
+    return SubmissionStatus.CLOSED;
+  }
+  if (raw.includes("revision")) return SubmissionStatus.AWAITING_REVISIONS;
+  if (raw.includes("under review") || raw.includes("review")) return SubmissionStatus.UNDER_REVIEW;
+  if (raw.includes("classif")) return SubmissionStatus.CLASSIFIED;
+  return null;
+};
 
-const resolveSubmissionStatus = (submission: SubmissionForReports): SubmissionStatus =>
-  submission.status;
+const shouldUseImportedReportFallbackStatus = (submission: SubmissionForReports) => {
+  if (submission.project?.origin !== "LEGACY_IMPORT") return false;
+  if (submission.status !== SubmissionStatus.AWAITING_CLASSIFICATION) return false;
+  if (submission.classification) return false;
+  if (submission.resultsNotifiedAt || submission.finalDecision || submission.finalDecisionDate) {
+    return false;
+  }
+  if (submission.project?.approvalStartDate) return false;
+  if (
+    submission.reviews.some((review) => review.assignedAt || review.respondedAt || review.dueDate)
+  ) {
+    return false;
+  }
+  return submission.statusHistory.every(
+    (entry) => entry.newStatus === SubmissionStatus.AWAITING_CLASSIFICATION
+  );
+};
 
-const resolveEffectiveReceivedDate = (submission: SubmissionForReports) =>
-  submission.project?.protocolProfile?.dateOfSubmission ??
-  submission.receivedDate ??
-  submission.createdAt;
+const resolveSubmissionStatus = (submission: SubmissionForReports): SubmissionStatus => {
+  const liveStatus = submission.status;
+  if (!shouldUseImportedReportFallbackStatus(submission)) return liveStatus;
+
+  if (submission.project?.legacyImportSnapshot?.importedWithdrawn) {
+    return SubmissionStatus.WITHDRAWN;
+  }
+
+  return (
+    normalizeSubmissionStatusFromText(submission.project?.legacyImportSnapshot?.importedStatus) ??
+    normalizeSubmissionStatusFromText(submission.project?.protocolProfile?.status) ??
+    liveStatus
+  );
+};
+
+const resolveWorkflowReceivedDate = (
+  submission: Pick<ReportDateSource, "receivedDate" | "createdAt">
+) =>
+  submission.receivedDate ?? submission.createdAt;
+
+const resolveReportReceivedDate = (submission: ReportDateSource) =>
+  submission.project?.origin === ProjectOrigin.LEGACY_IMPORT
+    ? submission.project?.protocolProfile?.dateOfSubmission ??
+      resolveWorkflowReceivedDate(submission)
+    : resolveWorkflowReceivedDate(submission);
 
 const resolveClassificationDate = (submission: SubmissionForReports) =>
   submission.classification?.classificationDate ??
@@ -235,16 +294,19 @@ const resolveClassificationDate = (submission: SubmissionForReports) =>
 
 const resolveClearanceDate = (submission: SubmissionForReports) =>
   submission.project?.approvalStartDate ??
-  submission.project?.protocolProfile?.finishDate ??
   submission.project?.legacyImportSnapshot?.importedFinishDate ??
+  submission.project?.protocolProfile?.finishDate ??
   null;
 
 const isWithdrawn = (submission: SubmissionForReports) =>
   resolveSubmissionStatus(submission) === SubmissionStatus.WITHDRAWN ||
   submission.statusHistory.some((entry) => entry.newStatus === SubmissionStatus.WITHDRAWN) ||
   submission.project?.legacyImportSnapshot?.importedWithdrawn === true ||
-  isLegacyWithdrawnFlag(submission.project?.protocolProfile?.status) ||
-  isLegacyWithdrawnFlag(submission.project?.legacyImportSnapshot?.importedStatus);
+  /withdraw/i.test(
+    submission.project?.legacyImportSnapshot?.importedStatus ??
+      submission.project?.protocolProfile?.status ??
+      ""
+  );
 
 const nextScreeningStatusSet = new Set<SubmissionStatus>([
   SubmissionStatus.RETURNED_FOR_COMPLETION,
@@ -278,7 +340,7 @@ const buildSyntheticStatusHistory = (submission: SubmissionForReports) => {
   if (history.length > 0) return history;
 
   const effectiveStatus = resolveSubmissionStatus(submission);
-  const effectiveDate = resolveClearanceDate(submission) ?? resolveEffectiveReceivedDate(submission);
+  const effectiveDate = resolveClearanceDate(submission) ?? resolveWorkflowReceivedDate(submission);
   if (!effectiveDate) return history;
 
   return [{ newStatus: effectiveStatus, effectiveDate }];
@@ -286,7 +348,7 @@ const buildSyntheticStatusHistory = (submission: SubmissionForReports) => {
 
 const toMetricSubmission = (submission: SubmissionForReports): ReportSubmissionRecord => ({
   id: submission.id,
-  receivedDate: resolveEffectiveReceivedDate(submission) ?? submission.createdAt,
+  receivedDate: resolveReportReceivedDate(submission) ?? submission.createdAt,
   sequenceNumber: submission.sequenceNumber,
   status: resolveSubmissionStatus(submission),
   resultsNotifiedAt: submission.resultsNotifiedAt ?? resolveClearanceDate(submission),
@@ -491,27 +553,38 @@ export const parseReportFilters = (query: Record<string, unknown>): ReportViewFi
 
 export async function resolveReportFallbackRange(): Promise<ReportFallbackRange | null> {
   await promoteImportedSubmissionsToWorkflow();
+  const submissions = await prisma.submission.findMany({
+    where: { sequenceNumber: 1 },
+    select: {
+      createdAt: true,
+      receivedDate: true,
+      project: {
+        select: {
+          origin: true,
+          protocolProfile: {
+            select: {
+              dateOfSubmission: true,
+            },
+          },
+        },
+      },
+    },
+  });
 
-  const rows = await prisma.$queryRaw<
-    Array<{ startDate: Date | null; endDate: Date | null }>
-  >`
-    SELECT
-      MIN(COALESCE(pp."dateOfSubmission", s."receivedDate", s."createdAt")) AS "startDate",
-      MAX(COALESCE(pp."dateOfSubmission", s."receivedDate", s."createdAt")) AS "endDate"
-    FROM "Submission" s
-    LEFT JOIN "Project" p ON p."id" = s."projectId"
-    LEFT JOIN "ProtocolProfile" pp ON pp."projectId" = p."id"
-    WHERE s."sequenceNumber" = 1
-  `;
+  const dates = submissions
+    .map((submission) => resolveReportReceivedDate(submission))
+    .filter((value): value is Date => value instanceof Date && !Number.isNaN(value.getTime()));
 
-  const row = rows[0];
-  if (!row?.startDate || !row?.endDate) {
+  if (dates.length === 0) {
     return null;
   }
 
+  const startDate = dates.reduce((min, value) => (value < min ? value : min), dates[0]);
+  const endDate = dates.reduce((max, value) => (value > max ? value : max), dates[0]);
+
   return {
-    startDate: row.startDate,
-    endDate: row.endDate,
+    startDate,
+    endDate,
   };
 }
 
@@ -671,7 +744,7 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
   });
 
   return submissions.filter((submission) => {
-    const effectiveReceivedDate = resolveEffectiveReceivedDate(submission);
+    const effectiveReceivedDate = resolveReportReceivedDate(submission);
     if (!effectiveReceivedDate) return false;
     const isInWindow = termWindows.some((window) => {
       const timestamp = effectiveReceivedDate.getTime();
@@ -920,7 +993,7 @@ export async function buildAnnualSummaryPayload(
     }
   }
   for (const submission of submissions) {
-    const effectiveReceivedDate = resolveEffectiveReceivedDate(submission);
+    const effectiveReceivedDate = resolveReportReceivedDate(submission);
     const received = effectiveReceivedDate ? effectiveReceivedDate.getTime() : NaN;
     if (!Number.isFinite(received)) continue;
     const window = termWindows.find((tw) => {
@@ -1000,7 +1073,7 @@ export async function buildAnnualSummaryPayload(
     const category = resolveSubmissionCategory(submission);
     if (!category) continue;
 
-    const effectiveReceivedDate = resolveEffectiveReceivedDate(submission);
+    const effectiveReceivedDate = resolveReportReceivedDate(submission);
     const received = effectiveReceivedDate ? effectiveReceivedDate.getTime() : NaN;
     if (!Number.isFinite(received)) continue;
     const window = termWindows.find((tw) => {
@@ -1079,7 +1152,7 @@ export async function buildAnnualSummaryPayload(
 
   for (const submission of submissions) {
     if (!monthBuckets.length) break;
-    const bucket = findBucketByDate(monthBuckets, resolveEffectiveReceivedDate(submission));
+    const bucket = findBucketByDate(monthBuckets, resolveReportReceivedDate(submission));
     if (!bucket) continue;
 
     receivedByMonthMap.get(bucket.key)!.count += 1;
@@ -1357,7 +1430,7 @@ export function buildSubmissionRecordsPayload(
         ? resolveSubmissionStatus(a)
         : sortField === "reviewType"
         ? resolveSubmissionReviewType(a) ?? ""
-        : new Date(resolveEffectiveReceivedDate(a) ?? 0).getTime();
+        : new Date(resolveReportReceivedDate(a) ?? 0).getTime();
 
     const vb =
       sortField === "projectCode"
@@ -1372,7 +1445,7 @@ export function buildSubmissionRecordsPayload(
         ? resolveSubmissionStatus(b)
         : sortField === "reviewType"
         ? resolveSubmissionReviewType(b) ?? ""
-        : new Date(resolveEffectiveReceivedDate(b) ?? 0).getTime();
+        : new Date(resolveReportReceivedDate(b) ?? 0).getTime();
 
     if (va < vb) return sortDir === "asc" ? -1 : 1;
     if (va > vb) return sortDir === "asc" ? 1 : -1;
@@ -1392,7 +1465,7 @@ export function buildSubmissionRecordsPayload(
     proponentCategory: resolveSubmissionCategory(submission) ?? "UNKNOWN",
     reviewType: resolveSubmissionReviewType(submission) ?? "UNCLASSIFIED",
     status: resolveSubmissionStatus(submission),
-    receivedDate: resolveEffectiveReceivedDate(submission),
+    receivedDate: resolveReportReceivedDate(submission),
   }));
 
   return {
