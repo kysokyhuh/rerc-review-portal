@@ -9,20 +9,20 @@ describe("academic term seed helper", () => {
       new Date("2026-04-13T00:00:00.000Z")
     );
 
-    expect(result.firstStartYear).toBe(2021);
-    expect(result.startYear).toBe(2025);
+    expect(result.firstStartYear).toBe(2022);
+    expect(result.startYear).toBe(2026);
     expect(result.terms).toHaveLength(15);
     expect(result.terms[0]).toMatchObject({
-      academicYear: "2021-2022",
-      term: 1,
-      startDate: new Date("2021-09-01T00:00:00.000Z"),
-      endDate: new Date("2021-12-31T00:00:00.000Z"),
+      academicYear: "2022-2023",
+      term: 2,
+      startDate: new Date("2022-01-01T00:00:00.000Z"),
+      endDate: new Date("2022-04-30T00:00:00.000Z"),
     });
     expect(result.terms[result.terms.length - 1]).toMatchObject({
-      academicYear: "2025-2026",
-      term: 3,
-      startDate: new Date("2026-05-01T00:00:00.000Z"),
-      endDate: new Date("2026-08-31T00:00:00.000Z"),
+      academicYear: "2026-2027",
+      term: 1,
+      startDate: new Date("2026-09-01T00:00:00.000Z"),
+      endDate: new Date("2026-12-31T00:00:00.000Z"),
     });
   });
 
@@ -45,8 +45,8 @@ describe("academic term seed helper", () => {
       expect.objectContaining({
         where: {
           academicYear_term: {
-            academicYear: "2021-2022",
-            term: 1,
+            academicYear: "2022-2023",
+            term: 2,
           },
         },
       })
@@ -55,8 +55,8 @@ describe("academic term seed helper", () => {
       expect.objectContaining({
         where: {
           academicYear_term: {
-            academicYear: "2025-2026",
-            term: 3,
+            academicYear: "2026-2027",
+            term: 1,
           },
         },
       })

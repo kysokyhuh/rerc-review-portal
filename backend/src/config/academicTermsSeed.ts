@@ -17,8 +17,11 @@ export const buildAcademicTermSeedRecords = (
   terms: AcademicTermSeedRecord[];
 } => {
   const currentYear = referenceDate.getUTCFullYear();
-  // AY starts in September (Term 1), so Jan-Aug belongs to the previous AY start year.
-  const startYear = referenceDate.getUTCMonth() >= 8 ? currentYear : currentYear - 1;
+  // Reporting AY labels follow the calendar year of the raw submission date.
+  // Examples:
+  // - 2023-02-13 => Term 2, AY 2023-2024
+  // - 2024-10-18 => Term 1, AY 2024-2025
+  const startYear = currentYear;
   const firstStartYear = startYear - 4;
   const terms: AcademicTermSeedRecord[] = [];
 
@@ -27,21 +30,21 @@ export const buildAcademicTermSeedRecords = (
     terms.push(
       {
         academicYear: ayLabel,
-        term: 1,
-        startDate: new Date(Date.UTC(ayStartYear, 8, 1)),
-        endDate: new Date(Date.UTC(ayStartYear, 11, 31)),
-      },
-      {
-        academicYear: ayLabel,
         term: 2,
-        startDate: new Date(Date.UTC(ayStartYear + 1, 0, 1)),
-        endDate: new Date(Date.UTC(ayStartYear + 1, 3, 30)),
+        startDate: new Date(Date.UTC(ayStartYear, 0, 1)),
+        endDate: new Date(Date.UTC(ayStartYear, 3, 30)),
       },
       {
         academicYear: ayLabel,
         term: 3,
-        startDate: new Date(Date.UTC(ayStartYear + 1, 4, 1)),
-        endDate: new Date(Date.UTC(ayStartYear + 1, 7, 31)),
+        startDate: new Date(Date.UTC(ayStartYear, 4, 1)),
+        endDate: new Date(Date.UTC(ayStartYear, 7, 31)),
+      },
+      {
+        academicYear: ayLabel,
+        term: 1,
+        startDate: new Date(Date.UTC(ayStartYear, 8, 1)),
+        endDate: new Date(Date.UTC(ayStartYear, 11, 31)),
       }
     );
   }
