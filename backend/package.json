@@ -10,6 +10,7 @@
     "start": "node dist/server.js",
     "seed": "npx tsx src/config/seed.ts",
     "seed:academic-terms": "npx tsx src/scripts/seedAcademicTerms.ts",
+    "repair:legacy-profiles": "npx tsx src/scripts/repairLegacyProtocolProfiles.ts",
     "seed:reports-demo": "npx tsx src/config/seedReportsDemo.ts",
     "test": "jest",
     "test:unit": "jest tests/unit",
