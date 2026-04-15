@@ -31,6 +31,7 @@ const ReportsPage = lazy(() => import("@/pages/ReportsPage"));
 const QueuePage = lazy(() => import("@/pages/QueuePage"));
 const ExemptedPage = lazy(() => import("@/pages/ExemptedPage"));
 const HolidaysPage = lazy(() => import("@/pages/HolidaysPage"));
+const CalendarPage = lazy(() => import("@/pages/CalendarPage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const SignupPage = lazy(() => import("@/pages/SignupPage"));
 const ChangePasswordPage = lazy(() => import("@/pages/ChangePasswordPage"));
@@ -60,6 +61,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     location.pathname === "/dashboard" ||
     location.pathname.startsWith("/queues/") ||
     location.pathname.startsWith("/holidays") ||
+    location.pathname.startsWith("/calendar") ||
     location.pathname.startsWith("/admin/") ||
     location.pathname.startsWith("/account/");
 
@@ -118,7 +120,8 @@ function App() {
                     }
                   />
                   <Route path="/queues/:queueKey" element={<QueuePage />} />
-                  <Route path="/holidays" element={<HolidaysPage />} />
+                  <Route path="/holidays" element={<Navigate to="/calendar" replace />} />
+                  <Route path="/calendar" element={<CalendarPage />} />
                   <Route
                     path="/admin/users"
                     element={

@@ -24,6 +24,7 @@ import {
   importRoutes,
   reportRoutes,
   holidayRoutes,
+  academicTermRoutes,
   adminUserRoutes,
 } from "./routes";
 import authRoutes from "./routes/authRoutes";
@@ -52,6 +53,7 @@ const SPA_ROUTE_PATTERNS = [
   /^\/dashboard$/,
   /^\/queues\/[^/]+$/,
   /^\/holidays$/,
+  /^\/calendar$/,
   /^\/admin\/users$/,
   /^\/admin\/account-management$/,
   /^\/projects\/new$/,
@@ -210,6 +212,9 @@ app.use(reportRoutes);
 
 // Holiday routes (/holidays)
 app.use(holidayRoutes);
+
+// Academic term routes (/academic-terms)
+app.use(academicTermRoutes);
 
 // Chair-only admin user management routes
 app.use(adminUserRoutes);

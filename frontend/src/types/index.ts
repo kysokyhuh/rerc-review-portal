@@ -363,6 +363,28 @@ export interface UpdateHolidayPayload {
   name?: string;
 }
 
+export interface AcademicTerm {
+  id: number;
+  academicYear: string;
+  term: number;
+  startDate: string; // YYYY-MM-DD
+  endDate: string;   // YYYY-MM-DD
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateAcademicTermPayload {
+  academicYear: string;
+  term: number;
+  startDate: string;
+  endDate: string;
+}
+
+export interface UpdateAcademicTermPayload {
+  startDate?: string;
+  endDate?: string;
+}
+
 export interface ImportRowError {
   row: number;
   field: string;

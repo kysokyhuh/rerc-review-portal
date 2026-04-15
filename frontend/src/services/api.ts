@@ -50,6 +50,9 @@ export type {
   HolidayItem,
   CreateHolidayPayload,
   UpdateHolidayPayload,
+  AcademicTerm,
+  CreateAcademicTermPayload,
+  UpdateAcademicTermPayload,
   ProtocolProfile,
   UpdateProtocolProfilePayload,
   ProtocolMilestone,
@@ -89,6 +92,9 @@ import type {
   HolidayItem,
   CreateHolidayPayload,
   UpdateHolidayPayload,
+  AcademicTerm,
+  CreateAcademicTermPayload,
+  UpdateAcademicTermPayload,
   ProjectImportRowEdit,
   ProtocolProfile,
   UpdateProtocolProfilePayload,
@@ -913,6 +919,29 @@ export async function updateHoliday(id: number, payload: UpdateHolidayPayload) {
 
 export async function deleteHoliday(id: number) {
   const response = await api.delete(`/holidays/${id}`);
+  return response.data as { success: boolean };
+}
+
+export async function fetchAcademicTerms(params?: { year?: string }) {
+  const search = new URLSearchParams();
+  if (params?.year) search.set("year", params.year);
+  const suffix = search.toString();
+  const response = await api.get(`/academic-terms${suffix ? `?${suffix}` : ""}`);
+  return response.data as { items: AcademicTerm[] };
+}
+
+export async function createAcademicTerm(payload: CreateAcademicTermPayload) {
+  const response = await api.post("/academic-terms", payload);
+  return response.data as AcademicTerm;
+}
+
+export async function updateAcademicTerm(id: number, payload: UpdateAcademicTermPayload) {
+  const response = await api.patch(`/academic-terms/${id}`, payload);
+  return response.data as AcademicTerm;
+}
+
+export async function deleteAcademicTerm(id: number) {
+  const response = await api.delete(`/academic-terms/${id}`);
   return response.data as { success: boolean };
 }
 
