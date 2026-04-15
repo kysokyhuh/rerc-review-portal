@@ -4,9 +4,19 @@ import prismaClient from "../../src/config/prismaClient";
 import { LEGACY_WIDE_COLUMNS } from "../../src/services/imports/projectCsvImport";
 
 const txProjectCreate = jest.fn();
+const txProjectUpdate = jest.fn();
+const txPanelFindFirst = jest.fn();
+const txUserFindFirst = jest.fn();
 const txSubmissionCreate = jest.fn();
+const txSubmissionFindFirst = jest.fn();
+const txSubmissionUpdate = jest.fn();
 const txProtocolProfileCreate = jest.fn();
 const txSubmissionStatusHistoryCreate = jest.fn();
+const txClassificationUpsert = jest.fn();
+const txReviewUpsert = jest.fn();
+const txReviewAssignmentUpsert = jest.fn();
+const txConfigSlaFindMany = jest.fn();
+const txHolidayFindMany = jest.fn();
 const txLegacyImportSnapshotCreate = jest.fn();
 
 jest.mock("../../src/config/prismaClient", () => {
@@ -40,10 +50,21 @@ jest.mock("../../src/config/prismaClient", () => {
       },
       $transaction: jest.fn(async (callback: any) =>
         callback({
-          project: { create: txProjectCreate },
-          submission: { create: txSubmissionCreate },
+          project: { create: txProjectCreate, update: txProjectUpdate },
+          panel: { findFirst: txPanelFindFirst },
+          user: { findFirst: txUserFindFirst },
+          submission: {
+            create: txSubmissionCreate,
+            findFirst: txSubmissionFindFirst,
+            update: txSubmissionUpdate,
+          },
           protocolProfile: { create: txProtocolProfileCreate },
           submissionStatusHistory: { create: txSubmissionStatusHistoryCreate },
+          classification: { upsert: txClassificationUpsert },
+          review: { upsert: txReviewUpsert },
+          reviewAssignment: { upsert: txReviewAssignmentUpsert },
+          configSLA: { findMany: txConfigSlaFindMany },
+          holiday: { findMany: txHolidayFindMany },
           legacyImportSnapshot: { create: txLegacyImportSnapshotCreate },
         })
       ),
@@ -131,9 +152,29 @@ describe("project import routes", () => {
     prisma.project.findMany.mockResolvedValue([]);
     prisma.project.findFirst.mockResolvedValue(null);
     txProjectCreate.mockResolvedValue({ id: 1 });
+    txProjectUpdate.mockResolvedValue({ id: 1 });
+    txPanelFindFirst.mockResolvedValue(null);
+    txUserFindFirst.mockResolvedValue(null);
     txSubmissionCreate.mockResolvedValue({ id: 10 });
+    txSubmissionFindFirst.mockResolvedValue({
+      id: 10,
+      sequenceNumber: 1,
+      status: "AWAITING_CLASSIFICATION",
+      resultsNotifiedAt: null,
+      finalDecision: null,
+      finalDecisionDate: null,
+      revisionDueDate: null,
+      classification: null,
+      reviews: [],
+    });
+    txSubmissionUpdate.mockResolvedValue({ id: 10, status: "AWAITING_CLASSIFICATION" });
     txProtocolProfileCreate.mockResolvedValue({ id: 20 });
     txSubmissionStatusHistoryCreate.mockResolvedValue({ id: 30 });
+    txClassificationUpsert.mockResolvedValue({ id: 31, reviewType: "EXPEDITED" });
+    txReviewUpsert.mockResolvedValue({ id: 32 });
+    txReviewAssignmentUpsert.mockResolvedValue({ id: 33 });
+    txConfigSlaFindMany.mockResolvedValue([]);
+    txHolidayFindMany.mockResolvedValue([]);
     txLegacyImportSnapshotCreate.mockResolvedValue({ id: 40 });
     prisma.importBatch.create.mockResolvedValue({
       id: 99,
@@ -553,6 +594,40 @@ describe("project import routes", () => {
         })
       );
       expect(txLegacyImportSnapshotCreate).toHaveBeenCalled();
+    });
+
+    it("maps legacy review type and status into live workflow fields during import", async () => {
+      const legacyRow = buildLegacyRow({
+        0: "2026-402B",
+        1: "Legacy Expedited Queue Row",
+        2: "Dr. Legacy Queue",
+        5: "2026-03-01",
+        7: "Expedited",
+        9: "INTERNAL",
+      });
+
+      const response = await request(app)
+        .post("/imports/projects/commit")
+        .set(csrfHeaders)
+        .set("X-User-ID", "1")
+        .set("X-User-Email", "ra@example.com")
+        .set("X-User-Name", "RA")
+        .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+        .attach("file", Buffer.from(buildLegacyCsv([legacyRow], true)), "legacy-expedited.csv");
+
+      expect(response.status).toBe(200);
+      expect(response.body.insertedRows).toBe(1);
+      expect(txClassificationUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          update: expect.objectContaining({ reviewType: "EXPEDITED" }),
+          create: expect.objectContaining({ reviewType: "EXPEDITED" }),
+        })
+      );
+      expect(txSubmissionUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ status: "UNDER_REVIEW" }),
+        })
+      );
     });
 
     it("auto-detects legacy headerless CSVs and imports them into the live workflow", async () => {

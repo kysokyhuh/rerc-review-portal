@@ -226,7 +226,6 @@ const isLegacyWorkflowSyncRequested = (data: {
     data.status ||
       data.typeOfReview ||
       data.classificationOfProposalRerc ||
-      data.panel ||
       data.primaryReviewer ||
       data.scientistReviewer ||
       data.layReviewer ||
@@ -236,7 +235,7 @@ const isLegacyWorkflowSyncRequested = (data: {
       data.withdrawn === true
   );
 
-type LegacyWorkflowSyncPayload = {
+export type LegacyWorkflowSyncPayload = {
   status: string | null;
   typeOfReview: string | null;
   classificationOfProposalRerc: string | null;
@@ -251,7 +250,7 @@ type LegacyWorkflowSyncPayload = {
   independentConsultant: string | null;
 };
 
-const syncLegacyProfileToWorkflow = async (
+export const syncLegacyProfileToWorkflow = async (
   tx: Prisma.TransactionClient,
   params: {
     projectId: number;

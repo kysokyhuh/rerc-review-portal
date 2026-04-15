@@ -3,6 +3,7 @@ import {
   FundingType,
   ImportMode,
   ProjectOrigin,
+  ProjectStatus,
   ProponentCategory,
   ResearchTypePHREB,
   SLAStage,
@@ -19,6 +20,7 @@ import {
   computeDueDate,
   getConfiguredSlaOrDefault,
 } from "../sla/submissionSlaService";
+import { syncLegacyProfileToWorkflow } from "./projectService";
 
 export interface ProjectCreateFieldError {
   field: string;
@@ -449,6 +451,45 @@ export async function createProjectWithInitialSubmission(
           importedContinuingDays: legacySnapshot.importedContinuingDays,
           importedRemarks: legacySnapshot.importedRemarks,
           rawRowJson: legacySnapshot.rawRowJson,
+        },
+      });
+
+      await syncLegacyProfileToWorkflow(tx, {
+        projectId: project.id,
+        committeeId,
+        projectStatus: ProjectStatus.DRAFT,
+        sourceSubmissionId: submission.id,
+        changedById: actorId,
+        data: {
+          status: legacySnapshot.importedStatus ?? null,
+          typeOfReview:
+            referenceProfile?.typeOfReview ??
+            legacySnapshot.importedTypeOfReview ??
+            null,
+          classificationOfProposalRerc:
+            legacySnapshot.importedClassificationOfProposal ?? null,
+          withdrawn: legacySnapshot.importedWithdrawn ?? null,
+          finishDate:
+            legacySnapshot.importedFinishDate ??
+            legacySnapshot.importedFinalReportCompletionDate ??
+            null,
+          dateOfSubmission:
+            referenceProfile?.dateOfSubmission ??
+            referenceReceivedDate ??
+            workflowReceivedDate,
+          panel:
+            legacySnapshot.importedPanel ??
+            null,
+          primaryReviewer:
+            legacySnapshot.importedPrimaryReviewer ?? null,
+          scientistReviewer:
+            legacySnapshot.importedScientistReviewer ?? null,
+          layReviewer:
+            legacySnapshot.importedLayReviewer ?? null,
+          finalLayReviewer:
+            legacySnapshot.importedFinalLayReviewer ?? null,
+          independentConsultant:
+            legacySnapshot.importedIndependentConsultant ?? null,
         },
       });
     }
