@@ -6,10 +6,10 @@ export const createAcademicTermSchema = z
       .string()
       .regex(/^\d{4}-\d{4}$/, "Format must be YYYY-YYYY (e.g. 2025-2026)"),
     term: z
-      .number({ required_error: "term is required", invalid_type_error: "term must be a number" })
-      .int("term must be an integer")
-      .min(1, "term must be at least 1")
-      .max(3, "term must be at most 3"),
+      .number()
+      .int()
+      .min(1)
+      .max(3),
     startDate: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, "startDate must be YYYY-MM-DD"),
