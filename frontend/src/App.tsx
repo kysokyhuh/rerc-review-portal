@@ -30,7 +30,6 @@ const ArchivesPage = lazy(() => import("@/pages/ArchivesPage"));
 const ReportsPage = lazy(() => import("@/pages/ReportsPage"));
 const QueuePage = lazy(() => import("@/pages/QueuePage"));
 const ExemptedPage = lazy(() => import("@/pages/ExemptedPage"));
-const HolidaysPage = lazy(() => import("@/pages/HolidaysPage"));
 const CalendarPage = lazy(() => import("@/pages/CalendarPage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const SignupPage = lazy(() => import("@/pages/SignupPage"));
