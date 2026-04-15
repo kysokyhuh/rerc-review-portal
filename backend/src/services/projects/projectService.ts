@@ -4,12 +4,24 @@
 import prisma from "../../config/prismaClient";
 import { AppError } from "../../middleware/errorHandler";
 import {
+  Prisma,
   ProjectStatus,
+  ReviewDecision,
+  ReviewerRoleType,
+  ReviewerRoundRole,
+  ReviewType,
+  SLAStage,
   SubmissionStatus,
+  UserStatus,
   type SubmissionType,
   type CompletenessStatus,
 } from "../../generated/prisma/client";
 import { promoteImportedSubmissionsToWorkflow } from "../imports/importedWorkflowPromotion";
+import {
+  buildSlaConfigMap,
+  computeDueDate,
+  getConfiguredSlaOrDefault,
+} from "../sla/submissionSlaService";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers (moved from routes)                                        */
@@ -79,6 +91,511 @@ const promoteImportedProjectSubmissions = async (projectId: number) => {
   await promoteImportedSubmissionsToWorkflow({
     submissionIds: submissions.map((submission) => submission.id),
   });
+};
+
+const LEGACY_SYNC_STATUS_TARGETS = new Set<SubmissionStatus>([
+  SubmissionStatus.RECEIVED,
+  SubmissionStatus.UNDER_COMPLETENESS_CHECK,
+  SubmissionStatus.RETURNED_FOR_COMPLETION,
+  SubmissionStatus.NOT_ACCEPTED,
+  SubmissionStatus.AWAITING_CLASSIFICATION,
+  SubmissionStatus.UNDER_CLASSIFICATION,
+  SubmissionStatus.CLASSIFIED,
+  SubmissionStatus.UNDER_REVIEW,
+  SubmissionStatus.AWAITING_REVISIONS,
+  SubmissionStatus.REVISION_SUBMITTED,
+  SubmissionStatus.CLOSED,
+  SubmissionStatus.WITHDRAWN,
+]);
+
+const LEGACY_REVIEW_ASSIGNMENT_STATUSES = new Set<SubmissionStatus>([
+  SubmissionStatus.CLASSIFIED,
+  SubmissionStatus.UNDER_REVIEW,
+  SubmissionStatus.AWAITING_REVISIONS,
+  SubmissionStatus.REVISION_SUBMITTED,
+  SubmissionStatus.CLOSED,
+]);
+
+const normalizeReviewTypeFromLegacyText = (
+  value: string | null | undefined
+): ReviewType | null => {
+  const raw = String(value ?? "").trim().toLowerCase();
+  if (!raw) return null;
+  if (raw.includes("exempt")) return ReviewType.EXEMPT;
+  if (raw.includes("expedit")) return ReviewType.EXPEDITED;
+  if (raw.includes("full")) return ReviewType.FULL_BOARD;
+  return null;
+};
+
+const normalizeSubmissionStatusFromLegacyText = (
+  value: string | null | undefined
+): SubmissionStatus | null => {
+  const raw = String(value ?? "").trim().toLowerCase();
+  if (!raw) return null;
+  if (raw.includes("withdraw")) return SubmissionStatus.WITHDRAWN;
+  if (raw.includes("not accepted") || raw.includes("beyond jurisdiction")) {
+    return SubmissionStatus.NOT_ACCEPTED;
+  }
+  if (raw.includes("return") && raw.includes("completion")) {
+    return SubmissionStatus.RETURNED_FOR_COMPLETION;
+  }
+  if (raw.includes("completeness") || raw.includes("screen")) {
+    return SubmissionStatus.UNDER_COMPLETENESS_CHECK;
+  }
+  if (raw.includes("awaiting classification")) return SubmissionStatus.AWAITING_CLASSIFICATION;
+  if (raw.includes("under classification")) return SubmissionStatus.UNDER_CLASSIFICATION;
+  if (raw.includes("classification")) return SubmissionStatus.CLASSIFIED;
+  if (raw.includes("revision submitted")) return SubmissionStatus.REVISION_SUBMITTED;
+  if (raw.includes("revision")) return SubmissionStatus.AWAITING_REVISIONS;
+  if (raw.includes("under review")) return SubmissionStatus.UNDER_REVIEW;
+  if (
+    raw.includes("clear") ||
+    raw.includes("approved") ||
+    raw.includes("finish") ||
+    raw.includes("closed") ||
+    raw.includes("complete")
+  ) {
+    return SubmissionStatus.CLOSED;
+  }
+  if (raw.includes("exempt")) return SubmissionStatus.CLASSIFIED;
+  if (raw.includes("expedit") || raw.includes("full")) return SubmissionStatus.UNDER_REVIEW;
+  return null;
+};
+
+const getActiveSlaContext = async (tx: Prisma.TransactionClient, committeeId: number) => {
+  const [configs, holidayRows] = await Promise.all([
+    tx.configSLA.findMany({
+      where: {
+        committeeId,
+        isActive: true,
+      },
+      select: {
+        committeeId: true,
+        stage: true,
+        reviewType: true,
+        workingDays: true,
+        dayMode: true,
+        description: true,
+      },
+    }),
+    tx.holiday.findMany({
+      select: { date: true },
+    }),
+  ]);
+
+  return {
+    configMap: buildSlaConfigMap(configs),
+    holidayDates: holidayRows.map((row) => row.date),
+  };
+};
+
+const resolveLegacyWorkflowTargetStatus = (params: {
+  rawStatus: string | null;
+  reviewType: ReviewType | null;
+  withdrawn: boolean | null;
+  finishDate: Date | null;
+}) => {
+  if (params.withdrawn === true) return SubmissionStatus.WITHDRAWN;
+  const parsed = normalizeSubmissionStatusFromLegacyText(params.rawStatus);
+  if (parsed) return parsed;
+  if (params.finishDate) return SubmissionStatus.CLOSED;
+  if (params.reviewType === ReviewType.EXEMPT) return SubmissionStatus.CLASSIFIED;
+  if (
+    params.reviewType === ReviewType.EXPEDITED ||
+    params.reviewType === ReviewType.FULL_BOARD
+  ) {
+    return SubmissionStatus.UNDER_REVIEW;
+  }
+  return SubmissionStatus.AWAITING_CLASSIFICATION;
+};
+
+const isLegacyWorkflowSyncRequested = (data: {
+  status: string | null;
+  typeOfReview: string | null;
+  classificationOfProposalRerc: string | null;
+  withdrawn: boolean | null;
+  finishDate: Date | null;
+  panel: string | null;
+  primaryReviewer: string | null;
+  scientistReviewer: string | null;
+  layReviewer: string | null;
+  finalLayReviewer: string | null;
+  independentConsultant: string | null;
+}) =>
+  Boolean(
+    data.status ||
+      data.typeOfReview ||
+      data.classificationOfProposalRerc ||
+      data.panel ||
+      data.primaryReviewer ||
+      data.scientistReviewer ||
+      data.layReviewer ||
+      data.finalLayReviewer ||
+      data.independentConsultant ||
+      data.finishDate ||
+      data.withdrawn === true
+  );
+
+type LegacyWorkflowSyncPayload = {
+  status: string | null;
+  typeOfReview: string | null;
+  classificationOfProposalRerc: string | null;
+  withdrawn: boolean | null;
+  finishDate: Date | null;
+  dateOfSubmission: Date | null;
+  panel: string | null;
+  primaryReviewer: string | null;
+  scientistReviewer: string | null;
+  layReviewer: string | null;
+  finalLayReviewer: string | null;
+  independentConsultant: string | null;
+};
+
+const syncLegacyProfileToWorkflow = async (
+  tx: Prisma.TransactionClient,
+  params: {
+    projectId: number;
+    committeeId: number;
+    projectStatus: ProjectStatus;
+    sourceSubmissionId: number | null;
+    changedById: number;
+    data: LegacyWorkflowSyncPayload;
+  }
+) => {
+  if (!isLegacyWorkflowSyncRequested(params.data)) {
+    return;
+  }
+
+  const sourceSubmission = params.sourceSubmissionId
+    ? await tx.submission.findFirst({
+        where: {
+          id: params.sourceSubmissionId,
+          projectId: params.projectId,
+        },
+        include: {
+          classification: true,
+          reviews: true,
+        },
+      })
+    : null;
+
+  const submission =
+    sourceSubmission ??
+    (await tx.submission.findFirst({
+      where: { projectId: params.projectId },
+      orderBy: [{ sequenceNumber: "asc" }, { id: "asc" }],
+      include: {
+        classification: true,
+        reviews: true,
+      },
+    }));
+
+  if (!submission) {
+    return;
+  }
+
+  const reviewType =
+    normalizeReviewTypeFromLegacyText(params.data.typeOfReview) ??
+    normalizeReviewTypeFromLegacyText(params.data.classificationOfProposalRerc);
+  let targetStatus = resolveLegacyWorkflowTargetStatus({
+    rawStatus: params.data.status,
+    reviewType,
+    withdrawn: params.data.withdrawn,
+    finishDate: params.data.finishDate,
+  });
+  if (reviewType === ReviewType.EXEMPT && targetStatus === SubmissionStatus.UNDER_REVIEW) {
+    targetStatus = SubmissionStatus.CLASSIFIED;
+  }
+  if (!reviewType && targetStatus === SubmissionStatus.UNDER_REVIEW) {
+    targetStatus = SubmissionStatus.CLASSIFIED;
+  }
+  if (!LEGACY_SYNC_STATUS_TARGETS.has(targetStatus)) {
+    return;
+  }
+
+  const { configMap, holidayDates } = await getActiveSlaContext(tx, params.committeeId);
+  const now = new Date();
+  const classificationDate =
+    submission.classification?.classificationDate ??
+    params.data.dateOfSubmission ??
+    now;
+
+  let panelId = submission.classification?.panelId ?? null;
+  const panelText = asNullableString(params.data.panel);
+  if (panelText) {
+    const panel = await tx.panel.findFirst({
+      where: {
+        committeeId: params.committeeId,
+        OR: [
+          { name: { equals: panelText, mode: "insensitive" } },
+          { code: { equals: panelText, mode: "insensitive" } },
+        ],
+      },
+      select: { id: true },
+    });
+    panelId = panel?.id ?? panelId;
+  }
+
+  if (reviewType) {
+    await tx.classification.upsert({
+      where: { submissionId: submission.id },
+      update: {
+        reviewType,
+        classificationDate,
+        panelId,
+      },
+      create: {
+        submissionId: submission.id,
+        reviewType,
+        classificationDate,
+        panelId,
+        classifiedById: params.changedById,
+      },
+    });
+  }
+
+  const resolveReviewerUserId = async (label: string | null) => {
+    const normalized = asNullableString(label);
+    if (!normalized) return null;
+    const user = await tx.user.findFirst({
+      where: {
+        isActive: true,
+        status: UserStatus.APPROVED,
+        OR: [
+          { fullName: { equals: normalized, mode: "insensitive" } },
+          { email: { equals: normalized, mode: "insensitive" } },
+        ],
+      },
+      select: { id: true },
+    });
+    return user?.id ?? null;
+  };
+
+  const reviewSlaConfig =
+    reviewType === ReviewType.EXPEDITED || reviewType === ReviewType.FULL_BOARD
+      ? getConfiguredSlaOrDefault(
+          configMap,
+          params.committeeId,
+          SLAStage.REVIEW,
+          reviewType
+        )
+      : null;
+  const reviewDueDate = reviewSlaConfig
+    ? computeDueDate(
+        reviewSlaConfig.dayMode,
+        now,
+        reviewSlaConfig.targetDays,
+        holidayDates
+      )
+    : null;
+
+  const upsertReviewer = async (
+    reviewerId: number,
+    reviewerRole: ReviewerRoleType,
+    assignmentRole: ReviewerRoundRole | null,
+    isPrimary: boolean
+  ) => {
+    await tx.review.upsert({
+      where: {
+        submissionId_reviewerId: {
+          submissionId: submission.id,
+          reviewerId,
+        },
+      },
+      update: {
+        reviewerRole,
+        isPrimary,
+        dueDate: reviewDueDate,
+      },
+      create: {
+        submissionId: submission.id,
+        reviewerId,
+        reviewerRole,
+        isPrimary,
+        dueDate: reviewDueDate,
+      },
+    });
+
+    if (!assignmentRole) return;
+
+    await tx.reviewAssignment.upsert({
+      where: {
+        submissionId_roundSequence_reviewerRole: {
+          submissionId: submission.id,
+          roundSequence: submission.sequenceNumber,
+          reviewerRole: assignmentRole,
+        },
+      },
+      update: {
+        reviewerId,
+        dueDate: reviewDueDate,
+        isActive: true,
+        endedAt: null,
+        submittedAt: null,
+      },
+      create: {
+        submissionId: submission.id,
+        roundSequence: submission.sequenceNumber,
+        reviewerId,
+        reviewerRole: assignmentRole,
+        dueDate: reviewDueDate,
+      },
+    });
+  };
+
+  if (
+    reviewType &&
+    reviewType !== ReviewType.EXEMPT &&
+    LEGACY_REVIEW_ASSIGNMENT_STATUSES.has(targetStatus)
+  ) {
+    const scientificReviewerId = await resolveReviewerUserId(
+      params.data.primaryReviewer ?? params.data.scientistReviewer
+    );
+    if (scientificReviewerId) {
+      await upsertReviewer(
+        scientificReviewerId,
+        ReviewerRoleType.SCIENTIST,
+        ReviewerRoundRole.SCIENTIFIC,
+        true
+      );
+    }
+
+    const layReviewerId = await resolveReviewerUserId(
+      params.data.finalLayReviewer ?? params.data.layReviewer
+    );
+    if (layReviewerId) {
+      await upsertReviewer(
+        layReviewerId,
+        ReviewerRoleType.LAY,
+        ReviewerRoundRole.LAY,
+        false
+      );
+    }
+
+    const consultantReviewerId = await resolveReviewerUserId(
+      params.data.independentConsultant
+    );
+    if (consultantReviewerId) {
+      await upsertReviewer(
+        consultantReviewerId,
+        ReviewerRoleType.INDEPENDENT_CONSULTANT,
+        null,
+        false
+      );
+    }
+  }
+
+  const classificationSlaConfig = getConfiguredSlaOrDefault(
+    configMap,
+    params.committeeId,
+    SLAStage.CLASSIFICATION,
+    null
+  );
+  const revisionSlaConfig = getConfiguredSlaOrDefault(
+    configMap,
+    params.committeeId,
+    SLAStage.REVISION_RESPONSE,
+    null
+  );
+  const exemptNotificationConfig =
+    reviewType === ReviewType.EXEMPT
+      ? getConfiguredSlaOrDefault(
+          configMap,
+          params.committeeId,
+          SLAStage.EXEMPT_NOTIFICATION,
+          ReviewType.EXEMPT
+        )
+      : null;
+
+  const statusChanged = submission.status !== targetStatus;
+  const resultsNotifiedAt =
+    targetStatus === SubmissionStatus.AWAITING_REVISIONS ||
+    targetStatus === SubmissionStatus.REVISION_SUBMITTED ||
+    targetStatus === SubmissionStatus.CLOSED
+      ? submission.resultsNotifiedAt ?? params.data.finishDate ?? now
+      : submission.resultsNotifiedAt;
+
+  await tx.submission.update({
+    where: { id: submission.id },
+    data: {
+      status: targetStatus,
+      classificationDueDate:
+        targetStatus === SubmissionStatus.AWAITING_CLASSIFICATION ||
+        targetStatus === SubmissionStatus.UNDER_CLASSIFICATION
+          ? classificationSlaConfig
+            ? computeDueDate(
+                classificationSlaConfig.dayMode,
+                now,
+                classificationSlaConfig.targetDays,
+                holidayDates
+              )
+            : null
+          : null,
+      exemptNotificationDueDate:
+        targetStatus === SubmissionStatus.CLASSIFIED &&
+        reviewType === ReviewType.EXEMPT &&
+        exemptNotificationConfig
+          ? computeDueDate(
+              exemptNotificationConfig.dayMode,
+              classificationDate,
+              exemptNotificationConfig.targetDays,
+              holidayDates
+            )
+          : null,
+      revisionDueDate:
+        targetStatus === SubmissionStatus.AWAITING_REVISIONS
+          ? revisionSlaConfig
+            ? computeDueDate(
+                revisionSlaConfig.dayMode,
+                resultsNotifiedAt ?? now,
+                revisionSlaConfig.targetDays,
+                holidayDates
+              )
+            : null
+          : targetStatus === SubmissionStatus.REVISION_SUBMITTED
+            ? submission.revisionDueDate
+            : null,
+      resultsNotifiedAt,
+      finalDecision:
+        targetStatus === SubmissionStatus.CLOSED
+          ? submission.finalDecision ?? ReviewDecision.APPROVED
+          : targetStatus === SubmissionStatus.WITHDRAWN
+            ? null
+            : submission.finalDecision,
+      finalDecisionDate:
+        targetStatus === SubmissionStatus.CLOSED
+          ? submission.finalDecisionDate ?? params.data.finishDate ?? now
+          : targetStatus === SubmissionStatus.WITHDRAWN
+            ? null
+            : submission.finalDecisionDate,
+    },
+  });
+
+  if (statusChanged) {
+    await tx.submissionStatusHistory.create({
+      data: {
+        submissionId: submission.id,
+        oldStatus: submission.status,
+        newStatus: targetStatus,
+        reason: "Synchronized from legacy protocol profile fields.",
+        changedById: params.changedById,
+      },
+    });
+  }
+
+  const nextProjectStatus =
+    targetStatus === SubmissionStatus.CLOSED
+      ? ProjectStatus.CLOSED
+      : targetStatus === SubmissionStatus.WITHDRAWN
+        ? ProjectStatus.WITHDRAWN
+        : params.projectStatus;
+
+  if (nextProjectStatus !== params.projectStatus) {
+    await tx.project.update({
+      where: { id: params.projectId },
+      data: { overallStatus: nextProjectStatus },
+    });
+  }
 };
 
 /* ------------------------------------------------------------------ */
@@ -502,7 +1019,12 @@ export async function upsertProjectProfile(
   userId: number
 ) {
   const project = await prisma.project.findUnique({
-    where: { id: projectId }, select: { id: true },
+    where: { id: projectId },
+    select: {
+      id: true,
+      committeeId: true,
+      overallStatus: true,
+    },
   });
   if (!project) throw new AppError(404, "NOT_FOUND", "Project not found");
 
@@ -601,6 +1123,32 @@ export async function upsertProjectProfile(
     if (changeLogs.length > 0) {
       await tx.projectChangeLog.createMany({ data: changeLogs });
     }
+
+    await syncLegacyProfileToWorkflow(tx, {
+      projectId,
+      committeeId: project.committeeId,
+      projectStatus: project.overallStatus,
+      sourceSubmissionId:
+        sourceSubmissionId && Number.isFinite(sourceSubmissionId)
+          ? sourceSubmissionId
+          : null,
+      changedById: changedById ?? userId,
+      data: {
+        status: data.status,
+        typeOfReview: data.typeOfReview,
+        classificationOfProposalRerc: data.classificationOfProposalRerc,
+        withdrawn: data.withdrawn,
+        finishDate: data.finishDate,
+        dateOfSubmission: data.dateOfSubmission,
+        panel: data.panel,
+        primaryReviewer: data.primaryReviewer,
+        scientistReviewer: data.scientistReviewer,
+        layReviewer: data.layReviewer,
+        finalLayReviewer: data.finalLayReviewer,
+        independentConsultant: data.independentConsultant,
+      },
+    });
+
     return upserted;
   });
 }
