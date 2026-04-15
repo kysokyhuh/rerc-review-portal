@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import type { ProtocolProfile, UpdateProtocolProfilePayload } from "@/types";
 import { formatDateDisplay } from "@/utils/dateUtils";
 import "../styles/protocol-profile.css";
@@ -149,6 +149,20 @@ const LEGACY_REFERENCE_GROUPS: ProfileGroup[] = [
   },
 ];
 
+const ADDABLE_LEGACY_GROUP_NAMES = new Set([
+  "Legacy Progress Report",
+  "Legacy Final Report",
+  "Legacy Amendment",
+  "Legacy Continuing Review",
+]);
+
+const ALWAYS_VISIBLE_LEGACY_GROUPS = LEGACY_REFERENCE_GROUPS.filter(
+  (group) => !ADDABLE_LEGACY_GROUP_NAMES.has(group.name)
+);
+const ADDABLE_LEGACY_GROUPS = LEGACY_REFERENCE_GROUPS.filter((group) =>
+  ADDABLE_LEGACY_GROUP_NAMES.has(group.name)
+);
+
 /** All groups combined — used by profileToFormState / formStateToPayload so every field round-trips correctly. */
 const PROFILE_GROUPS: ProfileGroup[] = [...CORE_GROUPS, ...LEGACY_REFERENCE_GROUPS];
 
@@ -253,6 +267,45 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
     });
     return initial;
   });
+  const [enabledLegacySections, setEnabledLegacySections] = useState<Record<string, boolean>>({});
+  const [legacyPickerOpen, setLegacyPickerOpen] = useState(false);
+  const [legacyPickerValue, setLegacyPickerValue] = useState("");
+
+  const hasSavedValue = (group: ProfileGroup) =>
+    group.fields.some((field) => {
+      const value = profile?.[field.key as keyof ProtocolProfile];
+      return value !== null && value !== undefined && value !== "";
+    });
+
+  const autoEnabledLegacyNames = useMemo(
+    () => ADDABLE_LEGACY_GROUPS.filter((group) => hasSavedValue(group)).map((group) => group.name),
+    [profile]
+  );
+
+  useEffect(() => {
+    if (!autoEnabledLegacyNames.length) return;
+    setEnabledLegacySections((prev) => {
+      const next = { ...prev };
+      autoEnabledLegacyNames.forEach((name) => {
+        next[name] = true;
+      });
+      return next;
+    });
+    setOpenGroups((prev) => {
+      const next = { ...prev };
+      autoEnabledLegacyNames.forEach((name) => {
+        next[name] = true;
+      });
+      return next;
+    });
+  }, [autoEnabledLegacyNames]);
+
+  const visibleAddableLegacyGroups = ADDABLE_LEGACY_GROUPS.filter(
+    (group) => enabledLegacySections[group.name]
+  );
+  const availableLegacyGroups = ADDABLE_LEGACY_GROUPS.filter(
+    (group) => !enabledLegacySections[group.name]
+  );
 
   const toggleGroup = (name: string) => {
     setOpenGroups((prev) => ({ ...prev, [name]: !prev[name] }));
@@ -271,6 +324,20 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
   };
 
   const allOpen = CORE_GROUPS.every((g) => openGroups[g.name]);
+
+  const handleLegacySectionSelect = (name: string) => {
+    if (!name) return;
+    setEnabledLegacySections((prev) => ({ ...prev, [name]: true }));
+    setOpenGroups((prev) => ({ ...prev, [name]: true }));
+    setLegacyPickerOpen(false);
+    setLegacyPickerValue("");
+  };
+
+  const handleLegacySectionHide = (name: string) => {
+    setEnabledLegacySections((prev) => ({ ...prev, [name]: false }));
+    setLegacyPickerOpen(false);
+    setLegacyPickerValue("");
+  };
 
   /** Count filled fields in a group. */
   const filledCount = (group: ProfileGroup) => {
@@ -293,24 +360,37 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
     return String(raw);
   };
 
-  const renderGroup = (group: ProfileGroup) => {
+  const renderGroup = (
+    group: ProfileGroup,
+    options?: {
+      canHide?: boolean;
+      onHide?: () => void;
+    }
+  ) => {
     const isOpen = openGroups[group.name] ?? group.defaultOpen;
     const filled = filledCount(group);
     const total = group.fields.length + (group.hasWithdrawn ? 1 : 0);
 
     return (
       <div className={`pp-group ${isOpen ? "pp-group-open" : ""}`} key={group.name}>
-        <button
-          type="button"
-          className="pp-group-toggle"
-          onClick={() => toggleGroup(group.name)}
-          aria-expanded={isOpen}
-        >
-          <Chevron open={isOpen} />
-          <span className="pp-group-icon">{group.icon}</span>
-          <span className="pp-group-name">{group.name}</span>
-          <span className="pp-group-count">{filled}/{total}</span>
-        </button>
+        <div className="pp-group-head">
+          <button
+            type="button"
+            className="pp-group-toggle"
+            onClick={() => toggleGroup(group.name)}
+            aria-expanded={isOpen}
+          >
+            <Chevron open={isOpen} />
+            <span className="pp-group-icon">{group.icon}</span>
+            <span className="pp-group-name">{group.name}</span>
+            <span className="pp-group-count">{filled}/{total}</span>
+          </button>
+          {options?.canHide ? (
+            <button type="button" className="btn btn-ghost btn-sm pp-hide-btn" onClick={options.onHide}>
+              Hide
+            </button>
+          ) : null}
+        </div>
 
         {isOpen && (
           <div className="pp-group-body">
@@ -432,8 +512,42 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
             Carried over from spreadsheet imports. Not the live operational source of truth — live status, reviewers, and classifications are tracked separately.
           </span>
         </div>
+        <div className="pp-legacy-controls">
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => setLegacyPickerOpen((prev) => !prev)}
+            disabled={availableLegacyGroups.length === 0}
+          >
+            Add Legacy Section
+          </button>
+          {legacyPickerOpen ? (
+            <select
+              className="pp-field-input pp-legacy-picker"
+              value={legacyPickerValue}
+              onChange={(event) => {
+                const next = event.target.value;
+                setLegacyPickerValue(next);
+                handleLegacySectionSelect(next);
+              }}
+            >
+              <option value="">Select section...</option>
+              {availableLegacyGroups.map((group) => (
+                <option key={group.name} value={group.name}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
+          ) : null}
+        </div>
         <div className="pp-groups">
-          {LEGACY_REFERENCE_GROUPS.map((group) => renderGroup(group))}
+          {ALWAYS_VISIBLE_LEGACY_GROUPS.map((group) => renderGroup(group))}
+          {visibleAddableLegacyGroups.map((group) =>
+            renderGroup(group, {
+              canHide: true,
+              onHide: () => handleLegacySectionHide(group.name),
+            })
+          )}
         </div>
       </div>
 
