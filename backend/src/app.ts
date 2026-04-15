@@ -137,7 +137,18 @@ app.use(express.json());
 app.use(cookieParser());
 
 if (frontendBundleAvailable) {
-  app.use(express.static(frontendDistDir, { index: false }));
+  // Hashed assets (JS/CSS) are safe to cache for a long time — the hash
+  // in the filename changes on every build so stale files are never served.
+  app.use(
+    "/assets",
+    express.static(path.join(frontendDistDir, "assets"), {
+      maxAge: "30d",
+      immutable: true,
+      index: false,
+    })
+  );
+  // All other static files (favicon, etc.) — short cache
+  app.use(express.static(frontendDistDir, { maxAge: "1h", index: false }));
 }
 
 // Request ID — attaches unique ID to every request
@@ -166,6 +177,9 @@ app.use((req, res, next) => {
   if (!shouldServeFrontendApp(req)) {
     return next();
   }
+  // index.html must never be cached — it contains references to hashed
+  // asset filenames that change on every deploy.
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   return res.sendFile(frontendIndexPath);
 });
 
