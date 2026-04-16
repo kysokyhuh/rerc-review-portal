@@ -1259,6 +1259,11 @@ a:hover {
   font-weight: 600;
 }
 
+.classification-panel-row {
+  margin-top: 8px;
+  max-width: 340px;
+}
+
 .project-detail-page .history-list {
   display: flex;
   flex-direction: column;

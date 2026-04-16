@@ -182,10 +182,10 @@ router.delete(
   }
 );
 
-// Classify a submission (EXEMPT / EXPEDITED / FULL_BOARD)
+// Classify a submission (EXEMPT / EXPEDITED / FULL_BOARD) — Chair only
 router.post(
   "/submissions/:submissionId/classifications",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireRole(RoleType.CHAIR),
   validate(classifySubmissionSchema),
   async (req, res, next) => {
     try {
@@ -237,12 +237,24 @@ router.post(
   }
 );
 
+const CHAIR_ONLY_BULK_ACTIONS = new Set([
+  "MOVE_TO_UNDER_CLASSIFICATION",
+  "MARK_CLASSIFIED",
+]);
 router.post(
   "/submissions/bulk/status-action",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
   validate(bulkStatusActionSchema),
   async (req, res, next) => {
     try {
+      if (
+        CHAIR_ONLY_BULK_ACTIONS.has(req.body.action) &&
+        !req.user!.roles.includes(RoleType.CHAIR)
+      ) {
+        return res.status(403).json({
+          message: "Only the Chair can perform classification bulk actions.",
+        });
+      }
       const result = await bulkRunSubmissionStatusAction(
         req.body.submissionIds,
         {
@@ -315,6 +327,12 @@ router.patch(
 );
 
 // Change submission status and log history
+// Classification-stage transitions require CHAIR; others allow CHAIR or RA.
+const CLASSIFICATION_STAGE_STATUSES = new Set([
+  "AWAITING_CLASSIFICATION",
+  "UNDER_CLASSIFICATION",
+  "CLASSIFIED",
+]);
 router.patch(
   "/submissions/:id/status",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
@@ -324,6 +342,14 @@ router.patch(
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
         return res.status(400).json({ message: "Invalid submission id" });
+      }
+      if (
+        CLASSIFICATION_STAGE_STATUSES.has(req.body.newStatus) &&
+        !req.user!.roles.includes(RoleType.CHAIR)
+      ) {
+        return res.status(403).json({
+          message: "Only the Chair can change classification-stage status.",
+        });
       }
       const result = await updateSubmissionStatus(id, req.body.newStatus, req.body.reason, req.user!.id);
       res.json(result);

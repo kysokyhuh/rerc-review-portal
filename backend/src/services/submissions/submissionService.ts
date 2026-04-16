@@ -151,6 +151,72 @@ async function getActiveSlaContext(committeeId: number) {
   };
 }
 
+const resolveStatusChangeSlaPatch = async (
+  submission: {
+    project: { committeeId: number } | null;
+    classification: { reviewType: ReviewType; classificationDate: Date } | null;
+  },
+  newStatus: SubmissionStatus
+) => {
+  const committeeId = submission.project?.committeeId ?? null;
+  if (!committeeId) {
+    return newStatus === SubmissionStatus.CLASSIFIED
+      ? { exemptNotificationDueDate: null as Date | null }
+      : {};
+  }
+
+  const { configMap, holidayDates } = await getActiveSlaContext(committeeId);
+
+  if (
+    newStatus === SubmissionStatus.AWAITING_CLASSIFICATION ||
+    newStatus === SubmissionStatus.UNDER_CLASSIFICATION
+  ) {
+    const classificationConfig = getConfiguredSlaOrDefault(
+      configMap,
+      committeeId,
+      SLAStage.CLASSIFICATION,
+      null
+    );
+    return {
+      classificationDueDate: classificationConfig
+        ? computeDueDate(
+            classificationConfig.dayMode,
+            new Date(),
+            classificationConfig.targetDays,
+            holidayDates
+          )
+        : null,
+      exemptNotificationDueDate: null as Date | null,
+    };
+  }
+
+  if (newStatus === SubmissionStatus.CLASSIFIED) {
+    const exemptNotificationConfig =
+      submission.classification?.reviewType === ReviewType.EXEMPT
+        ? getConfiguredSlaOrDefault(
+            configMap,
+            committeeId,
+            SLAStage.EXEMPT_NOTIFICATION,
+            ReviewType.EXEMPT
+          )
+        : null;
+
+    return {
+      exemptNotificationDueDate:
+        exemptNotificationConfig && submission.classification?.classificationDate
+          ? computeDueDate(
+              exemptNotificationConfig.dayMode,
+              submission.classification.classificationDate,
+              exemptNotificationConfig.targetDays,
+              holidayDates
+            )
+          : null,
+    };
+  }
+
+  return {};
+};
+
 const buildBulkResult = (
   submissionId: number,
   projectCode: string | null,
@@ -305,6 +371,28 @@ export async function classifySubmission(
   }
 
   const committeeId = submission.project?.committeeId ?? null;
+
+  // Validate panelId belongs to this submission's committee and is active
+  if (data.panelId != null) {
+    const panel = await prisma.panel.findUnique({
+      where: { id: data.panelId },
+      select: { id: true, committeeId: true, isActive: true },
+    });
+    if (!panel) {
+      throw new AppError(400, "INVALID_PANEL", "Panel not found");
+    }
+    if (panel.committeeId !== committeeId) {
+      throw new AppError(
+        400,
+        "INVALID_PANEL",
+        "Panel does not belong to this submission's committee"
+      );
+    }
+    if (!panel.isActive) {
+      throw new AppError(400, "INVALID_PANEL", "Panel is inactive");
+    }
+  }
+
   const exemptNotificationDueDate =
     reviewType === ReviewType.EXEMPT && committeeId
       ? await (async () => {
@@ -1086,7 +1174,21 @@ export async function updateSubmissionStatus(
 ) {
   await promoteImportedSubmissionsToWorkflow({ submissionIds: [id] });
   const submission = await prisma.submission.findUnique({
-    where: { id }, select: { status: true },
+    where: { id },
+    select: {
+      status: true,
+      project: {
+        select: {
+          committeeId: true,
+        },
+      },
+      classification: {
+        select: {
+          reviewType: true,
+          classificationDate: true,
+        },
+      },
+    },
   });
   if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
   const currentIndex = WORKFLOW_STAGE_ORDER.indexOf(submission.status);
@@ -1101,11 +1203,13 @@ export async function updateSubmissionStatus(
     throw new AppError(400, "INVALID_TRANSITION", "Workflow stage can only move forward.");
   }
 
+  const slaPatch = await resolveStatusChangeSlaPatch(submission, newStatus);
+
   const [history, updated] = await prisma.$transaction([
     prisma.submissionStatusHistory.create({
       data: { submissionId: id, oldStatus: submission.status, newStatus, reason, changedById },
     }),
-    prisma.submission.update({ where: { id }, data: { status: newStatus } }),
+    prisma.submission.update({ where: { id }, data: { status: newStatus, ...slaPatch } }),
   ]);
   return { submission: updated, history };
 }

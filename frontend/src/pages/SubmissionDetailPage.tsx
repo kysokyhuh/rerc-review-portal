@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import {
   fetchCommittees,
+  fetchCommitteePanels,
   fetchSubmissionDetail,
   updateSubmissionWorkflowStage,
   setSubmissionReviewTrack,
@@ -240,6 +241,9 @@ export const SubmissionDetailPage: React.FC = () => {
   const [reviewTypePending, setReviewTypePending] = useState<
     "" | "EXEMPT" | "EXPEDITED" | "FULL_BOARD"
   >("");
+  const [panelIdPending, setPanelIdPending] = useState<number | null>(null);
+  const [panels, setPanels] = useState<Array<{ id: number; name: string; code: string | null }>>([]);
+  const [panelsLoading, setPanelsLoading] = useState(false);
   const [classificationSaving, setClassificationSaving] = useState(false);
   const [classificationMessage, setClassificationMessage] = useState<string | null>(null);
   const [classificationError, setClassificationError] = useState<string | null>(null);
@@ -299,9 +303,23 @@ export const SubmissionDetailPage: React.FC = () => {
           | "FULL_BOARD")
       : "";
     setReviewTypePending(nextType);
+    setPanelIdPending(submission.classification?.panelId ?? null);
     setClassificationMessage(null);
     setClassificationError(null);
   }, [submission]);
+
+  // Load committee panels when committee code is known
+  const committeeCode = submission?.project?.committee?.code;
+  useEffect(() => {
+    if (!committeeCode) return;
+    let active = true;
+    setPanelsLoading(true);
+    fetchCommitteePanels(committeeCode)
+      .then((data) => { if (active) setPanels(data); })
+      .catch(() => { if (active) setPanels([]); })
+      .finally(() => { if (active) setPanelsLoading(false); });
+    return () => { active = false; };
+  }, [committeeCode]);
 
   /* ── handlers ── */
   const handleProfileSave = async () => {
@@ -402,9 +420,8 @@ export const SubmissionDetailPage: React.FC = () => {
     }
   };
 
-  const canManageClassification =
-    Boolean(user?.roles?.includes("CHAIR")) ||
-    Boolean(user?.roles?.includes("RESEARCH_ASSOCIATE"));
+  const isChair = Boolean(user?.roles?.includes("CHAIR"));
+  const canManageClassification = isChair;
   const currentStatus = normalizeClassificationStatus(submission?.status ?? "CLASSIFIED");
   const currentReviewType = REVIEW_TYPE_OPTIONS.includes(
     (submission?.classification?.reviewType ?? "") as
@@ -419,6 +436,7 @@ export const SubmissionDetailPage: React.FC = () => {
         | "EXPEDITED"
         | "FULL_BOARD")
     : "";
+  const currentPanelId = submission?.classification?.panelId ?? null;
   const reviewTypeEnabled =
     classificationStatusPending === "UNDER_CLASSIFICATION" ||
     currentStatus === "CLASSIFIED" ||
@@ -428,7 +446,8 @@ export const SubmissionDetailPage: React.FC = () => {
       (currentStatus === "UNDER_CLASSIFICATION"
         ? "UNDER_CLASSIFICATION"
         : "AWAITING_CLASSIFICATION") ||
-    reviewTypePending !== currentReviewType;
+    reviewTypePending !== currentReviewType ||
+    (reviewTypePending === "FULL_BOARD" && panelIdPending !== currentPanelId);
 
   const handleSaveClassificationControls = async () => {
     setClassificationSaving(true);
@@ -462,6 +481,7 @@ export const SubmissionDetailPage: React.FC = () => {
         await setSubmissionReviewTrack(numericId, {
           reviewType: reviewTypePending,
           classificationDate: new Date().toISOString(),
+          panelId: reviewTypePending === "FULL_BOARD" ? (panelIdPending || null) : undefined,
         });
         const trackLabel = reviewTypePending === "FULL_BOARD" ? "FULL REVIEW" : reviewTypePending;
         setClassificationMessage(
@@ -578,6 +598,11 @@ export const SubmissionDetailPage: React.FC = () => {
             <h2>Classification controls</h2>
           </div>
         </div>
+        {!canManageClassification && (
+          <p className="field-helper">
+            Classification controls are managed by the Chair.
+          </p>
+        )}
         <div className="classification-controls-grid">
           <div className="field">
             <label>Classification Status</label>
@@ -628,6 +653,29 @@ export const SubmissionDetailPage: React.FC = () => {
             </button>
           </div>
         </div>
+        {reviewTypePending === "FULL_BOARD" && (
+          <div className="classification-panel-row">
+            <div className="field">
+              <label>Panel</label>
+              <select
+                className="field-input"
+                value={panelIdPending ?? ""}
+                onChange={(event) => {
+                  const val = event.target.value;
+                  setPanelIdPending(val ? Number(val) : null);
+                }}
+                disabled={!canManageClassification || classificationSaving || panelsLoading}
+              >
+                <option value="">— No panel assigned —</option>
+                {panels.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}{p.code ? ` (${p.code})` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
         {classificationMessage ? <p className="field-success">{classificationMessage}</p> : null}
         {classificationError ? <p className="error-text">{classificationError}</p> : null}
       </section>

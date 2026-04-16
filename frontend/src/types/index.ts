@@ -538,6 +538,8 @@ export interface SubmissionDetail {
     reviewType: string | null;
     classificationDate: string | null;
     rationale?: string | null;
+    panelId?: number | null;
+    panel?: { id: number; name: string; code: string | null } | null;
   } | null;
   project?: {
     id: number;

@@ -863,6 +863,7 @@ export async function setSubmissionReviewTrack(
     reviewType: "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | null;
     classificationDate?: string;
     rationale?: string;
+    panelId?: number | null;
   }
 ) {
   const response = await api.post(`/submissions/${submissionId}/classifications`, payload);
@@ -890,6 +891,14 @@ export async function fetchSubmissionSlaSummary(submissionId: number) {
 export async function fetchCommittees() {
   const response = await api.get("/committees");
   return response.data as CommitteeSummary[];
+}
+
+export async function fetchCommitteePanels(committeeCode: string) {
+  const response = await api.get(`/committees/${committeeCode}/panels`);
+  const data = response.data as {
+    panels: Array<{ id: number; name: string; code: string | null; isActive: boolean }>;
+  };
+  return data.panels.filter((p) => p.isActive);
 }
 
 export async function fetchHolidays(params?: {
