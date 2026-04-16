@@ -239,7 +239,7 @@ export default function ExemptedPage() {
             <div className="quick-view-header">
               <div className="quick-view-header-left">
                 <span className="quick-view-code">{selectedItem.projectCode}</span>
-                <h3>Notify and Close Exempted Protocol</h3>
+                <h3>Notify and Archive Exempted Protocol</h3>
                 <div className="quick-view-header-meta">{selectedItem.title}</div>
               </div>
             </div>
@@ -285,7 +285,7 @@ export default function ExemptedPage() {
                 }}
                 disabled={Boolean(busyId)}
               >
-                {busyId ? "Closing..." : "Notify & Close"}
+                {busyId ? "Archiving..." : "Notify & Archive"}
               </button>
             </div>
           </div>

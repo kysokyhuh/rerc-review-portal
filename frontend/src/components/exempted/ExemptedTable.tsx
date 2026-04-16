@@ -26,7 +26,7 @@ export default function ExemptedTable({
   }
 
   if (items.length === 0) {
-    return <div className="queue-focused-state">No exempted protocols awaiting close.</div>;
+    return <div className="queue-focused-state">No exempted protocols awaiting archive.</div>;
   }
 
   return (
@@ -63,7 +63,7 @@ export default function ExemptedTable({
                       onClick={() => onNotifyAndClose(item)}
                       disabled={isBusy}
                     >
-                      {isBusy ? "Closing..." : "Notify & Close"}
+                      {isBusy ? "Archiving..." : "Notify & Archive"}
                     </button>
                   </div>
                 </td>
