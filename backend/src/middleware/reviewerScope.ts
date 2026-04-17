@@ -1,9 +1,10 @@
 import type { NextFunction, Request, Response } from "express";
 import { RoleType } from "../generated/prisma/client";
 import prisma from "../config/prismaClient";
+import { hasProjectSoftDeleteColumns } from "../utils/projectSoftDelete";
 
 const rejectIfProjectDeleted = (
-  project: { deletedAt: Date | null; purgedAt: Date | null } | null,
+  project: { deletedAt?: Date | null; purgedAt?: Date | null } | null,
   res: Response
 ) => {
   if (!project || project.purgedAt) {
@@ -162,6 +163,10 @@ export const requireMutableProjectByProjectId = async (
   res: Response,
   next: NextFunction
 ) => {
+  if (!(await hasProjectSoftDeleteColumns())) {
+    return next();
+  }
+
   const projectId = Number(req.params.id || req.params.projectId);
   if (!Number.isFinite(projectId)) {
     return res.status(400).json({ message: "Invalid project id" });
@@ -187,6 +192,10 @@ export const requireMutableProjectBySubmissionId = async (
   res: Response,
   next: NextFunction
 ) => {
+  if (!(await hasProjectSoftDeleteColumns())) {
+    return next();
+  }
+
   const submissionId = Number(req.params.id || req.params.submissionId);
   if (!Number.isFinite(submissionId)) {
     return res.status(400).json({ message: "Invalid submission id" });
@@ -220,6 +229,10 @@ export const requireMutableProjectByReviewId = async (
   res: Response,
   next: NextFunction
 ) => {
+  if (!(await hasProjectSoftDeleteColumns())) {
+    return next();
+  }
+
   const reviewId = Number(req.params.reviewId);
   if (!Number.isFinite(reviewId)) {
     return res.status(400).json({ message: "Invalid reviewId" });

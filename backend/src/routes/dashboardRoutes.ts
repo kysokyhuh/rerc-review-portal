@@ -20,6 +20,7 @@ import {
   resolveCurrentSubmissionSla,
 } from "../services/sla/submissionSlaService";
 import { promoteImportedSubmissionsToWorkflow } from "../services/imports/importedWorkflowPromotion";
+import { getActiveProjectFilter } from "../utils/projectSoftDelete";
 
 const router = Router();
 const escapeHtml = (value: string | null | undefined) =>
@@ -30,22 +31,18 @@ const escapeHtml = (value: string | null | undefined) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
-const ACTIVE_PROJECT_FILTER = {
-  deletedAt: null,
-  purgedAt: null,
-} as const;
-
 // Dashboard queues for classification, review, revision
 router.get("/dashboard/queues", requireUser, async (req, res, next) => {
   try {
     const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
     await promoteImportedSubmissionsToWorkflow({ committeeCode });
+    const activeProjectFilter = await getActiveProjectFilter();
     const filterParams = parseDashboardFilterParams(req.query as Record<string, unknown>);
     const filterWhere = buildDashboardFiltersWhere(filterParams);
 
     const baseProject = {
       committee: { code: committeeCode },
-      ...ACTIVE_PROJECT_FILTER,
+      ...activeProjectFilter,
     };
     const isAssistant = req.user?.roles.includes(RoleType.RESEARCH_ASSISTANT);
     const roleScope = isAssistant
@@ -191,10 +188,11 @@ router.get("/dashboard/colleges", requireUser, async (req, res, next) => {
   try {
     const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
     await promoteImportedSubmissionsToWorkflow({ committeeCode });
+    const activeProjectFilter = await getActiveProjectFilter();
     const byAffiliation = await prisma.project.findMany({
       where: {
         committee: { code: committeeCode },
-        ...ACTIVE_PROJECT_FILTER,
+        ...activeProjectFilter,
         piAffiliation: { not: null },
       },
       select: { piAffiliation: true },
@@ -205,7 +203,7 @@ router.get("/dashboard/colleges", requireUser, async (req, res, next) => {
     const byCollegeOrUnit = await prisma.project.findMany({
       where: {
         committee: { code: committeeCode },
-        ...ACTIVE_PROJECT_FILTER,
+        ...activeProjectFilter,
         collegeOrUnit: { not: null },
       },
       select: { collegeOrUnit: true },
@@ -231,10 +229,11 @@ router.get("/dashboard/departments", requireUser, async (req, res, next) => {
   try {
     const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
     await promoteImportedSubmissionsToWorkflow({ committeeCode });
+    const activeProjectFilter = await getActiveProjectFilter();
     const departments = await prisma.project.findMany({
       where: {
         committee: { code: committeeCode },
-        ...ACTIVE_PROJECT_FILTER,
+        ...activeProjectFilter,
         department: { not: null },
       },
       select: { department: true },
@@ -252,10 +251,11 @@ router.get("/dashboard/proponents", requireUser, async (req, res, next) => {
   try {
     const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
     await promoteImportedSubmissionsToWorkflow({ committeeCode });
+    const activeProjectFilter = await getActiveProjectFilter();
     const proponents = await prisma.project.findMany({
       where: {
         committee: { code: committeeCode },
-        ...ACTIVE_PROJECT_FILTER,
+        ...activeProjectFilter,
         proponent: { not: null },
       },
       select: { proponent: true },
@@ -273,6 +273,7 @@ router.get("/dashboard/overdue", requireUser, async (req, res, next) => {
   try {
     const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
     await promoteImportedSubmissionsToWorkflow({ committeeCode });
+    const activeProjectFilter = await getActiveProjectFilter();
     const filterParams = parseDashboardFilterParams(req.query as Record<string, unknown>);
     const filterWhere = buildDashboardFiltersWhere(filterParams);
     const now = new Date();
@@ -297,7 +298,7 @@ router.get("/dashboard/overdue", requireUser, async (req, res, next) => {
     const submissionWhere: Record<string, any> = {
       project: {
         committee: { code: committeeCode },
-        ...ACTIVE_PROJECT_FILTER,
+        ...activeProjectFilter,
       },
     };
     // Merge project-level filters
@@ -408,6 +409,7 @@ router.get("/dashboard/activity", requireUser, async (req, res, next) => {
   try {
     const committeeCode = String(req.query.committeeCode || "RERC-HUMAN");
     await promoteImportedSubmissionsToWorkflow({ committeeCode });
+    const activeProjectFilter = await getActiveProjectFilter();
     const rawLimit = Number(req.query.limit || 8);
     const limit = Number.isFinite(rawLimit)
       ? Math.min(Math.max(rawLimit, 1), 20)
@@ -420,7 +422,7 @@ router.get("/dashboard/activity", requireUser, async (req, res, next) => {
             committee: {
               code: committeeCode,
             },
-            ...ACTIVE_PROJECT_FILTER,
+            ...activeProjectFilter,
           },
         },
       },
@@ -598,12 +600,12 @@ router.get("/ra/submissions/:submissionId", requireUser, async (req, res, next) 
       return res.status(400).send("Invalid submission id");
     }
 
+    const activeProjectFilter = await getActiveProjectFilter();
     const submission = await prisma.submission.findFirst({
       where: {
         id: submissionId,
         project: {
-          deletedAt: null,
-          purgedAt: null,
+          ...activeProjectFilter,
         },
       },
       include: {

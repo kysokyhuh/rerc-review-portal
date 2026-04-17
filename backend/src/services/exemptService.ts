@@ -2,6 +2,7 @@ import prisma from "../config/prismaClient";
 import { ProjectStatus, ReviewDecision, ReviewType, SubmissionStatus } from "../generated/prisma/client";
 import { AppError } from "../middleware/errorHandler";
 import { logAuditEvent } from "./audit/auditService";
+import { getActiveProjectFilter } from "../utils/projectSoftDelete";
 
 type ListExemptedQueueParams = {
   page: number;
@@ -28,6 +29,7 @@ export async function listExemptedQueue(params: ListExemptedQueueParams) {
     ? Math.min(100, Math.max(1, Math.floor(params.pageSize)))
     : 20;
   const q = normalizeSearch(params.q);
+  const activeProjectFilter = await getActiveProjectFilter();
 
   const where: Record<string, unknown> = {
     status: { notIn: [SubmissionStatus.CLOSED, SubmissionStatus.WITHDRAWN] },
@@ -36,8 +38,7 @@ export async function listExemptedQueue(params: ListExemptedQueueParams) {
     },
     project: {
       ...buildCommitteeWhere(params.committee),
-      deletedAt: null,
-      purgedAt: null,
+      ...activeProjectFilter,
       ...(params.college?.trim()
         ? {
             OR: [

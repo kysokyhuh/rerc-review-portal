@@ -26,6 +26,7 @@ import {
   computeDueDate,
   getConfiguredSlaOrDefault,
 } from "../sla/submissionSlaService";
+import { hasProjectSoftDeleteColumns } from "../../utils/projectSoftDelete";
 
 const WORKFLOW_STAGE_ORDER: SubmissionStatus[] = [
   SubmissionStatus.AWAITING_CLASSIFICATION,
@@ -65,8 +66,8 @@ type BulkSubmissionContext = {
   status: SubmissionStatus;
   project: {
     projectCode: string | null;
-    deletedAt: Date | null;
-    purgedAt: Date | null;
+    deletedAt?: Date | null;
+    purgedAt?: Date | null;
   } | null;
   classification: {
     reviewType: ReviewType;
@@ -102,7 +103,7 @@ const requireReason = (value: string | null, actionLabel: string) => {
 };
 
 const assertProjectIsMutable = (
-  project: { deletedAt: Date | null; purgedAt: Date | null } | null
+  project: { deletedAt?: Date | null; purgedAt?: Date | null } | null
 ) => {
   if (!project || project.purgedAt) {
     throw new AppError(404, "NOT_FOUND", "Submission not found");
@@ -277,17 +278,22 @@ const getErrorMessage = (error: unknown) => {
 };
 
 async function getBulkSubmissionContexts(submissionIds: number[]) {
+  const softDeleteEnabled = await hasProjectSoftDeleteColumns();
   const submissions = await prisma.submission.findMany({
     where: { id: { in: submissionIds } },
     select: {
       id: true,
       status: true,
       project: {
-        select: {
-          projectCode: true,
-          deletedAt: true,
-          purgedAt: true,
-        },
+        select: softDeleteEnabled
+          ? {
+              projectCode: true,
+              deletedAt: true,
+              purgedAt: true,
+            }
+          : {
+              projectCode: true,
+            },
       },
       classification: {
         select: {
@@ -1816,23 +1822,30 @@ export async function recordReviewDecision(
   actorId: number,
   remarks?: string
 ) {
+  const softDeleteEnabled = await hasProjectSoftDeleteColumns();
   const existing = await prisma.review.findUnique({
     where: { id: reviewId },
-    include: {
-      submission: {
-        select: {
-          project: {
-            select: {
-              deletedAt: true,
-              purgedAt: true,
+    ...(softDeleteEnabled
+      ? {
+          include: {
+            submission: {
+              select: {
+                project: {
+                  select: {
+                    deletedAt: true,
+                    purgedAt: true,
+                  },
+                },
+              },
             },
           },
-        },
-      },
-    },
+        }
+      : {}),
   });
   if (!existing) throw new AppError(404, "NOT_FOUND", "Review not found");
-  assertProjectIsMutable(existing.submission?.project ?? null);
+  if (softDeleteEnabled) {
+    assertProjectIsMutable((existing as typeof existing & { submission?: { project?: { deletedAt?: Date | null; purgedAt?: Date | null } | null } | null }).submission?.project ?? null);
+  }
 
   const respondedAt = new Date();
   const updated = await prisma.$transaction(async (tx) => {

@@ -13,6 +13,7 @@ import {
 } from "./reportMetrics";
 import { buildSubmissionSlaSummary } from "../sla/submissionSlaService";
 import { promoteImportedSubmissionsToWorkflow } from "../imports/importedWorkflowPromotion";
+import { getActiveProjectFilter } from "../../utils/projectSoftDelete";
 
 const RECENT_AY_WINDOW = 5;
 
@@ -553,12 +554,12 @@ export const parseReportFilters = (query: Record<string, unknown>): ReportViewFi
 
 export async function resolveReportFallbackRange(): Promise<ReportFallbackRange | null> {
   await promoteImportedSubmissionsToWorkflow();
+  const activeProjectFilter = await getActiveProjectFilter();
   const submissions = await prisma.submission.findMany({
     where: {
       sequenceNumber: 1,
       project: {
-        deletedAt: null,
-        purgedAt: null,
+        ...activeProjectFilter,
       },
     },
     select: {
@@ -683,13 +684,13 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
   await promoteImportedSubmissionsToWorkflow({
     committeeCode: filters.committee !== "ALL" ? filters.committee : undefined,
   });
+  const activeProjectFilter = await getActiveProjectFilter();
 
   const submissions = await prisma.submission.findMany({
     where: {
       sequenceNumber: 1,
       project: {
-        deletedAt: null,
-        purgedAt: null,
+        ...activeProjectFilter,
         ...(filters.committee !== "ALL"
           ? { committee: { code: filters.committee } }
           : {}),
