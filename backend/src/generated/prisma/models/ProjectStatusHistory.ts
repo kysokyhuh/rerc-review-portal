@@ -522,10 +522,6 @@ export type ProjectStatusHistoryUncheckedUpdateManyWithoutProjectNestedInput = {
   deleteMany?: Prisma.ProjectStatusHistoryScalarWhereInput | Prisma.ProjectStatusHistoryScalarWhereInput[]
 }
 
-export type NullableEnumProjectStatusFieldUpdateOperationsInput = {
-  set?: $Enums.ProjectStatus | null
-}
-
 export type ProjectStatusHistoryCreateWithoutChangedByInput = {
   oldStatus?: $Enums.ProjectStatus | null
   newStatus: $Enums.ProjectStatus

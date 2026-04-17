@@ -259,6 +259,7 @@ model User {
   // relations
   committeeMemberships            CommitteeMember[]
   projectsCreated                 Project[]                 @relation("ProjectsCreated")
+  projectsDeleted                 Project[]                 @relation("ProjectsDeleted")
   submissionsCreated              Submission[]              @relation("SubmissionsCreated")
   importBatchesUploaded           ImportBatch[]             @relation("ImportBatchUploadedBy")
   classificationsMade             Classification[]          @relation("ClassificationsClassified")
@@ -418,6 +419,13 @@ model Project {
   approvalStartDate      DateTime?
   approvalEndDate        DateTime?
   isArchived             Boolean            @default(false)
+  deletedAt              DateTime?
+  deletedBy              User?              @relation("ProjectsDeleted", fields: [deletedById], references: [id])
+  deletedById            Int?
+  deletedReason          String?
+  deletedFromStatus      ProjectStatus?
+  deletePurgeAt          DateTime?
+  purgedAt               DateTime?
   importBatch            ImportBatch?       @relation(fields: [importBatchId], references: [id])
   importBatchId          Int?
   importSourceRowNumber  Int?
@@ -438,7 +446,9 @@ model Project {
   createdById   Int?
   @@index([committeeId])
   @@index([createdById])
+  @@index([deletedById])
   @@index([importBatchId])
+  @@index([deletedAt, deletePurgeAt, purgedAt])
 }
 
 model ProtocolProfile {

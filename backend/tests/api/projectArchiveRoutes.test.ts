@@ -9,6 +9,10 @@ jest.mock("../../src/services/projects/projectService", () => {
     getProjectFull: jest.fn(),
     archiveProject: jest.fn(),
     restoreProjectArchive: jest.fn(),
+    deleteProjectRecord: jest.fn(),
+    getRecentlyDeletedProjects: jest.fn(),
+    restoreDeletedProjectRecord: jest.fn(),
+    purgeExpiredDeletedProjects: jest.fn(),
   };
 });
 
@@ -16,6 +20,10 @@ const projectService = jest.requireMock("../../src/services/projects/projectServ
   getProjectFull: jest.Mock;
   archiveProject: jest.Mock;
   restoreProjectArchive: jest.Mock;
+  deleteProjectRecord: jest.Mock;
+  getRecentlyDeletedProjects: jest.Mock;
+  restoreDeletedProjectRecord: jest.Mock;
+  purgeExpiredDeletedProjects: jest.Mock;
 };
 
 describe("project archive routes", () => {
@@ -127,6 +135,83 @@ describe("project archive routes", () => {
       10,
       "Continuing review required",
       9
+    );
+  });
+
+  it("denies non-chair-admin delete attempts", async () => {
+    const response = await request(app)
+      .post("/projects/10/delete")
+      .set(csrfHeaders)
+      .set("X-User-ID", "12")
+      .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+      .send({ reason: "Duplicate protocol" });
+
+    expect(response.status).toBe(403);
+    expect(projectService.deleteProjectRecord).not.toHaveBeenCalled();
+  });
+
+  it("deletes a project for admin users", async () => {
+    projectService.deleteProjectRecord.mockResolvedValue({
+      project: {
+        id: 10,
+        overallStatus: "ACTIVE",
+        deletedAt: new Date().toISOString(),
+      },
+    });
+
+    const response = await request(app)
+      .post("/projects/10/delete")
+      .set(csrfHeaders)
+      .set("X-User-ID", "9")
+      .set("X-User-Roles", "ADMIN")
+      .send({ reason: "Duplicate protocol" });
+
+    expect(response.status).toBe(200);
+    expect(projectService.deleteProjectRecord).toHaveBeenCalledWith(10, "Duplicate protocol", 9);
+  });
+
+  it("lists recently deleted protocols for chair users", async () => {
+    projectService.getRecentlyDeletedProjects.mockResolvedValue({
+      items: [],
+      total: 0,
+      limit: 100,
+      offset: 0,
+    });
+
+    const response = await request(app)
+      .get("/projects/recently-deleted")
+      .set("X-User-ID", "7")
+      .set("X-User-Roles", "CHAIR");
+
+    expect(response.status).toBe(200);
+    expect(projectService.getRecentlyDeletedProjects).toHaveBeenCalled();
+  });
+
+  it("restores a deleted project with target status", async () => {
+    projectService.restoreDeletedProjectRecord.mockResolvedValue({
+      project: { id: 10, overallStatus: "DRAFT" },
+      history: {
+        id: 3,
+        oldStatus: "ACTIVE",
+        newStatus: "DRAFT",
+        effectiveDate: new Date().toISOString(),
+        reason: "Restored for rework",
+      },
+    });
+
+    const response = await request(app)
+      .post("/projects/10/restore-deleted")
+      .set(csrfHeaders)
+      .set("X-User-ID", "7")
+      .set("X-User-Roles", "CHAIR")
+      .send({ reason: "Restored for rework", targetStatus: "DRAFT" });
+
+    expect(response.status).toBe(200);
+    expect(projectService.restoreDeletedProjectRecord).toHaveBeenCalledWith(
+      10,
+      "Restored for rework",
+      "DRAFT",
+      7
     );
   });
 });

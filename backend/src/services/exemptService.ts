@@ -36,6 +36,8 @@ export async function listExemptedQueue(params: ListExemptedQueueParams) {
     },
     project: {
       ...buildCommitteeWhere(params.committee),
+      deletedAt: null,
+      purgedAt: null,
       ...(params.college?.trim()
         ? {
             OR: [

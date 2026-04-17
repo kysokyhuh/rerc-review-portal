@@ -571,6 +571,16 @@ export interface ProjectDetail {
   piAffiliation: string;
   fundingType: string | null;
   overallStatus: string;
+  deletedAt?: string | null;
+  deletedReason?: string | null;
+  deletedFromStatus?: string | null;
+  deletePurgeAt?: string | null;
+  purgedAt?: string | null;
+  deletedBy?: {
+    id: number;
+    fullName: string;
+    email: string;
+  } | null;
   approvalStartDate: string | null;
   approvalEndDate: string | null;
   committee: {
@@ -795,6 +805,36 @@ export interface ArchivedProject {
 
 export interface ArchivedProjectsResponse {
   items: ArchivedProject[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface RecentlyDeletedProject {
+  projectId: number;
+  projectCode: string;
+  title: string | null;
+  piName: string | null;
+  latestSubmissionId: number | null;
+  latestSubmissionStatus: string | null;
+  receivedDate: string | null;
+  reviewType: string | null;
+  committeeCode: string | null;
+  overallStatus: string | null;
+  deletedAt: string | null;
+  deletedReason: string | null;
+  deletedFromStatus: string | null;
+  deletePurgeAt: string | null;
+  purgedAt: string | null;
+  deletedBy: {
+    id: number;
+    fullName: string;
+    email: string;
+  } | null;
+}
+
+export interface RecentlyDeletedProjectsResponse {
+  items: RecentlyDeletedProject[];
   total: number;
   limit: number;
   offset: number;

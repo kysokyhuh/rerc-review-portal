@@ -30,6 +30,11 @@ const escapeHtml = (value: string | null | undefined) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
+const ACTIVE_PROJECT_FILTER = {
+  deletedAt: null,
+  purgedAt: null,
+} as const;
+
 // Dashboard queues for classification, review, revision
 router.get("/dashboard/queues", requireUser, async (req, res, next) => {
   try {
@@ -40,6 +45,7 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
 
     const baseProject = {
       committee: { code: committeeCode },
+      ...ACTIVE_PROJECT_FILTER,
     };
     const isAssistant = req.user?.roles.includes(RoleType.RESEARCH_ASSISTANT);
     const roleScope = isAssistant
@@ -188,6 +194,7 @@ router.get("/dashboard/colleges", requireUser, async (req, res, next) => {
     const byAffiliation = await prisma.project.findMany({
       where: {
         committee: { code: committeeCode },
+        ...ACTIVE_PROJECT_FILTER,
         piAffiliation: { not: null },
       },
       select: { piAffiliation: true },
@@ -198,6 +205,7 @@ router.get("/dashboard/colleges", requireUser, async (req, res, next) => {
     const byCollegeOrUnit = await prisma.project.findMany({
       where: {
         committee: { code: committeeCode },
+        ...ACTIVE_PROJECT_FILTER,
         collegeOrUnit: { not: null },
       },
       select: { collegeOrUnit: true },
@@ -226,6 +234,7 @@ router.get("/dashboard/departments", requireUser, async (req, res, next) => {
     const departments = await prisma.project.findMany({
       where: {
         committee: { code: committeeCode },
+        ...ACTIVE_PROJECT_FILTER,
         department: { not: null },
       },
       select: { department: true },
@@ -246,6 +255,7 @@ router.get("/dashboard/proponents", requireUser, async (req, res, next) => {
     const proponents = await prisma.project.findMany({
       where: {
         committee: { code: committeeCode },
+        ...ACTIVE_PROJECT_FILTER,
         proponent: { not: null },
       },
       select: { proponent: true },
@@ -287,6 +297,7 @@ router.get("/dashboard/overdue", requireUser, async (req, res, next) => {
     const submissionWhere: Record<string, any> = {
       project: {
         committee: { code: committeeCode },
+        ...ACTIVE_PROJECT_FILTER,
       },
     };
     // Merge project-level filters
@@ -409,6 +420,7 @@ router.get("/dashboard/activity", requireUser, async (req, res, next) => {
             committee: {
               code: committeeCode,
             },
+            ...ACTIVE_PROJECT_FILTER,
           },
         },
       },
@@ -586,8 +598,14 @@ router.get("/ra/submissions/:submissionId", requireUser, async (req, res, next) 
       return res.status(400).send("Invalid submission id");
     }
 
-    const submission = await prisma.submission.findUnique({
-      where: { id: submissionId },
+    const submission = await prisma.submission.findFirst({
+      where: {
+        id: submissionId,
+        project: {
+          deletedAt: null,
+          purgedAt: null,
+        },
+      },
       include: {
         project: {
           include: {

@@ -7,6 +7,7 @@ import { requireAnyRole, requireRole, requireUser } from "../middleware/auth";
 import { validate } from "../middleware/validate";
 import {
   requireAssignedReviewerByReviewId,
+  requireMutableProjectBySubmissionId,
   requireSubmissionAccess,
 } from "../middleware/reviewerScope";
 import {
@@ -56,6 +57,7 @@ const router = Router();
 router.post(
   "/submissions/:id/screening/start",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectBySubmissionId,
   validate(startCompletenessCheckSchema),
   async (req, res, next) => {
     try {
@@ -74,6 +76,7 @@ router.post(
 router.post(
   "/submissions/:id/screening/return",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectBySubmissionId,
   validate(screeningOutcomeSchema),
   async (req, res, next) => {
     try {
@@ -92,6 +95,7 @@ router.post(
 router.post(
   "/submissions/:id/screening/not-accepted",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectBySubmissionId,
   validate(screeningOutcomeSchema),
   async (req, res, next) => {
     try {
@@ -110,6 +114,7 @@ router.post(
 router.post(
   "/submissions/:id/screening/accept",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectBySubmissionId,
   validate(acceptSubmissionForClassificationSchema),
   async (req, res, next) => {
     try {
@@ -129,6 +134,7 @@ router.post(
   "/submissions/:id/resubmit",
   requireUser,
   requireSubmissionAccess,
+  requireMutableProjectBySubmissionId,
   validate(resubmitSubmissionSchema),
   async (req, res, next) => {
     try {
@@ -148,6 +154,7 @@ router.post(
   "/submissions/:submissionId/documents",
   requireUser,
   requireSubmissionAccess,
+  requireMutableProjectBySubmissionId,
   validate(submissionDocumentSchema),
   async (req, res, next) => {
     try {
@@ -167,6 +174,7 @@ router.delete(
   "/submissions/:submissionId/documents/:documentId",
   requireUser,
   requireSubmissionAccess,
+  requireMutableProjectBySubmissionId,
   async (req, res, next) => {
     try {
       const submissionId = Number(req.params.submissionId);
@@ -186,6 +194,7 @@ router.delete(
 router.post(
   "/submissions/:submissionId/classifications",
   requireRole(RoleType.CHAIR),
+  requireMutableProjectBySubmissionId,
   validate(classifySubmissionSchema),
   async (req, res, next) => {
     try {
@@ -311,6 +320,7 @@ router.get("/submissions/:id", requireUser, requireSubmissionAccess, async (req,
 router.patch(
   "/submissions/:id/overview",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectBySubmissionId,
   validate(updateSubmissionOverviewSchema),
   async (req, res, next) => {
     try {
@@ -336,6 +346,7 @@ const CLASSIFICATION_STAGE_STATUSES = new Set([
 router.patch(
   "/submissions/:id/status",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectBySubmissionId,
   validate(updateSubmissionStatusSchema),
   async (req, res, next) => {
     try {
@@ -363,6 +374,7 @@ router.patch(
 router.post(
   "/submissions/:submissionId/reviews",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectBySubmissionId,
   validate(createReviewSchema),
   async (req, res, next) => {
     try {
@@ -414,6 +426,7 @@ router.post(
 router.post(
   "/submissions/:id/start-review",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectBySubmissionId,
   validate(startReviewSchema),
   async (req, res, next) => {
     try {
@@ -432,6 +445,7 @@ router.post(
 router.post(
   "/submissions/:id/issue-exemption",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectBySubmissionId,
   validate(issueExemptionSchema),
   async (req, res, next) => {
     try {
@@ -454,6 +468,7 @@ router.post(
 router.post(
   "/submissions/:id/final-decision",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectBySubmissionId,
   validate(finalDecisionSchema),
   async (req, res, next) => {
     try {

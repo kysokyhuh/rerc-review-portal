@@ -75,6 +75,44 @@ const compareNullableDates = (
   return dir === "asc" ? leftTime - rightTime : rightTime - leftTime;
 };
 
+const SOFT_DELETE_RETENTION_DAYS = 30;
+const ACTIVE_PROJECT_WHERE = {
+  deletedAt: null,
+  purgedAt: null,
+} as const;
+
+const addDays = (value: Date, days: number) => {
+  const next = new Date(value);
+  next.setDate(next.getDate() + days);
+  return next;
+};
+
+const assertProjectNotDeleted = (
+  project: { deletedAt: Date | null; purgedAt: Date | null },
+  message = "Project is in Recently Deleted. Restore it before making changes."
+) => {
+  if (project.purgedAt) {
+    throw new AppError(404, "NOT_FOUND", "Project not found");
+  }
+  if (project.deletedAt) {
+    throw new AppError(409, "PROJECT_DELETED", message);
+  }
+};
+
+export async function purgeExpiredDeletedProjects() {
+  const now = new Date();
+  await prisma.project.updateMany({
+    where: {
+      deletedAt: { not: null },
+      purgedAt: null,
+      deletePurgeAt: { lte: now },
+    },
+    data: {
+      purgedAt: now,
+    },
+  });
+}
+
 const promoteImportedProjectSubmissions = async (projectId: number) => {
   const submissions = await prisma.submission.findMany({
     where: {
@@ -602,6 +640,7 @@ export const syncLegacyProfileToWorkflow = async (
 /* ------------------------------------------------------------------ */
 export async function listProjects() {
   return prisma.project.findMany({
+    where: ACTIVE_PROJECT_WHERE,
     orderBy: { createdAt: "desc" },
     include: { committee: true, createdBy: true },
   });
@@ -634,6 +673,7 @@ export async function searchProjects(
 
   const projects = await prisma.project.findMany({
     where: {
+      ...ACTIVE_PROJECT_WHERE,
       ...(committeeCode ? { committee: { code: committeeCode } } : {}),
       OR: [
         { projectCode: { contains: query, mode: "insensitive" } },
@@ -669,6 +709,8 @@ export async function getArchivedProjects(params: {
   sortBy?: "lastModified" | "submitted";
   sortDir?: "asc" | "desc";
 }) {
+  await purgeExpiredDeletedProjects();
+
   const {
     committeeCode,
     limit,
@@ -685,6 +727,7 @@ export async function getArchivedProjects(params: {
     : [...ARCHIVED_PROJECT_STATUSES];
 
   const whereClause: any = {
+    ...ACTIVE_PROJECT_WHERE,
     overallStatus: { in: archiveStatuses },
   };
 
@@ -763,8 +806,11 @@ export async function getArchivedProjects(params: {
 /* ------------------------------------------------------------------ */
 export async function getProjectById(id: number) {
   await promoteImportedProjectSubmissions(id);
-  const project = await prisma.project.findUnique({
-    where: { id },
+  const project = await prisma.project.findFirst({
+    where: {
+      id,
+      ...ACTIVE_PROJECT_WHERE,
+    },
     include: {
       committee: true,
       createdBy: true,
@@ -792,8 +838,11 @@ export async function getProjectById(id: number) {
 /* ------------------------------------------------------------------ */
 export async function getProjectFull(id: number) {
   await promoteImportedProjectSubmissions(id);
-  const project = await prisma.project.findUnique({
-    where: { id },
+  const project = await prisma.project.findFirst({
+    where: {
+      id,
+      ...ACTIVE_PROJECT_WHERE,
+    },
     include: {
       committee: true,
       createdBy: true,
@@ -842,6 +891,8 @@ export async function archiveProject(
   reason: string,
   actorId: number
 ) {
+  await purgeExpiredDeletedProjects();
+
   const trimmedReason = reason.trim();
   if (!trimmedReason) {
     throw new AppError(400, "REASON_REQUIRED", "Archive reason is required");
@@ -852,6 +903,8 @@ export async function archiveProject(
     select: {
       id: true,
       overallStatus: true,
+      deletedAt: true,
+      purgedAt: true,
       submissions: {
         orderBy: [{ sequenceNumber: "desc" }, { id: "desc" }],
         take: 1,
@@ -863,6 +916,7 @@ export async function archiveProject(
   if (!project) {
     throw new AppError(404, "NOT_FOUND", "Project not found");
   }
+  assertProjectNotDeleted(project);
 
   if (ARCHIVED_PROJECT_STATUSES.includes(project.overallStatus as (typeof ARCHIVED_PROJECT_STATUSES)[number])) {
     throw new AppError(409, "ALREADY_ARCHIVED", "Project is already archived");
@@ -920,6 +974,8 @@ export async function restoreProjectArchive(
   reason: string,
   actorId: number
 ) {
+  await purgeExpiredDeletedProjects();
+
   const trimmedReason = reason.trim();
   if (!trimmedReason) {
     throw new AppError(400, "REASON_REQUIRED", "Restore reason is required");
@@ -930,12 +986,15 @@ export async function restoreProjectArchive(
     select: {
       id: true,
       overallStatus: true,
+      deletedAt: true,
+      purgedAt: true,
     },
   });
 
   if (!project) {
     throw new AppError(404, "NOT_FOUND", "Project not found");
   }
+  assertProjectNotDeleted(project);
 
   if (!ARCHIVED_PROJECT_STATUSES.includes(project.overallStatus as (typeof ARCHIVED_PROJECT_STATUSES)[number])) {
     throw new AppError(400, "NOT_ARCHIVED", "Project is not currently archived");
@@ -975,12 +1034,271 @@ export async function restoreProjectArchive(
   return updated;
 }
 
+export async function deleteProjectRecord(
+  projectId: number,
+  reason: string,
+  actorId: number
+) {
+  await purgeExpiredDeletedProjects();
+
+  const trimmedReason = reason.trim();
+  if (!trimmedReason) {
+    throw new AppError(400, "REASON_REQUIRED", "Delete reason is required");
+  }
+
+  const now = new Date();
+  const purgeAt = addDays(now, SOFT_DELETE_RETENTION_DAYS);
+
+  const project = await prisma.project.findFirst({
+    where: {
+      id: projectId,
+      purgedAt: null,
+    },
+    select: {
+      id: true,
+      overallStatus: true,
+      deletedAt: true,
+      purgedAt: true,
+    },
+  });
+
+  if (!project) {
+    throw new AppError(404, "NOT_FOUND", "Project not found");
+  }
+
+  if (project.deletedAt) {
+    throw new AppError(409, "ALREADY_DELETED", "Project is already in Recently Deleted");
+  }
+
+  const updatedProject = await prisma.project.update({
+    where: { id: projectId },
+    data: {
+      deletedAt: now,
+      deletedById: actorId,
+      deletedReason: trimmedReason,
+      deletedFromStatus: project.overallStatus,
+      deletePurgeAt: purgeAt,
+      purgedAt: null,
+    },
+    select: {
+      id: true,
+      overallStatus: true,
+      deletedAt: true,
+      deletePurgeAt: true,
+      deletedReason: true,
+      deletedFromStatus: true,
+      deletedBy: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  return { project: updatedProject };
+}
+
+export async function restoreDeletedProjectRecord(
+  projectId: number,
+  reason: string,
+  targetStatus: ProjectStatus,
+  actorId: number
+) {
+  await purgeExpiredDeletedProjects();
+
+  const trimmedReason = reason.trim();
+  if (!trimmedReason) {
+    throw new AppError(400, "REASON_REQUIRED", "Restore reason is required");
+  }
+
+  const project = await prisma.project.findFirst({
+    where: {
+      id: projectId,
+      purgedAt: null,
+    },
+    select: {
+      id: true,
+      overallStatus: true,
+      deletedAt: true,
+      purgedAt: true,
+    },
+  });
+
+  if (!project) {
+    throw new AppError(404, "NOT_FOUND", "Project not found");
+  }
+
+  if (!project.deletedAt) {
+    throw new AppError(400, "NOT_DELETED", "Project is not in Recently Deleted");
+  }
+
+  const restored = await prisma.$transaction(async (tx) => {
+    const nextProject = await tx.project.update({
+      where: { id: projectId },
+      data: {
+        overallStatus: targetStatus,
+        deletedAt: null,
+        deletedById: null,
+        deletedReason: null,
+        deletedFromStatus: null,
+        deletePurgeAt: null,
+        purgedAt: null,
+      },
+      select: {
+        id: true,
+        overallStatus: true,
+      },
+    });
+
+    const history = await tx.projectStatusHistory.create({
+      data: {
+        projectId,
+        oldStatus: project.overallStatus,
+        newStatus: targetStatus,
+        reason: trimmedReason,
+        changedById: actorId,
+      },
+      include: {
+        changedBy: {
+          select: {
+            fullName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    return { project: nextProject, history };
+  });
+
+  return restored;
+}
+
+export async function getRecentlyDeletedProjects(params: {
+  committeeCode?: string | null;
+  limit: number;
+  offset: number;
+  search?: string | null;
+  statusFilter?: string | null;
+  reviewTypeFilter?: string | null;
+  collegeFilter?: string | null;
+  sortBy?: "lastModified" | "submitted";
+  sortDir?: "asc" | "desc";
+}) {
+  await purgeExpiredDeletedProjects();
+
+  const {
+    committeeCode,
+    limit,
+    offset,
+    search,
+    statusFilter,
+    reviewTypeFilter,
+    collegeFilter,
+    sortBy = "lastModified",
+    sortDir = "desc",
+  } = params;
+
+  const normalizedStatusFilter =
+    Object.values(ProjectStatus).includes(statusFilter as ProjectStatus)
+      ? (statusFilter as ProjectStatus)
+      : null;
+
+  const whereClause: Prisma.ProjectWhereInput = {
+    deletedAt: { not: null },
+    purgedAt: null,
+    ...(normalizedStatusFilter ? { deletedFromStatus: normalizedStatusFilter } : {}),
+    ...(committeeCode ? { committee: { code: committeeCode } } : {}),
+    ...(collegeFilter ? { piAffiliation: { equals: collegeFilter, mode: "insensitive" } } : {}),
+    ...(search
+      ? {
+          OR: [
+            { projectCode: { contains: search, mode: "insensitive" } },
+            { title: { contains: search, mode: "insensitive" } },
+            { piName: { contains: search, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
+
+  const projects = await prisma.project.findMany({
+    where: whereClause,
+    include: {
+      submissions: {
+        orderBy: [{ sequenceNumber: "desc" }, { id: "desc" }],
+        take: 1,
+        include: { classification: { select: { reviewType: true } } },
+      },
+      committee: { select: { code: true, name: true } },
+      deletedBy: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  const filtered = projects.filter((project) => {
+    const latestSubmission = project.submissions[0];
+    if (reviewTypeFilter && latestSubmission?.classification?.reviewType !== reviewTypeFilter) {
+      return false;
+    }
+    return true;
+  });
+
+  filtered.sort((left, right) => {
+    if (sortBy === "submitted") {
+      const leftReceived = left.submissions[0]?.receivedDate ?? left.initialSubmissionDate;
+      const rightReceived = right.submissions[0]?.receivedDate ?? right.initialSubmissionDate;
+      return compareNullableDates(leftReceived, rightReceived, sortDir);
+    }
+    return compareNullableDates(left.deletedAt ?? left.updatedAt, right.deletedAt ?? right.updatedAt, sortDir);
+  });
+
+  const items = filtered.slice(offset, offset + limit).map((project) => {
+    const latestSubmission = project.submissions[0];
+    return {
+      projectId: project.id,
+      projectCode: project.projectCode,
+      title: project.title,
+      piName: project.piName,
+      latestSubmissionId: latestSubmission?.id ?? null,
+      latestSubmissionStatus: latestSubmission?.status ?? null,
+      receivedDate: latestSubmission?.receivedDate ?? project.initialSubmissionDate,
+      reviewType: latestSubmission?.classification?.reviewType ?? null,
+      committeeCode: project.committee?.code ?? null,
+      overallStatus: project.overallStatus,
+      deletedAt: project.deletedAt,
+      deletedReason: project.deletedReason,
+      deletedFromStatus: project.deletedFromStatus,
+      deletePurgeAt: project.deletePurgeAt,
+      purgedAt: project.purgedAt,
+      deletedBy: project.deletedBy
+        ? {
+            id: project.deletedBy.id,
+            fullName: project.deletedBy.fullName,
+            email: project.deletedBy.email,
+          }
+        : null,
+    };
+  });
+
+  return { items, total: filtered.length, limit, offset };
+}
+
 /* ------------------------------------------------------------------ */
 /*  Get profile + milestones                                           */
 /* ------------------------------------------------------------------ */
 export async function getProjectProfile(projectId: number) {
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
+  const project = await prisma.project.findFirst({
+    where: {
+      id: projectId,
+      ...ACTIVE_PROJECT_WHERE,
+    },
     select: {
       id: true,
       origin: true,
@@ -1023,9 +1341,12 @@ export async function upsertProjectProfile(
       id: true,
       committeeId: true,
       overallStatus: true,
+      deletedAt: true,
+      purgedAt: true,
     },
   });
   if (!project) throw new AppError(404, "NOT_FOUND", "Project not found");
+  assertProjectNotDeleted(project);
 
   const changeReason = asNullableString(payload._meta?.changeReason);
   const sourceSubmissionId = payload._meta?.sourceSubmissionId
@@ -1156,6 +1477,17 @@ export async function upsertProjectProfile(
 /*  Milestones CRUD                                                    */
 /* ------------------------------------------------------------------ */
 export async function createMilestone(projectId: number, body: Record<string, any>) {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: {
+      id: true,
+      deletedAt: true,
+      purgedAt: true,
+    },
+  });
+  if (!project) throw new AppError(404, "NOT_FOUND", "Project not found");
+  assertProjectNotDeleted(project);
+
   const label = asNullableString(body?.label);
   if (!label) throw new AppError(400, "VALIDATION_ERROR", "label is required");
 
@@ -1177,6 +1509,17 @@ export async function updateMilestone(
   milestoneId: number,
   body: Record<string, any>
 ) {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: {
+      id: true,
+      deletedAt: true,
+      purgedAt: true,
+    },
+  });
+  if (!project) throw new AppError(404, "NOT_FOUND", "Project not found");
+  assertProjectNotDeleted(project);
+
   const existing = await prisma.protocolMilestone.findUnique({
     where: { id: milestoneId },
     select: { id: true, projectId: true },
@@ -1199,6 +1542,17 @@ export async function updateMilestone(
 }
 
 export async function deleteMilestone(projectId: number, milestoneId: number) {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: {
+      id: true,
+      deletedAt: true,
+      purgedAt: true,
+    },
+  });
+  if (!project) throw new AppError(404, "NOT_FOUND", "Project not found");
+  assertProjectNotDeleted(project);
+
   const existing = await prisma.protocolMilestone.findUnique({
     where: { id: milestoneId },
     select: { id: true, projectId: true },
@@ -1247,11 +1601,17 @@ export async function createSubmissionForProject(
 
   const project = await prisma.project.findUnique({
     where: { id: projectId },
-    select: { id: true, projectCode: true },
+    select: {
+      id: true,
+      projectCode: true,
+      deletedAt: true,
+      purgedAt: true,
+    },
   });
   if (!project) {
     throw new AppError(404, "NOT_FOUND", "Project not found");
   }
+  assertProjectNotDeleted(project);
 
   const allowedCompleteness = ["COMPLETE", "MINOR_MISSING", "MAJOR_MISSING", "MISSING_SIGNATURES", "OTHER"];
   if (body.completenessStatus && !allowedCompleteness.includes(body.completenessStatus)) {

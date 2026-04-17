@@ -554,7 +554,13 @@ export const parseReportFilters = (query: Record<string, unknown>): ReportViewFi
 export async function resolveReportFallbackRange(): Promise<ReportFallbackRange | null> {
   await promoteImportedSubmissionsToWorkflow();
   const submissions = await prisma.submission.findMany({
-    where: { sequenceNumber: 1 },
+    where: {
+      sequenceNumber: 1,
+      project: {
+        deletedAt: null,
+        purgedAt: null,
+      },
+    },
     select: {
       createdAt: true,
       receivedDate: true,
@@ -682,6 +688,8 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
     where: {
       sequenceNumber: 1,
       project: {
+        deletedAt: null,
+        purgedAt: null,
         ...(filters.committee !== "ALL"
           ? { committee: { code: filters.committee } }
           : {}),

@@ -250,6 +250,20 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
                 }
               />
             </NavLink>
+            {user?.roles.some((role) => role === "CHAIR" || role === "ADMIN") ? (
+              <NavLink to="/recently-deleted" className={navClassName}>
+                <SidebarItemContent
+                  label="Recently Deleted"
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 6h18" />
+                      <path d="M8 6V4h8v2" />
+                      <path d="M6 6l1 14h10l1-14" />
+                    </svg>
+                  }
+                />
+              </NavLink>
+            ) : null}
             <NavLink to="/calendar" className={navClassName}>
               <SidebarItemContent
                 label="Calendar"

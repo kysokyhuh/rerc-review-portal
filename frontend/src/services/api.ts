@@ -40,6 +40,8 @@ export type {
   CreateProjectResponse,
   ArchivedProject,
   ArchivedProjectsResponse,
+  RecentlyDeletedProject,
+  RecentlyDeletedProjectsResponse,
   ExemptedQueueItem,
   ExemptedQueueResponse,
   ReportsAcademicYearOption,
@@ -83,6 +85,7 @@ import type {
   CreateProjectPayload,
   CreateProjectResponse,
   ArchivedProjectsResponse,
+  RecentlyDeletedProjectsResponse,
   ExemptedQueueResponse,
   ReportsAcademicYearOption,
   ReportsAcademicYearsResponse,
@@ -775,6 +778,53 @@ export async function restoreProjectRecord(
   };
 }
 
+export async function deleteProjectRecord(
+  projectId: number,
+  payload: {
+    reason: string;
+  }
+) {
+  const response = await api.post(`/projects/${projectId}/delete`, payload);
+  return response.data as {
+    project: {
+      id: number;
+      overallStatus: string;
+      deletedAt: string | null;
+      deletePurgeAt: string | null;
+      deletedReason: string | null;
+      deletedFromStatus: string | null;
+      deletedBy: {
+        id: number;
+        fullName: string;
+        email: string;
+      } | null;
+    };
+  };
+}
+
+export async function restoreDeletedProjectRecord(
+  projectId: number,
+  payload: {
+    reason: string;
+    targetStatus: "DRAFT" | "ACTIVE" | "INACTIVE" | "WITHDRAWN" | "CLOSED";
+  }
+) {
+  const response = await api.post(`/projects/${projectId}/restore-deleted`, payload);
+  return response.data as {
+    project: {
+      id: number;
+      overallStatus: string;
+    };
+    history: {
+      id: number;
+      oldStatus: string | null;
+      newStatus: string;
+      effectiveDate: string;
+      reason: string | null;
+    };
+  };
+}
+
 export async function fetchSubmissionDetail(submissionId: number) {
   const response = await api.get(`/submissions/${submissionId}`);
   return response.data as SubmissionDetail;
@@ -1101,6 +1151,34 @@ export async function fetchArchivedProjects(params?: {
   const url = `/projects/archived${query ? `?${query}` : ""}`;
   const response = await api.get(url);
   return response.data as ArchivedProjectsResponse;
+}
+
+export async function fetchRecentlyDeletedProjects(params?: {
+  committeeCode?: string;
+  limit?: number;
+  offset?: number;
+  search?: string;
+  status?: string;
+  reviewType?: string;
+  college?: string;
+  sortBy?: "lastModified" | "submitted";
+  sortDir?: "asc" | "desc";
+}) {
+  const searchParams = new URLSearchParams();
+  if (params?.committeeCode) searchParams.set("committeeCode", params.committeeCode);
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+  if (params?.offset) searchParams.set("offset", String(params.offset));
+  if (params?.search) searchParams.set("search", params.search);
+  if (params?.status) searchParams.set("status", params.status);
+  if (params?.reviewType) searchParams.set("reviewType", params.reviewType);
+  if (params?.college) searchParams.set("college", params.college);
+  if (params?.sortBy) searchParams.set("sortBy", params.sortBy);
+  if (params?.sortDir) searchParams.set("sortDir", params.sortDir);
+
+  const query = searchParams.toString();
+  const url = `/projects/recently-deleted${query ? `?${query}` : ""}`;
+  const response = await api.get(url);
+  return response.data as RecentlyDeletedProjectsResponse;
 }
 
 export async function fetchExemptedQueue(params?: {

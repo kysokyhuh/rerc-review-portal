@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Link, useParams, useLocation } from "react-router-dom";
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useProjectDetail } from "@/hooks/useProjectDetail";
 import {
   archiveProjectRecord,
   createProtocolMilestone,
+  deleteProjectRecord,
   deleteProtocolMilestone,
   exportInitialAckCSV,
   exportInitialApprovalDocx,
@@ -39,11 +40,13 @@ const STANDARD_MILESTONES: { label: string; ownerRole: string }[] = [
 type ArchiveDialogState =
   | { kind: "archive"; mode: "CLOSED" | "WITHDRAWN" }
   | { kind: "restore" }
+  | { kind: "delete" }
   | null;
 
 export const ProjectDetailPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [exporting, setExporting] = useState<string | null>(null);
   const [profileEditing, setProfileEditing] = useState(false);
@@ -113,6 +116,7 @@ export const ProjectDetailPage: React.FC = () => {
   const canArchiveAsWithdrawn =
     canManageArchive && !isArchived && latestSubmission?.status === "WITHDRAWN";
   const canRestoreArchive = canManageArchive && isArchived;
+  const canDeleteProtocol = canManageArchive;
   const legacySnapshot = project.legacyImportSnapshot ?? null;
   const latestArchiveEvent = (project.statusHistory ?? []).find(
     (entry) => entry.newStatus === "CLOSED" || entry.newStatus === "WITHDRAWN"
@@ -216,15 +220,23 @@ export const ProjectDetailPage: React.FC = () => {
           mode: archiveDialog.mode,
           reason: trimmedReason,
         });
-      } else {
+        await reloadProject();
+      } else if (archiveDialog.kind === "restore") {
         await restoreProjectRecord(project.id, {
           reason: trimmedReason,
         });
+        await reloadProject();
+      } else {
+        await deleteProjectRecord(project.id, {
+          reason: trimmedReason,
+        });
+        closeArchiveDialog();
+        navigate("/recently-deleted", { replace: true });
+        return;
       }
-      await reloadProject();
       closeArchiveDialog();
     } catch (err: unknown) {
-      setArchiveError(getErrorMessage(err, "Failed to update archive status."));
+      setArchiveError(getErrorMessage(err, "Failed to update protocol status."));
     } finally {
       setArchiveSubmitting(false);
     }
@@ -340,7 +352,7 @@ export const ProjectDetailPage: React.FC = () => {
             <span className={`badge badge-lg ${getStatusVariant(project.overallStatus)}`}>
               {project.overallStatus.replace(/_/g, ' ')}
             </span>
-            {canArchiveAsCompleted || canArchiveAsWithdrawn || canRestoreArchive ? (
+            {canArchiveAsCompleted || canArchiveAsWithdrawn || canRestoreArchive || canDeleteProtocol ? (
               <div className="archive-hero-actions">
                 {canArchiveAsCompleted ? (
                   <button
@@ -367,6 +379,15 @@ export const ProjectDetailPage: React.FC = () => {
                     onClick={() => openArchiveDialog({ kind: "restore" })}
                   >
                     Restore from Archive
+                  </button>
+                ) : null}
+                {canDeleteProtocol ? (
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => openArchiveDialog({ kind: "delete" })}
+                  >
+                    Delete Protocol
                   </button>
                 ) : null}
               </div>
@@ -688,6 +709,8 @@ export const ProjectDetailPage: React.FC = () => {
                 <h3>
                   {archiveDialog.kind === "restore"
                     ? "Restore Archived Protocol"
+                    : archiveDialog.kind === "delete"
+                    ? "Delete Protocol"
                     : archiveDialog.mode === "CLOSED"
                     ? "Archive as Completed"
                     : "Archive as Withdrawn"}
@@ -695,6 +718,8 @@ export const ProjectDetailPage: React.FC = () => {
                 <p>
                   {archiveDialog.kind === "restore"
                     ? "Restoring makes the protocol active again for future lifecycle work."
+                    : archiveDialog.kind === "delete"
+                    ? "Deleting moves this protocol to Recently Deleted for 30 days. It becomes read-only until restored."
                     : archiveDialog.mode === "CLOSED"
                     ? "This marks the protocol itself as archived after its finished review cycle."
                     : "This archives the protocol after its withdrawal has already been recorded."}
@@ -723,6 +748,8 @@ export const ProjectDetailPage: React.FC = () => {
                 placeholder={
                   archiveDialog.kind === "restore"
                     ? "Explain why this protocol should be restored."
+                    : archiveDialog.kind === "delete"
+                    ? "Explain why this protocol is being deleted."
                     : "Explain why this protocol is being archived."
                 }
                 disabled={archiveSubmitting}
@@ -751,9 +778,13 @@ export const ProjectDetailPage: React.FC = () => {
                 {archiveSubmitting
                   ? archiveDialog.kind === "restore"
                     ? "Restoring..."
+                    : archiveDialog.kind === "delete"
+                    ? "Deleting..."
                     : "Archiving..."
                   : archiveDialog.kind === "restore"
                   ? "Confirm Restore"
+                  : archiveDialog.kind === "delete"
+                  ? "Confirm Delete"
                   : "Confirm Archive"}
               </button>
             </div>

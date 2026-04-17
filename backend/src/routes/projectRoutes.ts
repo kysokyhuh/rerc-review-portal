@@ -5,7 +5,10 @@ import { Router } from "express";
 import prisma from "../config/prismaClient";
 import { RoleType } from "../generated/prisma/client";
 import { requireAnyRole, requireUser } from "../middleware/auth";
-import { requireProjectAccess } from "../middleware/reviewerScope";
+import {
+  requireMutableProjectByProjectId,
+  requireProjectAccess,
+} from "../middleware/reviewerScope";
 import { validate } from "../middleware/validate";
 import {
   createPortalInitialSubmission,
@@ -17,6 +20,7 @@ import {
   listProjects,
   searchProjects,
   getArchivedProjects,
+  getRecentlyDeletedProjects,
   getProjectById,
   getProjectFull,
   getProjectProfile,
@@ -26,7 +30,10 @@ import {
   deleteMilestone,
   createSubmissionForProject,
   archiveProject,
+  deleteProjectRecord,
   restoreProjectArchive,
+  restoreDeletedProjectRecord,
+  purgeExpiredDeletedProjects,
 } from "../services/projects/projectService";
 import {
   archiveProjectSchema,
@@ -35,6 +42,8 @@ import {
   createMilestoneSchema,
   createProjectSchema,
   createProjectSubmissionSchema,
+  deleteProjectSchema,
+  restoreDeletedProjectSchema,
   restoreProjectSchema,
   updateMilestoneSchema,
   updateProjectProfileSchema,
@@ -99,6 +108,7 @@ router.post(
   "/projects/:projectId/follow-up-submissions",
   requireUser,
   requireProjectAccess,
+  requireMutableProjectByProjectId,
   validate(createPortalFollowUpSubmissionSchema),
   async (req, res, next) => {
     try {
@@ -151,6 +161,7 @@ router.get("/projects/search", requireUser, async (req, res, next) => {
 // Archived projects
 router.get("/projects/archived", requireUser, async (req, res, next) => {
   try {
+    await purgeExpiredDeletedProjects();
     const rawLimit = Number(req.query.limit || 100);
     const result = await getArchivedProjects({
       committeeCode: req.query.committeeCode ? String(req.query.committeeCode) : null,
@@ -175,6 +186,36 @@ router.get("/projects/archived", requireUser, async (req, res, next) => {
   }
 });
 
+router.get(
+  "/projects/recently-deleted",
+  requireAnyRole([RoleType.CHAIR, RoleType.ADMIN]),
+  async (req, res, next) => {
+    try {
+      const rawLimit = Number(req.query.limit || 100);
+      const result = await getRecentlyDeletedProjects({
+        committeeCode: req.query.committeeCode ? String(req.query.committeeCode) : null,
+        limit: Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 500) : 100,
+        offset: Number(req.query.offset || 0),
+        search: req.query.search ? String(req.query.search).trim() : null,
+        statusFilter: req.query.status ? String(req.query.status).trim() : null,
+        reviewTypeFilter: req.query.reviewType ? String(req.query.reviewType).trim() : null,
+        collegeFilter: req.query.college ? String(req.query.college).trim() : null,
+        sortBy:
+          req.query.sortBy === "submitted" || req.query.sortBy === "lastModified"
+            ? (req.query.sortBy as "submitted" | "lastModified")
+            : "lastModified",
+        sortDir:
+          req.query.sortDir === "asc" || req.query.sortDir === "desc"
+            ? (req.query.sortDir as "asc" | "desc")
+            : "desc",
+      });
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 router.post(
   "/projects/:id/archive",
   requireAnyRole([RoleType.CHAIR, RoleType.ADMIN]),
@@ -192,6 +233,22 @@ router.post(
 );
 
 router.post(
+  "/projects/:id/delete",
+  requireAnyRole([RoleType.CHAIR, RoleType.ADMIN]),
+  validate(deleteProjectSchema),
+  async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) return res.status(400).json({ message: "Invalid project id" });
+      const result = await deleteProjectRecord(id, req.body.reason, req.user!.id);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
   "/projects/:id/restore",
   requireAnyRole([RoleType.CHAIR, RoleType.ADMIN]),
   validate(restoreProjectSchema),
@@ -200,6 +257,27 @@ router.post(
       const id = Number(req.params.id);
       if (Number.isNaN(id)) return res.status(400).json({ message: "Invalid project id" });
       const result = await restoreProjectArchive(id, req.body.reason, req.user!.id);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
+  "/projects/:id/restore-deleted",
+  requireAnyRole([RoleType.CHAIR, RoleType.ADMIN]),
+  validate(restoreDeletedProjectSchema),
+  async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) return res.status(400).json({ message: "Invalid project id" });
+      const result = await restoreDeletedProjectRecord(
+        id,
+        req.body.reason,
+        req.body.targetStatus,
+        req.user!.id
+      );
       res.json(result);
     } catch (error) {
       next(error);
@@ -247,6 +325,7 @@ router.get("/projects/:id/profile", requireUser, requireProjectAccess, async (re
 router.put(
   "/projects/:id/profile",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectByProjectId,
   validate(updateProjectProfileSchema),
   async (req, res, next) => {
     try {
@@ -264,6 +343,7 @@ router.put(
 router.post(
   "/projects/:id/profile/milestones",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectByProjectId,
   validate(createMilestoneSchema),
   async (req, res, next) => {
     try {
@@ -281,6 +361,7 @@ router.post(
 router.patch(
   "/projects/:id/profile/milestones/:milestoneId",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectByProjectId,
   validate(updateMilestoneSchema),
   async (req, res, next) => {
     try {
@@ -301,6 +382,7 @@ router.patch(
 router.delete(
   "/projects/:id/profile/milestones/:milestoneId",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectByProjectId,
   async (req, res, next) => {
     try {
       const projectId = Number(req.params.id);
@@ -320,6 +402,7 @@ router.delete(
 router.post(
   "/projects/:projectId/submissions",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectByProjectId,
   validate(createProjectSubmissionSchema),
   async (req, res, next) => {
     try {

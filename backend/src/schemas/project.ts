@@ -175,3 +175,16 @@ export const restoreProjectSchema = z
     reason: z.string().trim().min(1, "reason is required").max(1000),
   })
   .strict();
+
+export const deleteProjectSchema = z
+  .object({
+    reason: z.string().trim().min(1, "reason is required").max(1000),
+  })
+  .strict();
+
+export const restoreDeletedProjectSchema = z
+  .object({
+    reason: z.string().trim().min(1, "reason is required").max(1000),
+    targetStatus: z.enum(["DRAFT", "ACTIVE", "INACTIVE", "WITHDRAWN", "CLOSED"]),
+  })
+  .strict();

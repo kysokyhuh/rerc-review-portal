@@ -8,6 +8,9 @@ jest.mock("../../src/config/prismaClient", () => ({
     review: {
       findUnique: jest.fn(),
     },
+    submission: {
+      findUnique: jest.fn(),
+    },
   },
 }));
 
@@ -28,6 +31,9 @@ jest.mock("../../src/services/submissions/submissionService", () => {
 
 const prisma = prismaClient as unknown as {
   review: {
+    findUnique: jest.Mock;
+  };
+  submission: {
     findUnique: jest.Mock;
   };
 };
@@ -51,6 +57,12 @@ describe("submission RBAC", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    prisma.submission.findUnique.mockResolvedValue({
+      project: {
+        deletedAt: null,
+        purgedAt: null,
+      },
+    });
   });
 
   it("denies assistant when not assigned to the review", async () => {
@@ -178,5 +190,24 @@ describe("submission RBAC", () => {
 
     expect(response.status).toBe(403);
     expect(submissionService.bulkCreateSubmissionReminders).not.toHaveBeenCalled();
+  });
+
+  it("blocks submission mutation when parent project is deleted", async () => {
+    prisma.submission.findUnique.mockResolvedValue({
+      project: {
+        deletedAt: new Date().toISOString(),
+        purgedAt: null,
+      },
+    });
+
+    const response = await request(app)
+      .patch("/submissions/10/status")
+      .set(csrfHeaders)
+      .set("X-User-ID", "7")
+      .set("X-User-Roles", "CHAIR")
+      .send({ newStatus: "UNDER_CLASSIFICATION" });
+
+    expect(response.status).toBe(409);
+    expect(submissionService.updateSubmissionStatus).not.toHaveBeenCalled();
   });
 });

@@ -65,6 +65,8 @@ type BulkSubmissionContext = {
   status: SubmissionStatus;
   project: {
     projectCode: string | null;
+    deletedAt: Date | null;
+    purgedAt: Date | null;
   } | null;
   classification: {
     reviewType: ReviewType;
@@ -97,6 +99,21 @@ const requireReason = (value: string | null, actionLabel: string) => {
     throw new AppError(400, "REASON_REQUIRED", `${actionLabel} requires a reason`);
   }
   return value;
+};
+
+const assertProjectIsMutable = (
+  project: { deletedAt: Date | null; purgedAt: Date | null } | null
+) => {
+  if (!project || project.purgedAt) {
+    throw new AppError(404, "NOT_FOUND", "Submission not found");
+  }
+  if (project.deletedAt) {
+    throw new AppError(
+      409,
+      "PROJECT_DELETED",
+      "Project is in Recently Deleted. Restore it before making changes."
+    );
+  }
 };
 
 const normalizeReviewerRoles = (value?: string | null) => {
@@ -268,6 +285,8 @@ async function getBulkSubmissionContexts(submissionIds: number[]) {
       project: {
         select: {
           projectCode: true,
+          deletedAt: true,
+          purgedAt: true,
         },
       },
       classification: {
@@ -1467,6 +1486,8 @@ export async function bulkAssignReviewerToSubmissions(
     }
 
     try {
+      assertProjectIsMutable(context.project);
+
       const review = await assignReviewer(
         submissionId,
         data.reviewerId,
@@ -1505,6 +1526,8 @@ const requireBulkStatusActionPreconditions = (
   action: BulkStatusAction,
   reason: string | null
 ) => {
+  assertProjectIsMutable(context.project);
+
   if (action === "RETURN_FOR_COMPLETION") {
     requireReason(reason, "Returning a submission for completion");
     return;
@@ -1738,6 +1761,8 @@ export async function bulkCreateSubmissionReminders(
     }
 
     try {
+      assertProjectIsMutable(context.project);
+
       const reminder = await prisma.submissionReminderLog.create({
         data: {
           submissionId,
@@ -1791,8 +1816,23 @@ export async function recordReviewDecision(
   actorId: number,
   remarks?: string
 ) {
-  const existing = await prisma.review.findUnique({ where: { id: reviewId } });
+  const existing = await prisma.review.findUnique({
+    where: { id: reviewId },
+    include: {
+      submission: {
+        select: {
+          project: {
+            select: {
+              deletedAt: true,
+              purgedAt: true,
+            },
+          },
+        },
+      },
+    },
+  });
   if (!existing) throw new AppError(404, "NOT_FOUND", "Review not found");
+  assertProjectIsMutable(existing.submission?.project ?? null);
 
   const respondedAt = new Date();
   const updated = await prisma.$transaction(async (tx) => {

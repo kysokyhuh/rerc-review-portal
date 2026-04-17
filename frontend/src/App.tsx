@@ -27,6 +27,7 @@ const ImportProjectsPage = lazy(() => import("@/pages/ImportProjectsPage"));
 const NewProtocolPage = lazy(() => import("@/pages/NewProtocolPage"));
 const NewProtocolClassicPage = lazy(() => import("@/pages/NewProtocolClassicPage"));
 const ArchivesPage = lazy(() => import("@/pages/ArchivesPage"));
+const RecentlyDeletedPage = lazy(() => import("@/pages/RecentlyDeletedPage"));
 const ReportsPage = lazy(() => import("@/pages/ReportsPage"));
 const QueuePage = lazy(() => import("@/pages/QueuePage"));
 const ExemptedPage = lazy(() => import("@/pages/ExemptedPage"));
@@ -178,6 +179,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <ArchivesPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/recently-deleted"
+                  element={
+                    <ProtectedRoute allowedRoles={["CHAIR", "ADMIN"]}>
+                      <RecentlyDeletedPage />
                     </ProtectedRoute>
                   }
                 />
