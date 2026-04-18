@@ -36,6 +36,8 @@ type OverdueOwnerFilter =
 
 interface SubmissionsTableProps {
   loading: boolean;
+  loadError: string | null;
+  onRetryLoad: () => void;
   filteredItems: DecoratedQueueItem[];
   allItems: DecoratedQueueItem[];
   classificationQueue: DecoratedQueueItem[];
@@ -89,6 +91,8 @@ const SKELETON_ROWS = Array.from({ length: 6 }, (_, i) => i);
 
 export function SubmissionsTable({
   loading,
+  loadError,
+  onRetryLoad,
   filteredItems,
   allItems,
   classificationQueue,
@@ -242,7 +246,18 @@ export function SubmissionsTable({
 
           {/* Table body */}
           <div className="panel-body no-padding">
-            {loading && filteredItems.length === 0 ? (
+            {loadError && filteredItems.length === 0 ? (
+              <div className="empty-state" role="alert">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                </svg>
+                <h3>Unable to load queue data</h3>
+                <p>{loadError}</p>
+                <button className="ghost-btn" type="button" onClick={onRetryLoad}>
+                  Retry
+                </button>
+              </div>
+            ) : loading && filteredItems.length === 0 ? (
               <table className="data-table table-skeleton">
                 <thead>
                   <tr>

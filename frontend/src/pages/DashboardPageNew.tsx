@@ -269,22 +269,6 @@ export const DashboardPage: React.FC = () => {
     setQuickViewOpen(true);
   };
 
-  // ── Error state ────────────────────────────────────────
-  if (error) {
-    return (
-      <div className="dashboard-content portal-page">
-        <div className="empty-state" style={{ minHeight: "50vh", display: "flex", flexDirection: "column", justifyContent: "center" }} role="alert">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-          <h3>Unable to load dashboard</h3>
-          <p>{error}</p>
-          <button onClick={handleRefresh} style={{ marginTop: 16, padding: "10px 20px", background: "#0F7744", color: "white", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // ── Render ─────────────────────────────────────────────
   return (
     <div className={`dashboard-content portal-page portal-page--dense ${fromLogin ? "dashboard-enter" : ""} ${loading ? "is-loading" : "is-ready"}`}>
@@ -315,6 +299,37 @@ export const DashboardPage: React.FC = () => {
         </section>
       ) : null}
 
+      {error ? (
+        <section className="portal-support">
+          <div
+            className="panel"
+            role="alert"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 16,
+              padding: "16px 18px",
+              borderColor: "rgba(175, 48, 41, 0.18)",
+              background: "linear-gradient(135deg, rgba(255, 243, 240, 0.96), rgba(255, 255, 255, 0.98))",
+            }}
+          >
+            <div style={{ display: "grid", gap: 4 }}>
+              <strong style={{ color: "#8A2E24" }}>Dashboard data is temporarily unavailable</strong>
+              <span style={{ color: "#5A5F6B" }}>{error}</span>
+            </div>
+            <button
+              type="button"
+              className="topbar-btn"
+              onClick={handleRefresh}
+              style={{ whiteSpace: "nowrap" }}
+            >
+              Retry
+            </button>
+          </div>
+        </section>
+      ) : null}
+
       <section className="portal-summary">
         <StatsGrid
           counts={counts}
@@ -327,6 +342,8 @@ export const DashboardPage: React.FC = () => {
       <section className="portal-content">
         <SubmissionsTable
           loading={loading}
+          loadError={error}
+          onRetryLoad={handleRefresh}
           filteredItems={filteredItems}
           allItems={allItems}
           classificationQueue={classificationQueue}
