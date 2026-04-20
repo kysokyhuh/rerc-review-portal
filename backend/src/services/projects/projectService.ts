@@ -645,7 +645,7 @@ export const syncLegacyProfileToWorkflow = async (
         : params.projectStatus;
 
   if (nextProjectStatus !== params.projectStatus) {
-    await tx.project.update({
+    await tx.project.updateMany({
       where: { id: params.projectId },
       data: { overallStatus: nextProjectStatus },
     });

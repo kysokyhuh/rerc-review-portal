@@ -698,8 +698,12 @@ export const parseProjectCsvUnknownFormat = (
   if (looksLikeLegacyHeaderRow(firstRow)) {
     detectedFormat = "legacy_headered";
     detectedHeaders = [...LEGACY_WIDE_COLUMNS];
-    dataRows = records.slice(1);
-    firstDataRowNumber = 2;
+    const firstLegacyDataIndex = records.findIndex(
+      (row, index) => index > 0 && looksLikeLegacyHeaderlessRow(row)
+    );
+    dataRows =
+      firstLegacyDataIndex > 0 ? records.slice(firstLegacyDataIndex) : records.slice(1);
+    firstDataRowNumber = firstLegacyDataIndex > 0 ? firstLegacyDataIndex + 1 : 2;
   } else if (looksLikeLegacyHeaderlessRow(firstRow)) {
     detectedFormat = "legacy_headerless";
     detectedHeaders = [...LEGACY_WIDE_COLUMNS];
