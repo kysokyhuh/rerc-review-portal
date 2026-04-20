@@ -9,6 +9,7 @@ import {
   computeDueDate,
   getConfiguredSlaOrDefault,
 } from "../sla/submissionSlaService";
+import { hasTableColumns } from "../../utils/schemaIntrospection";
 
 const PROMOTION_TARGET_STATUSES = [
   SubmissionStatus.AWAITING_CLASSIFICATION,
@@ -37,9 +38,24 @@ const resolveWorkflowStartDate = (submission: {
   submission.project?.importBatch?.createdAt ??
   submission.createdAt;
 
+const hasLegacyImportPromotionSchema = async () => {
+  const [hasProjectColumns, hasImportBatchColumns, hasLegacySnapshotColumns] =
+    await Promise.all([
+      hasTableColumns("Project", ["origin", "importBatchId"]),
+      hasTableColumns("ImportBatch", ["id", "createdAt"]),
+      hasTableColumns("LegacyImportSnapshot", ["projectId", "importedAt"]),
+    ]);
+
+  return hasProjectColumns && hasImportBatchColumns && hasLegacySnapshotColumns;
+};
+
 export async function promoteImportedSubmissionsToWorkflow(
   options: PromoteImportedSubmissionsOptions = {}
 ) {
+  if (!(await hasLegacyImportPromotionSchema())) {
+    return { promotedCount: 0 };
+  }
+
   const candidates = await prisma.submission.findMany({
     where: {
       sequenceNumber: 1,

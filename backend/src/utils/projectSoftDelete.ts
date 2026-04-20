@@ -1,32 +1,15 @@
-import prisma from "../config/prismaClient";
 import { AppError } from "../middleware/errorHandler";
-
-type ColumnRow = {
-  column_name: string;
-};
-
-let projectSoftDeleteColumnsPromise: Promise<boolean> | null = null;
+import { hasTableColumns } from "./schemaIntrospection";
 
 export async function hasProjectSoftDeleteColumns() {
-  if (!projectSoftDeleteColumnsPromise) {
-    if (typeof prisma.$queryRaw !== "function") {
-      projectSoftDeleteColumnsPromise = Promise.resolve(true);
-      return projectSoftDeleteColumnsPromise;
-    }
-
-    projectSoftDeleteColumnsPromise = prisma
-      .$queryRaw<ColumnRow[]>`
-        SELECT column_name
-        FROM information_schema.columns
-        WHERE table_schema = current_schema()
-          AND table_name = 'Project'
-          AND column_name IN ('deletedAt', 'purgedAt', 'deletedById', 'deletedReason', 'deletedFromStatus', 'deletePurgeAt')
-      `
-      .then((rows) => rows.length === 6)
-      .catch(() => false);
-  }
-
-  return projectSoftDeleteColumnsPromise;
+  return hasTableColumns("Project", [
+    "deletedAt",
+    "purgedAt",
+    "deletedById",
+    "deletedReason",
+    "deletedFromStatus",
+    "deletePurgeAt",
+  ]);
 }
 
 export async function getActiveProjectFilter() {

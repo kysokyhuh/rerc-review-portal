@@ -31,6 +31,30 @@ const escapeHtml = (value: string | null | undefined) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
+const queueProjectSelect = {
+  id: true,
+  committeeId: true,
+  projectCode: true,
+  title: true,
+  piName: true,
+  piAffiliation: true,
+  committee: {
+    select: { code: true },
+  },
+} as const;
+
+const detailProjectSelect = {
+  ...queueProjectSelect,
+  approvalStartDate: true,
+  approvalEndDate: true,
+  committee: {
+    select: {
+      code: true,
+      name: true,
+    },
+  },
+} as const;
+
 // Dashboard queues for classification, review, revision
 router.get("/dashboard/queues", requireUser, async (req, res, next) => {
   try {
@@ -66,11 +90,7 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
     const slaConfigMap = buildSlaConfigMap(slaConfigs);
     const submissionInclude = {
       project: {
-        include: {
-          committee: {
-            select: { code: true },
-          },
-        },
+        select: queueProjectSelect,
       },
       classification: true,
       staffInCharge: true,
@@ -319,7 +339,9 @@ router.get("/dashboard/overdue", requireUser, async (req, res, next) => {
         reviewer: true,
         submission: {
           include: {
-            project: true,
+            project: {
+              select: queueProjectSelect,
+            },
             classification: true,
           },
         },
@@ -429,7 +451,9 @@ router.get("/dashboard/activity", requireUser, async (req, res, next) => {
       include: {
         submission: {
           include: {
-            project: true,
+            project: {
+              select: queueProjectSelect,
+            },
           },
         },
         changedBy: true,
@@ -610,10 +634,7 @@ router.get("/ra/submissions/:submissionId", requireUser, async (req, res, next) 
       },
       include: {
         project: {
-          include: {
-            committee: true,
-            createdBy: true,
-          },
+          select: detailProjectSelect,
         },
         classification: true,
         statusHistory: {
