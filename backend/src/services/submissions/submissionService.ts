@@ -117,6 +117,75 @@ const assertProjectIsMutable = (
   }
 };
 
+const submissionProjectDetailSelect: Prisma.ProjectSelect = {
+  id: true,
+  committeeId: true,
+  projectCode: true,
+  title: true,
+  piName: true,
+  piAffiliation: true,
+  approvalStartDate: true,
+  approvalEndDate: true,
+  committee: {
+    select: {
+      id: true,
+      code: true,
+      name: true,
+    },
+  },
+  protocolProfile: true,
+  protocolMilestones: {
+    orderBy: [{ orderIndex: "asc" }, { id: "asc" }],
+  },
+  submissions: {
+    orderBy: [{ sequenceNumber: "asc" }, { id: "asc" }],
+    select: {
+      id: true,
+      sequenceNumber: true,
+      submissionType: true,
+      status: true,
+      receivedDate: true,
+      createdAt: true,
+    },
+  },
+};
+
+const submissionProjectOverviewSelect: Prisma.ProjectSelect = {
+  id: true,
+  committeeId: true,
+  piName: true,
+};
+
+const submissionProjectSlaSelect: Prisma.ProjectSelect = {
+  committeeId: true,
+  committee: {
+    select: {
+      id: true,
+      code: true,
+      name: true,
+    },
+  },
+};
+
+const submissionProjectUpdateResultSelect: Prisma.ProjectSelect = {
+  id: true,
+  committeeId: true,
+  projectCode: true,
+  title: true,
+  piName: true,
+  piAffiliation: true,
+  approvalStartDate: true,
+  approvalEndDate: true,
+  overallStatus: true,
+  committee: {
+    select: {
+      id: true,
+      code: true,
+      name: true,
+    },
+  },
+};
+
 const normalizeReviewerRoles = (value?: string | null) => {
   const normalized = String(value ?? "SCIENTIST")
     .trim()
@@ -585,33 +654,7 @@ export async function getSubmissionById(id: number) {
     where: { id },
     include: {
       project: {
-        include: {
-          committee: true,
-          protocolProfile: true,
-          legacyImportSnapshot: {
-            include: {
-              importBatch: {
-                select: {
-                  id: true,
-                  mode: true,
-                  sourceFilename: true,
-                  createdAt: true,
-                },
-              },
-            },
-          },
-          submissions: {
-            orderBy: [{ sequenceNumber: "asc" }, { id: "asc" }],
-            select: {
-              id: true,
-              sequenceNumber: true,
-              submissionType: true,
-              status: true,
-              receivedDate: true,
-              createdAt: true,
-            },
-          },
-        },
+        select: submissionProjectDetailSelect,
       },
       classification: { include: { panel: true, classifiedBy: true } },
       reviews: { include: { reviewer: true }, orderBy: { assignedAt: "asc" } },
@@ -658,7 +701,11 @@ export async function updateSubmissionOverview(
 
   const submission = await prisma.submission.findUnique({
     where: { id },
-    include: { project: true },
+    include: {
+      project: {
+        select: submissionProjectOverviewSelect,
+      },
+    },
   });
   if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
 
@@ -2048,7 +2095,11 @@ export async function recordFinalDecision(
           },
         },
       },
-      include: { project: true },
+      include: {
+        project: {
+          select: submissionProjectUpdateResultSelect,
+        },
+      },
     });
   });
 
@@ -2069,7 +2120,9 @@ export async function getSlaSummary(id: number) {
   const submission = await prisma.submission.findUnique({
     where: { id },
     include: {
-      project: { include: { committee: true } },
+      project: {
+        select: submissionProjectSlaSelect,
+      },
       classification: true,
       statusHistory: { orderBy: { effectiveDate: "asc" } },
       reviews: true,
