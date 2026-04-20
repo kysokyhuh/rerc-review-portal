@@ -21,7 +21,6 @@ import {
   suggestColumnMapping,
   validateMappedProjectRows,
 } from "../services/imports/projectCsvImport";
-import { parseProjectXlsxForLegacyMigration } from "../services/imports/projectXlsxImport";
 import {
   createProjectWithInitialSubmission,
   DuplicateProjectCodeError,
@@ -36,18 +35,6 @@ const CSV_MIME_TYPES = new Set([
   "application/csv",
   "text/plain",
 ]);
-
-const XLSX_MIME_TYPES = new Set([
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "application/zip", // some browsers report XLSX as zip
-  "application/octet-stream", // generic fallback
-]);
-
-const detectSourceType = (file: Express.Multer.File): "csv" | "xlsx" => {
-  const ext = (file.originalname ?? "").toLowerCase().split(".").pop();
-  if (ext === "xlsx") return "xlsx";
-  return "csv";
-};
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -116,11 +103,21 @@ const getUploadFileOrThrow = (req: any) => {
   if (!file.size) {
     throw new CsvImportError("The uploaded file is empty.", 400);
   }
-  const sourceType = detectSourceType(file);
-  if (sourceType === "csv" && !CSV_MIME_TYPES.has(file.mimetype) && file.mimetype !== "application/vnd.ms-excel") {
-    throw new CsvImportError("Unsupported file type. Please upload a CSV or XLSX file.", 415);
+  const lowerName = String(file.originalname ?? "").toLowerCase();
+  if (lowerName.endsWith(".xlsx")) {
+    throw new CsvImportError(
+      "Project import now accepts CSV files only. Export the workbook to CSV and upload that file instead.",
+      415
+    );
   }
-  return { file, sourceType };
+  if (
+    !lowerName.endsWith(".csv") &&
+    !CSV_MIME_TYPES.has(file.mimetype) &&
+    file.mimetype !== "application/vnd.ms-excel"
+  ) {
+    throw new CsvImportError("Unsupported file type. Please upload a CSV file.", 415);
+  }
+  return { file, sourceType: "csv" as const };
 };
 
 const toJsonValue = <T>(value: T) => JSON.parse(JSON.stringify(value));
@@ -162,17 +159,13 @@ router.post(
   async (req, res) => {
     try {
       const { file, sourceType } = getUploadFileOrThrow(req);
-
-      const parsed =
-        sourceType === "xlsx"
-          ? await parseProjectXlsxForLegacyMigration(file.buffer, DEFAULT_IMPORT_CONFIG)
-          : parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
+      const parsed = parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
       const mode = inferImportMode(parsed);
       const preview = buildPreviewPayload(parsed, DEFAULT_IMPORT_CONFIG);
       const sourceWarnings =
         mode === ImportMode.LEGACY_MIGRATION && sourceType === "csv"
           ? [
-              "CSV source detected for legacy migration. Formula-derived fields (day counts computed by NETWORKDAYS, clearance dates from EDATE, etc.) will be blank because Excel does not export formula results to CSV. Upload the original .xlsx workbook for complete data recovery.",
+              "CSV legacy import runs in best-effort mode. Spreadsheet formula outputs that were not exported to CSV will remain blank and be imported as null live values.",
             ]
           : [];
 
@@ -196,11 +189,7 @@ router.post(
   async (req, res) => {
     try {
       const { file, sourceType } = getUploadFileOrThrow(req);
-
-      const parsed =
-        sourceType === "xlsx"
-          ? await parseProjectXlsxForLegacyMigration(file.buffer, DEFAULT_IMPORT_CONFIG)
-          : parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
+      const parsed = parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
       const mode = inferImportMode(parsed);
 
       const rowEdits = parseRowEditsPayload(req.body?.rowEdits);
@@ -332,7 +321,7 @@ router.post(
                 importSourceRowNumber: row.rowNumber,
                 workflowReceivedDate: importBatch.createdAt,
                 referenceProfile: row.referenceProfile,
-                legacySnapshot: row.legacySnapshot,
+                legacyWorkflowSeed: row.legacyWorkflowSeed,
               },
               req.user!.id
             );
@@ -389,7 +378,7 @@ router.post(
           warningRows,
           notes:
             mode === ImportMode.LEGACY_MIGRATION
-              ? "Import completed. Historical spreadsheet fields were preserved as reference data."
+              ? "Import completed. Recoverable legacy fields were materialized into live workflow records."
               : warnings.length > 0
                 ? "Import completed with warnings."
                 : "Import completed.",

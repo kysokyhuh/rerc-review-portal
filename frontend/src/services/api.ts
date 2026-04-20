@@ -33,7 +33,6 @@ export type {
   ImportModeFit,
   ImportWarning,
   ImportBatchSummary,
-  LegacyImportSnapshot,
   ProjectImportPreview,
   ProjectImportRowEdit,
   CreateProjectPayload,

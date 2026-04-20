@@ -112,7 +112,7 @@ describe("project CSV import mapping", () => {
     );
     expect(preview.detectedFormat).toBe("legacy_headered");
     expect(preview.warnings).toContain(
-      "Some core fields are missing in this file and will be left blank until backfilled."
+      "Some core fields are missing in this file and will be imported as blank live values."
     );
   });
 

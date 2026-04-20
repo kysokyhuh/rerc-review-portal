@@ -60,7 +60,6 @@ export const ModelName = {
   CommitteeMember: 'CommitteeMember',
   Project: 'Project',
   ProtocolProfile: 'ProtocolProfile',
-  LegacyImportSnapshot: 'LegacyImportSnapshot',
   ProtocolMilestone: 'ProtocolMilestone',
   AcademicTerm: 'AcademicTerm',
   Proponent: 'Proponent',
@@ -310,57 +309,6 @@ export const ProtocolProfileScalarFieldEnum = {
 } as const
 
 export type ProtocolProfileScalarFieldEnum = (typeof ProtocolProfileScalarFieldEnum)[keyof typeof ProtocolProfileScalarFieldEnum]
-
-
-export const LegacyImportSnapshotScalarFieldEnum = {
-  id: 'id',
-  projectId: 'projectId',
-  importBatchId: 'importBatchId',
-  sourceRowNumber: 'sourceRowNumber',
-  importedStatus: 'importedStatus',
-  importedTypeOfReview: 'importedTypeOfReview',
-  importedClassificationOfProposal: 'importedClassificationOfProposal',
-  importedPanel: 'importedPanel',
-  importedScientistReviewer: 'importedScientistReviewer',
-  importedLayReviewer: 'importedLayReviewer',
-  importedPrimaryReviewer: 'importedPrimaryReviewer',
-  importedFinalLayReviewer: 'importedFinalLayReviewer',
-  importedIndependentConsultant: 'importedIndependentConsultant',
-  importedHonorariumStatus: 'importedHonorariumStatus',
-  importedTotalDays: 'importedTotalDays',
-  importedSubmissionCount: 'importedSubmissionCount',
-  importedReviewDurationDays: 'importedReviewDurationDays',
-  importedClassificationDays: 'importedClassificationDays',
-  importedFinishDate: 'importedFinishDate',
-  importedClassificationDate: 'importedClassificationDate',
-  importedMonthOfClearance: 'importedMonthOfClearance',
-  importedWithdrawn: 'importedWithdrawn',
-  importedProjectEndDate6A: 'importedProjectEndDate6A',
-  importedClearanceExpiration: 'importedClearanceExpiration',
-  importedProgressReportTargetDate: 'importedProgressReportTargetDate',
-  importedProgressReportSubmission: 'importedProgressReportSubmission',
-  importedProgressReportApprovalDate: 'importedProgressReportApprovalDate',
-  importedProgressReportStatus: 'importedProgressReportStatus',
-  importedProgressReportDays: 'importedProgressReportDays',
-  importedFinalReportTargetDate: 'importedFinalReportTargetDate',
-  importedFinalReportSubmission: 'importedFinalReportSubmission',
-  importedFinalReportCompletionDate: 'importedFinalReportCompletionDate',
-  importedFinalReportStatus: 'importedFinalReportStatus',
-  importedFinalReportDays: 'importedFinalReportDays',
-  importedAmendmentSubmission: 'importedAmendmentSubmission',
-  importedAmendmentStatus: 'importedAmendmentStatus',
-  importedAmendmentApprovalDate: 'importedAmendmentApprovalDate',
-  importedAmendmentDays: 'importedAmendmentDays',
-  importedContinuingSubmission: 'importedContinuingSubmission',
-  importedContinuingStatus: 'importedContinuingStatus',
-  importedContinuingApprovalDate: 'importedContinuingApprovalDate',
-  importedContinuingDays: 'importedContinuingDays',
-  importedRemarks: 'importedRemarks',
-  rawRowJson: 'rawRowJson',
-  importedAt: 'importedAt'
-} as const
-
-export type LegacyImportSnapshotScalarFieldEnum = (typeof LegacyImportSnapshotScalarFieldEnum)[keyof typeof LegacyImportSnapshotScalarFieldEnum]
 
 
 export const ProtocolMilestoneScalarFieldEnum = {
@@ -765,13 +713,6 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
-
-
-export const JsonNullValueInput = {
-  JsonNull: 'JsonNull'
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

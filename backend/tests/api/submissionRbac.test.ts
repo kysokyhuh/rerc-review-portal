@@ -29,6 +29,11 @@ jest.mock("../../src/services/submissions/submissionService", () => {
   };
 });
 
+jest.mock("../../src/utils/projectSoftDelete", () => ({
+  __esModule: true,
+  hasProjectSoftDeleteColumns: jest.fn().mockResolvedValue(true),
+}));
+
 const prisma = prismaClient as unknown as {
   review: {
     findUnique: jest.Mock;

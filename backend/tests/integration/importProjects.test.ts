@@ -5,20 +5,21 @@ import { LEGACY_WIDE_COLUMNS } from "../../src/services/imports/projectCsvImport
 
 const txProjectCreate = jest.fn();
 const txProjectUpdate = jest.fn();
+const txProjectUpdateMany = jest.fn();
 const txPanelFindFirst = jest.fn();
 const txUserFindFirst = jest.fn();
 const txSubmissionCreate = jest.fn();
 const txSubmissionFindFirst = jest.fn();
 const txSubmissionUpdate = jest.fn();
 const txProtocolProfileCreate = jest.fn();
+const txProtocolMilestoneFindMany = jest.fn();
+const txProtocolMilestoneCreate = jest.fn();
 const txSubmissionStatusHistoryCreate = jest.fn();
 const txClassificationUpsert = jest.fn();
 const txReviewUpsert = jest.fn();
 const txReviewAssignmentUpsert = jest.fn();
 const txConfigSlaFindMany = jest.fn();
 const txHolidayFindMany = jest.fn();
-const txLegacyImportSnapshotCreate = jest.fn();
-
 jest.mock("../../src/config/prismaClient", () => {
   return {
     __esModule: true,
@@ -50,7 +51,7 @@ jest.mock("../../src/config/prismaClient", () => {
       },
       $transaction: jest.fn(async (callback: any) =>
         callback({
-          project: { create: txProjectCreate, update: txProjectUpdate },
+          project: { create: txProjectCreate, update: txProjectUpdate, updateMany: txProjectUpdateMany },
           panel: { findFirst: txPanelFindFirst },
           user: { findFirst: txUserFindFirst },
           submission: {
@@ -59,13 +60,16 @@ jest.mock("../../src/config/prismaClient", () => {
             update: txSubmissionUpdate,
           },
           protocolProfile: { create: txProtocolProfileCreate },
+          protocolMilestone: {
+            findMany: txProtocolMilestoneFindMany,
+            create: txProtocolMilestoneCreate,
+          },
           submissionStatusHistory: { create: txSubmissionStatusHistoryCreate },
           classification: { upsert: txClassificationUpsert },
           review: { upsert: txReviewUpsert },
           reviewAssignment: { upsert: txReviewAssignmentUpsert },
           configSLA: { findMany: txConfigSlaFindMany },
           holiday: { findMany: txHolidayFindMany },
-          legacyImportSnapshot: { create: txLegacyImportSnapshotCreate },
         })
       ),
     },
@@ -153,12 +157,15 @@ describe("project import routes", () => {
     prisma.project.findFirst.mockResolvedValue(null);
     txProjectCreate.mockResolvedValue({ id: 1 });
     txProjectUpdate.mockResolvedValue({ id: 1 });
+    txProjectUpdateMany.mockResolvedValue({ count: 1 });
     txPanelFindFirst.mockResolvedValue(null);
     txUserFindFirst.mockResolvedValue(null);
     txSubmissionCreate.mockResolvedValue({ id: 10 });
     txSubmissionFindFirst.mockResolvedValue({
       id: 10,
       sequenceNumber: 1,
+      createdAt: new Date("2026-01-10T00:00:00.000Z"),
+      receivedDate: new Date("2026-01-10T00:00:00.000Z"),
       status: "AWAITING_CLASSIFICATION",
       resultsNotifiedAt: null,
       finalDecision: null,
@@ -166,16 +173,22 @@ describe("project import routes", () => {
       revisionDueDate: null,
       classification: null,
       reviews: [],
+      statusHistory: [],
+      project: {
+        approvalStartDate: null,
+        approvalEndDate: null,
+      },
     });
     txSubmissionUpdate.mockResolvedValue({ id: 10, status: "AWAITING_CLASSIFICATION" });
     txProtocolProfileCreate.mockResolvedValue({ id: 20 });
+    txProtocolMilestoneFindMany.mockResolvedValue([]);
+    txProtocolMilestoneCreate.mockResolvedValue({ id: 34 });
     txSubmissionStatusHistoryCreate.mockResolvedValue({ id: 30 });
     txClassificationUpsert.mockResolvedValue({ id: 31, reviewType: "EXPEDITED" });
     txReviewUpsert.mockResolvedValue({ id: 32 });
     txReviewAssignmentUpsert.mockResolvedValue({ id: 33 });
     txConfigSlaFindMany.mockResolvedValue([]);
     txHolidayFindMany.mockResolvedValue([]);
-    txLegacyImportSnapshotCreate.mockResolvedValue({ id: 40 });
     prisma.importBatch.create.mockResolvedValue({
       id: 99,
       mode: "INTAKE_IMPORT",
@@ -476,12 +489,10 @@ describe("project import routes", () => {
       const headeredProjectArgs = txProjectCreate.mock.calls[0][0];
       const headeredSubmissionArgs = txSubmissionCreate.mock.calls[0][0];
       const headeredProfileArgs = txProtocolProfileCreate.mock.calls[0][0];
-      const headeredSnapshotArgs = txLegacyImportSnapshotCreate.mock.calls[0][0];
-
       txProjectCreate.mockClear();
       txSubmissionCreate.mockClear();
       txProtocolProfileCreate.mockClear();
-      txLegacyImportSnapshotCreate.mockClear();
+      txProtocolMilestoneCreate.mockClear();
 
       const headerlessResponse = await performCommit(false);
       expect(headerlessResponse.status).toBe(200);
@@ -491,7 +502,6 @@ describe("project import routes", () => {
       const headerlessProjectArgs = txProjectCreate.mock.calls[0][0];
       const headerlessSubmissionArgs = txSubmissionCreate.mock.calls[0][0];
       const headerlessProfileArgs = txProtocolProfileCreate.mock.calls[0][0];
-      const headerlessSnapshotArgs = txLegacyImportSnapshotCreate.mock.calls[0][0];
 
       expect(headerlessProjectArgs).toEqual(
         expect.objectContaining({
@@ -504,24 +514,7 @@ describe("project import routes", () => {
       );
       expect(headerlessSubmissionArgs).toEqual(headeredSubmissionArgs);
       expect(headerlessProfileArgs).toEqual(headeredProfileArgs);
-      expect(headerlessSnapshotArgs).toEqual(
-        expect.objectContaining({
-          ...headeredSnapshotArgs,
-          data: expect.objectContaining({
-            ...headeredSnapshotArgs.data,
-            sourceRowNumber: 1,
-          }),
-        })
-      );
-      expect(headerlessSnapshotArgs.data).toEqual(
-        expect.objectContaining({
-          importedProgressReportStatus: "Accepted",
-          importedFinalReportStatus: "Complete",
-          importedAmendmentStatus: "Approved",
-          importedContinuingStatus: "Approved",
-          importedFinalLayReviewer: "Ms. Final Lay",
-        })
-      );
+      expect(txProtocolMilestoneCreate).toHaveBeenCalled();
     });
 
     it("INTAKE_IMPORT creates project with origin=NATIVE_PORTAL and submission with AWAITING_CLASSIFICATION", async () => {
@@ -557,7 +550,6 @@ describe("project import routes", () => {
       expect(txSubmissionCreate).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ status: "AWAITING_CLASSIFICATION" }) })
       );
-      expect(txLegacyImportSnapshotCreate).not.toHaveBeenCalled();
     });
 
     it("legacy-shaped files still preserve LEGACY_IMPORT origin but enter the live workflow immediately", async () => {
@@ -593,7 +585,6 @@ describe("project import routes", () => {
           }),
         })
       );
-      expect(txLegacyImportSnapshotCreate).toHaveBeenCalled();
     });
 
     it("maps legacy review type and status into live workflow fields during import", async () => {
@@ -652,7 +643,7 @@ describe("project import routes", () => {
           }),
         })
       );
-      expect(txLegacyImportSnapshotCreate).toHaveBeenCalled();
+      expect(txProtocolMilestoneCreate).toHaveBeenCalledTimes(0);
     });
 
     it("returns warnings and batch metadata without exposing a user-selected import mode", async () => {

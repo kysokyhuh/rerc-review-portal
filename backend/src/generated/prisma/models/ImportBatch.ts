@@ -290,7 +290,6 @@ export type ImportBatchWhereInput = {
   uploadedById?: Prisma.IntNullableFilter<"ImportBatch"> | number | null
   uploadedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   projects?: Prisma.ProjectListRelationFilter
-  snapshots?: Prisma.LegacyImportSnapshotListRelationFilter
 }
 
 export type ImportBatchOrderByWithRelationInput = {
@@ -308,7 +307,6 @@ export type ImportBatchOrderByWithRelationInput = {
   uploadedById?: Prisma.SortOrderInput | Prisma.SortOrder
   uploadedBy?: Prisma.UserOrderByWithRelationInput
   projects?: Prisma.ProjectOrderByRelationAggregateInput
-  snapshots?: Prisma.LegacyImportSnapshotOrderByRelationAggregateInput
 }
 
 export type ImportBatchWhereUniqueInput = Prisma.AtLeast<{
@@ -329,7 +327,6 @@ export type ImportBatchWhereUniqueInput = Prisma.AtLeast<{
   uploadedById?: Prisma.IntNullableFilter<"ImportBatch"> | number | null
   uploadedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   projects?: Prisma.ProjectListRelationFilter
-  snapshots?: Prisma.LegacyImportSnapshotListRelationFilter
 }, "id">
 
 export type ImportBatchOrderByWithAggregationInput = {
@@ -383,7 +380,6 @@ export type ImportBatchCreateInput = {
   createdAt?: Date | string
   uploadedBy?: Prisma.UserCreateNestedOneWithoutImportBatchesUploadedInput
   projects?: Prisma.ProjectCreateNestedManyWithoutImportBatchInput
-  snapshots?: Prisma.LegacyImportSnapshotCreateNestedManyWithoutImportBatchInput
 }
 
 export type ImportBatchUncheckedCreateInput = {
@@ -400,7 +396,6 @@ export type ImportBatchUncheckedCreateInput = {
   createdAt?: Date | string
   uploadedById?: number | null
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutImportBatchInput
-  snapshots?: Prisma.LegacyImportSnapshotUncheckedCreateNestedManyWithoutImportBatchInput
 }
 
 export type ImportBatchUpdateInput = {
@@ -416,7 +411,6 @@ export type ImportBatchUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   uploadedBy?: Prisma.UserUpdateOneWithoutImportBatchesUploadedNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutImportBatchNestedInput
-  snapshots?: Prisma.LegacyImportSnapshotUpdateManyWithoutImportBatchNestedInput
 }
 
 export type ImportBatchUncheckedUpdateInput = {
@@ -433,7 +427,6 @@ export type ImportBatchUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   uploadedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutImportBatchNestedInput
-  snapshots?: Prisma.LegacyImportSnapshotUncheckedUpdateManyWithoutImportBatchNestedInput
 }
 
 export type ImportBatchCreateManyInput = {
@@ -617,22 +610,6 @@ export type ImportBatchUpdateOneWithoutProjectsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ImportBatchUpdateToOneWithWhereWithoutProjectsInput, Prisma.ImportBatchUpdateWithoutProjectsInput>, Prisma.ImportBatchUncheckedUpdateWithoutProjectsInput>
 }
 
-export type ImportBatchCreateNestedOneWithoutSnapshotsInput = {
-  create?: Prisma.XOR<Prisma.ImportBatchCreateWithoutSnapshotsInput, Prisma.ImportBatchUncheckedCreateWithoutSnapshotsInput>
-  connectOrCreate?: Prisma.ImportBatchCreateOrConnectWithoutSnapshotsInput
-  connect?: Prisma.ImportBatchWhereUniqueInput
-}
-
-export type ImportBatchUpdateOneWithoutSnapshotsNestedInput = {
-  create?: Prisma.XOR<Prisma.ImportBatchCreateWithoutSnapshotsInput, Prisma.ImportBatchUncheckedCreateWithoutSnapshotsInput>
-  connectOrCreate?: Prisma.ImportBatchCreateOrConnectWithoutSnapshotsInput
-  upsert?: Prisma.ImportBatchUpsertWithoutSnapshotsInput
-  disconnect?: Prisma.ImportBatchWhereInput | boolean
-  delete?: Prisma.ImportBatchWhereInput | boolean
-  connect?: Prisma.ImportBatchWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.ImportBatchUpdateToOneWithWhereWithoutSnapshotsInput, Prisma.ImportBatchUpdateWithoutSnapshotsInput>, Prisma.ImportBatchUncheckedUpdateWithoutSnapshotsInput>
-}
-
 export type ImportBatchCreateWithoutUploadedByInput = {
   mode: $Enums.ImportMode
   sourceFilename?: string | null
@@ -645,7 +622,6 @@ export type ImportBatchCreateWithoutUploadedByInput = {
   summaryJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   projects?: Prisma.ProjectCreateNestedManyWithoutImportBatchInput
-  snapshots?: Prisma.LegacyImportSnapshotCreateNestedManyWithoutImportBatchInput
 }
 
 export type ImportBatchUncheckedCreateWithoutUploadedByInput = {
@@ -661,7 +637,6 @@ export type ImportBatchUncheckedCreateWithoutUploadedByInput = {
   summaryJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutImportBatchInput
-  snapshots?: Prisma.LegacyImportSnapshotUncheckedCreateNestedManyWithoutImportBatchInput
 }
 
 export type ImportBatchCreateOrConnectWithoutUploadedByInput = {
@@ -720,7 +695,6 @@ export type ImportBatchCreateWithoutProjectsInput = {
   summaryJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   uploadedBy?: Prisma.UserCreateNestedOneWithoutImportBatchesUploadedInput
-  snapshots?: Prisma.LegacyImportSnapshotCreateNestedManyWithoutImportBatchInput
 }
 
 export type ImportBatchUncheckedCreateWithoutProjectsInput = {
@@ -736,7 +710,6 @@ export type ImportBatchUncheckedCreateWithoutProjectsInput = {
   summaryJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   uploadedById?: number | null
-  snapshots?: Prisma.LegacyImportSnapshotUncheckedCreateNestedManyWithoutImportBatchInput
 }
 
 export type ImportBatchCreateOrConnectWithoutProjectsInput = {
@@ -767,7 +740,6 @@ export type ImportBatchUpdateWithoutProjectsInput = {
   summaryJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   uploadedBy?: Prisma.UserUpdateOneWithoutImportBatchesUploadedNestedInput
-  snapshots?: Prisma.LegacyImportSnapshotUpdateManyWithoutImportBatchNestedInput
 }
 
 export type ImportBatchUncheckedUpdateWithoutProjectsInput = {
@@ -783,85 +755,6 @@ export type ImportBatchUncheckedUpdateWithoutProjectsInput = {
   summaryJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   uploadedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  snapshots?: Prisma.LegacyImportSnapshotUncheckedUpdateManyWithoutImportBatchNestedInput
-}
-
-export type ImportBatchCreateWithoutSnapshotsInput = {
-  mode: $Enums.ImportMode
-  sourceFilename?: string | null
-  sourceFileHash: string
-  receivedRows?: number
-  insertedRows?: number
-  failedRows?: number
-  warningRows?: number
-  notes?: string | null
-  summaryJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  createdAt?: Date | string
-  uploadedBy?: Prisma.UserCreateNestedOneWithoutImportBatchesUploadedInput
-  projects?: Prisma.ProjectCreateNestedManyWithoutImportBatchInput
-}
-
-export type ImportBatchUncheckedCreateWithoutSnapshotsInput = {
-  id?: number
-  mode: $Enums.ImportMode
-  sourceFilename?: string | null
-  sourceFileHash: string
-  receivedRows?: number
-  insertedRows?: number
-  failedRows?: number
-  warningRows?: number
-  notes?: string | null
-  summaryJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  createdAt?: Date | string
-  uploadedById?: number | null
-  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutImportBatchInput
-}
-
-export type ImportBatchCreateOrConnectWithoutSnapshotsInput = {
-  where: Prisma.ImportBatchWhereUniqueInput
-  create: Prisma.XOR<Prisma.ImportBatchCreateWithoutSnapshotsInput, Prisma.ImportBatchUncheckedCreateWithoutSnapshotsInput>
-}
-
-export type ImportBatchUpsertWithoutSnapshotsInput = {
-  update: Prisma.XOR<Prisma.ImportBatchUpdateWithoutSnapshotsInput, Prisma.ImportBatchUncheckedUpdateWithoutSnapshotsInput>
-  create: Prisma.XOR<Prisma.ImportBatchCreateWithoutSnapshotsInput, Prisma.ImportBatchUncheckedCreateWithoutSnapshotsInput>
-  where?: Prisma.ImportBatchWhereInput
-}
-
-export type ImportBatchUpdateToOneWithWhereWithoutSnapshotsInput = {
-  where?: Prisma.ImportBatchWhereInput
-  data: Prisma.XOR<Prisma.ImportBatchUpdateWithoutSnapshotsInput, Prisma.ImportBatchUncheckedUpdateWithoutSnapshotsInput>
-}
-
-export type ImportBatchUpdateWithoutSnapshotsInput = {
-  mode?: Prisma.EnumImportModeFieldUpdateOperationsInput | $Enums.ImportMode
-  sourceFilename?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sourceFileHash?: Prisma.StringFieldUpdateOperationsInput | string
-  receivedRows?: Prisma.IntFieldUpdateOperationsInput | number
-  insertedRows?: Prisma.IntFieldUpdateOperationsInput | number
-  failedRows?: Prisma.IntFieldUpdateOperationsInput | number
-  warningRows?: Prisma.IntFieldUpdateOperationsInput | number
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  summaryJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  uploadedBy?: Prisma.UserUpdateOneWithoutImportBatchesUploadedNestedInput
-  projects?: Prisma.ProjectUpdateManyWithoutImportBatchNestedInput
-}
-
-export type ImportBatchUncheckedUpdateWithoutSnapshotsInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  mode?: Prisma.EnumImportModeFieldUpdateOperationsInput | $Enums.ImportMode
-  sourceFilename?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  sourceFileHash?: Prisma.StringFieldUpdateOperationsInput | string
-  receivedRows?: Prisma.IntFieldUpdateOperationsInput | number
-  insertedRows?: Prisma.IntFieldUpdateOperationsInput | number
-  failedRows?: Prisma.IntFieldUpdateOperationsInput | number
-  warningRows?: Prisma.IntFieldUpdateOperationsInput | number
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  summaryJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  uploadedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  projects?: Prisma.ProjectUncheckedUpdateManyWithoutImportBatchNestedInput
 }
 
 export type ImportBatchCreateManyUploadedByInput = {
@@ -890,7 +783,6 @@ export type ImportBatchUpdateWithoutUploadedByInput = {
   summaryJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projects?: Prisma.ProjectUpdateManyWithoutImportBatchNestedInput
-  snapshots?: Prisma.LegacyImportSnapshotUpdateManyWithoutImportBatchNestedInput
 }
 
 export type ImportBatchUncheckedUpdateWithoutUploadedByInput = {
@@ -906,7 +798,6 @@ export type ImportBatchUncheckedUpdateWithoutUploadedByInput = {
   summaryJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutImportBatchNestedInput
-  snapshots?: Prisma.LegacyImportSnapshotUncheckedUpdateManyWithoutImportBatchNestedInput
 }
 
 export type ImportBatchUncheckedUpdateManyWithoutUploadedByInput = {
@@ -930,12 +821,10 @@ export type ImportBatchUncheckedUpdateManyWithoutUploadedByInput = {
 
 export type ImportBatchCountOutputType = {
   projects: number
-  snapshots: number
 }
 
 export type ImportBatchCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   projects?: boolean | ImportBatchCountOutputTypeCountProjectsArgs
-  snapshots?: boolean | ImportBatchCountOutputTypeCountSnapshotsArgs
 }
 
 /**
@@ -955,13 +844,6 @@ export type ImportBatchCountOutputTypeCountProjectsArgs<ExtArgs extends runtime.
   where?: Prisma.ProjectWhereInput
 }
 
-/**
- * ImportBatchCountOutputType without action
- */
-export type ImportBatchCountOutputTypeCountSnapshotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.LegacyImportSnapshotWhereInput
-}
-
 
 export type ImportBatchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -978,7 +860,6 @@ export type ImportBatchSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   uploadedById?: boolean
   uploadedBy?: boolean | Prisma.ImportBatch$uploadedByArgs<ExtArgs>
   projects?: boolean | Prisma.ImportBatch$projectsArgs<ExtArgs>
-  snapshots?: boolean | Prisma.ImportBatch$snapshotsArgs<ExtArgs>
   _count?: boolean | Prisma.ImportBatchCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["importBatch"]>
 
@@ -1033,7 +914,6 @@ export type ImportBatchOmit<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type ImportBatchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   uploadedBy?: boolean | Prisma.ImportBatch$uploadedByArgs<ExtArgs>
   projects?: boolean | Prisma.ImportBatch$projectsArgs<ExtArgs>
-  snapshots?: boolean | Prisma.ImportBatch$snapshotsArgs<ExtArgs>
   _count?: boolean | Prisma.ImportBatchCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ImportBatchIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1048,7 +928,6 @@ export type $ImportBatchPayload<ExtArgs extends runtime.Types.Extensions.Interna
   objects: {
     uploadedBy: Prisma.$UserPayload<ExtArgs> | null
     projects: Prisma.$ProjectPayload<ExtArgs>[]
-    snapshots: Prisma.$LegacyImportSnapshotPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1459,7 +1338,6 @@ export interface Prisma__ImportBatchClient<T, Null = never, ExtArgs extends runt
   readonly [Symbol.toStringTag]: "PrismaPromise"
   uploadedBy<T extends Prisma.ImportBatch$uploadedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ImportBatch$uploadedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   projects<T extends Prisma.ImportBatch$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ImportBatch$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  snapshots<T extends Prisma.ImportBatch$snapshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ImportBatch$snapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LegacyImportSnapshotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1937,30 +1815,6 @@ export type ImportBatch$projectsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.ProjectScalarFieldEnum | Prisma.ProjectScalarFieldEnum[]
-}
-
-/**
- * ImportBatch.snapshots
- */
-export type ImportBatch$snapshotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the LegacyImportSnapshot
-   */
-  select?: Prisma.LegacyImportSnapshotSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the LegacyImportSnapshot
-   */
-  omit?: Prisma.LegacyImportSnapshotOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.LegacyImportSnapshotInclude<ExtArgs> | null
-  where?: Prisma.LegacyImportSnapshotWhereInput
-  orderBy?: Prisma.LegacyImportSnapshotOrderByWithRelationInput | Prisma.LegacyImportSnapshotOrderByWithRelationInput[]
-  cursor?: Prisma.LegacyImportSnapshotWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.LegacyImportSnapshotScalarFieldEnum | Prisma.LegacyImportSnapshotScalarFieldEnum[]
 }
 
 /**

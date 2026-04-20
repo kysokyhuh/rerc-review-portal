@@ -14,7 +14,6 @@ import {
 } from "@/services/api";
 import { Timeline } from "@/components/Timeline";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { LegacyImportSnapshotSection } from "@/components/LegacyImportSnapshotSection";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   ProtocolProfileSection,
@@ -117,7 +116,6 @@ export const ProjectDetailPage: React.FC = () => {
     canManageArchive && !isArchived && latestSubmission?.status === "WITHDRAWN";
   const canRestoreArchive = canManageArchive && isArchived;
   const canDeleteProtocol = canManageArchive;
-  const legacySnapshot = project.legacyImportSnapshot ?? null;
   const latestArchiveEvent = (project.statusHistory ?? []).find(
     (entry) => entry.newStatus === "CLOSED" || entry.newStatus === "WITHDRAWN"
   );
@@ -568,8 +566,6 @@ export const ProjectDetailPage: React.FC = () => {
             </table>
           </div>
       </ProtocolProfileSection>
-
-      {legacySnapshot ? <LegacyImportSnapshotSection snapshot={legacySnapshot} /> : null}
 
       {/* Latest Submission */}
       {latestSubmission && (

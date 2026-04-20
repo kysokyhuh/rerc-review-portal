@@ -92,7 +92,7 @@ export interface ProjectProfileReferenceData {
   remarks: string | null;
 }
 
-export interface LegacyImportSnapshotData {
+export interface LegacyWorkflowSeedData {
   sourceRowNumber: number;
   importedStatus: string | null;
   importedTypeOfReview: string | null;
@@ -166,7 +166,7 @@ export interface ValidatedProjectRow {
   receivedDate: Date | null;
   remarks: string | null;
   referenceProfile: ProjectProfileReferenceData;
-  legacySnapshot: LegacyImportSnapshotData | null;
+  legacyWorkflowSeed: LegacyWorkflowSeedData | null;
   warnings: ImportWarning[];
 }
 
@@ -527,12 +527,12 @@ const parseLegacyDateField = (
   }
 
   warnings.push(
-    createWarning(
-      "INVALID_LEGACY_DATE",
-      `${options.field} on row ${options.rowNumber} could not be parsed and will be stored as blank snapshot data.`,
-      options.rowNumber,
-      options.field
-    )
+      createWarning(
+        "INVALID_LEGACY_DATE",
+        `${options.field} on row ${options.rowNumber} could not be parsed and will be imported as blank.`,
+        options.rowNumber,
+        options.field
+      )
   );
   return { value: null, warnings };
 };
@@ -551,7 +551,7 @@ const parseBoundedIntegerField = (
       warnings: [
         createWarning(
           "INVALID_LEGACY_NUMBER",
-          `${options.field} on row ${options.rowNumber} is not a valid number and will be stored as blank snapshot data.`,
+          `${options.field} on row ${options.rowNumber} is not a valid number and will be imported as blank.`,
           options.rowNumber,
           options.field
         ),
@@ -567,7 +567,7 @@ const parseBoundedIntegerField = (
       warnings: [
         createWarning(
           "SUSPICIOUS_LEGACY_NUMBER",
-          `${options.field} on row ${options.rowNumber} is outside the allowed range and will be stored as blank snapshot data.`,
+          `${options.field} on row ${options.rowNumber} is outside the allowed range and will be imported as blank.`,
           options.rowNumber,
           options.field
         ),
@@ -840,7 +840,7 @@ export const assessImportMode = (
     warningItems.push(
       createWarning(
         "LEGACY_WORKFLOW_COLUMNS",
-        "Legacy workflow columns detected. These values will be imported as read-only spreadsheet snapshot data and will not override live portal workflow records."
+        "Legacy workflow columns detected. Recoverable values will be mapped directly into live workflow records."
       )
     );
   }
@@ -848,7 +848,7 @@ export const assessImportMode = (
     warningItems.push(
       createWarning(
         "LEGACY_MILESTONE_COLUMNS",
-        "Legacy milestone/date columns detected. These values will not create live ProtocolMilestone or workflow-event rows."
+        "Legacy milestone/date columns detected. Recoverable values will be preserved as live ProtocolMilestone rows."
       )
     );
   }
@@ -935,7 +935,7 @@ export const buildPreviewPayload = (
     warnings.push(
       createWarning(
         "MISSING_OPTIONAL_CORE_FIELDS",
-        "Some core fields are missing in this file and will be left blank until backfilled."
+        "Some core fields are missing in this file and will be imported as blank live values."
       )
     );
   }
@@ -1080,7 +1080,7 @@ const extractLegacySnapshot = (
   raw: Record<string, string>,
   rowNumber: number,
   mode: ImportMode
-): { snapshot: LegacyImportSnapshotData; warnings: ImportWarning[] } => {
+): { workflowSeed: LegacyWorkflowSeedData; warnings: ImportWarning[] } => {
   const warnings: ImportWarning[] = [];
   const parseDateCandidate = (field: string, candidates: string[]) => {
     const parsed = parseLegacyDateField(getRawByCandidates(raw, candidates), {
@@ -1106,7 +1106,7 @@ const extractLegacySnapshot = (
   };
 
   return {
-    snapshot: {
+    workflowSeed: {
       sourceRowNumber: rowNumber,
       importedStatus: getRawByCandidates(raw, ["status", "Status"]) || null,
       importedTypeOfReview: getRawByCandidates(raw, ["typeOfReview", "Type of Review"]) || null,
@@ -1479,7 +1479,7 @@ export const validateMappedProjectRows = ({
     const legacyResult =
       mode === ImportMode.LEGACY_MIGRATION
         ? extractLegacySnapshot(row.raw, row.rowNumber, mode)
-        : { snapshot: null, warnings: [] as ImportWarning[] };
+        : { workflowSeed: null, warnings: [] as ImportWarning[] };
 
     const allRowWarnings = [...rowWarnings, ...legacyResult.warnings];
     warnings.push(...allRowWarnings);
@@ -1502,7 +1502,7 @@ export const validateMappedProjectRows = ({
       receivedDate: receivedDate ?? null,
       remarks,
       referenceProfile,
-      legacySnapshot: legacyResult.snapshot,
+      legacyWorkflowSeed: legacyResult.workflowSeed,
       warnings: allRowWarnings,
     });
   }

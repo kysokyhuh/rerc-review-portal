@@ -63,11 +63,6 @@ export type Project = Prisma.ProjectModel
  */
 export type ProtocolProfile = Prisma.ProtocolProfileModel
 /**
- * Model LegacyImportSnapshot
- * 
- */
-export type LegacyImportSnapshot = Prisma.LegacyImportSnapshotModel
-/**
  * Model ProtocolMilestone
  * 
  */

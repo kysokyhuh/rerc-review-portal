@@ -1,6 +1,5 @@
 import prisma from "../../config/prismaClient";
 import {
-  ProjectOrigin,
   ProponentCategory,
   ReviewDecision,
   ReviewType,
@@ -12,7 +11,6 @@ import {
   type ReportSubmissionRecord,
 } from "./reportMetrics";
 import { buildSubmissionSlaSummary } from "../sla/submissionSlaService";
-import { promoteImportedSubmissionsToWorkflow } from "../imports/importedWorkflowPromotion";
 import { getActiveProjectFilter } from "../../utils/projectSoftDelete";
 
 const RECENT_AY_WINDOW = 5;
@@ -74,29 +72,13 @@ type SubmissionForReports = Prisma.SubmissionGetPayload<{
         department: true;
         proponentCategory: true;
         committeeId: true;
-        origin: true;
         approvalStartDate: true;
         protocolProfile: {
           select: {
             college: true;
             department: true;
             dateOfSubmission: true;
-            typeOfReview: true;
             proponent: true;
-            status: true;
-            finishDate: true;
-            classificationOfProposalRerc: true;
-          };
-        };
-        legacyImportSnapshot: {
-          select: {
-            importedStatus: true;
-            importedTypeOfReview: true;
-            importedClassificationOfProposal: true;
-            importedClassificationDate: true;
-            importedFinishDate: true;
-            importedWithdrawn: true;
-            importedAt: true;
           };
         };
         committee: { select: { code: true; name: true } };
@@ -114,12 +96,6 @@ type SubmissionForReports = Prisma.SubmissionGetPayload<{
 type ReportDateSource = {
   createdAt: Date;
   receivedDate?: Date | null;
-  project?: {
-    origin?: ProjectOrigin | null;
-    protocolProfile?: {
-      dateOfSubmission?: Date | null;
-    } | null;
-  } | null;
 };
 
 const PRO_CATEGORY_KEYS = ["UNDERGRAD", "GRAD", "FACULTY", "NON_TEACHING"] as const;
@@ -204,78 +180,10 @@ const normalizeReviewType = (reviewType: ReviewType | null | undefined) => {
   return null;
 };
 
-const normalizeReviewTypeFromText = (value: string | null | undefined) => {
-  const raw = String(value ?? "").trim().toLowerCase();
-  if (!raw) return null;
-  if (raw.includes("exempt")) return "EXEMPT" as const;
-  if (raw.includes("expedit")) return "EXPEDITED" as const;
-  if (raw.includes("full")) return "FULL_BOARD" as const;
-  return null;
-};
-
 const resolveSubmissionReviewType = (
   submission: SubmissionForReports
 ): ResolvedReviewType | null =>
-  normalizeReviewType(submission.classification?.reviewType) ??
-  normalizeReviewTypeFromText(submission.project?.protocolProfile?.typeOfReview) ??
-  normalizeReviewTypeFromText(submission.project?.protocolProfile?.classificationOfProposalRerc) ??
-  normalizeReviewTypeFromText(submission.project?.legacyImportSnapshot?.importedTypeOfReview) ??
-  normalizeReviewTypeFromText(
-    submission.project?.legacyImportSnapshot?.importedClassificationOfProposal
-  );
-
-const normalizeSubmissionStatusFromText = (
-  value: string | null | undefined
-): SubmissionStatus | null => {
-  const raw = String(value ?? "").trim().toLowerCase();
-  if (!raw) return null;
-  if (raw.includes("withdraw")) return SubmissionStatus.WITHDRAWN;
-  if (
-    raw.includes("clear") ||
-    raw.includes("approved") ||
-    raw.includes("finish") ||
-    raw.includes("closed")
-  ) {
-    return SubmissionStatus.CLOSED;
-  }
-  if (raw.includes("revision")) return SubmissionStatus.AWAITING_REVISIONS;
-  if (raw.includes("under review") || raw.includes("review")) return SubmissionStatus.UNDER_REVIEW;
-  if (raw.includes("classif")) return SubmissionStatus.CLASSIFIED;
-  return null;
-};
-
-const shouldUseImportedReportFallbackStatus = (submission: SubmissionForReports) => {
-  if (submission.project?.origin !== "LEGACY_IMPORT") return false;
-  if (submission.status !== SubmissionStatus.AWAITING_CLASSIFICATION) return false;
-  if (submission.classification) return false;
-  if (submission.resultsNotifiedAt || submission.finalDecision || submission.finalDecisionDate) {
-    return false;
-  }
-  if (submission.project?.approvalStartDate) return false;
-  if (
-    submission.reviews.some((review) => review.assignedAt || review.respondedAt || review.dueDate)
-  ) {
-    return false;
-  }
-  return submission.statusHistory.every(
-    (entry) => entry.newStatus === SubmissionStatus.AWAITING_CLASSIFICATION
-  );
-};
-
-const resolveSubmissionStatus = (submission: SubmissionForReports): SubmissionStatus => {
-  const liveStatus = submission.status;
-  if (!shouldUseImportedReportFallbackStatus(submission)) return liveStatus;
-
-  if (submission.project?.legacyImportSnapshot?.importedWithdrawn) {
-    return SubmissionStatus.WITHDRAWN;
-  }
-
-  return (
-    normalizeSubmissionStatusFromText(submission.project?.legacyImportSnapshot?.importedStatus) ??
-    normalizeSubmissionStatusFromText(submission.project?.protocolProfile?.status) ??
-    liveStatus
-  );
-};
+  normalizeReviewType(submission.classification?.reviewType);
 
 const resolveWorkflowReceivedDate = (
   submission: Pick<ReportDateSource, "receivedDate" | "createdAt">
@@ -283,31 +191,20 @@ const resolveWorkflowReceivedDate = (
   submission.receivedDate ?? submission.createdAt;
 
 const resolveReportReceivedDate = (submission: ReportDateSource) =>
-  submission.project?.origin === ProjectOrigin.LEGACY_IMPORT
-    ? submission.project?.protocolProfile?.dateOfSubmission ??
-      resolveWorkflowReceivedDate(submission)
-    : resolveWorkflowReceivedDate(submission);
+  resolveWorkflowReceivedDate(submission);
 
 const resolveClassificationDate = (submission: SubmissionForReports) =>
-  submission.classification?.classificationDate ??
-  submission.project?.legacyImportSnapshot?.importedClassificationDate ??
-  null;
+  submission.classification?.classificationDate ?? null;
 
 const resolveClearanceDate = (submission: SubmissionForReports) =>
   submission.project?.approvalStartDate ??
-  submission.project?.legacyImportSnapshot?.importedFinishDate ??
-  submission.project?.protocolProfile?.finishDate ??
+  submission.finalDecisionDate ??
+  submission.resultsNotifiedAt ??
   null;
 
 const isWithdrawn = (submission: SubmissionForReports) =>
   resolveSubmissionStatus(submission) === SubmissionStatus.WITHDRAWN ||
-  submission.statusHistory.some((entry) => entry.newStatus === SubmissionStatus.WITHDRAWN) ||
-  submission.project?.legacyImportSnapshot?.importedWithdrawn === true ||
-  /withdraw/i.test(
-    submission.project?.legacyImportSnapshot?.importedStatus ??
-      submission.project?.protocolProfile?.status ??
-      ""
-  );
+  submission.statusHistory.some((entry) => entry.newStatus === SubmissionStatus.WITHDRAWN);
 
 const nextScreeningStatusSet = new Set<SubmissionStatus>([
   SubmissionStatus.RETURNED_FOR_COMPLETION,
@@ -332,6 +229,9 @@ const toPrismaProponentCategory = (value: ProCategoryKey | null): ProponentCateg
   return null;
 };
 
+const resolveSubmissionStatus = (submission: SubmissionForReports): SubmissionStatus =>
+  submission.status;
+
 const buildSyntheticStatusHistory = (submission: SubmissionForReports) => {
   const history = submission.statusHistory.map((entry) => ({
     newStatus: entry.newStatus,
@@ -351,7 +251,7 @@ const toMetricSubmission = (submission: SubmissionForReports): ReportSubmissionR
   id: submission.id,
   receivedDate: resolveReportReceivedDate(submission) ?? submission.createdAt,
   sequenceNumber: submission.sequenceNumber,
-  status: resolveSubmissionStatus(submission),
+  status: submission.status,
   resultsNotifiedAt: submission.resultsNotifiedAt ?? resolveClearanceDate(submission),
   finalDecision:
     submission.finalDecision ??
@@ -553,7 +453,6 @@ export const parseReportFilters = (query: Record<string, unknown>): ReportViewFi
 };
 
 export async function resolveReportFallbackRange(): Promise<ReportFallbackRange | null> {
-  await promoteImportedSubmissionsToWorkflow();
   const activeProjectFilter = await getActiveProjectFilter();
   const submissions = await prisma.submission.findMany({
     where: {
@@ -565,16 +464,6 @@ export async function resolveReportFallbackRange(): Promise<ReportFallbackRange 
     select: {
       createdAt: true,
       receivedDate: true,
-      project: {
-        select: {
-          origin: true,
-          protocolProfile: {
-            select: {
-              dateOfSubmission: true,
-            },
-          },
-        },
-      },
     },
   });
 
@@ -681,9 +570,6 @@ export async function resolveReportWindows(filters: ReportViewFilters): Promise<
 }
 
 export async function fetchReportSubmissions(filters: ReportViewFilters, termWindows: TermWindow[]) {
-  await promoteImportedSubmissionsToWorkflow({
-    committeeCode: filters.committee !== "ALL" ? filters.committee : undefined,
-  });
   const activeProjectFilter = await getActiveProjectFilter();
 
   const submissions = await prisma.submission.findMany({
@@ -710,29 +596,13 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
           department: true,
           proponentCategory: true,
           committeeId: true,
-          origin: true,
           approvalStartDate: true,
           protocolProfile: {
             select: {
               college: true,
               department: true,
               dateOfSubmission: true,
-              typeOfReview: true,
               proponent: true,
-              status: true,
-              finishDate: true,
-              classificationOfProposalRerc: true,
-            },
-          },
-          legacyImportSnapshot: {
-            select: {
-              importedStatus: true,
-              importedTypeOfReview: true,
-              importedClassificationOfProposal: true,
-              importedClassificationDate: true,
-              importedFinishDate: true,
-              importedWithdrawn: true,
-              importedAt: true,
             },
           },
           committee: { select: { code: true, name: true } },

@@ -205,9 +205,9 @@ export default function ImportProjectsPage() {
     }
 
     const lowerName = file.name.toLowerCase();
-    const isSupportedFile = lowerName.endsWith(".csv") || lowerName.endsWith(".xlsx");
+    const isSupportedFile = lowerName.endsWith(".csv");
     if (!isSupportedFile) {
-      setError("Please select a .csv or .xlsx file.");
+      setError("Please select a .csv file.");
       setSelectedFile(null);
       return;
     }
@@ -354,7 +354,7 @@ export default function ImportProjectsPage() {
         </button>
         <h1>Import Projects</h1>
         <p>
-          Upload a CSV or the original legacy XLSX workbook. The portal will detect the file structure automatically, preserve any historical spreadsheet fields for reference, and create live workflow records.
+          Upload a CSV file. The portal will detect the structure automatically, map recoverable legacy data into live workflow records, and preserve historical timeline data as milestones.
         </p>
       </header>
 
@@ -387,7 +387,7 @@ export default function ImportProjectsPage() {
                 onFileSelected={handleFileSelect}
                 maxFileSizeMb={MAX_FILE_SIZE_MB}
                 disabled={uploading || previewLoading}
-                accept="both"
+                accept="csv"
               />
             </section>
 
@@ -450,7 +450,7 @@ export default function ImportProjectsPage() {
                       <strong>Import preview ready:</strong> The uploaded rows will be created as live workflow records after commit.
                     </p>
                     <p className="import-alert-line">
-                      Historical spreadsheet-only columns, when present, will be preserved in the project record for reference.
+                      Historical spreadsheet-only columns, when present, will be preserved as live protocol milestones and timeline metadata when they can be recovered from the CSV.
                     </p>
                   </div>
                   {(preview.sourceWarnings ?? []).length > 0 && (
@@ -682,7 +682,7 @@ export default function ImportProjectsPage() {
               <ul>
                 <li>Header-based CSV intake files are supported.</li>
                 <li>The known legacy no-header RERC export is also supported.</li>
-                <li>Original legacy XLSX workbooks preserve formula-derived snapshot fields better than CSV exports.</li>
+                <li>Legacy CSV imports run in best-effort mode when formula-derived fields were not exported.</li>
               </ul>
               <p>
                 Legacy no-header files still use the fixed historical column order, while normal intake files rely on recognizable headers.

@@ -123,7 +123,6 @@ describe("GET /reports/academic-year-summary", () => {
             status: null,
             finishDate: new Date("2025-06-20T00:00:00.000Z"),
           },
-          legacyImportSnapshot: null,
           committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
         statusHistory: [
@@ -176,7 +175,6 @@ describe("GET /reports/academic-year-summary", () => {
             status: "Withdrawn",
             finishDate: null,
           },
-          legacyImportSnapshot: null,
           committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
         statusHistory: [
@@ -201,13 +199,16 @@ describe("GET /reports/academic-year-summary", () => {
       {
         id: 103,
         createdAt: new Date("2026-04-13T00:00:00.000Z"),
-        receivedDate: new Date("2026-04-13T00:00:00.000Z"),
+        receivedDate: new Date("2025-09-15T00:00:00.000Z"),
         sequenceNumber: 1,
-        status: SubmissionStatus.AWAITING_CLASSIFICATION,
+        status: SubmissionStatus.CLASSIFIED,
         resultsNotifiedAt: null,
         finalDecision: null,
         finalDecisionDate: null,
-        classification: null,
+        classification: {
+          reviewType: ReviewType.EXEMPT,
+          classificationDate: new Date("2025-09-16T00:00:00.000Z"),
+        },
         project: {
           id: 3,
           projectCode: "RERC-2024-003",
@@ -227,18 +228,18 @@ describe("GET /reports/academic-year-summary", () => {
             status: "Exempted",
             finishDate: null,
           },
-          legacyImportSnapshot: {
-            importedStatus: "Exempted",
-            importedTypeOfReview: "Exempt",
-            importedClassificationOfProposal: null,
-            importedClassificationDate: null,
-            importedFinishDate: null,
-            importedWithdrawn: false,
-            importedAt: new Date("2026-04-13T00:00:00.000Z"),
-          },
           committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
-        statusHistory: [],
+        statusHistory: [
+          {
+            newStatus: SubmissionStatus.AWAITING_CLASSIFICATION,
+            effectiveDate: new Date("2025-09-15T00:00:00.000Z"),
+          },
+          {
+            newStatus: SubmissionStatus.CLASSIFIED,
+            effectiveDate: new Date("2025-09-16T00:00:00.000Z"),
+          },
+        ],
         reviews: [],
       },
     ]);
@@ -328,13 +329,16 @@ describe("GET /reports/academic-year-summary", () => {
       {
         id: 501,
         createdAt: new Date("2025-10-13T04:00:00.000Z"),
-        receivedDate: new Date("2025-10-13T04:00:00.000Z"),
+        receivedDate: new Date("2024-03-01T00:00:00.000Z"),
         sequenceNumber: 1,
-        status: SubmissionStatus.AWAITING_CLASSIFICATION,
+        status: SubmissionStatus.WITHDRAWN,
         resultsNotifiedAt: null,
         finalDecision: null,
         finalDecisionDate: null,
-        classification: null,
+        classification: {
+          reviewType: ReviewType.EXPEDITED,
+          classificationDate: new Date("2024-03-02T00:00:00.000Z"),
+        },
         project: {
           id: 50,
           projectCode: "RERC-LEG-001",
@@ -358,21 +362,20 @@ describe("GET /reports/academic-year-summary", () => {
             proponent: "Faculty",
             finishDate: null,
           },
-          legacyImportSnapshot: {
-            importedStatus: "Withdrawn by investigator",
-            importedTypeOfReview: null,
-            importedClassificationOfProposal: null,
-            importedClassificationDate: null,
-            importedFinishDate: null,
-            importedWithdrawn: false,
-            importedAt: new Date("2025-10-13T04:00:00.000Z"),
-          },
           committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
         statusHistory: [
           {
             newStatus: SubmissionStatus.AWAITING_CLASSIFICATION,
-            effectiveDate: new Date("2025-10-13T04:00:00.000Z"),
+            effectiveDate: new Date("2024-03-01T00:00:00.000Z"),
+          },
+          {
+            newStatus: SubmissionStatus.UNDER_REVIEW,
+            effectiveDate: new Date("2024-03-03T00:00:00.000Z"),
+          },
+          {
+            newStatus: SubmissionStatus.WITHDRAWN,
+            effectiveDate: new Date("2024-03-04T00:00:00.000Z"),
           },
         ],
         reviews: [],
@@ -422,7 +425,7 @@ describe("GET /reports/academic-year-summary", () => {
       {
         id: 601,
         createdAt: new Date("2026-04-14T00:00:00.000Z"),
-        receivedDate: new Date("2026-04-14T00:00:00.000Z"),
+        receivedDate: new Date("2023-02-13T00:00:00.000Z"),
         sequenceNumber: 1,
         status: SubmissionStatus.CLASSIFIED,
         resultsNotifiedAt: null,
@@ -430,7 +433,7 @@ describe("GET /reports/academic-year-summary", () => {
         finalDecisionDate: null,
         classification: {
           reviewType: ReviewType.EXPEDITED,
-          classificationDate: new Date("2026-04-14T00:00:00.000Z"),
+          classificationDate: new Date("2023-02-14T00:00:00.000Z"),
         },
         project: {
           id: 60,
@@ -455,25 +458,16 @@ describe("GET /reports/academic-year-summary", () => {
             proponent: "Faculty",
             finishDate: null,
           },
-          legacyImportSnapshot: {
-            importedStatus: "Classified",
-            importedTypeOfReview: "Expedited",
-            importedClassificationOfProposal: null,
-            importedClassificationDate: null,
-            importedFinishDate: null,
-            importedWithdrawn: false,
-            importedAt: new Date("2026-04-14T00:00:00.000Z"),
-          },
           committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
         statusHistory: [
           {
             newStatus: SubmissionStatus.AWAITING_CLASSIFICATION,
-            effectiveDate: new Date("2026-04-14T00:00:00.000Z"),
+            effectiveDate: new Date("2023-02-13T00:00:00.000Z"),
           },
           {
             newStatus: SubmissionStatus.CLASSIFIED,
-            effectiveDate: new Date("2026-04-14T01:00:00.000Z"),
+            effectiveDate: new Date("2023-02-14T00:00:00.000Z"),
           },
         ],
         reviews: [],
@@ -513,13 +507,16 @@ describe("GET /reports/academic-year-summary", () => {
       {
         id: 701,
         createdAt: new Date("2026-04-14T00:00:00.000Z"),
-        receivedDate: new Date("2026-04-14T00:00:00.000Z"),
+        receivedDate: new Date("2023-03-22T00:00:00.000Z"),
         sequenceNumber: 1,
         status: SubmissionStatus.CLASSIFIED,
         resultsNotifiedAt: null,
         finalDecision: null,
         finalDecisionDate: null,
-        classification: null,
+        classification: {
+          reviewType: ReviewType.EXEMPT,
+          classificationDate: new Date("2023-03-23T00:00:00.000Z"),
+        },
         project: {
           id: 70,
           projectCode: "RERC-LEG-REC",
@@ -543,21 +540,16 @@ describe("GET /reports/academic-year-summary", () => {
             proponent: "Faculty",
             finishDate: null,
           },
-          legacyImportSnapshot: {
-            importedStatus: "Classified",
-            importedTypeOfReview: "Exempt",
-            importedClassificationOfProposal: null,
-            importedClassificationDate: null,
-            importedFinishDate: null,
-            importedWithdrawn: false,
-            importedAt: new Date("2026-04-14T00:00:00.000Z"),
-          },
           committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
         statusHistory: [
           {
+            newStatus: SubmissionStatus.AWAITING_CLASSIFICATION,
+            effectiveDate: new Date("2023-03-22T00:00:00.000Z"),
+          },
+          {
             newStatus: SubmissionStatus.CLASSIFIED,
-            effectiveDate: new Date("2026-04-14T01:00:00.000Z"),
+            effectiveDate: new Date("2023-03-23T00:00:00.000Z"),
           },
         ],
         reviews: [],

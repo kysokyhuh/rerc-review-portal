@@ -393,7 +393,6 @@ export const ModelName = {
   CommitteeMember: 'CommitteeMember',
   Project: 'Project',
   ProtocolProfile: 'ProtocolProfile',
-  LegacyImportSnapshot: 'LegacyImportSnapshot',
   ProtocolMilestone: 'ProtocolMilestone',
   AcademicTerm: 'AcademicTerm',
   Proponent: 'Proponent',
@@ -434,7 +433,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "importBatch" | "authSession" | "auditLog" | "committee" | "panel" | "committeeMember" | "project" | "protocolProfile" | "legacyImportSnapshot" | "protocolMilestone" | "academicTerm" | "proponent" | "projectProponent" | "projectMember" | "projectChangeLog" | "projectSnapshot" | "submission" | "submissionChangeLog" | "classification" | "classificationDecision" | "classificationVote" | "submissionStatusHistory" | "submissionReminderLog" | "projectStatusHistory" | "review" | "reviewAssignment" | "submissionDocument" | "submissionDecision" | "holiday" | "letterDraft" | "contractPeriod" | "panelMember" | "configSLA" | "workflowEvent"
+    modelProps: "user" | "importBatch" | "authSession" | "auditLog" | "committee" | "panel" | "committeeMember" | "project" | "protocolProfile" | "protocolMilestone" | "academicTerm" | "proponent" | "projectProponent" | "projectMember" | "projectChangeLog" | "projectSnapshot" | "submission" | "submissionChangeLog" | "classification" | "classificationDecision" | "classificationVote" | "submissionStatusHistory" | "submissionReminderLog" | "projectStatusHistory" | "review" | "reviewAssignment" | "submissionDocument" | "submissionDecision" | "holiday" | "letterDraft" | "contractPeriod" | "panelMember" | "configSLA" | "workflowEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1101,80 +1100,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ProtocolProfileCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProtocolProfileCountAggregateOutputType> | number
-        }
-      }
-    }
-    LegacyImportSnapshot: {
-      payload: Prisma.$LegacyImportSnapshotPayload<ExtArgs>
-      fields: Prisma.LegacyImportSnapshotFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.LegacyImportSnapshotFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.LegacyImportSnapshotFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>
-        }
-        findFirst: {
-          args: Prisma.LegacyImportSnapshotFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.LegacyImportSnapshotFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>
-        }
-        findMany: {
-          args: Prisma.LegacyImportSnapshotFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>[]
-        }
-        create: {
-          args: Prisma.LegacyImportSnapshotCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>
-        }
-        createMany: {
-          args: Prisma.LegacyImportSnapshotCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.LegacyImportSnapshotCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>[]
-        }
-        delete: {
-          args: Prisma.LegacyImportSnapshotDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>
-        }
-        update: {
-          args: Prisma.LegacyImportSnapshotUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>
-        }
-        deleteMany: {
-          args: Prisma.LegacyImportSnapshotDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.LegacyImportSnapshotUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.LegacyImportSnapshotUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>[]
-        }
-        upsert: {
-          args: Prisma.LegacyImportSnapshotUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$LegacyImportSnapshotPayload>
-        }
-        aggregate: {
-          args: Prisma.LegacyImportSnapshotAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateLegacyImportSnapshot>
-        }
-        groupBy: {
-          args: Prisma.LegacyImportSnapshotGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.LegacyImportSnapshotGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.LegacyImportSnapshotCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.LegacyImportSnapshotCountAggregateOutputType> | number
         }
       }
     }
@@ -3275,57 +3200,6 @@ export const ProtocolProfileScalarFieldEnum = {
 export type ProtocolProfileScalarFieldEnum = (typeof ProtocolProfileScalarFieldEnum)[keyof typeof ProtocolProfileScalarFieldEnum]
 
 
-export const LegacyImportSnapshotScalarFieldEnum = {
-  id: 'id',
-  projectId: 'projectId',
-  importBatchId: 'importBatchId',
-  sourceRowNumber: 'sourceRowNumber',
-  importedStatus: 'importedStatus',
-  importedTypeOfReview: 'importedTypeOfReview',
-  importedClassificationOfProposal: 'importedClassificationOfProposal',
-  importedPanel: 'importedPanel',
-  importedScientistReviewer: 'importedScientistReviewer',
-  importedLayReviewer: 'importedLayReviewer',
-  importedPrimaryReviewer: 'importedPrimaryReviewer',
-  importedFinalLayReviewer: 'importedFinalLayReviewer',
-  importedIndependentConsultant: 'importedIndependentConsultant',
-  importedHonorariumStatus: 'importedHonorariumStatus',
-  importedTotalDays: 'importedTotalDays',
-  importedSubmissionCount: 'importedSubmissionCount',
-  importedReviewDurationDays: 'importedReviewDurationDays',
-  importedClassificationDays: 'importedClassificationDays',
-  importedFinishDate: 'importedFinishDate',
-  importedClassificationDate: 'importedClassificationDate',
-  importedMonthOfClearance: 'importedMonthOfClearance',
-  importedWithdrawn: 'importedWithdrawn',
-  importedProjectEndDate6A: 'importedProjectEndDate6A',
-  importedClearanceExpiration: 'importedClearanceExpiration',
-  importedProgressReportTargetDate: 'importedProgressReportTargetDate',
-  importedProgressReportSubmission: 'importedProgressReportSubmission',
-  importedProgressReportApprovalDate: 'importedProgressReportApprovalDate',
-  importedProgressReportStatus: 'importedProgressReportStatus',
-  importedProgressReportDays: 'importedProgressReportDays',
-  importedFinalReportTargetDate: 'importedFinalReportTargetDate',
-  importedFinalReportSubmission: 'importedFinalReportSubmission',
-  importedFinalReportCompletionDate: 'importedFinalReportCompletionDate',
-  importedFinalReportStatus: 'importedFinalReportStatus',
-  importedFinalReportDays: 'importedFinalReportDays',
-  importedAmendmentSubmission: 'importedAmendmentSubmission',
-  importedAmendmentStatus: 'importedAmendmentStatus',
-  importedAmendmentApprovalDate: 'importedAmendmentApprovalDate',
-  importedAmendmentDays: 'importedAmendmentDays',
-  importedContinuingSubmission: 'importedContinuingSubmission',
-  importedContinuingStatus: 'importedContinuingStatus',
-  importedContinuingApprovalDate: 'importedContinuingApprovalDate',
-  importedContinuingDays: 'importedContinuingDays',
-  importedRemarks: 'importedRemarks',
-  rawRowJson: 'rawRowJson',
-  importedAt: 'importedAt'
-} as const
-
-export type LegacyImportSnapshotScalarFieldEnum = (typeof LegacyImportSnapshotScalarFieldEnum)[keyof typeof LegacyImportSnapshotScalarFieldEnum]
-
-
 export const ProtocolMilestoneScalarFieldEnum = {
   id: 'id',
   projectId: 'projectId',
@@ -3728,13 +3602,6 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
-
-
-export const JsonNullValueInput = {
-  JsonNull: JsonNull
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -4340,7 +4207,6 @@ export type GlobalOmitConfig = {
   committeeMember?: Prisma.CommitteeMemberOmit
   project?: Prisma.ProjectOmit
   protocolProfile?: Prisma.ProtocolProfileOmit
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotOmit
   protocolMilestone?: Prisma.ProtocolMilestoneOmit
   academicTerm?: Prisma.AcademicTermOmit
   proponent?: Prisma.ProponentOmit

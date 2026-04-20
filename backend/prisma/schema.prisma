@@ -303,7 +303,6 @@ model ImportBatch {
   uploadedBy   User?                  @relation("ImportBatchUploadedBy", fields: [uploadedById], references: [id])
   uploadedById Int?
   projects     Project[]
-  snapshots    LegacyImportSnapshot[]
 
   @@index([uploadedById])
   @@index([mode, createdAt])
@@ -440,7 +439,6 @@ model Project {
   members       ProjectMember[]
   changeLog     ProjectChangeLog[]
   protocolProfile ProtocolProfile?
-  legacyImportSnapshot LegacyImportSnapshot?
   protocolMilestones ProtocolMilestone[]
   createdBy     User?                  @relation("ProjectsCreated", fields: [createdById], references: [id])
   createdById   Int?
@@ -504,58 +502,6 @@ model ProtocolProfile {
   finalLayReviewer               String?
   createdAt                      DateTime @default(now())
   updatedAt                      DateTime @updatedAt
-}
-
-model LegacyImportSnapshot {
-  id                               Int        @id @default(autoincrement())
-  project                          Project    @relation(fields: [projectId], references: [id])
-  projectId                        Int        @unique
-  importBatch                      ImportBatch? @relation(fields: [importBatchId], references: [id])
-  importBatchId                    Int?
-  sourceRowNumber                  Int?
-  importedStatus                   String?
-  importedTypeOfReview             String?
-  importedClassificationOfProposal String?
-  importedPanel                    String?
-  importedScientistReviewer        String?
-  importedLayReviewer              String?
-  importedPrimaryReviewer          String?
-  importedFinalLayReviewer         String?
-  importedIndependentConsultant    String?
-  importedHonorariumStatus         String?
-  importedTotalDays                Int?
-  importedSubmissionCount          Int?
-  importedReviewDurationDays       Int?
-  importedClassificationDays       Int?
-  importedFinishDate               DateTime?
-  importedClassificationDate       DateTime?
-  importedMonthOfClearance         String?
-  importedWithdrawn                Boolean?
-  importedProjectEndDate6A         DateTime?
-  importedClearanceExpiration      DateTime?
-  importedProgressReportTargetDate DateTime?
-  importedProgressReportSubmission DateTime?
-  importedProgressReportApprovalDate DateTime?
-  importedProgressReportStatus     String?
-  importedProgressReportDays       Int?
-  importedFinalReportTargetDate    DateTime?
-  importedFinalReportSubmission    DateTime?
-  importedFinalReportCompletionDate DateTime?
-  importedFinalReportStatus        String?
-  importedFinalReportDays          Int?
-  importedAmendmentSubmission      DateTime?
-  importedAmendmentStatus          String?
-  importedAmendmentApprovalDate    DateTime?
-  importedAmendmentDays            Int?
-  importedContinuingSubmission     DateTime?
-  importedContinuingStatus         String?
-  importedContinuingApprovalDate   DateTime?
-  importedContinuingDays           Int?
-  importedRemarks                  String?
-  rawRowJson                       Json
-  importedAt                       DateTime   @default(now())
-
-  @@index([importBatchId])
 }
 
 model ProtocolMilestone {

@@ -409,54 +409,6 @@ export interface ImportBatchSummary {
   createdAt: string;
 }
 
-export interface LegacyImportSnapshot {
-  id: number;
-  projectId: number;
-  sourceRowNumber: number;
-  importedStatus?: string | null;
-  importedTypeOfReview?: string | null;
-  importedClassificationOfProposal?: string | null;
-  importedPanel?: string | null;
-  importedScientistReviewer?: string | null;
-  importedLayReviewer?: string | null;
-  importedPrimaryReviewer?: string | null;
-  importedFinalLayReviewer?: string | null;
-  importedIndependentConsultant?: string | null;
-  importedHonorariumStatus?: string | null;
-  importedTotalDays?: number | null;
-  importedSubmissionCount?: number | null;
-  importedReviewDurationDays?: number | null;
-  importedClassificationDays?: number | null;
-  importedFinishDate?: string | null;
-  importedClassificationDate?: string | null;
-  importedMonthOfClearance?: string | null;
-  importedWithdrawn?: boolean | null;
-  importedProjectEndDate6A?: string | null;
-  importedClearanceExpiration?: string | null;
-  importedProgressReportTargetDate?: string | null;
-  importedProgressReportSubmission?: string | null;
-  importedProgressReportApprovalDate?: string | null;
-  importedProgressReportStatus?: string | null;
-  importedProgressReportDays?: number | null;
-  importedFinalReportTargetDate?: string | null;
-  importedFinalReportSubmission?: string | null;
-  importedFinalReportCompletionDate?: string | null;
-  importedFinalReportStatus?: string | null;
-  importedFinalReportDays?: number | null;
-  importedAmendmentSubmission?: string | null;
-  importedAmendmentStatus?: string | null;
-  importedAmendmentApprovalDate?: string | null;
-  importedAmendmentDays?: number | null;
-  importedContinuingSubmission?: string | null;
-  importedContinuingStatus?: string | null;
-  importedContinuingApprovalDate?: string | null;
-  importedContinuingDays?: number | null;
-  importedRemarks?: string | null;
-  importedAt?: string;
-  importBatch?: ImportBatchSummary | null;
-  rawRowJson?: Record<string, string> | null;
-}
-
 export interface ImportResult {
   entity?: string;
   receivedRows: number;
@@ -477,7 +429,7 @@ export interface ProjectImportPreview {
   missingRequiredFields: string[];
   warnings: string[];
   warningItems?: ImportWarning[];
-  sourceType?: "csv" | "xlsx";
+  sourceType?: "csv";
   sourceWarnings?: string[];
 }
 
@@ -557,7 +509,6 @@ export interface SubmissionDetail {
     approvalEndDate?: string | null;
     protocolProfile?: ProtocolProfile | null;
     protocolMilestones?: ProtocolMilestone[];
-    legacyImportSnapshot?: LegacyImportSnapshot | null;
   } | null;
 }
 
@@ -589,7 +540,6 @@ export interface ProjectDetail {
     code: string;
   };
   protocolProfile?: ProtocolProfile | null;
-  legacyImportSnapshot?: LegacyImportSnapshot | null;
   protocolMilestones?: ProtocolMilestone[];
   submissions: SubmissionDetail[];
   statusHistory?: StatusHistoryEntry[];

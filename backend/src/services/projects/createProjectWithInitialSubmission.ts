@@ -11,7 +11,7 @@ import {
   SubmissionType,
 } from "../../generated/prisma/client";
 import {
-  type LegacyImportSnapshotData,
+  type LegacyWorkflowSeedData,
   parseReceivedDate,
   type ProjectProfileReferenceData,
 } from "../imports/projectCsvImport";
@@ -20,7 +20,7 @@ import {
   computeDueDate,
   getConfiguredSlaOrDefault,
 } from "../sla/submissionSlaService";
-import { syncLegacyProfileToWorkflow } from "./projectService";
+import { syncLegacyProfileToWorkflow } from "./legacyImportWorkflow";
 
 export interface ProjectCreateFieldError {
   field: string;
@@ -70,7 +70,7 @@ export interface CreateProjectWithInitialSubmissionInput {
   researchTypePHREBOther?: string | null;
   documentLink?: string | null;
   referenceProfile?: ProjectProfileReferenceData | null;
-  legacySnapshot?: LegacyImportSnapshotData | null;
+  legacyWorkflowSeed?: LegacyWorkflowSeedData | null;
 }
 
 const normalizeProjectCode = (value: string) => value.trim().toUpperCase();
@@ -227,13 +227,13 @@ export async function createProjectWithInitialSubmission(
     (importMode === ImportMode.LEGACY_MIGRATION
       ? ProjectOrigin.LEGACY_IMPORT
       : ProjectOrigin.NATIVE_PORTAL);
-  const hasLegacySnapshot = Boolean(input.legacySnapshot);
+  const hasLegacyWorkflowSeed = Boolean(input.legacyWorkflowSeed);
   const isImportedUpload = Boolean(input.importBatchId);
 
   if (!projectCode) {
     fieldErrors.push({ field: "projectCode", message: "projectCode is required." });
   }
-  if (hasLegacySnapshot && !input.importBatchId) {
+  if (hasLegacyWorkflowSeed && !input.importBatchId) {
     fieldErrors.push({
       field: "importBatchId",
       message: "importBatchId is required for legacy imports.",
@@ -310,7 +310,7 @@ export async function createProjectWithInitialSubmission(
       })();
 
   const referenceProfile = input.referenceProfile;
-  const legacySnapshot = hasLegacySnapshot ? input.legacySnapshot ?? null : null;
+  const legacyWorkflowSeed = hasLegacyWorkflowSeed ? input.legacyWorkflowSeed ?? null : null;
   const submissionStatus = SubmissionStatus.AWAITING_CLASSIFICATION;
   const submissionHistoryReason = isImportedUpload
     ? "Imported through CSV upload and entered the live workflow."
@@ -389,71 +389,7 @@ export async function createProjectWithInitialSubmission(
       },
     });
 
-    if (legacySnapshot) {
-      await tx.legacyImportSnapshot.create({
-        data: {
-          projectId: project.id,
-          importBatchId: input.importBatchId!,
-          sourceRowNumber:
-            input.importSourceRowNumber ?? legacySnapshot.sourceRowNumber,
-          importedStatus: legacySnapshot.importedStatus,
-          importedTypeOfReview: legacySnapshot.importedTypeOfReview,
-          importedClassificationOfProposal:
-            legacySnapshot.importedClassificationOfProposal,
-          importedPanel: legacySnapshot.importedPanel,
-          importedScientistReviewer: legacySnapshot.importedScientistReviewer,
-          importedLayReviewer: legacySnapshot.importedLayReviewer,
-          importedPrimaryReviewer: legacySnapshot.importedPrimaryReviewer,
-          importedFinalLayReviewer: legacySnapshot.importedFinalLayReviewer,
-          importedIndependentConsultant:
-            legacySnapshot.importedIndependentConsultant,
-          importedHonorariumStatus: legacySnapshot.importedHonorariumStatus,
-          importedTotalDays: legacySnapshot.importedTotalDays,
-          importedSubmissionCount: legacySnapshot.importedSubmissionCount,
-          importedReviewDurationDays:
-            legacySnapshot.importedReviewDurationDays,
-          importedClassificationDays: legacySnapshot.importedClassificationDays,
-          importedFinishDate: legacySnapshot.importedFinishDate,
-          importedClassificationDate: legacySnapshot.importedClassificationDate,
-          importedMonthOfClearance: legacySnapshot.importedMonthOfClearance,
-          importedWithdrawn: legacySnapshot.importedWithdrawn,
-          importedProjectEndDate6A: legacySnapshot.importedProjectEndDate6A,
-          importedClearanceExpiration:
-            legacySnapshot.importedClearanceExpiration,
-          importedProgressReportTargetDate:
-            legacySnapshot.importedProgressReportTargetDate,
-          importedProgressReportSubmission:
-            legacySnapshot.importedProgressReportSubmission,
-          importedProgressReportApprovalDate:
-            legacySnapshot.importedProgressReportApprovalDate,
-          importedProgressReportStatus:
-            legacySnapshot.importedProgressReportStatus,
-          importedProgressReportDays: legacySnapshot.importedProgressReportDays,
-          importedFinalReportTargetDate:
-            legacySnapshot.importedFinalReportTargetDate,
-          importedFinalReportSubmission:
-            legacySnapshot.importedFinalReportSubmission,
-          importedFinalReportCompletionDate:
-            legacySnapshot.importedFinalReportCompletionDate,
-          importedFinalReportStatus: legacySnapshot.importedFinalReportStatus,
-          importedFinalReportDays: legacySnapshot.importedFinalReportDays,
-          importedAmendmentSubmission:
-            legacySnapshot.importedAmendmentSubmission,
-          importedAmendmentStatus: legacySnapshot.importedAmendmentStatus,
-          importedAmendmentApprovalDate:
-            legacySnapshot.importedAmendmentApprovalDate,
-          importedAmendmentDays: legacySnapshot.importedAmendmentDays,
-          importedContinuingSubmission:
-            legacySnapshot.importedContinuingSubmission,
-          importedContinuingStatus: legacySnapshot.importedContinuingStatus,
-          importedContinuingApprovalDate:
-            legacySnapshot.importedContinuingApprovalDate,
-          importedContinuingDays: legacySnapshot.importedContinuingDays,
-          importedRemarks: legacySnapshot.importedRemarks,
-          rawRowJson: legacySnapshot.rawRowJson,
-        },
-      });
-
+    if (legacyWorkflowSeed) {
       await syncLegacyProfileToWorkflow(tx, {
         projectId: project.id,
         committeeId,
@@ -461,35 +397,80 @@ export async function createProjectWithInitialSubmission(
         sourceSubmissionId: submission.id,
         changedById: actorId,
         data: {
-          status: legacySnapshot.importedStatus ?? null,
+          status: legacyWorkflowSeed.importedStatus ?? null,
           typeOfReview:
             referenceProfile?.typeOfReview ??
-            legacySnapshot.importedTypeOfReview ??
+            legacyWorkflowSeed.importedTypeOfReview ??
             null,
           classificationOfProposalRerc:
-            legacySnapshot.importedClassificationOfProposal ?? null,
-          withdrawn: legacySnapshot.importedWithdrawn ?? null,
+            legacyWorkflowSeed.importedClassificationOfProposal ?? null,
+          withdrawn: legacyWorkflowSeed.importedWithdrawn ?? null,
           finishDate:
-            legacySnapshot.importedFinishDate ??
-            legacySnapshot.importedFinalReportCompletionDate ??
+            legacyWorkflowSeed.importedFinishDate ??
+            legacyWorkflowSeed.importedFinalReportCompletionDate ??
             null,
+          classificationDate:
+            legacyWorkflowSeed.importedClassificationDate ?? null,
           dateOfSubmission:
             referenceProfile?.dateOfSubmission ??
             referenceReceivedDate ??
             workflowReceivedDate,
           panel:
-            legacySnapshot.importedPanel ??
+            legacyWorkflowSeed.importedPanel ??
             null,
           primaryReviewer:
-            legacySnapshot.importedPrimaryReviewer ?? null,
+            legacyWorkflowSeed.importedPrimaryReviewer ?? null,
           scientistReviewer:
-            legacySnapshot.importedScientistReviewer ?? null,
+            legacyWorkflowSeed.importedScientistReviewer ?? null,
           layReviewer:
-            legacySnapshot.importedLayReviewer ?? null,
+            legacyWorkflowSeed.importedLayReviewer ?? null,
           finalLayReviewer:
-            legacySnapshot.importedFinalLayReviewer ?? null,
+            legacyWorkflowSeed.importedFinalLayReviewer ?? null,
           independentConsultant:
-            legacySnapshot.importedIndependentConsultant ?? null,
+            legacyWorkflowSeed.importedIndependentConsultant ?? null,
+          clearanceExpiration:
+            legacyWorkflowSeed.importedClearanceExpiration ?? null,
+          projectEndDate6A:
+            legacyWorkflowSeed.importedProjectEndDate6A ?? null,
+          progressReportTargetDate:
+            legacyWorkflowSeed.importedProgressReportTargetDate ?? null,
+          progressReportSubmission:
+            legacyWorkflowSeed.importedProgressReportSubmission ?? null,
+          progressReportApprovalDate:
+            legacyWorkflowSeed.importedProgressReportApprovalDate ?? null,
+          progressReportStatus:
+            legacyWorkflowSeed.importedProgressReportStatus ?? null,
+          progressReportDays:
+            legacyWorkflowSeed.importedProgressReportDays ?? null,
+          finalReportTargetDate:
+            legacyWorkflowSeed.importedFinalReportTargetDate ?? null,
+          finalReportSubmission:
+            legacyWorkflowSeed.importedFinalReportSubmission ?? null,
+          finalReportCompletionDate:
+            legacyWorkflowSeed.importedFinalReportCompletionDate ?? null,
+          finalReportStatus:
+            legacyWorkflowSeed.importedFinalReportStatus ?? null,
+          finalReportDays:
+            legacyWorkflowSeed.importedFinalReportDays ?? null,
+          amendmentSubmission:
+            legacyWorkflowSeed.importedAmendmentSubmission ?? null,
+          amendmentStatus:
+            legacyWorkflowSeed.importedAmendmentStatus ?? null,
+          amendmentApprovalDate:
+            legacyWorkflowSeed.importedAmendmentApprovalDate ?? null,
+          amendmentDays:
+            legacyWorkflowSeed.importedAmendmentDays ?? null,
+          continuingSubmission:
+            legacyWorkflowSeed.importedContinuingSubmission ?? null,
+          continuingStatus:
+            legacyWorkflowSeed.importedContinuingStatus ?? null,
+          continuingApprovalDate:
+            legacyWorkflowSeed.importedContinuingApprovalDate ?? null,
+          continuingDays:
+            legacyWorkflowSeed.importedContinuingDays ?? null,
+          remarks:
+            legacyWorkflowSeed.importedRemarks ?? referenceProfile?.remarks ?? notes,
+          rawRowJson: legacyWorkflowSeed.rawRowJson,
         },
       });
     }

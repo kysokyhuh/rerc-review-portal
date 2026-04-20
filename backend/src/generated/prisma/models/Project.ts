@@ -474,7 +474,6 @@ export type ProjectWhereInput = {
   members?: Prisma.ProjectMemberListRelationFilter
   changeLog?: Prisma.ProjectChangeLogListRelationFilter
   protocolProfile?: Prisma.XOR<Prisma.ProtocolProfileNullableScalarRelationFilter, Prisma.ProtocolProfileWhereInput> | null
-  legacyImportSnapshot?: Prisma.XOR<Prisma.LegacyImportSnapshotNullableScalarRelationFilter, Prisma.LegacyImportSnapshotWhereInput> | null
   protocolMilestones?: Prisma.ProtocolMilestoneListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
@@ -524,7 +523,6 @@ export type ProjectOrderByWithRelationInput = {
   members?: Prisma.ProjectMemberOrderByRelationAggregateInput
   changeLog?: Prisma.ProjectChangeLogOrderByRelationAggregateInput
   protocolProfile?: Prisma.ProtocolProfileOrderByWithRelationInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotOrderByWithRelationInput
   protocolMilestones?: Prisma.ProtocolMilestoneOrderByRelationAggregateInput
   createdBy?: Prisma.UserOrderByWithRelationInput
 }
@@ -577,7 +575,6 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   members?: Prisma.ProjectMemberListRelationFilter
   changeLog?: Prisma.ProjectChangeLogListRelationFilter
   protocolProfile?: Prisma.XOR<Prisma.ProtocolProfileNullableScalarRelationFilter, Prisma.ProtocolProfileWhereInput> | null
-  legacyImportSnapshot?: Prisma.XOR<Prisma.LegacyImportSnapshotNullableScalarRelationFilter, Prisma.LegacyImportSnapshotWhereInput> | null
   protocolMilestones?: Prisma.ProtocolMilestoneListRelationFilter
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id" | "projectCode">
@@ -704,7 +701,6 @@ export type ProjectCreateInput = {
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -751,7 +747,6 @@ export type ProjectUncheckedCreateInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -795,7 +790,6 @@ export type ProjectUpdateInput = {
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -842,7 +836,6 @@ export type ProjectUncheckedUpdateInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -1314,20 +1307,6 @@ export type ProjectUpdateOneRequiredWithoutProtocolProfileNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutProtocolProfileInput, Prisma.ProjectUpdateWithoutProtocolProfileInput>, Prisma.ProjectUncheckedUpdateWithoutProtocolProfileInput>
 }
 
-export type ProjectCreateNestedOneWithoutLegacyImportSnapshotInput = {
-  create?: Prisma.XOR<Prisma.ProjectCreateWithoutLegacyImportSnapshotInput, Prisma.ProjectUncheckedCreateWithoutLegacyImportSnapshotInput>
-  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutLegacyImportSnapshotInput
-  connect?: Prisma.ProjectWhereUniqueInput
-}
-
-export type ProjectUpdateOneRequiredWithoutLegacyImportSnapshotNestedInput = {
-  create?: Prisma.XOR<Prisma.ProjectCreateWithoutLegacyImportSnapshotInput, Prisma.ProjectUncheckedCreateWithoutLegacyImportSnapshotInput>
-  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutLegacyImportSnapshotInput
-  upsert?: Prisma.ProjectUpsertWithoutLegacyImportSnapshotInput
-  connect?: Prisma.ProjectWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutLegacyImportSnapshotInput, Prisma.ProjectUpdateWithoutLegacyImportSnapshotInput>, Prisma.ProjectUncheckedUpdateWithoutLegacyImportSnapshotInput>
-}
-
 export type ProjectCreateNestedOneWithoutProtocolMilestonesInput = {
   create?: Prisma.XOR<Prisma.ProjectCreateWithoutProtocolMilestonesInput, Prisma.ProjectUncheckedCreateWithoutProtocolMilestonesInput>
   connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutProtocolMilestonesInput
@@ -1468,7 +1447,6 @@ export type ProjectCreateWithoutCreatedByInput = {
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
 }
 
@@ -1513,7 +1491,6 @@ export type ProjectUncheckedCreateWithoutCreatedByInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1566,7 +1543,6 @@ export type ProjectCreateWithoutDeletedByInput = {
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -1612,7 +1588,6 @@ export type ProjectUncheckedCreateWithoutDeletedByInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1737,7 +1712,6 @@ export type ProjectCreateWithoutImportBatchInput = {
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -1783,7 +1757,6 @@ export type ProjectUncheckedCreateWithoutImportBatchInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1852,7 +1825,6 @@ export type ProjectCreateWithoutCommitteeInput = {
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -1898,7 +1870,6 @@ export type ProjectUncheckedCreateWithoutCommitteeInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1967,7 +1938,6 @@ export type ProjectCreateWithoutProtocolProfileInput = {
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -2013,7 +1983,6 @@ export type ProjectUncheckedCreateWithoutProtocolProfileInput = {
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -2072,7 +2041,6 @@ export type ProjectUpdateWithoutProtocolProfileInput = {
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -2118,201 +2086,6 @@ export type ProjectUncheckedUpdateWithoutProtocolProfileInput = {
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
-  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
-}
-
-export type ProjectCreateWithoutLegacyImportSnapshotInput = {
-  projectCode?: string | null
-  title?: string | null
-  piName?: string | null
-  piSurname?: string | null
-  piAffiliation?: string | null
-  collegeOrUnit?: string | null
-  proponentCategory?: $Enums.ProponentCategory | null
-  department?: string | null
-  proponent?: string | null
-  keywords?: Prisma.ProjectCreatekeywordsInput | string[]
-  researchTypePHREB?: $Enums.ResearchTypePHREB | null
-  researchTypePHREBOther?: string | null
-  fundingType?: $Enums.FundingType | null
-  initialSubmissionDate?: Date | string | null
-  proposedStartDate?: Date | string | null
-  proposedEndDate?: Date | string | null
-  origin?: $Enums.ProjectOrigin
-  overallStatus?: $Enums.ProjectStatus
-  approvalStartDate?: Date | string | null
-  approvalEndDate?: Date | string | null
-  isArchived?: boolean
-  deletedAt?: Date | string | null
-  deletedReason?: string | null
-  deletedFromStatus?: $Enums.ProjectStatus | null
-  deletePurgeAt?: Date | string | null
-  purgedAt?: Date | string | null
-  importSourceRowNumber?: number | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  committee: Prisma.CommitteeCreateNestedOneWithoutProjectsInput
-  deletedBy?: Prisma.UserCreateNestedOneWithoutProjectsDeletedInput
-  importBatch?: Prisma.ImportBatchCreateNestedOneWithoutProjectsInput
-  snapshots?: Prisma.ProjectSnapshotCreateNestedManyWithoutProjectInput
-  statusHistory?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutProjectInput
-  submissions?: Prisma.SubmissionCreateNestedManyWithoutProjectInput
-  proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
-  members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
-  changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
-  protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
-  protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
-  createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
-}
-
-export type ProjectUncheckedCreateWithoutLegacyImportSnapshotInput = {
-  id?: number
-  projectCode?: string | null
-  title?: string | null
-  piName?: string | null
-  piSurname?: string | null
-  piAffiliation?: string | null
-  collegeOrUnit?: string | null
-  proponentCategory?: $Enums.ProponentCategory | null
-  department?: string | null
-  proponent?: string | null
-  keywords?: Prisma.ProjectCreatekeywordsInput | string[]
-  researchTypePHREB?: $Enums.ResearchTypePHREB | null
-  researchTypePHREBOther?: string | null
-  fundingType?: $Enums.FundingType | null
-  initialSubmissionDate?: Date | string | null
-  proposedStartDate?: Date | string | null
-  proposedEndDate?: Date | string | null
-  committeeId: number
-  origin?: $Enums.ProjectOrigin
-  overallStatus?: $Enums.ProjectStatus
-  approvalStartDate?: Date | string | null
-  approvalEndDate?: Date | string | null
-  isArchived?: boolean
-  deletedAt?: Date | string | null
-  deletedById?: number | null
-  deletedReason?: string | null
-  deletedFromStatus?: $Enums.ProjectStatus | null
-  deletePurgeAt?: Date | string | null
-  purgedAt?: Date | string | null
-  importBatchId?: number | null
-  importSourceRowNumber?: number | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  createdById?: number | null
-  snapshots?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutProjectInput
-  statusHistory?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutProjectInput
-  submissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutProjectInput
-  proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
-  members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
-  changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
-  protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
-  protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
-}
-
-export type ProjectCreateOrConnectWithoutLegacyImportSnapshotInput = {
-  where: Prisma.ProjectWhereUniqueInput
-  create: Prisma.XOR<Prisma.ProjectCreateWithoutLegacyImportSnapshotInput, Prisma.ProjectUncheckedCreateWithoutLegacyImportSnapshotInput>
-}
-
-export type ProjectUpsertWithoutLegacyImportSnapshotInput = {
-  update: Prisma.XOR<Prisma.ProjectUpdateWithoutLegacyImportSnapshotInput, Prisma.ProjectUncheckedUpdateWithoutLegacyImportSnapshotInput>
-  create: Prisma.XOR<Prisma.ProjectCreateWithoutLegacyImportSnapshotInput, Prisma.ProjectUncheckedCreateWithoutLegacyImportSnapshotInput>
-  where?: Prisma.ProjectWhereInput
-}
-
-export type ProjectUpdateToOneWithWhereWithoutLegacyImportSnapshotInput = {
-  where?: Prisma.ProjectWhereInput
-  data: Prisma.XOR<Prisma.ProjectUpdateWithoutLegacyImportSnapshotInput, Prisma.ProjectUncheckedUpdateWithoutLegacyImportSnapshotInput>
-}
-
-export type ProjectUpdateWithoutLegacyImportSnapshotInput = {
-  projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
-  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
-  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
-  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
-  initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
-  overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
-  approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  deletedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  deletedFromStatus?: Prisma.NullableEnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus | null
-  deletePurgeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  purgedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  committee?: Prisma.CommitteeUpdateOneRequiredWithoutProjectsNestedInput
-  deletedBy?: Prisma.UserUpdateOneWithoutProjectsDeletedNestedInput
-  importBatch?: Prisma.ImportBatchUpdateOneWithoutProjectsNestedInput
-  snapshots?: Prisma.ProjectSnapshotUpdateManyWithoutProjectNestedInput
-  statusHistory?: Prisma.ProjectStatusHistoryUpdateManyWithoutProjectNestedInput
-  submissions?: Prisma.SubmissionUpdateManyWithoutProjectNestedInput
-  proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
-  members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
-  changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
-  protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
-  protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
-  createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
-}
-
-export type ProjectUncheckedUpdateWithoutLegacyImportSnapshotInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  projectCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  piName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  piSurname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  piAffiliation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  collegeOrUnit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  proponentCategory?: Prisma.NullableEnumProponentCategoryFieldUpdateOperationsInput | $Enums.ProponentCategory | null
-  department?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  proponent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  keywords?: Prisma.ProjectUpdatekeywordsInput | string[]
-  researchTypePHREB?: Prisma.NullableEnumResearchTypePHREBFieldUpdateOperationsInput | $Enums.ResearchTypePHREB | null
-  researchTypePHREBOther?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fundingType?: Prisma.NullableEnumFundingTypeFieldUpdateOperationsInput | $Enums.FundingType | null
-  initialSubmissionDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  proposedStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  proposedEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  committeeId?: Prisma.IntFieldUpdateOperationsInput | number
-  origin?: Prisma.EnumProjectOriginFieldUpdateOperationsInput | $Enums.ProjectOrigin
-  overallStatus?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
-  approvalStartDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  approvalEndDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  deletedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  deletedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  deletedFromStatus?: Prisma.NullableEnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus | null
-  deletePurgeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  purgedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  importBatchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  importSourceRowNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  snapshots?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutProjectNestedInput
-  statusHistory?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutProjectNestedInput
-  submissions?: Prisma.SubmissionUncheckedUpdateManyWithoutProjectNestedInput
-  proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
-  members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
-  changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
-  protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -2356,7 +2129,6 @@ export type ProjectCreateWithoutProtocolMilestonesInput = {
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
 
@@ -2402,7 +2174,6 @@ export type ProjectUncheckedCreateWithoutProtocolMilestonesInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutProtocolMilestonesInput = {
@@ -2461,7 +2232,6 @@ export type ProjectUpdateWithoutProtocolMilestonesInput = {
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
 
@@ -2507,7 +2277,6 @@ export type ProjectUncheckedUpdateWithoutProtocolMilestonesInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
 }
 
 export type ProjectCreateWithoutProponentsInput = {
@@ -2549,7 +2318,6 @@ export type ProjectCreateWithoutProponentsInput = {
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -2595,7 +2363,6 @@ export type ProjectUncheckedCreateWithoutProponentsInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -2654,7 +2421,6 @@ export type ProjectUpdateWithoutProponentsInput = {
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -2700,7 +2466,6 @@ export type ProjectUncheckedUpdateWithoutProponentsInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -2743,7 +2508,6 @@ export type ProjectCreateWithoutMembersInput = {
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -2789,7 +2553,6 @@ export type ProjectUncheckedCreateWithoutMembersInput = {
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -2848,7 +2611,6 @@ export type ProjectUpdateWithoutMembersInput = {
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -2894,7 +2656,6 @@ export type ProjectUncheckedUpdateWithoutMembersInput = {
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -2937,7 +2698,6 @@ export type ProjectCreateWithoutChangeLogInput = {
   proponents?: Prisma.ProjectProponentCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -2983,7 +2743,6 @@ export type ProjectUncheckedCreateWithoutChangeLogInput = {
   proponents?: Prisma.ProjectProponentUncheckedCreateNestedManyWithoutProjectInput
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -3042,7 +2801,6 @@ export type ProjectUpdateWithoutChangeLogInput = {
   proponents?: Prisma.ProjectProponentUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -3088,7 +2846,6 @@ export type ProjectUncheckedUpdateWithoutChangeLogInput = {
   proponents?: Prisma.ProjectProponentUncheckedUpdateManyWithoutProjectNestedInput
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -3131,7 +2888,6 @@ export type ProjectCreateWithoutSnapshotsInput = {
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -3177,7 +2933,6 @@ export type ProjectUncheckedCreateWithoutSnapshotsInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -3236,7 +2991,6 @@ export type ProjectUpdateWithoutSnapshotsInput = {
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -3282,7 +3036,6 @@ export type ProjectUncheckedUpdateWithoutSnapshotsInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -3325,7 +3078,6 @@ export type ProjectCreateWithoutSubmissionsInput = {
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -3371,7 +3123,6 @@ export type ProjectUncheckedCreateWithoutSubmissionsInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -3430,7 +3181,6 @@ export type ProjectUpdateWithoutSubmissionsInput = {
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -3476,7 +3226,6 @@ export type ProjectUncheckedUpdateWithoutSubmissionsInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -3519,7 +3268,6 @@ export type ProjectCreateWithoutStatusHistoryInput = {
   members?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneCreateNestedManyWithoutProjectInput
   createdBy?: Prisma.UserCreateNestedOneWithoutProjectsCreatedInput
 }
@@ -3565,7 +3313,6 @@ export type ProjectUncheckedCreateWithoutStatusHistoryInput = {
   members?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
   changeLog?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutProjectInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedCreateNestedOneWithoutProjectInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedCreateNestedOneWithoutProjectInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -3624,7 +3371,6 @@ export type ProjectUpdateWithoutStatusHistoryInput = {
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -3670,7 +3416,6 @@ export type ProjectUncheckedUpdateWithoutStatusHistoryInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -3786,7 +3531,6 @@ export type ProjectUpdateWithoutCreatedByInput = {
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
 }
 
@@ -3831,7 +3575,6 @@ export type ProjectUncheckedUpdateWithoutCreatedByInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -3910,7 +3653,6 @@ export type ProjectUpdateWithoutDeletedByInput = {
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -3956,7 +3698,6 @@ export type ProjectUncheckedUpdateWithoutDeletedByInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -4071,7 +3812,6 @@ export type ProjectUpdateWithoutImportBatchInput = {
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -4117,7 +3857,6 @@ export type ProjectUncheckedUpdateWithoutImportBatchInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -4232,7 +3971,6 @@ export type ProjectUpdateWithoutCommitteeInput = {
   members?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUpdateManyWithoutProjectNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutProjectsCreatedNestedInput
 }
@@ -4278,7 +4016,6 @@ export type ProjectUncheckedUpdateWithoutCommitteeInput = {
   members?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
   changeLog?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutProjectNestedInput
   protocolProfile?: Prisma.ProtocolProfileUncheckedUpdateOneWithoutProjectNestedInput
-  legacyImportSnapshot?: Prisma.LegacyImportSnapshotUncheckedUpdateOneWithoutProjectNestedInput
   protocolMilestones?: Prisma.ProtocolMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -4448,7 +4185,6 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   members?: boolean | Prisma.Project$membersArgs<ExtArgs>
   changeLog?: boolean | Prisma.Project$changeLogArgs<ExtArgs>
   protocolProfile?: boolean | Prisma.Project$protocolProfileArgs<ExtArgs>
-  legacyImportSnapshot?: boolean | Prisma.Project$legacyImportSnapshotArgs<ExtArgs>
   protocolMilestones?: boolean | Prisma.Project$protocolMilestonesArgs<ExtArgs>
   createdBy?: boolean | Prisma.Project$createdByArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
@@ -4585,7 +4321,6 @@ export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   members?: boolean | Prisma.Project$membersArgs<ExtArgs>
   changeLog?: boolean | Prisma.Project$changeLogArgs<ExtArgs>
   protocolProfile?: boolean | Prisma.Project$protocolProfileArgs<ExtArgs>
-  legacyImportSnapshot?: boolean | Prisma.Project$legacyImportSnapshotArgs<ExtArgs>
   protocolMilestones?: boolean | Prisma.Project$protocolMilestonesArgs<ExtArgs>
   createdBy?: boolean | Prisma.Project$createdByArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
@@ -4616,7 +4351,6 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     members: Prisma.$ProjectMemberPayload<ExtArgs>[]
     changeLog: Prisma.$ProjectChangeLogPayload<ExtArgs>[]
     protocolProfile: Prisma.$ProtocolProfilePayload<ExtArgs> | null
-    legacyImportSnapshot: Prisma.$LegacyImportSnapshotPayload<ExtArgs> | null
     protocolMilestones: Prisma.$ProtocolMilestonePayload<ExtArgs>[]
     createdBy: Prisma.$UserPayload<ExtArgs> | null
   }
@@ -5059,7 +4793,6 @@ export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.
   members<T extends Prisma.Project$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   changeLog<T extends Prisma.Project$changeLogArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$changeLogArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectChangeLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   protocolProfile<T extends Prisma.Project$protocolProfileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$protocolProfileArgs<ExtArgs>>): Prisma.Prisma__ProtocolProfileClient<runtime.Types.Result.GetResult<Prisma.$ProtocolProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  legacyImportSnapshot<T extends Prisma.Project$legacyImportSnapshotArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$legacyImportSnapshotArgs<ExtArgs>>): Prisma.Prisma__LegacyImportSnapshotClient<runtime.Types.Result.GetResult<Prisma.$LegacyImportSnapshotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   protocolMilestones<T extends Prisma.Project$protocolMilestonesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$protocolMilestonesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProtocolMilestonePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdBy<T extends Prisma.Project$createdByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$createdByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
@@ -5719,25 +5452,6 @@ export type Project$protocolProfileArgs<ExtArgs extends runtime.Types.Extensions
    */
   include?: Prisma.ProtocolProfileInclude<ExtArgs> | null
   where?: Prisma.ProtocolProfileWhereInput
-}
-
-/**
- * Project.legacyImportSnapshot
- */
-export type Project$legacyImportSnapshotArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the LegacyImportSnapshot
-   */
-  select?: Prisma.LegacyImportSnapshotSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the LegacyImportSnapshot
-   */
-  omit?: Prisma.LegacyImportSnapshotOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.LegacyImportSnapshotInclude<ExtArgs> | null
-  where?: Prisma.LegacyImportSnapshotWhereInput
 }
 
 /**
