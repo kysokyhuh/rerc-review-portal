@@ -28,6 +28,7 @@ import {
   DuplicateProjectCodeError,
   ProjectCreateValidationError,
 } from "../services/projects/createProjectWithInitialSubmission";
+import { BRAND } from "../config/branding";
 
 const MAX_FILE_SIZE_MB = Number(process.env.IMPORT_MAX_FILE_SIZE_MB || 10);
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -154,11 +155,13 @@ const fileNeedsDefaultCommittee = (parsed: ParsedCsvData, mapping: ColumnMapping
   });
 
 const buildConfiguredDefaultCommittee = async () => {
-  const configuredDefaultCommitteeCode = String(
+  const explicitDefaultCommitteeCode = String(
     process.env.IMPORT_DEFAULT_COMMITTEE_CODE ?? ""
   )
     .trim()
     .toUpperCase();
+  const configuredDefaultCommitteeCode =
+    explicitDefaultCommitteeCode || BRAND.defaultCommitteeCode;
   if (!configuredDefaultCommitteeCode) {
     return {
       defaultCommitteeCode: null,
@@ -171,10 +174,17 @@ const buildConfiguredDefaultCommittee = async () => {
     select: { id: true, code: true },
   });
   if (!committee) {
-    throw new CsvImportError(
-      `Configured default intake committee does not exist: ${configuredDefaultCommitteeCode}`,
-      500
-    );
+    if (explicitDefaultCommitteeCode) {
+      throw new CsvImportError(
+        `Configured default intake committee does not exist: ${configuredDefaultCommitteeCode}`,
+        500
+      );
+    }
+
+    return {
+      defaultCommitteeCode: null,
+      defaultCommitteeId: null,
+    };
   }
 
   return {

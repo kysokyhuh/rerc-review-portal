@@ -299,6 +299,7 @@ describe("project import routes", () => {
 
     it("fails once with a setup error when blank committeeCode rows need a default committee", async () => {
       delete process.env.IMPORT_DEFAULT_COMMITTEE_CODE;
+      prisma.committee.findFirst.mockResolvedValue(null);
 
       const csv = buildCsv([
         [
@@ -453,6 +454,8 @@ describe("project import routes", () => {
     });
 
     it("uses the configured default committee when committeeCode is blank", async () => {
+      delete process.env.IMPORT_DEFAULT_COMMITTEE_CODE;
+
       const csv = buildCsv([
         [
           "2026-003B",
@@ -549,6 +552,7 @@ describe("project import routes", () => {
 
     it("fails once with a setup error when committeeCode is blank and no default committee is configured", async () => {
       delete process.env.IMPORT_DEFAULT_COMMITTEE_CODE;
+      prisma.committee.findFirst.mockResolvedValue(null);
 
       const csv = buildCsv([
         [
