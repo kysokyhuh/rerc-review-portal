@@ -76,33 +76,33 @@ const CORE_GROUPS: ProfileGroup[] = [
  */
 const LEGACY_REFERENCE_GROUPS: ProfileGroup[] = [
   {
-    name: "Legacy Status & Counts",
+    name: "Imported Status & Counts",
     icon: "📊",
     defaultOpen: false,
     fields: [
-      { key: "status", label: "Status (legacy)", type: "text" },
-      { key: "reviewDurationDays", label: "Review Duration Days (legacy)", type: "number" },
+      { key: "status", label: "Status (imported)", type: "text" },
+      { key: "reviewDurationDays", label: "Review Duration Days (imported)", type: "number" },
       { key: "classificationOfProposalRerc", label: "Classification of Proposal (RERC)", type: "text" },
-      { key: "totalDays", label: "Total Days (legacy)", type: "number" },
-      { key: "submissionCount", label: "# Submissions (legacy)", type: "number" },
+      { key: "totalDays", label: "Total Days (imported)", type: "number" },
+      { key: "submissionCount", label: "# Submissions (imported)", type: "number" },
     ],
   },
   {
-    name: "Legacy Panel & Reviewers",
+    name: "Imported Panel & Reviewers",
     icon: "👥",
     defaultOpen: false,
     fields: [
-      { key: "panel", label: "Panel (legacy)", type: "select", options: ["Panel 1", "Panel 2", "Panel 3", "Panel 4"] },
-      { key: "scientistReviewer", label: "Scientist Reviewer (legacy)", type: "text" },
-      { key: "layReviewer", label: "Lay Reviewer (legacy)", type: "text" },
-      { key: "independentConsultant", label: "Independent Consultant (legacy)", type: "text" },
-      { key: "primaryReviewer", label: "Primary Reviewer (legacy)", type: "text" },
-      { key: "finalLayReviewer", label: "Lay Reviewer — Final (legacy)", type: "text" },
-      { key: "honorariumStatus", label: "Honorarium Status (legacy)", type: "text" },
+      { key: "panel", label: "Panel (imported)", type: "select", options: ["Panel 1", "Panel 2", "Panel 3", "Panel 4"] },
+      { key: "scientistReviewer", label: "Scientist Reviewer (imported)", type: "text" },
+      { key: "layReviewer", label: "Lay Reviewer (imported)", type: "text" },
+      { key: "independentConsultant", label: "Independent Consultant (imported)", type: "text" },
+      { key: "primaryReviewer", label: "Primary Reviewer (imported)", type: "text" },
+      { key: "finalLayReviewer", label: "Lay Reviewer — Final (imported)", type: "text" },
+      { key: "honorariumStatus", label: "Honorarium Status (imported)", type: "text" },
     ],
   },
   {
-    name: "Legacy Progress Report",
+    name: "Progress Report",
     icon: "📈",
     defaultOpen: false,
     fields: [
@@ -114,7 +114,7 @@ const LEGACY_REFERENCE_GROUPS: ProfileGroup[] = [
     ],
   },
   {
-    name: "Legacy Final Report",
+    name: "Final Report",
     icon: "📄",
     defaultOpen: false,
     fields: [
@@ -126,7 +126,7 @@ const LEGACY_REFERENCE_GROUPS: ProfileGroup[] = [
     ],
   },
   {
-    name: "Legacy Amendment",
+    name: "Amendment",
     icon: "✏️",
     defaultOpen: false,
     fields: [
@@ -137,7 +137,7 @@ const LEGACY_REFERENCE_GROUPS: ProfileGroup[] = [
     ],
   },
   {
-    name: "Legacy Continuing Review",
+    name: "Continuing Review",
     icon: "🔄",
     defaultOpen: false,
     fields: [
@@ -150,10 +150,10 @@ const LEGACY_REFERENCE_GROUPS: ProfileGroup[] = [
 ];
 
 const ADDABLE_LEGACY_GROUP_NAMES = new Set([
-  "Legacy Progress Report",
-  "Legacy Final Report",
-  "Legacy Amendment",
-  "Legacy Continuing Review",
+  "Progress Report",
+  "Final Report",
+  "Amendment",
+  "Continuing Review",
 ]);
 
 const ALWAYS_VISIBLE_LEGACY_GROUPS = LEGACY_REFERENCE_GROUPS.filter(
@@ -504,12 +504,12 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
         {CORE_GROUPS.map((group) => renderGroup(group))}
       </div>
 
-      {/* Legacy reference fields — not live workflow truth */}
+      {/* Imported reference fields — not live workflow truth */}
       <div className="pp-legacy-section">
         <div className="pp-legacy-header">
-          <span className="pp-legacy-label">Legacy reference fields</span>
+          <span className="pp-legacy-label">Imported reference fields</span>
           <span className="pp-legacy-note">
-            Carried over from spreadsheet imports. Not the live operational source of truth — live status, reviewers, and classifications are tracked separately.
+            Saved from spreadsheet imports for reference only. Live status, reviewers, and classifications are tracked separately.
           </span>
         </div>
         <div className="pp-legacy-controls">
@@ -519,7 +519,7 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
             onClick={() => setLegacyPickerOpen((prev) => !prev)}
             disabled={availableLegacyGroups.length === 0}
           >
-            Add Legacy Section
+            Add Section
           </button>
           {legacyPickerOpen ? (
             <select
