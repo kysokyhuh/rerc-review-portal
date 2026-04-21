@@ -203,7 +203,7 @@ const resolveCommitteeId = async (
           ? "committeeCode does not exist."
           : allowFirstActiveFallback
             ? "No active committee found."
-            : "committeeCode is required unless a default intake committee is configured.",
+            : "Blank committeeCode requires a configured default intake committee.",
       },
     ]);
   }

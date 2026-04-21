@@ -9,6 +9,7 @@ import {
 } from "../generated/prisma/client";
 import { requireRoles } from "../middleware/auth";
 import {
+  type ColumnMapping,
   buildPreviewPayload,
   chunkRows,
   CsvImportError,
@@ -17,6 +18,7 @@ import {
   normalizeCommitMapping,
   normalizeProjectCode,
   parseProjectCsvUnknownFormat,
+  type ParsedCsvData,
   PROJECT_IMPORT_HEADERS,
   suggestColumnMapping,
   validateMappedProjectRows,
@@ -42,6 +44,9 @@ const upload = multer({
 });
 
 const router = Router();
+
+const DEFAULT_COMMITTEE_REQUIRED_MESSAGE =
+  "This file leaves committeeCode blank on one or more rows, but no default intake committee is configured. Configure IMPORT_DEFAULT_COMMITTEE_CODE and create that committee before importing.";
 
 type RowEditPayload = Array<{
   rowNumber: number;
@@ -122,6 +127,32 @@ const getUploadFileOrThrow = (req: any) => {
 
 const toJsonValue = <T>(value: T) => JSON.parse(JSON.stringify(value));
 
+const rowHasImportContent = (row: ParsedCsvData["rows"][number], mapping: ColumnMapping) => {
+  const anchorHeaders = [
+    mapping.projectCode,
+    mapping.title,
+    mapping.piName,
+    mapping.receivedDate,
+  ].filter((header): header is string => Boolean(header));
+
+  if (anchorHeaders.length === 0) {
+    return Object.values(row.raw).some((value) => value.trim().length > 0);
+  }
+
+  return anchorHeaders.some((header) => (row.raw[header] ?? "").trim().length > 0);
+};
+
+const fileNeedsDefaultCommittee = (parsed: ParsedCsvData, mapping: ColumnMapping) =>
+  parsed.rows.some((row) => {
+    if (!rowHasImportContent(row, mapping)) {
+      return false;
+    }
+
+    const committeeHeader = mapping.committeeCode;
+    const committeeCode = committeeHeader ? row.raw[committeeHeader] ?? "" : "";
+    return committeeCode.trim().length === 0;
+  });
+
 const buildConfiguredDefaultCommittee = async () => {
   const configuredDefaultCommitteeCode = String(
     process.env.IMPORT_DEFAULT_COMMITTEE_CODE ?? ""
@@ -161,13 +192,30 @@ router.post(
       const { file, sourceType } = getUploadFileOrThrow(req);
       const parsed = parseProjectCsvUnknownFormat(file.buffer, DEFAULT_IMPORT_CONFIG);
       const mode = inferImportMode(parsed);
+      const mapping = suggestColumnMapping(parsed.detectedHeaders);
+      const needsDefaultCommittee = fileNeedsDefaultCommittee(parsed, mapping);
+      let defaultCommitteeCode: string | null = null;
+      if (needsDefaultCommittee) {
+        const configuredDefaultCommittee = await buildConfiguredDefaultCommittee();
+        defaultCommitteeCode = configuredDefaultCommittee.defaultCommitteeCode;
+        if (!configuredDefaultCommittee.defaultCommitteeId || !defaultCommitteeCode) {
+          throw new CsvImportError(DEFAULT_COMMITTEE_REQUIRED_MESSAGE, 400);
+        }
+      }
       const preview = buildPreviewPayload(parsed, DEFAULT_IMPORT_CONFIG);
-      const sourceWarnings =
+      const sourceWarnings = [
+        ...(defaultCommitteeCode
+          ? [
+              `Rows with blank committeeCode will be attached to default committee ${defaultCommitteeCode}. The Chair can assign Panel 1-4 later.`,
+            ]
+          : []),
+        ...(
         mode === ImportMode.LEGACY_MIGRATION && sourceType === "csv"
           ? [
-              "CSV legacy import runs in best-effort mode. Spreadsheet formula outputs that were not exported to CSV will remain blank and be imported as null live values.",
+              "This file looks like an older spreadsheet export. If some formula results were not included in the CSV, those fields will stay blank after import.",
             ]
-          : [];
+          : [])
+      ];
 
       return res.json({ ...preview, sourceType, sourceWarnings });
     } catch (error) {
@@ -210,6 +258,7 @@ router.post(
       const mapping = req.body?.mapping
         ? normalizeCommitMapping(req.body.mapping, parsed.detectedHeaders)
         : suggestColumnMapping(parsed.detectedHeaders);
+      const needsDefaultCommittee = fileNeedsDefaultCommittee(parsed, mapping);
       const codes = parsed.rows
         .map((row) => {
           const mappedHeader = mapping.projectCode;
@@ -224,17 +273,15 @@ router.post(
       const committeeCodeMap = new Map(
         committees.map((committee) => [committee.code.toUpperCase(), committee.id])
       );
-      const { defaultCommitteeCode: configuredDefaultCode, defaultCommitteeId: configuredDefaultId } =
-        await buildConfiguredDefaultCommittee();
-
-      // For LEGACY_MIGRATION, fall back to the first available committee when no
-      // default committee is configured — legacy CSVs never included a committee column.
-      let defaultCommitteeId = configuredDefaultId;
-      let defaultCommitteeCode = configuredDefaultCode;
-      if (!defaultCommitteeId && mode === ImportMode.LEGACY_MIGRATION && committees.length > 0) {
-        const fallback = committees[0];
-        defaultCommitteeId = fallback.id;
-        defaultCommitteeCode = fallback.code.toUpperCase();
+      let defaultCommitteeId: number | null = null;
+      let defaultCommitteeCode: string | null = null;
+      if (needsDefaultCommittee) {
+        const configuredDefaultCommittee = await buildConfiguredDefaultCommittee();
+        defaultCommitteeId = configuredDefaultCommittee.defaultCommitteeId;
+        defaultCommitteeCode = configuredDefaultCommittee.defaultCommitteeCode;
+        if (!defaultCommitteeId || !defaultCommitteeCode) {
+          throw new CsvImportError(DEFAULT_COMMITTEE_REQUIRED_MESSAGE, 400);
+        }
       }
 
       const existingProjects = codes.length
@@ -378,7 +425,7 @@ router.post(
           warningRows,
           notes:
             mode === ImportMode.LEGACY_MIGRATION
-              ? "Import completed. Recoverable legacy fields were materialized into live workflow records."
+              ? "Import completed. Usable values from the older spreadsheet format were added to the live workflow records."
               : warnings.length > 0
                 ? "Import completed with warnings."
                 : "Import completed.",

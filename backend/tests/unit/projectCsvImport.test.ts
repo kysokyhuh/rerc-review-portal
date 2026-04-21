@@ -146,7 +146,7 @@ describe("project CSV import mapping", () => {
     );
     expect(preview.detectedFormat).toBe("legacy_headerless");
     expect(preview.warnings).toContain(
-      "No header row detected; using legacy column order."
+      "No header row was found. We will read this file using the known RERC spreadsheet column order."
     );
   });
 
@@ -154,7 +154,7 @@ describe("project CSV import mapping", () => {
     const csv = [["2026-001", "Title Only", "Dr. A"].join(",")].join("\n");
 
     expect(() => parseProjectCsvUnknownFormat(csv)).toThrow(
-      "Headerless CSV is only supported for the known legacy RERC export layout."
+      "Headerless CSV is only supported for the known RERC spreadsheet export layout."
     );
   });
 

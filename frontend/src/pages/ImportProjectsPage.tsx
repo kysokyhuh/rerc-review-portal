@@ -167,7 +167,7 @@ export default function ImportProjectsPage() {
       if (previewResponse.missingRequiredFields.length > 0) {
         setStatusMessage("We can't read required headers from this file.");
       } else if (previewResponse.detectedFormat === "legacy_headerless") {
-        setStatusMessage("Legacy no-header CSV detected. Preview ready using legacy column order.");
+        setStatusMessage("No header row found. Preview ready using the known RERC spreadsheet column order.");
       } else {
         setStatusMessage("Preview ready. You can edit blank cells in the preview before import.");
       }
@@ -354,7 +354,7 @@ export default function ImportProjectsPage() {
         </button>
         <h1>Import Projects</h1>
         <p>
-          Upload a CSV file. The portal will detect the structure automatically, map recoverable legacy data into live workflow records, and preserve historical timeline data as milestones.
+          Upload a CSV file. Blank <code>committeeCode</code> values can use the configured default intake committee, and the Chair can assign Panel 1-4 later. If the file came from an older spreadsheet, we will move the usable data into the live workflow and keep historical dates as milestones.
         </p>
       </header>
 
@@ -448,6 +448,9 @@ export default function ImportProjectsPage() {
                   <div className="import-alert info">
                     <p className="import-alert-line">
                       <strong>Import preview ready:</strong> The uploaded rows will be created as live workflow records after commit.
+                    </p>
+                    <p className="import-alert-line">
+                      Blank <code>committeeCode</code> values use the default intake committee when it is configured. Panel assignment still happens later in the Chair workflow.
                     </p>
                     <p className="import-alert-line">
                       Historical spreadsheet-only columns, when present, will be preserved as live protocol milestones and timeline metadata when they can be recovered from the CSV.
@@ -681,11 +684,11 @@ export default function ImportProjectsPage() {
               <h3>Required headers</h3>
               <ul>
                 <li>Header-based CSV intake files are supported.</li>
-                <li>The known legacy no-header RERC export is also supported.</li>
-                <li>Legacy CSV imports run in best-effort mode when formula-derived fields were not exported.</li>
+                <li>The older RERC spreadsheet export with no header row is also supported.</li>
+                <li>If formula results were not included in the CSV, some fields may stay blank after import.</li>
               </ul>
               <p>
-                Legacy no-header files still use the fixed historical column order, while normal intake files rely on recognizable headers.
+                Files with no header row still use the fixed RERC spreadsheet column order, while normal intake files rely on recognizable headers.
               </p>
             </div>
             <div className="import-card import-guide-card">

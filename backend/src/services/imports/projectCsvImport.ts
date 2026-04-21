@@ -716,7 +716,7 @@ export const parseProjectCsvUnknownFormat = (
     }
     if (looksLikeUnsupportedHeaderlessRow(firstRow)) {
       throw new CsvImportError(
-        "Headerless CSV is only supported for the known legacy RERC export layout."
+        "Headerless CSV is only supported for the known RERC spreadsheet export layout."
       );
     }
 
@@ -840,7 +840,7 @@ export const assessImportMode = (
     warningItems.push(
       createWarning(
         "LEGACY_WORKFLOW_COLUMNS",
-        "Legacy workflow columns detected. Recoverable values will be mapped directly into live workflow records."
+        "This file includes older workflow columns. We will move any usable values into the portal."
       )
     );
   }
@@ -848,7 +848,7 @@ export const assessImportMode = (
     warningItems.push(
       createWarning(
         "LEGACY_MILESTONE_COLUMNS",
-        "Legacy milestone/date columns detected. Recoverable values will be preserved as live ProtocolMilestone rows."
+        "This file includes older date and timeline columns. We will keep any usable dates and steps in the protocol timeline."
       )
     );
   }
@@ -860,7 +860,7 @@ export const assessImportMode = (
       warningItems.push(
         createWarning(
           "MODE_MISMATCH_BLOCKED",
-          "Selected intake import mode does not fit this file. Use Legacy Migration for legacy exports or files with populated legacy workflow columns."
+          "This file uses an older spreadsheet format. Please import it using the older-file workflow."
         )
       );
     } else if (parsed.detectedFormat === "legacy_headered") {
@@ -868,7 +868,7 @@ export const assessImportMode = (
       warningItems.push(
         createWarning(
           "MODE_MISMATCH_WARNING",
-          "This file matches the legacy export layout. Intake import can continue only because the legacy workflow columns are empty."
+          "This file matches an older spreadsheet layout. Import can continue because the older workflow columns are empty."
         )
       );
     }
@@ -877,7 +877,7 @@ export const assessImportMode = (
     warningItems.push(
       createWarning(
         "MODE_MISMATCH_WARNING",
-        "This file looks like a normal intake CSV. Legacy migration can continue, but the imported snapshot may be mostly empty."
+        "This file looks like a normal CSV. Import can continue, but extra older-format fields will likely stay blank."
       )
     );
   }
@@ -960,7 +960,7 @@ export const buildPreviewPayload = (
     warnings.push(
       createWarning(
         "LEGACY_HEADERLESS",
-        "No header row detected; using legacy column order."
+        "No header row was found. We will read this file using the known RERC spreadsheet column order."
       )
     );
   }
@@ -1379,7 +1379,7 @@ export const validateMappedProjectRows = ({
       rowErrors.push({
         row: row.rowNumber,
         field: "committeeCode",
-        message: "committeeCode is required unless a default intake committee is configured.",
+        message: "Blank committeeCode requires a configured default intake committee.",
       });
     }
 

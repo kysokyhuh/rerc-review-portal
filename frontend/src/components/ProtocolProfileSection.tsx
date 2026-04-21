@@ -92,7 +92,7 @@ const LEGACY_REFERENCE_GROUPS: ProfileGroup[] = [
     icon: "👥",
     defaultOpen: false,
     fields: [
-      { key: "panel", label: "Panel (legacy)", type: "select", options: ["Panel 1", "Panel 2", "Panel 3"] },
+      { key: "panel", label: "Panel (legacy)", type: "select", options: ["Panel 1", "Panel 2", "Panel 3", "Panel 4"] },
       { key: "scientistReviewer", label: "Scientist Reviewer (legacy)", type: "text" },
       { key: "layReviewer", label: "Lay Reviewer (legacy)", type: "text" },
       { key: "independentConsultant", label: "Independent Consultant (legacy)", type: "text" },

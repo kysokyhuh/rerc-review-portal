@@ -144,7 +144,7 @@ async function importCSV() {
 
   // Create panels
   const panelMap: Record<string, number> = {};
-  for (const panelName of ["Panel 1", "Panel 2", "Panel 3"]) {
+  for (const panelName of ["Panel 1", "Panel 2", "Panel 3", "Panel 4"]) {
     let panel = await prisma.panel.findFirst({
       where: { name: panelName, committeeId: committee.id },
     });

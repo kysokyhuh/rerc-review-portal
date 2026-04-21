@@ -103,6 +103,9 @@ const headers = [
   "remarks",
 ];
 
+const defaultCommitteeSetupError =
+  "This file leaves committeeCode blank on one or more rows, but no default intake committee is configured. Configure IMPORT_DEFAULT_COMMITTEE_CODE and create that committee before importing.";
+
 const buildCsv = (rows: string[][]) =>
   [headers.join(","), ...rows.map((row) => row.join(","))].join("\n");
 
@@ -290,8 +293,42 @@ describe("project import routes", () => {
       expect(response.body.detectedFormat).toBe("legacy_headerless");
       expect(response.body.missingRequiredFields).toEqual([]);
       expect(response.body.warnings).toContain(
-        "No header row detected; using legacy column order."
+        "No header row was found. We will read this file using the known RERC spreadsheet column order."
       );
+    });
+
+    it("fails once with a setup error when blank committeeCode rows need a default committee", async () => {
+      delete process.env.IMPORT_DEFAULT_COMMITTEE_CODE;
+
+      const csv = buildCsv([
+        [
+          "2026-000A",
+          "Needs Default Committee",
+          "Dr. Setup",
+          "Science",
+          "Biology",
+          "",
+          "INTERNAL",
+          "",
+          "",
+          "",
+          "INITIAL",
+          "2026-01-10",
+          "",
+        ],
+      ]);
+
+      const response = await request(app)
+        .post("/imports/projects/preview")
+        .set(csrfHeaders)
+        .set("X-User-ID", "1")
+        .set("X-User-Email", "ra@example.com")
+        .set("X-User-Name", "RA")
+        .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+        .attach("file", Buffer.from(csv), "projects.csv");
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe(defaultCommitteeSetupError);
     });
   });
 
@@ -413,6 +450,147 @@ describe("project import routes", () => {
           }),
         })
       );
+    });
+
+    it("uses the configured default committee when committeeCode is blank", async () => {
+      const csv = buildCsv([
+        [
+          "2026-003B",
+          "Default Committee Title",
+          "Dr. Default",
+          "Science",
+          "Biology",
+          "",
+          "INTERNAL",
+          "",
+          "",
+          "",
+          "INITIAL",
+          "2026-01-10",
+          "",
+        ],
+      ]);
+
+      const mapping = {
+        projectCode: "projectCode",
+        title: "title",
+        piName: "piName",
+        fundingType: "fundingType",
+        committeeCode: "committeeCode",
+        submissionType: "submissionType",
+        receivedDate: "receivedDate",
+      };
+
+      const response = await request(app)
+        .post("/imports/projects/commit")
+        .set(csrfHeaders)
+        .set("X-User-ID", "1")
+        .set("X-User-Email", "ra@example.com")
+        .set("X-User-Name", "RA")
+        .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+        .field("mapping", JSON.stringify(mapping))
+        .attach("file", Buffer.from(csv), "projects.csv");
+
+      expect(response.status).toBe(200);
+      expect(response.body.insertedRows).toBe(1);
+      expect(txProjectCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            committeeId: 1,
+          }),
+        })
+      );
+    });
+
+    it("still imports explicit committeeCode rows when no default committee is configured", async () => {
+      delete process.env.IMPORT_DEFAULT_COMMITTEE_CODE;
+
+      const csv = buildCsv([
+        [
+          "2026-003C",
+          "Explicit Committee Title",
+          "Dr. Explicit",
+          "Science",
+          "Biology",
+          "",
+          "INTERNAL",
+          "",
+          "",
+          "RERC-HUMAN",
+          "INITIAL",
+          "2026-01-10",
+          "",
+        ],
+      ]);
+
+      const mapping = {
+        projectCode: "projectCode",
+        title: "title",
+        piName: "piName",
+        fundingType: "fundingType",
+        committeeCode: "committeeCode",
+        submissionType: "submissionType",
+        receivedDate: "receivedDate",
+      };
+
+      const response = await request(app)
+        .post("/imports/projects/commit")
+        .set(csrfHeaders)
+        .set("X-User-ID", "1")
+        .set("X-User-Email", "ra@example.com")
+        .set("X-User-Name", "RA")
+        .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+        .field("mapping", JSON.stringify(mapping))
+        .attach("file", Buffer.from(csv), "projects.csv");
+
+      expect(response.status).toBe(200);
+      expect(response.body.insertedRows).toBe(1);
+    });
+
+    it("fails once with a setup error when committeeCode is blank and no default committee is configured", async () => {
+      delete process.env.IMPORT_DEFAULT_COMMITTEE_CODE;
+
+      const csv = buildCsv([
+        [
+          "2026-003D",
+          "Missing Committee Setup",
+          "Dr. Missing",
+          "Science",
+          "Biology",
+          "",
+          "INTERNAL",
+          "",
+          "",
+          "",
+          "INITIAL",
+          "2026-01-10",
+          "",
+        ],
+      ]);
+
+      const mapping = {
+        projectCode: "projectCode",
+        title: "title",
+        piName: "piName",
+        fundingType: "fundingType",
+        committeeCode: "committeeCode",
+        submissionType: "submissionType",
+        receivedDate: "receivedDate",
+      };
+
+      const response = await request(app)
+        .post("/imports/projects/commit")
+        .set(csrfHeaders)
+        .set("X-User-ID", "1")
+        .set("X-User-Email", "ra@example.com")
+        .set("X-User-Name", "RA")
+        .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+        .field("mapping", JSON.stringify(mapping))
+        .attach("file", Buffer.from(csv), "projects.csv");
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe(defaultCommitteeSetupError);
+      expect(txProjectCreate).not.toHaveBeenCalled();
     });
 
     it("commits legacy headered and headerless CSVs with the same normalized payload", async () => {
