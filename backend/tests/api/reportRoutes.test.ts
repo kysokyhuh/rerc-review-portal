@@ -454,7 +454,7 @@ describe("GET /reports/academic-year-summary", () => {
       {
         id: 601,
         createdAt: new Date("2026-04-14T00:00:00.000Z"),
-        receivedDate: new Date("2023-02-13T00:00:00.000Z"),
+        receivedDate: new Date("2026-04-21T00:00:00.000Z"),
         sequenceNumber: 1,
         status: SubmissionStatus.CLASSIFIED,
         resultsNotifiedAt: null,
@@ -538,7 +538,7 @@ describe("GET /reports/academic-year-summary", () => {
       {
         id: 701,
         createdAt: new Date("2026-04-14T00:00:00.000Z"),
-        receivedDate: new Date("2023-03-22T00:00:00.000Z"),
+        receivedDate: new Date("2026-04-21T00:00:00.000Z"),
         sequenceNumber: 1,
         status: SubmissionStatus.CLASSIFIED,
         resultsNotifiedAt: null,

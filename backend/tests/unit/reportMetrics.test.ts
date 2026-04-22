@@ -72,6 +72,6 @@ describe("report metrics date mapping", () => {
       holidays
     );
 
-    expect(internalDays).toBe(9);
+    expect(internalDays).toBe(8);
   });
 });

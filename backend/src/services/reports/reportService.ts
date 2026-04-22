@@ -104,6 +104,11 @@ type SubmissionForReports = Prisma.SubmissionGetPayload<{
 type ReportDateSource = {
   createdAt: Date;
   receivedDate?: Date | null;
+  project?: {
+    protocolProfile?: {
+      dateOfSubmission?: Date | null;
+    } | null;
+  } | null;
 };
 
 const PRO_CATEGORY_KEYS = ["UNDERGRAD", "GRAD", "FACULTY", "NON_TEACHING"] as const;
@@ -199,10 +204,10 @@ const resolveSubmissionReviewType = (
 ): ResolvedReviewType | null =>
   normalizeReviewType(submission.classification?.reviewType);
 
-const resolveWorkflowReceivedDate = (
-  submission: Pick<ReportDateSource, "receivedDate" | "createdAt">
-) =>
-  submission.receivedDate ?? submission.createdAt;
+const resolveWorkflowReceivedDate = (submission: ReportDateSource) =>
+  submission.project?.protocolProfile?.dateOfSubmission ??
+  submission.receivedDate ??
+  submission.createdAt;
 
 const resolveReportReceivedDate = (submission: ReportDateSource) =>
   resolveWorkflowReceivedDate(submission);
@@ -479,6 +484,15 @@ export async function resolveReportFallbackRange(): Promise<ReportFallbackRange 
     select: {
       createdAt: true,
       receivedDate: true,
+      project: {
+        select: {
+          protocolProfile: {
+            select: {
+              dateOfSubmission: true,
+            },
+          },
+        },
+      },
     },
   });
 
