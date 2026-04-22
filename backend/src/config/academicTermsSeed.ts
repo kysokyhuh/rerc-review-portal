@@ -9,6 +9,25 @@ export type AcademicTermSeedRecord = {
   endDate: Date;
 };
 
+const toUtcDate = (year: number, month: number, day: number) =>
+  new Date(Date.UTC(year, month - 1, day));
+
+const CUSTOM_TERM_DATES: Record<
+  string,
+  Array<{ term: number; startDate: Date; endDate: Date }>
+> = {
+  "2023-2024": [
+    { term: 1, startDate: toUtcDate(2023, 9, 24), endDate: toUtcDate(2023, 12, 11) },
+    { term: 2, startDate: toUtcDate(2024, 1, 8), endDate: toUtcDate(2024, 4, 16) },
+    { term: 3, startDate: toUtcDate(2024, 5, 2), endDate: toUtcDate(2024, 8, 9) },
+  ],
+  "2024-2025": [
+    { term: 1, startDate: toUtcDate(2024, 9, 2), endDate: toUtcDate(2024, 12, 9) },
+    { term: 2, startDate: toUtcDate(2025, 1, 6), endDate: toUtcDate(2025, 4, 12) },
+    { term: 3, startDate: toUtcDate(2025, 5, 5), endDate: toUtcDate(2025, 8, 13) },
+  ],
+};
+
 export const buildAcademicTermSeedRecords = (
   referenceDate: Date = new Date()
 ): {
@@ -27,6 +46,19 @@ export const buildAcademicTermSeedRecords = (
 
   for (let ayStartYear = firstStartYear; ayStartYear <= startYear; ayStartYear += 1) {
     const ayLabel = `${ayStartYear}-${ayStartYear + 1}`;
+    const customTerms = CUSTOM_TERM_DATES[ayLabel];
+    if (customTerms) {
+      terms.push(
+        ...customTerms.map((term) => ({
+          academicYear: ayLabel,
+          term: term.term,
+          startDate: term.startDate,
+          endDate: term.endDate,
+        }))
+      );
+      continue;
+    }
+
     terms.push(
       {
         academicYear: ayLabel,
