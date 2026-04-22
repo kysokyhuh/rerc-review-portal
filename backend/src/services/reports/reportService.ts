@@ -355,6 +355,28 @@ const findBucketByDate = <T extends { start: Date; endExclusive: Date }>(
   );
 };
 
+const findReportWindowForDate = (
+  termWindows: TermWindow[],
+  value: Date | null | undefined
+) => {
+  if (!value) return null;
+  const timestamp = new Date(value).getTime();
+  if (!Number.isFinite(timestamp) || termWindows.length === 0) return null;
+
+  const directMatch =
+    termWindows.find((window) => {
+      const start = window.startDate.getTime();
+      const end = window.endDateExclusive.getTime();
+      return timestamp >= start && timestamp < end;
+    }) ?? null;
+  if (directMatch) return directMatch;
+
+  // Default rule for term breaks: assign submissions to the next available term.
+  return (
+    termWindows.find((window) => timestamp < window.startDate.getTime()) ?? null
+  );
+};
+
 const firstHistoryDate = (
   submission: SubmissionForReports,
   predicate: (status: SubmissionStatus) => boolean
@@ -661,11 +683,8 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
   return submissions.filter((submission) => {
     const effectiveReceivedDate = resolveReportReceivedDate(submission);
     if (!effectiveReceivedDate) return false;
-    const isInWindow = termWindows.some((window) => {
-      const timestamp = effectiveReceivedDate.getTime();
-      return timestamp >= window.startDate.getTime() && timestamp < window.endDateExclusive.getTime();
-    });
-    if (!isInWindow) return false;
+    const matchedWindow = findReportWindowForDate(termWindows, effectiveReceivedDate);
+    if (!matchedWindow) return false;
 
     const college = normalizeCollege(submission);
     const panel = normalizePanel(submission);
@@ -913,11 +932,7 @@ export async function buildAnnualSummaryPayload(
     const effectiveReceivedDate = resolveReportReceivedDate(submission);
     const received = effectiveReceivedDate ? effectiveReceivedDate.getTime() : NaN;
     if (!Number.isFinite(received)) continue;
-    const window = termWindows.find((tw) => {
-      const start = tw.startDate.getTime();
-      const end = tw.endDateExclusive.getTime();
-      return received >= start && received < end;
-    });
+    const window = findReportWindowForDate(termWindows, effectiveReceivedDate);
     if (!window) continue;
 
     const key =
@@ -991,13 +1006,7 @@ export async function buildAnnualSummaryPayload(
     if (!category) continue;
 
     const effectiveReceivedDate = resolveReportReceivedDate(submission);
-    const received = effectiveReceivedDate ? effectiveReceivedDate.getTime() : NaN;
-    if (!Number.isFinite(received)) continue;
-    const window = termWindows.find((tw) => {
-      const start = tw.startDate.getTime();
-      const end = tw.endDateExclusive.getTime();
-      return received >= start && received < end;
-    });
+    const window = findReportWindowForDate(termWindows, effectiveReceivedDate);
     if (!window) continue;
 
     const reviewType = resolveSubmissionReviewType(submission);

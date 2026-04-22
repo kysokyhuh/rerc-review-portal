@@ -524,6 +524,102 @@ describe("GET /reports/academic-year-summary", () => {
     ]);
   });
 
+  it("assigns term-break submissions to the next term", async () => {
+    prisma.academicTerm.findMany.mockResolvedValue([
+      {
+        academicYear: "2023-2024",
+        term: 1,
+        startDate: new Date("2023-09-24T00:00:00.000Z"),
+        endDate: new Date("2023-12-11T00:00:00.000Z"),
+      },
+      {
+        academicYear: "2023-2024",
+        term: 2,
+        startDate: new Date("2024-01-08T00:00:00.000Z"),
+        endDate: new Date("2024-04-16T00:00:00.000Z"),
+      },
+      {
+        academicYear: "2023-2024",
+        term: 3,
+        startDate: new Date("2024-05-02T00:00:00.000Z"),
+        endDate: new Date("2024-08-09T00:00:00.000Z"),
+      },
+    ]);
+
+    prisma.submission.findMany.mockResolvedValue([
+      {
+        id: 650,
+        createdAt: new Date("2026-04-14T00:00:00.000Z"),
+        receivedDate: new Date("2026-04-21T00:00:00.000Z"),
+        sequenceNumber: 1,
+        status: SubmissionStatus.CLASSIFIED,
+        resultsNotifiedAt: null,
+        finalDecision: null,
+        finalDecisionDate: null,
+        classification: {
+          reviewType: ReviewType.EXEMPT,
+          classificationDate: new Date("2024-01-10T00:00:00.000Z"),
+          panel: null,
+        },
+        project: {
+          id: 65,
+          projectCode: "RERC-BREAK-001",
+          title: "Break Submission",
+          proponent: "Faculty Team",
+          piName: "Dr. Example",
+          piAffiliation: "College of Science",
+          collegeOrUnit: "College of Science",
+          department: "Biology",
+          proponentCategory: "FACULTY",
+          committeeId: 10,
+          origin: "LEGACY_IMPORT",
+          approvalStartDate: null,
+          protocolProfile: {
+            typeOfReview: "Exempt",
+            status: "Classified",
+            classificationOfProposalRerc: null,
+            college: "College of Science",
+            department: "Biology",
+            dateOfSubmission: new Date("2024-01-04T00:00:00.000Z"),
+            proponent: "Faculty",
+            finishDate: null,
+            panel: null,
+          },
+          committee: { code: "RERC-HUMAN", name: "RERC Human" },
+        },
+        statusHistory: [
+          {
+            newStatus: SubmissionStatus.AWAITING_CLASSIFICATION,
+            effectiveDate: new Date("2024-01-04T00:00:00.000Z"),
+          },
+          {
+            newStatus: SubmissionStatus.CLASSIFIED,
+            effectiveDate: new Date("2024-01-10T00:00:00.000Z"),
+          },
+        ],
+        reviews: [],
+      },
+    ]);
+
+    const req: any = {
+      query: {
+        ay: "2023-2024",
+        term: "ALL",
+      },
+    };
+    const res = createResponseMock();
+
+    await getAcademicYearSummaryHandler(req, res as any, jest.fn());
+
+    const body = res.json.mock.calls[0][0];
+    expect(body.summaryCounts.received).toBe(1);
+    expect(body.overviewTable.rows).toEqual([
+      { label: "Term 1", received: 0, exempted: 0, expedited: 0, fullReview: 0, withdrawn: 0 },
+      { label: "Term 2", received: 1, exempted: 1, expedited: 0, fullReview: 0, withdrawn: 0 },
+      { label: "Term 3", received: 0, exempted: 0, expedited: 0, fullReview: 0, withdrawn: 0 },
+    ]);
+  });
+
   it("returns historical receivedDate for imported rows in report records", async () => {
     prisma.academicTerm.findMany.mockResolvedValue([
       {

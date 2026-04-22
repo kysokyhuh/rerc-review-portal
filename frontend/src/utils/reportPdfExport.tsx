@@ -10,17 +10,17 @@ import {
   ReportSection,
   ReportSummaryCards,
 } from "@/components/reports";
-import type { AnnualReportSubmissionsResponse, AnnualReportSummaryResponse } from "@/types";
+import type { AnnualReportSummaryResponse } from "@/types";
 
 type ExportReportsPdfParams = {
   summary: AnnualReportSummaryResponse;
-  records: AnnualReportSubmissionsResponse;
   selectionSummary: string;
   generatedAt: Date;
 };
 
 const PAGE_WIDTH = 1240;
 const EXPORT_BG = "#f4f7f5";
+const CAPTURE_SCALE = 1.15;
 
 const pageStyle: CSSProperties = {
   width: `${PAGE_WIDTH}px`,
@@ -49,21 +49,6 @@ const formatDateTime = (value: Date) =>
     hour: "numeric",
     minute: "2-digit",
   });
-
-const formatLabel = (value: string) =>
-  value
-    .toLowerCase()
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-
-const chunk = <T,>(items: T[], size: number) => {
-  const chunks: T[][] = [];
-  for (let index = 0; index < items.length; index += size) {
-    chunks.push(items.slice(index, index + size));
-  }
-  return chunks;
-};
 
 const computeOverviewInsight = (summary: AnnualReportSummaryResponse) => {
   const reviewMix = [
@@ -170,69 +155,11 @@ function OverviewBand({
   );
 }
 
-function ExportRecordsTable({
-  records,
-  pageNumber,
-  totalPages,
-}: {
-  records: AnnualReportSubmissionsResponse["items"];
-  pageNumber: number;
-  totalPages: number;
-}) {
-  return (
-    <section className="records-table-panel">
-      <div className="records-meta">
-        <div>
-          <strong>{records.length.toLocaleString("en-US")}</strong> records on this PDF page
-        </div>
-        <p>
-          Submission records export page {pageNumber} of {totalPages}
-        </p>
-      </div>
-      <div className="report-table-wrap">
-        <table className="report-table">
-          <thead>
-            <tr>
-              <th>Project code</th>
-              <th>Title</th>
-              <th className="col-proponent">Proponent</th>
-              <th>College / Unit</th>
-              <th>Panel</th>
-              <th>Department</th>
-              <th>Review path</th>
-              <th className="col-status">Status</th>
-              <th>Received</th>
-            </tr>
-          </thead>
-          <tbody>
-            {records.map((item) => (
-              <tr key={`${item.submissionId}-${item.projectCode}`}>
-                <td>{item.projectCode}</td>
-                <td>{item.title}</td>
-                <td className="col-proponent">{item.proponent}</td>
-                <td>{item.college}</td>
-                <td>{item.panel ?? "—"}</td>
-                <td>{item.department}</td>
-                <td>{formatLabel(item.reviewType)}</td>
-                <td className="col-status">{formatLabel(item.status)}</td>
-                <td>{formatDate(item.receivedDate)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
-}
-
 function PdfExportDocument({
   summary,
-  records,
   selectionSummary,
   generatedAt,
 }: ExportReportsPdfParams) {
-  const recordChunks = chunk(records.items, 18);
-
   return (
     <div style={{ background: EXPORT_BG }}>
       <div className="reports-page report-export-page" style={pageStyle}>
@@ -336,29 +263,6 @@ function PdfExportDocument({
           </ReportSection>
         </div>
       </div>
-
-      {(recordChunks.length ? recordChunks : [[]]).map((recordChunk, index) => (
-        <div key={`records-${index}`} className="reports-page report-export-page" style={pageStyle}>
-          <ExportHeader
-            summary={summary}
-            selectionSummary={selectionSummary}
-            generatedAt={generatedAt}
-            pageLabel={`Records ${index + 1}`}
-          />
-          <div className="reports-view portal-content">
-            <ReportSection
-              title="Submission records"
-              subtitle="Detailed records exported in the same visual table style as the records view."
-            >
-              <ExportRecordsTable
-                records={recordChunk}
-                pageNumber={index + 1}
-                totalPages={Math.max(1, recordChunks.length)}
-              />
-            </ReportSection>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
@@ -370,7 +274,6 @@ const waitForPaint = async () => {
 
 export async function exportReportsPdf({
   summary,
-  records,
   selectionSummary,
   generatedAt,
 }: ExportReportsPdfParams) {
@@ -389,7 +292,6 @@ export async function exportReportsPdf({
     root.render(
       <PdfExportDocument
         summary={summary}
-        records={records}
         selectionSummary={selectionSummary}
         generatedAt={generatedAt}
       />
@@ -410,13 +312,14 @@ export async function exportReportsPdf({
 
     for (const [index, page] of pages.entries()) {
       const canvas = await html2canvas(page, {
-        scale: 2,
+        scale: CAPTURE_SCALE,
         useCORS: true,
         backgroundColor: EXPORT_BG,
         windowWidth: PAGE_WIDTH,
+        logging: false,
       });
 
-      const imageData = canvas.toDataURL("image/png");
+      const imageData = canvas.toDataURL("image/jpeg", 0.82);
       const widthRatio = maxWidth / canvas.width;
       const heightRatio = maxHeight / canvas.height;
       const ratio = Math.min(widthRatio, heightRatio);
@@ -426,7 +329,7 @@ export async function exportReportsPdf({
       const y = (pdfHeight - renderHeight) / 2;
 
       if (index > 0) doc.addPage();
-      doc.addImage(imageData, "PNG", x, y, renderWidth, renderHeight, undefined, "FAST");
+      doc.addImage(imageData, "JPEG", x, y, renderWidth, renderHeight, undefined, "FAST");
     }
 
     doc.save(`annual-reports-${generatedAt.toISOString().slice(0, 10)}.pdf`);

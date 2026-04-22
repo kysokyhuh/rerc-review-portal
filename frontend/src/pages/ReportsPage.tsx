@@ -781,61 +781,8 @@ export default function ReportsPage() {
 
     try {
       setExportingPdf(true);
-      const pageSizeForExport = 100;
-      const firstPage = await fetchAnnualReportSubmissions({
-        periodMode: appliedFilters.periodMode,
-        ay: appliedFilters.ay,
-        term: appliedFilters.term as "ALL" | 1 | 2 | 3,
-        startDate: appliedFilters.startDate || undefined,
-        endDate: appliedFilters.endDate || undefined,
-        committee: appliedFilters.committee,
-        college: appliedFilters.college,
-        panel: appliedFilters.panel,
-        category: appliedFilters.category,
-        reviewType: appliedFilters.reviewType,
-        status: appliedFilters.status,
-        q: appliedFilters.q,
-        page: 1,
-        pageSize: pageSizeForExport,
-        sort: "receivedDate:asc",
-      });
-
-      const totalPages = Math.max(1, Math.ceil(firstPage.totalCount / pageSizeForExport));
-      const remainingPages =
-        totalPages > 1
-          ? await Promise.all(
-              Array.from({ length: totalPages - 1 }, (_, index) =>
-                fetchAnnualReportSubmissions({
-                  periodMode: appliedFilters.periodMode,
-                  ay: appliedFilters.ay,
-                  term: appliedFilters.term as "ALL" | 1 | 2 | 3,
-                  startDate: appliedFilters.startDate || undefined,
-                  endDate: appliedFilters.endDate || undefined,
-                  committee: appliedFilters.committee,
-                  college: appliedFilters.college,
-                  panel: appliedFilters.panel,
-                  category: appliedFilters.category,
-                  reviewType: appliedFilters.reviewType,
-                  status: appliedFilters.status,
-                  q: appliedFilters.q,
-                  page: index + 2,
-                  pageSize: pageSizeForExport,
-                  sort: "receivedDate:asc",
-                })
-              )
-            )
-          : [];
-
-      const allRecords: AnnualReportSubmissionsResponse = {
-        ...firstPage,
-        page: 1,
-        pageSize: firstPage.totalCount || pageSizeForExport,
-        items: [firstPage, ...remainingPages].flatMap((pageData) => pageData.items),
-      };
-
       await exportReportsPdf({
         summary,
-        records: allRecords,
         selectionSummary,
         generatedAt: new Date(),
       });
