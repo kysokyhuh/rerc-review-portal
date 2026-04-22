@@ -151,8 +151,9 @@ const currentAcademicYear = (): string => {
 const generateYearOptions = (terms: AcademicTerm[]): string[] => {
   const fromTerms = new Set(terms.map((t) => t.academicYear));
   const baseYear = new Date().getUTCFullYear();
-  // Always include 2 years back and 2 years forward from today
-  for (let y = baseYear - 2; y <= baseYear + 2; y++) {
+  // Keep a wider manual entry window so older academic years can be added
+  // even before any term rows exist for them in the database.
+  for (let y = baseYear - 5; y <= baseYear + 3; y++) {
     fromTerms.add(`${y}-${y + 1}`);
   }
   return Array.from(fromTerms).sort((a, b) => b.localeCompare(a));
