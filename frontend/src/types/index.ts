@@ -832,6 +832,7 @@ export interface AnnualReportSummaryResponse {
     term: "ALL" | 1 | 2 | 3;
     committee: string;
     college: string;
+    panel: string;
     category: "ALL" | "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
     reviewType: "ALL" | "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | "UNCLASSIFIED" | "WITHDRAWN";
     status: "ALL" | string;
@@ -973,6 +974,7 @@ export interface AnnualReportSubmissionsResponse {
     title: string;
     proponent: string;
     college: string;
+    panel: string | null;
     department: string;
     proponentCategory: "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING" | "UNKNOWN";
     reviewType: "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | "UNCLASSIFIED";

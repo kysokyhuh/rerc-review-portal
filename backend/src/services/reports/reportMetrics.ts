@@ -322,6 +322,59 @@ export const computeResubmissionDurations = (
   return durations;
 };
 
+const computeResearcherRevisionTimeThrough = (
+  submission: ReportSubmissionRecord,
+  endDate: Date,
+  holidayDates: Date[]
+) => {
+  const history = sortHistory(submission.statusHistory);
+  const pendingNotifications: Date[] = [];
+  let researcherDays = 0;
+  const endTime = endDate.getTime();
+
+  for (const entry of history) {
+    const effectiveTime = new Date(entry.effectiveDate).getTime();
+    if (effectiveTime > endTime) break;
+
+    if (entry.newStatus === SubmissionStatus.AWAITING_REVISIONS) {
+      pendingNotifications.push(new Date(entry.effectiveDate));
+      continue;
+    }
+
+    if (
+      entry.newStatus === SubmissionStatus.REVISION_SUBMITTED &&
+      pendingNotifications.length > 0
+    ) {
+      const notificationDate = pendingNotifications.shift()!;
+      researcherDays += computeWorkingDaysBetween(
+        notificationDate,
+        new Date(entry.effectiveDate),
+        holidayDates
+      );
+    }
+  }
+
+  return researcherDays;
+};
+
+export const computeInternalProcessDaysToNotification = (
+  submission: ReportSubmissionRecord,
+  notificationDate: Date,
+  holidayDates: Date[]
+) => {
+  const totalDays = computeWorkingDaysBetween(
+    submission.receivedDate,
+    notificationDate,
+    holidayDates
+  );
+  const researcherDays = computeResearcherRevisionTimeThrough(
+    submission,
+    notificationDate,
+    holidayDates
+  );
+  return Math.max(0, totalDays - researcherDays);
+};
+
 export const buildAcademicYearSummary = ({
   submissions,
   holidayDates,
@@ -411,8 +464,8 @@ export const buildAcademicYearSummary = ({
     if (reviewType === ReviewType.EXPEDITED || reviewType === ReviewType.FULL_BOARD) {
       const resultNotificationDate = resolveReviewResultsNotificationDate(submission);
       if (resultNotificationDate) {
-        const duration = computeWorkingDaysBetween(
-          submission.receivedDate,
+        const duration = computeInternalProcessDaysToNotification(
+          submission,
           resultNotificationDate,
           holidayDates
         );

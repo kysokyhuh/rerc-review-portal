@@ -9,6 +9,7 @@ export type ReportsDraftFilters = {
   endDate: string;
   committee: string;
   college: string;
+  panel: string;
   category: "ALL" | "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
   reviewType: "ALL" | "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | "UNCLASSIFIED" | "WITHDRAWN";
   compareMode: "NONE" | "PRIOR_EQUIVALENT" | "CUSTOM";
@@ -46,6 +47,8 @@ const REVIEW_TYPE_LABELS: Record<ReportsDraftFilters["reviewType"], string> = {
 type ReportFiltersBarProps = {
   years: ReportsAcademicYearOption[];
   committees: CommitteeSummary[];
+  colleges: string[];
+  panels: Array<{ value: string; label: string }>;
   filters: ReportsDraftFilters;
   defaults: ReportsDraftFilters;
   availableTermValues: Set<number>;
@@ -59,6 +62,8 @@ type ReportFiltersBarProps = {
 export default function ReportFiltersBar({
   years,
   committees,
+  colleges,
+  panels,
   filters,
   defaults,
   availableTermValues,
@@ -155,6 +160,24 @@ export default function ReportFiltersBar({
       });
     }
 
+    if (filters.college !== defaults.college) {
+      chips.push({
+        key: "college",
+        label: "College",
+        value: filters.college,
+        resetValue: defaults.college,
+      });
+    }
+
+    if (filters.panel !== defaults.panel) {
+      chips.push({
+        key: "panel",
+        label: "Panel",
+        value: panels.find((item) => item.value === filters.panel)?.label ?? filters.panel,
+        resetValue: defaults.panel,
+      });
+    }
+
     if (filters.category !== defaults.category) {
       chips.push({
         key: "category",
@@ -226,19 +249,24 @@ export default function ReportFiltersBar({
     return chips;
   }, [
     committeeLabelMap,
+    defaults.college,
     defaults.ay,
     defaults.category,
     defaults.committee,
     defaults.compareMode,
     defaults.compareSource,
     defaults.periodMode,
+    defaults.panel,
     defaults.reviewType,
     defaults.term,
     filters,
+    panels,
   ]);
 
   const advancedActive =
     filters.committee !== defaults.committee ||
+    filters.college !== defaults.college ||
+    filters.panel !== defaults.panel ||
     filters.category !== defaults.category ||
     filters.reviewType !== defaults.reviewType ||
     filters.compareMode !== defaults.compareMode ||
@@ -371,6 +399,36 @@ export default function ReportFiltersBar({
               {committees.map((committee) => (
                 <option key={committee.id} value={committee.code}>
                   {committee.code} · {committee.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            College / unit
+            <select
+              value={filters.college}
+              onChange={(event) => onChange("college", event.target.value)}
+            >
+              <option value="ALL">All colleges / units</option>
+              {colleges.map((college) => (
+                <option key={college} value={college}>
+                  {college}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            Panel
+            <select
+              value={filters.panel}
+              onChange={(event) => onChange("panel", event.target.value)}
+            >
+              <option value="ALL">All panels</option>
+              {panels.map((panel) => (
+                <option key={panel.value} value={panel.value}>
+                  {panel.label}
                 </option>
               ))}
             </select>

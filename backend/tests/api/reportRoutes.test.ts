@@ -104,6 +104,7 @@ describe("GET /reports/academic-year-summary", () => {
         classification: {
           reviewType: ReviewType.EXPEDITED,
           classificationDate: new Date("2025-06-14T00:00:00.000Z"),
+          panel: { name: "Panel 1", code: "P1" },
         },
         project: {
           id: 1,
@@ -122,6 +123,7 @@ describe("GET /reports/academic-year-summary", () => {
             typeOfReview: "Expedited",
             status: null,
             finishDate: new Date("2025-06-20T00:00:00.000Z"),
+            panel: "Panel 1",
           },
           committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
@@ -143,6 +145,7 @@ describe("GET /reports/academic-year-summary", () => {
             effectiveDate: new Date("2025-06-20T00:00:00.000Z"),
           },
         ],
+        reviews: [],
       },
       {
         id: 102,
@@ -156,6 +159,7 @@ describe("GET /reports/academic-year-summary", () => {
         classification: {
           reviewType: ReviewType.FULL_BOARD,
           classificationDate: new Date("2025-10-11T00:00:00.000Z"),
+          panel: { name: "Panel 2", code: "P2" },
         },
         project: {
           id: 2,
@@ -174,6 +178,7 @@ describe("GET /reports/academic-year-summary", () => {
             typeOfReview: "Full board",
             status: "Withdrawn",
             finishDate: null,
+            panel: "Panel 2",
           },
           committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
@@ -195,6 +200,7 @@ describe("GET /reports/academic-year-summary", () => {
             effectiveDate: new Date("2025-10-18T00:00:00.000Z"),
           },
         ],
+        reviews: [],
       },
       {
         id: 103,
@@ -208,6 +214,7 @@ describe("GET /reports/academic-year-summary", () => {
         classification: {
           reviewType: ReviewType.EXEMPT,
           classificationDate: new Date("2025-09-16T00:00:00.000Z"),
+          panel: null,
         },
         project: {
           id: 3,
@@ -227,6 +234,7 @@ describe("GET /reports/academic-year-summary", () => {
             typeOfReview: "Exempt",
             status: "Exempted",
             finishDate: null,
+            panel: null,
           },
           committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
@@ -324,6 +332,25 @@ describe("GET /reports/academic-year-summary", () => {
     expect(breakdownTotal).toBe(body.summaryCounts.received);
   });
 
+  it("filters report results by panel", async () => {
+    const req: any = {
+      query: {
+        ay: "2025-2026",
+        term: "ALL",
+        panel: "Panel 1",
+      },
+    };
+    const res = createResponseMock();
+
+    await getAcademicYearSummaryHandler(req, res as any, jest.fn());
+
+    const body = res.json.mock.calls[0][0];
+    expect(body.selection.panel).toBe("Panel 1");
+    expect(body.summaryCounts.received).toBe(1);
+    expect(body.summaryCounts.expedited).toBe(1);
+    expect(body.summaryCounts.fullReview).toBe(0);
+  });
+
   it("uses imported review type and request status for unclassified imported rows", async () => {
     prisma.submission.findMany.mockResolvedValue([
       {
@@ -338,6 +365,7 @@ describe("GET /reports/academic-year-summary", () => {
         classification: {
           reviewType: ReviewType.EXPEDITED,
           classificationDate: new Date("2024-03-02T00:00:00.000Z"),
+          panel: null,
         },
         project: {
           id: 50,
@@ -361,6 +389,7 @@ describe("GET /reports/academic-year-summary", () => {
             dateOfSubmission: new Date("2024-03-01T00:00:00.000Z"),
             proponent: "Faculty",
             finishDate: null,
+            panel: "Panel 3",
           },
           committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
@@ -434,6 +463,7 @@ describe("GET /reports/academic-year-summary", () => {
         classification: {
           reviewType: ReviewType.EXPEDITED,
           classificationDate: new Date("2023-02-14T00:00:00.000Z"),
+          panel: null,
         },
         project: {
           id: 60,
@@ -457,6 +487,7 @@ describe("GET /reports/academic-year-summary", () => {
             dateOfSubmission: new Date("2023-02-13T00:00:00.000Z"),
             proponent: "Faculty",
             finishDate: null,
+            panel: "Panel 3",
           },
           committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
@@ -516,6 +547,7 @@ describe("GET /reports/academic-year-summary", () => {
         classification: {
           reviewType: ReviewType.EXEMPT,
           classificationDate: new Date("2023-03-23T00:00:00.000Z"),
+          panel: null,
         },
         project: {
           id: 70,
@@ -539,6 +571,7 @@ describe("GET /reports/academic-year-summary", () => {
             dateOfSubmission: new Date("2023-03-22T00:00:00.000Z"),
             proponent: "Faculty",
             finishDate: null,
+            panel: "Panel 4",
           },
           committee: { code: "RERC-HUMAN", name: "RERC Human" },
         },
@@ -578,6 +611,7 @@ describe("GET /reports/academic-year-summary", () => {
           submissionId: 701,
           projectCode: "RERC-LEG-REC",
           receivedDate: new Date("2023-03-22T00:00:00.000Z"),
+          panel: "Panel 4",
         }),
       ],
     });

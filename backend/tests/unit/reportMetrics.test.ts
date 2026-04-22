@@ -1,4 +1,5 @@
 import {
+  computeInternalProcessDaysToNotification,
   computeResubmissionDurations,
   resolveReviewResultsNotificationDate,
   type ReportSubmissionRecord,
@@ -59,5 +60,18 @@ describe("report metrics date mapping", () => {
     const durations = computeResubmissionDurations(submission, holidays);
 
     expect(durations).toEqual([2]);
+  });
+
+  it("computes notification timing using only internal process days", () => {
+    const submission = baseSubmission();
+    const holidays = [new Date("2026-01-13T00:00:00.000Z")];
+    const resultDate = new Date("2026-01-20T00:00:00.000Z");
+    const internalDays = computeInternalProcessDaysToNotification(
+      submission,
+      resultDate,
+      holidays
+    );
+
+    expect(internalDays).toBe(9);
   });
 });

@@ -29,6 +29,7 @@ export type ReportViewFilters = {
   endDate: Date | null;
   committee: string;
   college: string;
+  panel: string;
   category: "ALL" | "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
   reviewType: "ALL" | "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | "UNCLASSIFIED" | "WITHDRAWN";
   status: "ALL" | SubmissionStatus;
@@ -59,7 +60,13 @@ export type ReportAcademicYearsResponse = {
 
 type SubmissionForReports = Prisma.SubmissionGetPayload<{
   include: {
-    classification: { select: { reviewType: true; classificationDate: true } };
+    classification: {
+      select: {
+        reviewType: true;
+        classificationDate: true;
+        panel: { select: { name: true; code: true } };
+      };
+    };
     project: {
       select: {
         id: true;
@@ -79,6 +86,7 @@ type SubmissionForReports = Prisma.SubmissionGetPayload<{
             department: true;
             dateOfSubmission: true;
             proponent: true;
+            panel: true;
           };
         };
         committee: { select: { code: true; name: true } };
@@ -172,6 +180,12 @@ const normalizeDepartment = (submission: SubmissionForReports) => {
   if (/^others?\b/i.test(raw)) return OTHERS_COLLEGE_LABEL;
   return raw;
 };
+
+const normalizePanel = (submission: SubmissionForReports) =>
+  submission.classification?.panel?.name?.trim() ||
+  submission.classification?.panel?.code?.trim() ||
+  submission.project?.protocolProfile?.panel?.trim() ||
+  "";
 
 const normalizeReviewType = (reviewType: ReviewType | null | undefined) => {
   if (reviewType === ReviewType.EXEMPT) return "EXEMPT";
@@ -445,7 +459,8 @@ export const parseReportFilters = (query: Record<string, unknown>): ReportViewFi
     endDate,
     committee: String(query.committee ?? "ALL").trim() || "ALL",
     college: String(query.college ?? "ALL").trim() || "ALL",
-    category: parseCategory(query.category),
+      category: parseCategory(query.category),
+    panel: String(query.panel ?? "ALL").trim() || "ALL",
     reviewType: parseReviewType(query.reviewType),
     status: parseStatus(query.status),
     q: String(query.q ?? "").trim(),
@@ -583,7 +598,13 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
       },
     },
     include: {
-      classification: { select: { reviewType: true, classificationDate: true } },
+      classification: {
+        select: {
+          reviewType: true,
+          classificationDate: true,
+          panel: { select: { name: true, code: true } },
+        },
+      },
       project: {
         select: {
           id: true,
@@ -603,6 +624,7 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
               department: true,
               dateOfSubmission: true,
               proponent: true,
+              panel: true,
             },
           },
           committee: { select: { code: true, name: true } },
@@ -632,6 +654,7 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
     if (!isInWindow) return false;
 
     const college = normalizeCollege(submission);
+    const panel = normalizePanel(submission);
     const category = resolveSubmissionCategory(submission);
     const reviewType = resolveSubmissionReviewType(submission);
     const withdrawn = isWithdrawn(submission);
@@ -641,6 +664,7 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
     if (!category) return false;
 
     if (filters.college !== "ALL" && college !== filters.college) return false;
+    if (filters.panel !== "ALL" && panel !== filters.panel) return false;
     if (filters.category !== "ALL" && category !== filters.category) return false;
     if (filters.reviewType === "WITHDRAWN") {
       if (!withdrawn) return false;
@@ -654,7 +678,7 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
     if (filters.q) {
       const hay = `${submission.project?.projectCode ?? ""} ${submission.project?.title ?? ""} ${
         submission.project?.proponent ?? submission.project?.piName ?? ""
-      } ${college}`.toLowerCase();
+      } ${college} ${panel}`.toLowerCase();
       if (!hay.includes(filters.q.toLowerCase())) return false;
     }
 
@@ -1205,6 +1229,7 @@ export async function buildAnnualSummaryPayload(
       term: filters.term,
       committee: filters.committee,
       college: filters.college,
+      panel: filters.panel,
       category: filters.category,
       reviewType: filters.reviewType,
       status: filters.status,
@@ -1340,6 +1365,7 @@ export function buildSubmissionRecordsPayload(
     title: submission.project?.title ?? "Untitled",
     proponent: submission.project?.proponent ?? submission.project?.piName ?? "Unknown",
     college: normalizeCollege(submission),
+    panel: normalizePanel(submission) || null,
     department: normalizeDepartment(submission),
     proponentCategory: resolveSubmissionCategory(submission) ?? "UNKNOWN",
     reviewType: resolveSubmissionReviewType(submission) ?? "UNCLASSIFIED",

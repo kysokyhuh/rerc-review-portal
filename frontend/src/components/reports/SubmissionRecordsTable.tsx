@@ -72,6 +72,7 @@ export default function SubmissionRecordsTable({
               <th><SortButton field="title" label="Title" sort={sort} onSort={onSort} /></th>
               <th className="col-proponent">Proponent</th>
               <th><SortButton field="college" label="College / Unit" sort={sort} onSort={onSort} /></th>
+              <th>Panel</th>
               <th><SortButton field="department" label="Department" sort={sort} onSort={onSort} /></th>
               <th><SortButton field="reviewType" label="Review path" sort={sort} onSort={onSort} /></th>
               <th className="col-status"><SortButton field="status" label="Status" sort={sort} onSort={onSort} /></th>
@@ -85,6 +86,7 @@ export default function SubmissionRecordsTable({
                 <td>{item.title}</td>
                 <td className="col-proponent">{item.proponent}</td>
                 <td>{item.college}</td>
+                <td>{item.panel ?? "—"}</td>
                 <td>{item.department}</td>
                 <td>{formatLabel(item.reviewType)}</td>
                 <td className="col-status">{formatLabel(item.status)}</td>

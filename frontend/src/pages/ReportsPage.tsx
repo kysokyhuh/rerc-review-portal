@@ -17,6 +17,7 @@ import {
 import {
   fetchAnnualReportSubmissions,
   fetchAnnualReportSummary,
+  fetchCommitteePanels,
   fetchCommittees,
   fetchReportAcademicYears,
   type AnnualReportSubmissionsResponse,
@@ -26,6 +27,7 @@ import {
   type ReportsAcademicYearsResponse,
 } from "@/services/api";
 import { getErrorMessage } from "@/utils";
+import { exportReportsPdf } from "@/utils/reportPdfExport";
 import "../styles/reports.css";
 
 const parseTerm = (value: string | null): "ALL" | 1 | 2 | 3 => {
@@ -97,6 +99,8 @@ const toSearchParams = (
   if (filters.startDate) next.set("startDate", filters.startDate);
   if (filters.endDate) next.set("endDate", filters.endDate);
   next.set("committee", filters.committee);
+  next.set("college", filters.college);
+  next.set("panel", filters.panel);
   next.set("category", filters.category);
   if (filters.reviewType !== "ALL") next.set("reviewType", filters.reviewType);
   if (filters.compareMode !== "NONE") next.set("compareMode", filters.compareMode);
@@ -197,6 +201,7 @@ export default function ReportsPage() {
   const [years, setYears] = useState<ReportsAcademicYearOption[]>([]);
   const [reportYearsMeta, setReportYearsMeta] = useState<ReportsAcademicYearsResponse | null>(null);
   const [committees, setCommittees] = useState<CommitteeSummary[]>([]);
+  const [panels, setPanels] = useState<Array<{ value: string; label: string }>>([]);
   const [summary, setSummary] = useState<AnnualReportSummaryResponse | null>(null);
   const [comparisonSummary, setComparisonSummary] = useState<AnnualReportSummaryResponse | null>(null);
   const [records, setRecords] = useState<AnnualReportSubmissionsResponse | null>(null);
@@ -204,6 +209,7 @@ export default function ReportsPage() {
   const [loadingComparisonSummary, setLoadingComparisonSummary] = useState(false);
   const [loadingRecords, setLoadingRecords] = useState(false);
   const [loadingOptions, setLoadingOptions] = useState(true);
+  const [exportingPdf, setExportingPdf] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const defaultAy = years[0]?.academicYear ?? "ALL";
@@ -219,6 +225,7 @@ export default function ReportsPage() {
       endDate: "",
       committee: defaultCommittee,
       college: "ALL",
+      panel: "ALL",
       category: "ALL",
       reviewType: "ALL",
       compareMode: "NONE",
@@ -244,7 +251,8 @@ export default function ReportsPage() {
       startDate: isDateInputValue(searchParams.get("startDate")) ? searchParams.get("startDate") || "" : "",
       endDate: isDateInputValue(searchParams.get("endDate")) ? searchParams.get("endDate") || "" : "",
       committee: searchParams.get("committee") || defaultCommittee,
-      college: "ALL",
+      college: searchParams.get("college") || "ALL",
+      panel: searchParams.get("panel") || "ALL",
       category:
         (searchParams.get("category") as ReportsDraftFilters["category"]) || "ALL",
       reviewType:
@@ -320,6 +328,47 @@ export default function ReportsPage() {
   }, []);
 
   useEffect(() => {
+    if (loadingOptions || committees.length === 0) return;
+
+    const loadPanels = async () => {
+      try {
+        const committeeCodes =
+          draftFilters.committee === "ALL"
+            ? committees.map((committee) => committee.code)
+            : [draftFilters.committee];
+        const panelGroups = await Promise.all(
+          committeeCodes.map(async (committeeCode) => ({
+            committeeCode,
+            panels: await fetchCommitteePanels(committeeCode),
+          }))
+        );
+
+        const nextPanels = panelGroups
+          .flatMap(({ committeeCode, panels: items }) =>
+            items.map((panel) => ({
+              value: panel.name,
+              label:
+                draftFilters.committee === "ALL"
+                  ? `${committeeCode} · ${panel.name}`
+                  : panel.name,
+            }))
+          )
+          .filter(
+            (panel, index, all) =>
+              all.findIndex((candidate) => candidate.value === panel.value) === index
+          )
+          .sort((a, b) => a.label.localeCompare(b.label));
+
+        setPanels(nextPanels);
+      } catch {
+        setPanels([]);
+      }
+    };
+
+    loadPanels();
+  }, [committees, draftFilters.committee, loadingOptions]);
+
+  useEffect(() => {
     if (loadingOptions) return;
     const isMissingAy = !searchParams.get("ay");
     const isMissingCommittee = !searchParams.get("committee");
@@ -385,6 +434,7 @@ export default function ReportsPage() {
           endDate: appliedFilters.endDate || undefined,
           committee: appliedFilters.committee,
           college: appliedFilters.college,
+          panel: appliedFilters.panel,
           category: appliedFilters.category,
           reviewType: appliedFilters.reviewType,
           status: appliedFilters.status,
@@ -422,6 +472,7 @@ export default function ReportsPage() {
           endDate: appliedFilters.endDate || undefined,
           committee: appliedFilters.committee,
           college: appliedFilters.college,
+          panel: appliedFilters.panel,
           category: appliedFilters.category,
           reviewType: appliedFilters.reviewType,
           status: appliedFilters.status,
@@ -477,6 +528,7 @@ export default function ReportsPage() {
         endDate: appliedFilters.compareEndDate,
         committee: appliedFilters.committee,
         college: appliedFilters.college,
+        panel: appliedFilters.panel,
         category: appliedFilters.category,
         reviewType: appliedFilters.reviewType,
         status: appliedFilters.status,
@@ -499,6 +551,7 @@ export default function ReportsPage() {
       endDate: shiftDateInputByYears(primaryEnd, -1),
       committee: appliedFilters.committee,
       college: appliedFilters.college,
+      panel: appliedFilters.panel,
       category: appliedFilters.category,
       reviewType: appliedFilters.reviewType,
       status: appliedFilters.status,
@@ -549,6 +602,14 @@ export default function ReportsPage() {
     [committees]
   );
 
+  const collegeOptions = useMemo(() => {
+    const values = new Set<string>();
+    summary?.breakdownByCollege.forEach((row) => values.add(row.college));
+    records?.items.forEach((item) => values.add(item.college));
+    if (draftFilters.college !== "ALL") values.add(draftFilters.college);
+    return Array.from(values).sort((a, b) => a.localeCompare(b));
+  }, [draftFilters.college, records, summary]);
+
   const selectionSummary = useMemo(() => {
     const scopeBits = [
       appliedFilters.periodMode === "CUSTOM"
@@ -566,6 +627,12 @@ export default function ReportsPage() {
       appliedFilters.committee === "ALL"
         ? "All committees"
         : `Committee ${committeeLabelMap.get(appliedFilters.committee) ?? appliedFilters.committee}`,
+      appliedFilters.college === "ALL"
+        ? "All colleges"
+        : `College ${appliedFilters.college}`,
+      appliedFilters.panel === "ALL"
+        ? "All panels"
+        : `Panel ${appliedFilters.panel}`,
       CATEGORY_LABELS[appliedFilters.category],
       REVIEW_TYPE_LABELS[appliedFilters.reviewType],
     ];
@@ -662,6 +729,10 @@ export default function ReportsPage() {
         next.endDate = "";
       }
 
+      if (key === "committee") {
+        next.panel = "ALL";
+      }
+
       if (key === "compareMode" && value !== "CUSTOM") {
         next.compareStartDate = "";
         next.compareEndDate = "";
@@ -703,6 +774,76 @@ export default function ReportsPage() {
 
   const onViewChange = (view: ReportView) => {
     setSearchParams(toSearchParams(view, appliedFilters, { page: "1", pageSize: String(pageSize), sort }));
+  };
+
+  const onExportPdf = async () => {
+    if (!summary || exportingPdf) return;
+
+    try {
+      setExportingPdf(true);
+      const pageSizeForExport = 100;
+      const firstPage = await fetchAnnualReportSubmissions({
+        periodMode: appliedFilters.periodMode,
+        ay: appliedFilters.ay,
+        term: appliedFilters.term as "ALL" | 1 | 2 | 3,
+        startDate: appliedFilters.startDate || undefined,
+        endDate: appliedFilters.endDate || undefined,
+        committee: appliedFilters.committee,
+        college: appliedFilters.college,
+        panel: appliedFilters.panel,
+        category: appliedFilters.category,
+        reviewType: appliedFilters.reviewType,
+        status: appliedFilters.status,
+        q: appliedFilters.q,
+        page: 1,
+        pageSize: pageSizeForExport,
+        sort: "receivedDate:asc",
+      });
+
+      const totalPages = Math.max(1, Math.ceil(firstPage.totalCount / pageSizeForExport));
+      const remainingPages =
+        totalPages > 1
+          ? await Promise.all(
+              Array.from({ length: totalPages - 1 }, (_, index) =>
+                fetchAnnualReportSubmissions({
+                  periodMode: appliedFilters.periodMode,
+                  ay: appliedFilters.ay,
+                  term: appliedFilters.term as "ALL" | 1 | 2 | 3,
+                  startDate: appliedFilters.startDate || undefined,
+                  endDate: appliedFilters.endDate || undefined,
+                  committee: appliedFilters.committee,
+                  college: appliedFilters.college,
+                  panel: appliedFilters.panel,
+                  category: appliedFilters.category,
+                  reviewType: appliedFilters.reviewType,
+                  status: appliedFilters.status,
+                  q: appliedFilters.q,
+                  page: index + 2,
+                  pageSize: pageSizeForExport,
+                  sort: "receivedDate:asc",
+                })
+              )
+            )
+          : [];
+
+      const allRecords: AnnualReportSubmissionsResponse = {
+        ...firstPage,
+        page: 1,
+        pageSize: firstPage.totalCount || pageSizeForExport,
+        items: [firstPage, ...remainingPages].flatMap((pageData) => pageData.items),
+      };
+
+      await exportReportsPdf({
+        summary,
+        records: allRecords,
+        selectionSummary,
+        generatedAt: new Date(),
+      });
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, "Failed to export report PDF."));
+    } finally {
+      setExportingPdf(false);
+    }
   };
 
   const onDrilldown = (filters: {
@@ -759,12 +900,24 @@ export default function ReportsPage() {
             <span className="section-kicker">Workspace</span>
             <h2 className="reports-controls-title">Choose the reporting layer you need.</h2>
           </div>
-          <ReportViewSwitch active={appliedView} onChange={onViewChange} />
+          <div className="reports-controls-actions">
+            <button
+              type="button"
+              className="report-btn-primary"
+              onClick={onExportPdf}
+              disabled={!summary || exportingPdf}
+            >
+              {exportingPdf ? "Exporting PDF..." : "Export PDF"}
+            </button>
+            <ReportViewSwitch active={appliedView} onChange={onViewChange} />
+          </div>
         </div>
 
         <ReportFiltersBar
           years={years}
           committees={committees}
+          colleges={collegeOptions}
+          panels={panels}
           filters={draftFilters}
           defaults={defaultFilters}
           availableTermValues={availableTermValues}

@@ -1236,6 +1236,7 @@ export async function fetchAnnualReportSummary(params: {
   endDate?: string;
   committee: string;
   college: string;
+  panel: string;
   category: "ALL" | "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
   reviewType?: "ALL" | "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | "UNCLASSIFIED" | "WITHDRAWN";
   status?: "ALL" | string;
@@ -1247,6 +1248,7 @@ export async function fetchAnnualReportSummary(params: {
     term: String(params.term),
     committee: params.committee,
     college: params.college,
+    panel: params.panel,
     category: params.category,
   });
   if (params.startDate) search.set("startDate", params.startDate);
@@ -1267,6 +1269,7 @@ export async function fetchAnnualReportSubmissions(params: {
   endDate?: string;
   committee: string;
   college: string;
+  panel: string;
   category: "ALL" | "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
   reviewType?: "ALL" | "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | "UNCLASSIFIED" | "WITHDRAWN";
   status?: "ALL" | string;
@@ -1281,6 +1284,7 @@ export async function fetchAnnualReportSubmissions(params: {
     term: String(params.term),
     committee: params.committee,
     college: params.college,
+    panel: params.panel,
     category: params.category,
     page: String(params.page),
     pageSize: String(params.pageSize),
