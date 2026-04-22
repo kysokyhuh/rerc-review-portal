@@ -84,6 +84,10 @@ router.get(
   getAcademicYearsHandler
 );
 router.get(
+  "/reports/academic-year-summary",
+  getAcademicYearSummaryHandler
+);
+router.get(
   "/reports/annual-summary",
   getAnnualSummaryHandler
 );
