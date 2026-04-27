@@ -22,11 +22,13 @@ const addDays = (date: Date, days: number) => {
 };
 
 export type ReportViewFilters = {
-  periodMode: "ACADEMIC" | "CUSTOM";
+  periodMode: "ACADEMIC" | "CUSTOM" | "CALENDAR";
   ay: string;
   term: "ALL" | 1 | 2 | 3;
   startDate: Date | null;
   endDate: Date | null;
+  startYear: number | null;
+  endYear: number | null;
   committee: string;
   college: string;
   panel: string;
@@ -56,6 +58,10 @@ export type ReportAcademicYearsResponse = {
   }>;
   hasAcademicTerms: boolean;
   fallbackRange: ReportFallbackRange | null;
+  calendarYearRange: {
+    startYear: number;
+    endYear: number;
+  } | null;
 };
 
 type SubmissionForReports = Prisma.SubmissionGetPayload<{
@@ -314,6 +320,8 @@ const startOfUtcMonth = (value: Date) =>
 const addUtcMonths = (value: Date, months: number) =>
   new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth() + months, 1));
 
+const startOfUtcYear = (year: number) => new Date(Date.UTC(year, 0, 1));
+
 const buildMonthBuckets = (termWindows: TermWindow[]) => {
   if (termWindows.length === 0) return [];
 
@@ -444,10 +452,11 @@ const parseCategory = (
   throw new Error("Invalid category filter");
 };
 
-const parsePeriodMode = (value: unknown): "ACADEMIC" | "CUSTOM" => {
+const parsePeriodMode = (value: unknown): "ACADEMIC" | "CUSTOM" | "CALENDAR" => {
   const raw = String(value ?? "ACADEMIC").trim().toUpperCase();
   if (!raw || raw === "ACADEMIC") return "ACADEMIC";
   if (raw === "CUSTOM") return "CUSTOM";
+  if (raw === "CALENDAR") return "CALENDAR";
   throw new Error("Invalid periodMode filter");
 };
 
@@ -464,10 +473,25 @@ const parseDateOnly = (value: unknown, fieldName: string): Date | null => {
   return parsed;
 };
 
+const parseCalendarYear = (value: unknown, fieldName: string): number | null => {
+  const raw = String(value ?? "").trim();
+  if (!raw) return null;
+  if (!/^\d{4}$/.test(raw)) {
+    throw new Error(`Invalid ${fieldName} filter`);
+  }
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed < 1900 || parsed > 9999) {
+    throw new Error(`Invalid ${fieldName} filter`);
+  }
+  return parsed;
+};
+
 export const parseReportFilters = (query: Record<string, unknown>): ReportViewFilters => {
   const periodMode = parsePeriodMode(query.periodMode);
   const startDate = parseDateOnly(query.startDate, "startDate");
   const endDate = parseDateOnly(query.endDate, "endDate");
+  const startYear = parseCalendarYear(query.startYear, "startYear");
+  const endYear = parseCalendarYear(query.endYear, "endYear");
 
   if (periodMode === "CUSTOM") {
     if (!startDate || !endDate) {
@@ -477,6 +501,14 @@ export const parseReportFilters = (query: Record<string, unknown>): ReportViewFi
       throw new Error("endDate must not be earlier than startDate.");
     }
   }
+  if (periodMode === "CALENDAR") {
+    if (startYear == null || endYear == null) {
+      throw new Error("Calendar year range requires both startYear and endYear.");
+    }
+    if (endYear < startYear) {
+      throw new Error("endYear must not be earlier than startYear.");
+    }
+  }
 
   return {
     periodMode,
@@ -484,9 +516,11 @@ export const parseReportFilters = (query: Record<string, unknown>): ReportViewFi
     term: parseTerm(query.term),
     startDate,
     endDate,
+    startYear,
+    endYear,
     committee: String(query.committee ?? "ALL").trim() || "ALL",
     college: String(query.college ?? "ALL").trim() || "ALL",
-      category: parseCategory(query.category),
+    category: parseCategory(query.category),
     panel: String(query.panel ?? "ALL").trim() || "ALL",
     reviewType: parseReviewType(query.reviewType),
     status: parseStatus(query.status),
@@ -555,10 +589,20 @@ export async function getAcademicYearOptions(): Promise<ReportAcademicYearsRespo
     .sort((a, b) => b.academicYear.localeCompare(a.academicYear))
     .slice(0, RECENT_AY_WINDOW);
 
+  const fallbackRange = await resolveReportFallbackRange();
+  const calendarYearRange =
+    fallbackRange === null
+      ? null
+      : {
+          startYear: fallbackRange.startDate.getUTCFullYear(),
+          endYear: fallbackRange.endDate.getUTCFullYear(),
+        };
+
   return {
     items,
     hasAcademicTerms: items.length > 0,
-    fallbackRange: await resolveReportFallbackRange(),
+    fallbackRange,
+    calendarYearRange,
   };
 }
 
@@ -615,6 +659,22 @@ export async function resolveReportWindows(filters: ReportViewFilters): Promise<
         endDateExclusive: addDays(filters.endDate, 1),
       },
     ];
+  }
+  if (filters.periodMode === "CALENDAR") {
+    if (filters.startYear == null || filters.endYear == null) {
+      throw new Error("Calendar year range requires both startYear and endYear.");
+    }
+    const windows: TermWindow[] = [];
+    for (let year = filters.startYear; year <= filters.endYear; year += 1) {
+      windows.push({
+        academicYear: String(year),
+        term: null,
+        label: String(year),
+        startDate: startOfUtcYear(year),
+        endDateExclusive: startOfUtcYear(year + 1),
+      });
+    }
+    return windows;
   }
 
   return resolveTermWindows(filters.ay, filters.term);
@@ -909,14 +969,16 @@ export async function buildAnnualSummaryPayload(
     else outcomeBucket.unclassified += 1;
   }
 
+  const rowLabelForWindow = (window: TermWindow) => {
+    if (filters.periodMode === "CUSTOM") return window.label;
+    if (filters.periodMode === "CALENDAR") return window.label;
+    if (filters.ay === "ALL") return window.academicYear;
+    return `Term ${window.term}`;
+  };
+
   const termBuckets = new Map<string, { label: string; received: number; exempted: number; expedited: number; fullReview: number; withdrawn: number }>();
   for (const window of termWindows) {
-    const key =
-      filters.periodMode === "CUSTOM"
-        ? window.label
-        : filters.ay === "ALL"
-        ? window.academicYear
-        : `Term ${window.term}`;
+    const key = rowLabelForWindow(window);
     if (!termBuckets.has(key)) {
       termBuckets.set(key, {
         label: key,
@@ -935,12 +997,7 @@ export async function buildAnnualSummaryPayload(
     const window = findReportWindowForDate(termWindows, effectiveReceivedDate);
     if (!window) continue;
 
-    const key =
-      filters.periodMode === "CUSTOM"
-        ? window.label
-        : filters.ay === "ALL"
-        ? window.academicYear
-        : `Term ${window.term}`;
+    const key = rowLabelForWindow(window);
     const row = termBuckets.get(key)!;
     row.received += 1;
     const reviewType = resolveSubmissionReviewType(submission);
@@ -950,12 +1007,20 @@ export async function buildAnnualSummaryPayload(
     if (isWithdrawn(submission)) row.withdrawn += 1;
   }
 
-  const proposalsPerTerm = filters.periodMode === "CUSTOM" || filters.ay === "ALL"
-    ? []
-    : [1, 2, 3].map((term) => {
-        const row = termBuckets.get(`Term ${term}`);
-        return { label: `Term ${term}`, count: row?.received ?? 0 };
-      });
+  const proposalsPerTerm =
+    filters.periodMode === "ACADEMIC"
+      ? filters.ay === "ALL"
+        ? []
+        : [1, 2, 3].map((term) => {
+            const row = termBuckets.get(`Term ${term}`);
+            return { label: `Term ${term}`, count: row?.received ?? 0 };
+          })
+      : filters.periodMode === "CALENDAR"
+      ? Array.from(termBuckets.values()).map((row) => ({
+          label: row.label,
+          count: row.received,
+        }))
+      : [];
 
   const reviewTypeDistribution = [
     { label: "Exempted", count: summaryCounts.exempted },
@@ -975,12 +1040,9 @@ export async function buildAnnualSummaryPayload(
     topColleges.push({ label: "Other", count: other });
   }
 
-  const comparativeYears =
-    filters.periodMode === "CUSTOM"
-      ? [termWindows[0].label]
-      : Array.from(new Set(termWindows.map((window) => window.academicYear))).sort((a, b) =>
-          a.localeCompare(b)
-        );
+  const comparativeYears = Array.from(new Set(termWindows.map((window) => rowLabelForWindow(window)))).sort((a, b) =>
+    a.localeCompare(b)
+  );
   const newYearCounts = () =>
     Object.fromEntries(comparativeYears.map((year) => [year, 0])) as Record<string, number>;
 
@@ -1025,7 +1087,7 @@ export async function buildAnnualSummaryPayload(
       });
     }
     const row = rowsByCollege.get(college)!;
-    const year = filters.periodMode === "CUSTOM" ? window.label : window.academicYear;
+    const year = rowLabelForWindow(window);
     if (reviewType === "EXEMPT") row.exempted[year] += 1;
     if (reviewType === "EXPEDITED") row.expedited[year] += 1;
     if (reviewType === "FULL_BOARD") row.fullReview[year] += 1;
@@ -1054,7 +1116,13 @@ export async function buildAnnualSummaryPayload(
     return { category, years: comparativeYears, rows, totals };
   });
 
-  const monthBuckets = filters.periodMode === "ACADEMIC" && filters.ay === "ALL" ? [] : buildMonthBuckets(termWindows);
+  const shouldHideMonthBuckets =
+    (filters.periodMode === "ACADEMIC" && filters.ay === "ALL") ||
+    (filters.periodMode === "CALENDAR" &&
+      filters.startYear != null &&
+      filters.endYear != null &&
+      filters.startYear !== filters.endYear);
+  const monthBuckets = shouldHideMonthBuckets ? [] : buildMonthBuckets(termWindows);
   const receivedByMonthMap = new Map(
     monthBuckets.map((bucket) => [bucket.key, { label: bucket.label, count: 0 }])
   );
@@ -1250,6 +1318,8 @@ export async function buildAnnualSummaryPayload(
       periodMode: filters.periodMode,
       ay: filters.ay,
       term: filters.term,
+      startYear: filters.startYear,
+      endYear: filters.endYear,
       committee: filters.committee,
       college: filters.college,
       panel: filters.panel,

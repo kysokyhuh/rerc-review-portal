@@ -278,6 +278,10 @@ describe("GET /reports/academic-year-summary", () => {
         startDate: new Date("2025-06-12T00:00:00.000Z"),
         endDate: new Date("2025-10-10T00:00:00.000Z"),
       },
+      calendarYearRange: {
+        startYear: 2025,
+        endYear: 2025,
+      },
     });
   });
 
@@ -349,6 +353,177 @@ describe("GET /reports/academic-year-summary", () => {
     expect(body.summaryCounts.received).toBe(1);
     expect(body.summaryCounts.expedited).toBe(1);
     expect(body.summaryCounts.fullReview).toBe(0);
+  });
+
+  it("validates calendar mode requires startYear and endYear", async () => {
+    const req: any = {
+      query: {
+        periodMode: "CALENDAR",
+        startYear: "2025",
+      },
+    };
+    const res = createResponseMock();
+
+    await getAcademicYearSummaryHandler(req, res as any, jest.fn());
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      message: "Calendar year range requires both startYear and endYear.",
+    });
+  });
+
+  it("validates calendar mode year order", async () => {
+    const req: any = {
+      query: {
+        periodMode: "CALENDAR",
+        startYear: "2026",
+        endYear: "2025",
+      },
+    };
+    const res = createResponseMock();
+
+    await getAcademicYearSummaryHandler(req, res as any, jest.fn());
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      message: "endYear must not be earlier than startYear.",
+    });
+  });
+
+  it("groups overview rows by calendar year in calendar mode", async () => {
+    prisma.submission.findMany.mockResolvedValue([
+      {
+        id: 401,
+        createdAt: new Date("2024-02-10T00:00:00.000Z"),
+        receivedDate: new Date("2024-02-10T00:00:00.000Z"),
+        sequenceNumber: 1,
+        status: SubmissionStatus.CLOSED,
+        resultsNotifiedAt: new Date("2024-02-18T00:00:00.000Z"),
+        finalDecision: "APPROVED",
+        finalDecisionDate: new Date("2024-02-18T00:00:00.000Z"),
+        classification: {
+          reviewType: ReviewType.EXPEDITED,
+          classificationDate: new Date("2024-02-12T00:00:00.000Z"),
+          panel: { name: "Panel 1", code: "P1" },
+        },
+        project: {
+          id: 41,
+          projectCode: "RERC-2024-041",
+          title: "Calendar 2024",
+          proponent: "Student Team",
+          piName: "Student Team",
+          piAffiliation: "College of Science",
+          collegeOrUnit: "College of Science",
+          department: "Biology",
+          proponentCategory: "UNDERGRAD",
+          committeeId: 10,
+          approvalStartDate: new Date("2024-02-18T00:00:00.000Z"),
+          protocolProfile: {
+            dateOfSubmission: new Date("2024-02-10T00:00:00.000Z"),
+            panel: "Panel 1",
+          },
+          committee: { code: "RERC-HUMAN", name: "RERC Human" },
+        },
+        statusHistory: [
+          {
+            newStatus: SubmissionStatus.UNDER_REVIEW,
+            effectiveDate: new Date("2024-02-12T00:00:00.000Z"),
+          },
+          {
+            newStatus: SubmissionStatus.CLOSED,
+            effectiveDate: new Date("2024-02-18T00:00:00.000Z"),
+          },
+        ],
+        reviews: [],
+      },
+      {
+        id: 402,
+        createdAt: new Date("2025-07-15T00:00:00.000Z"),
+        receivedDate: new Date("2025-07-15T00:00:00.000Z"),
+        sequenceNumber: 1,
+        status: SubmissionStatus.CLASSIFIED,
+        resultsNotifiedAt: null,
+        finalDecision: null,
+        finalDecisionDate: null,
+        classification: {
+          reviewType: ReviewType.EXEMPT,
+          classificationDate: new Date("2025-07-16T00:00:00.000Z"),
+          panel: { name: "Panel 2", code: "P2" },
+        },
+        project: {
+          id: 42,
+          projectCode: "RERC-2025-042",
+          title: "Calendar 2025",
+          proponent: "Faculty Team",
+          piName: "Faculty Team",
+          piAffiliation: "College of Science",
+          collegeOrUnit: "College of Science",
+          department: "Chemistry",
+          proponentCategory: "FACULTY",
+          committeeId: 10,
+          approvalStartDate: null,
+          protocolProfile: {
+            dateOfSubmission: new Date("2025-07-15T00:00:00.000Z"),
+            panel: "Panel 2",
+          },
+          committee: { code: "RERC-HUMAN", name: "RERC Human" },
+        },
+        statusHistory: [
+          {
+            newStatus: SubmissionStatus.AWAITING_CLASSIFICATION,
+            effectiveDate: new Date("2025-07-15T00:00:00.000Z"),
+          },
+          {
+            newStatus: SubmissionStatus.CLASSIFIED,
+            effectiveDate: new Date("2025-07-16T00:00:00.000Z"),
+          },
+        ],
+        reviews: [],
+      },
+    ]);
+
+    const req: any = {
+      query: {
+        periodMode: "CALENDAR",
+        startYear: "2024",
+        endYear: "2025",
+      },
+    };
+    const res = createResponseMock();
+
+    await getAcademicYearSummaryHandler(req, res as any, jest.fn());
+
+    expect(res.status).not.toHaveBeenCalled();
+    const body = res.json.mock.calls[0][0];
+    expect(body.selection.periodMode).toBe("CALENDAR");
+    expect(body.overviewTable.rows).toEqual([
+      { label: "2024", received: 1, exempted: 0, expedited: 1, fullReview: 0, withdrawn: 0 },
+      { label: "2025", received: 1, exempted: 1, expedited: 0, fullReview: 0, withdrawn: 0 },
+    ]);
+    expect(body.charts.receivedByMonth).toEqual([]);
+    expect(body.charts.reviewTypeByMonth).toEqual([]);
+  });
+
+  it("applies calendar range with panel and college filters", async () => {
+    const req: any = {
+      query: {
+        periodMode: "CALENDAR",
+        startYear: "2025",
+        endYear: "2025",
+        panel: "Panel 1",
+        college: "College of Science",
+      },
+    };
+    const res = createResponseMock();
+
+    await getAcademicYearSummaryHandler(req, res as any, jest.fn());
+
+    expect(res.status).not.toHaveBeenCalled();
+    const body = res.json.mock.calls[0][0];
+    expect(body.summaryCounts.received).toBe(1);
+    expect(body.summaryCounts.expedited).toBe(1);
+    expect(body.selection.panel).toBe("Panel 1");
+    expect(body.selection.college).toBe("College of Science");
   });
 
   it("uses imported review type and request status for unclassified imported rows", async () => {

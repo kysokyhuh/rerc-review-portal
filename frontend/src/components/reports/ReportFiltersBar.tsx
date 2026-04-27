@@ -2,11 +2,13 @@ import { useMemo, useState } from "react";
 import type { ReportsAcademicYearOption, CommitteeSummary } from "@/types";
 
 export type ReportsDraftFilters = {
-  periodMode: "ACADEMIC" | "CUSTOM";
+  periodMode: "ACADEMIC" | "CUSTOM" | "CALENDAR";
   ay: string;
   term: "ALL" | number;
   startDate: string;
   endDate: string;
+  startYear: string;
+  endYear: string;
   committee: string;
   college: string;
   panel: string;
@@ -46,6 +48,7 @@ const REVIEW_TYPE_LABELS: Record<ReportsDraftFilters["reviewType"], string> = {
 
 type ReportFiltersBarProps = {
   years: ReportsAcademicYearOption[];
+  calendarYearRange: { startYear: number; endYear: number } | null;
   committees: CommitteeSummary[];
   colleges: string[];
   panels: Array<{ value: string; label: string }>;
@@ -61,6 +64,7 @@ type ReportFiltersBarProps = {
 
 export default function ReportFiltersBar({
   years,
+  calendarYearRange,
   committees,
   colleges,
   panels,
@@ -76,16 +80,36 @@ export default function ReportFiltersBar({
   void _selectionSummary;
   const [showAdvanced, setShowAdvanced] = useState(false);
   const isCustomPeriod = filters.periodMode === "CUSTOM";
+  const isCalendarPeriod = filters.periodMode === "CALENDAR";
   const compareRequiresDates = filters.compareMode === "CUSTOM";
   const hasInvalidPrimaryRange =
     isCustomPeriod &&
     (!filters.startDate || !filters.endDate || filters.endDate < filters.startDate);
+  const hasInvalidCalendarRange =
+    isCalendarPeriod &&
+    (!filters.startYear ||
+      !filters.endYear ||
+      Number(filters.startYear) > Number(filters.endYear));
   const hasInvalidCompareRange =
     compareRequiresDates &&
     (!filters.compareStartDate ||
       !filters.compareEndDate ||
       filters.compareEndDate < filters.compareStartDate);
-  const canApply = !loading && !hasInvalidPrimaryRange && !hasInvalidCompareRange;
+  const canApply =
+    !loading &&
+    !hasInvalidPrimaryRange &&
+    !hasInvalidCalendarRange &&
+    !hasInvalidCompareRange;
+  const calendarYearOptions = useMemo(() => {
+    if (!calendarYearRange) return [] as string[];
+    const options: string[] = [];
+    for (let year = calendarYearRange.endYear; year >= calendarYearRange.startYear; year -= 1) {
+      options.push(String(year));
+    }
+    return options;
+  }, [calendarYearRange]);
+  const priorEquivalentDisabled =
+    filters.periodMode === "ACADEMIC" && filters.ay === "ALL";
 
   const committeeLabelMap = useMemo(
     () =>
@@ -110,7 +134,12 @@ export default function ReportFiltersBar({
       chips.push({
         key: "periodMode",
         label: "Period type",
-        value: filters.periodMode === "ACADEMIC" ? "Academic year" : "Custom range",
+        value:
+          filters.periodMode === "ACADEMIC"
+            ? "Academic year"
+            : filters.periodMode === "CALENDAR"
+            ? "Calendar year"
+            : "Custom range",
         resetValue: defaults.periodMode,
       });
     }
@@ -148,6 +177,24 @@ export default function ReportFiltersBar({
         label: "End date",
         value: filters.endDate,
         resetValue: "",
+      });
+    }
+
+    if (filters.periodMode === "CALENDAR" && filters.startYear) {
+      chips.push({
+        key: "startYear",
+        label: "Start year",
+        value: filters.startYear,
+        resetValue: defaults.startYear,
+      });
+    }
+
+    if (filters.periodMode === "CALENDAR" && filters.endYear) {
+      chips.push({
+        key: "endYear",
+        label: "End year",
+        value: filters.endYear,
+        resetValue: defaults.endYear,
       });
     }
 
@@ -255,9 +302,11 @@ export default function ReportFiltersBar({
     defaults.committee,
     defaults.compareMode,
     defaults.compareSource,
+    defaults.endYear,
     defaults.periodMode,
     defaults.panel,
     defaults.reviewType,
+    defaults.startYear,
     defaults.term,
     filters,
     panels,
@@ -311,6 +360,7 @@ export default function ReportFiltersBar({
             value={filters.periodMode}
             onChange={(event) => onChange("periodMode", event.target.value)}
           >
+            <option value="CALENDAR">Calendar year</option>
             <option value="ACADEMIC">Academic year</option>
             <option value="CUSTOM">Custom date range</option>
           </select>
@@ -334,6 +384,44 @@ export default function ReportFiltersBar({
                 value={filters.endDate}
                 onChange={(event) => onChange("endDate", event.target.value)}
               />
+            </label>
+          </>
+        ) : isCalendarPeriod ? (
+          <>
+            <label>
+              Start year
+              <select
+                value={filters.startYear}
+                onChange={(event) => onChange("startYear", event.target.value)}
+                disabled={!calendarYearOptions.length}
+              >
+                <option value="">
+                  {calendarYearOptions.length ? "Select start year" : "No years available"}
+                </option>
+                {calendarYearOptions.map((year) => (
+                  <option key={`start-${year}`} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              End year
+              <select
+                value={filters.endYear}
+                onChange={(event) => onChange("endYear", event.target.value)}
+                disabled={!calendarYearOptions.length}
+              >
+                <option value="">
+                  {calendarYearOptions.length ? "Select end year" : "No years available"}
+                </option>
+                {calendarYearOptions.map((year) => (
+                  <option key={`end-${year}`} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
             </label>
           </>
         ) : (
@@ -471,7 +559,7 @@ export default function ReportFiltersBar({
               <option value="NONE">No comparison</option>
               <option
                 value="PRIOR_EQUIVALENT"
-                disabled={!isCustomPeriod && filters.ay === "ALL"}
+                disabled={priorEquivalentDisabled}
               >
                 {isCustomPeriod ? "Same dates last year" : "Prior equivalent period"}
               </option>
@@ -519,6 +607,12 @@ export default function ReportFiltersBar({
       {hasInvalidPrimaryRange ? (
         <p className="report-filters-note">
           Enter a valid start and end date before applying a custom range.
+        </p>
+      ) : null}
+
+      {hasInvalidCalendarRange ? (
+        <p className="report-filters-note">
+          Enter a valid calendar year range before applying.
         </p>
       ) : null}
 

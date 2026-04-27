@@ -823,13 +823,19 @@ export interface ReportsAcademicYearsResponse {
   items: ReportsAcademicYearOption[];
   hasAcademicTerms: boolean;
   fallbackRange: ReportFallbackRange | null;
+  calendarYearRange: {
+    startYear: number;
+    endYear: number;
+  } | null;
 }
 
 export interface AnnualReportSummaryResponse {
   selection: {
-    periodMode: "ACADEMIC" | "CUSTOM";
+    periodMode: "ACADEMIC" | "CUSTOM" | "CALENDAR";
     ay: string;
     term: "ALL" | 1 | 2 | 3;
+    startYear: number | null;
+    endYear: number | null;
     committee: string;
     college: string;
     panel: string;

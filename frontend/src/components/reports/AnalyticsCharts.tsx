@@ -144,8 +144,8 @@ export default function AnalyticsCharts({ summary, onDrilldown }: AnalyticsChart
       : "Received proposals by month";
   const monthlyMessage =
     monthlyVolumeFocus === "withdrawn"
-      ? "Monthly withdrawal trends are shown only when one academic year is selected."
-      : "Select a single academic year to view monthly received proposals.";
+      ? "Monthly withdrawal trends are shown only when one academic or calendar year is selected."
+      : "Select a single academic or calendar year to view monthly received proposals.";
   const monthlyMax =
     monthlyVolumeFocus === "withdrawn" ? withdrawnByMonthMax : monthMax;
 
@@ -373,7 +373,7 @@ export default function AnalyticsCharts({ summary, onDrilldown }: AnalyticsChart
               ) : (
                 <ChartEmpty
                   title="Review path by month"
-                  message="Select a single academic year to compare review-path trends by month."
+                  message="Select a single academic or calendar year to compare review-path trends by month."
                 />
               )}
 

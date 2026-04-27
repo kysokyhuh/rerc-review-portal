@@ -1229,11 +1229,13 @@ export async function fetchAcademicYearSummary(params: {
 }
 
 export async function fetchAnnualReportSummary(params: {
-  periodMode?: "ACADEMIC" | "CUSTOM";
+  periodMode?: "ACADEMIC" | "CUSTOM" | "CALENDAR";
   ay: string;
   term: "ALL" | 1 | 2 | 3;
   startDate?: string;
   endDate?: string;
+  startYear?: string;
+  endYear?: string;
   committee: string;
   college: string;
   panel: string;
@@ -1253,6 +1255,8 @@ export async function fetchAnnualReportSummary(params: {
   });
   if (params.startDate) search.set("startDate", params.startDate);
   if (params.endDate) search.set("endDate", params.endDate);
+  if (params.startYear) search.set("startYear", params.startYear);
+  if (params.endYear) search.set("endYear", params.endYear);
   if (params.reviewType && params.reviewType !== "ALL") search.set("reviewType", params.reviewType);
   if (params.status && params.status !== "ALL") search.set("status", params.status);
   if (params.q) search.set("q", params.q);
@@ -1262,11 +1266,13 @@ export async function fetchAnnualReportSummary(params: {
 }
 
 export async function fetchAnnualReportSubmissions(params: {
-  periodMode?: "ACADEMIC" | "CUSTOM";
+  periodMode?: "ACADEMIC" | "CUSTOM" | "CALENDAR";
   ay: string;
   term: "ALL" | 1 | 2 | 3;
   startDate?: string;
   endDate?: string;
+  startYear?: string;
+  endYear?: string;
   committee: string;
   college: string;
   panel: string;
@@ -1292,6 +1298,8 @@ export async function fetchAnnualReportSubmissions(params: {
   });
   if (params.startDate) search.set("startDate", params.startDate);
   if (params.endDate) search.set("endDate", params.endDate);
+  if (params.startYear) search.set("startYear", params.startYear);
+  if (params.endYear) search.set("endYear", params.endYear);
   if (params.reviewType && params.reviewType !== "ALL") search.set("reviewType", params.reviewType);
   if (params.status && params.status !== "ALL") search.set("status", params.status);
   if (params.q) search.set("q", params.q);

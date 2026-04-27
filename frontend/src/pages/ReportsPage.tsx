@@ -41,7 +41,12 @@ const parseView = (value: string | null): ReportView =>
 
 const parsePeriodMode = (
   value: string | null
-): ReportsDraftFilters["periodMode"] => (value?.toUpperCase() === "CUSTOM" ? "CUSTOM" : "ACADEMIC");
+): ReportsDraftFilters["periodMode"] => {
+  const normalized = value?.toUpperCase();
+  if (normalized === "ACADEMIC") return "ACADEMIC";
+  if (normalized === "CUSTOM") return "CUSTOM";
+  return "CALENDAR";
+};
 
 const parseCompareMode = (
   value: string | null
@@ -57,6 +62,9 @@ const parseCompareSource = (
 
 const isDateInputValue = (value: string | null) =>
   !!value && /^\d{4}-\d{2}-\d{2}$/.test(value);
+
+const isYearInputValue = (value: string | null) =>
+  !!value && /^\d{4}$/.test(value);
 
 const toDateInputValue = (value: string | null) =>
   value
@@ -86,6 +94,17 @@ const applyMissingAcademicTermsFallback = (
     endDate: fallbackRange ? toDateInputValue(fallbackRange.endDate) : "",
   });
 
+const applyCalendarYearRangeFallback = (
+  filters: ReportsDraftFilters,
+  calendarYearRange: ReportsAcademicYearsResponse["calendarYearRange"]
+) =>
+  normalizeReportFilters({
+    ...filters,
+    periodMode: "CALENDAR",
+    startYear: calendarYearRange ? String(calendarYearRange.startYear) : "",
+    endYear: calendarYearRange ? String(calendarYearRange.endYear) : "",
+  });
+
 const toSearchParams = (
   view: ReportView,
   filters: ReportsDraftFilters,
@@ -98,6 +117,8 @@ const toSearchParams = (
   next.set("term", String(filters.term));
   if (filters.startDate) next.set("startDate", filters.startDate);
   if (filters.endDate) next.set("endDate", filters.endDate);
+  if (filters.startYear) next.set("startYear", filters.startYear);
+  if (filters.endYear) next.set("endYear", filters.endYear);
   next.set("committee", filters.committee);
   next.set("college", filters.college);
   next.set("panel", filters.panel);
@@ -181,6 +202,20 @@ const normalizeReportFilters = (filters: ReportsDraftFilters): ReportsDraftFilte
   if (next.periodMode === "ACADEMIC") {
     next.startDate = "";
     next.endDate = "";
+    next.startYear = "";
+    next.endYear = "";
+  }
+
+  if (next.periodMode === "CUSTOM") {
+    next.startYear = "";
+    next.endYear = "";
+    next.term = "ALL";
+  }
+
+  if (next.periodMode === "CALENDAR") {
+    next.startDate = "";
+    next.endDate = "";
+    next.term = "ALL";
   }
 
   if (next.compareMode !== "CUSTOM") {
@@ -216,13 +251,18 @@ export default function ReportsPage() {
   const defaultCommittee = committees[0]?.code ?? "ALL";
   const hasAcademicTerms = reportYearsMeta?.hasAcademicTerms ?? years.length > 0;
   const fallbackRange = reportYearsMeta?.fallbackRange ?? null;
+  const calendarYearRange = reportYearsMeta?.calendarYearRange ?? null;
+  const defaultStartYear = calendarYearRange ? String(calendarYearRange.startYear) : "";
+  const defaultEndYear = calendarYearRange ? String(calendarYearRange.endYear) : "";
   const defaultFilters = useMemo<ReportsDraftFilters>(
     () => ({
-      periodMode: "ACADEMIC",
+      periodMode: "CALENDAR",
       ay: defaultAy,
       term: "ALL",
       startDate: "",
       endDate: "",
+      startYear: defaultStartYear,
+      endYear: defaultEndYear,
       committee: defaultCommittee,
       college: "ALL",
       panel: "ALL",
@@ -235,7 +275,7 @@ export default function ReportsPage() {
       status: "ALL",
       q: "",
     }),
-    [defaultAy, defaultCommittee]
+    [defaultAy, defaultCommittee, defaultEndYear, defaultStartYear]
   );
 
   const appliedView = parseView(searchParams.get("view"));
@@ -250,6 +290,14 @@ export default function ReportsPage() {
       term: parseTerm(searchParams.get("term")),
       startDate: isDateInputValue(searchParams.get("startDate")) ? searchParams.get("startDate") || "" : "",
       endDate: isDateInputValue(searchParams.get("endDate")) ? searchParams.get("endDate") || "" : "",
+      startYear:
+        isYearInputValue(searchParams.get("startYear"))
+          ? searchParams.get("startYear") || ""
+          : defaultStartYear,
+      endYear:
+        isYearInputValue(searchParams.get("endYear"))
+          ? searchParams.get("endYear") || ""
+          : defaultEndYear,
       committee: searchParams.get("committee") || defaultCommittee,
       college: searchParams.get("college") || "ALL",
       panel: searchParams.get("panel") || "ALL",
@@ -268,16 +316,23 @@ export default function ReportsPage() {
       status: "ALL",
       q: searchParams.get("q") || "",
     }),
-    [searchParams, defaultAy, defaultCommittee]
+    [searchParams, defaultAy, defaultCommittee, defaultEndYear, defaultStartYear]
   );
 
   const [draftFilters, setDraftFilters] = useState<ReportsDraftFilters>(appliedFilters);
   const requiresCustomRange =
     appliedFilters.periodMode === "CUSTOM" &&
     (!appliedFilters.startDate || !appliedFilters.endDate);
+  const requiresCalendarRange =
+    appliedFilters.periodMode === "CALENDAR" &&
+    !!calendarYearRange &&
+    (!appliedFilters.startYear || !appliedFilters.endYear);
+  const hasNoCalendarData =
+    appliedFilters.periodMode === "CALENDAR" &&
+    !calendarYearRange;
   const shouldBlockAcademicMode = !hasAcademicTerms && appliedFilters.periodMode === "ACADEMIC";
   const reportsInfoMessage = useMemo(() => {
-    if (hasAcademicTerms) return null;
+    if (hasAcademicTerms || appliedFilters.periodMode !== "ACADEMIC") return null;
     if (appliedFilters.startDate && appliedFilters.endDate) {
       return `Academic terms are not configured yet. Reports are using a custom range from ${formatRangeDate(
         appliedFilters.startDate
@@ -285,8 +340,9 @@ export default function ReportsPage() {
         appliedFilters.endDate
       )} so imported records remain visible. Academic-year reporting becomes available once terms are seeded.`;
     }
-    return "Academic terms are not configured yet. Reports switched to a custom view automatically, but there are no submissions available to build a reporting range yet.";
+    return "Academic terms are not configured yet. Switch to Calendar year or Custom date range while term records are being seeded.";
   }, [
+    appliedFilters.periodMode,
     appliedFilters.endDate,
     appliedFilters.startDate,
     hasAcademicTerms,
@@ -370,25 +426,50 @@ export default function ReportsPage() {
 
   useEffect(() => {
     if (loadingOptions) return;
+    const isMissingPeriodMode = !searchParams.get("periodMode");
     const isMissingAy = !searchParams.get("ay");
     const isMissingCommittee = !searchParams.get("committee");
-    const needsInitialization = isMissingAy || isMissingCommittee;
+    const isMissingStartYear =
+      appliedFilters.periodMode === "CALENDAR" && !searchParams.get("startYear");
+    const isMissingEndYear =
+      appliedFilters.periodMode === "CALENDAR" && !searchParams.get("endYear");
+    const needsInitialization =
+      isMissingPeriodMode ||
+      isMissingAy ||
+      isMissingCommittee ||
+      (calendarYearRange !== null && (isMissingStartYear || isMissingEndYear));
     const needsMissingTermsFallback = !hasAcademicTerms && appliedFilters.periodMode === "ACADEMIC";
+    const needsCalendarFallback =
+      appliedFilters.periodMode === "CALENDAR" &&
+      calendarYearRange !== null &&
+      (!appliedFilters.startYear || !appliedFilters.endYear);
 
-    if (!needsInitialization && !needsMissingTermsFallback) {
+    if (!needsInitialization && !needsMissingTermsFallback && !needsCalendarFallback) {
       return;
     }
 
     const initializedFilters: ReportsDraftFilters = needsInitialization
       ? {
           ...appliedFilters,
+          periodMode: isMissingPeriodMode ? defaultFilters.periodMode : appliedFilters.periodMode,
           ay: isMissingAy ? defaultAy : appliedFilters.ay,
           committee: isMissingCommittee ? defaultCommittee : appliedFilters.committee,
+          startYear:
+            isMissingStartYear && calendarYearRange
+              ? String(calendarYearRange.startYear)
+              : appliedFilters.startYear,
+          endYear:
+            isMissingEndYear && calendarYearRange
+              ? String(calendarYearRange.endYear)
+              : appliedFilters.endYear,
         }
       : appliedFilters;
-    const nextFilters = needsMissingTermsFallback || (!hasAcademicTerms && initializedFilters.periodMode === "ACADEMIC")
-      ? applyMissingAcademicTermsFallback(initializedFilters, fallbackRange)
-      : normalizeReportFilters(initializedFilters);
+    const nextFilters =
+      needsMissingTermsFallback || (!hasAcademicTerms && initializedFilters.periodMode === "ACADEMIC")
+        ? applyMissingAcademicTermsFallback(initializedFilters, fallbackRange)
+        : needsCalendarFallback
+        ? applyCalendarYearRangeFallback(initializedFilters, calendarYearRange)
+        : normalizeReportFilters(initializedFilters);
 
     setSearchParams(
       toSearchParams(appliedView, nextFilters, {
@@ -402,7 +483,9 @@ export default function ReportsPage() {
     appliedFilters,
     appliedView,
     defaultAy,
+    defaultFilters.periodMode,
     defaultCommittee,
+    calendarYearRange,
     fallbackRange,
     hasAcademicTerms,
     loadingOptions,
@@ -415,7 +498,7 @@ export default function ReportsPage() {
   useEffect(() => {
     if (loadingOptions) return;
     if (!appliedFilters.ay || !appliedFilters.committee) return;
-    if (shouldBlockAcademicMode || requiresCustomRange) {
+    if (shouldBlockAcademicMode || requiresCustomRange || requiresCalendarRange || hasNoCalendarData) {
       setSummary(null);
       setComparisonSummary(null);
       setError(null);
@@ -432,6 +515,8 @@ export default function ReportsPage() {
           term: appliedFilters.term as "ALL" | 1 | 2 | 3,
           startDate: appliedFilters.startDate || undefined,
           endDate: appliedFilters.endDate || undefined,
+          startYear: appliedFilters.startYear || undefined,
+          endYear: appliedFilters.endYear || undefined,
           committee: appliedFilters.committee,
           college: appliedFilters.college,
           panel: appliedFilters.panel,
@@ -449,13 +534,20 @@ export default function ReportsPage() {
       }
     };
     loadSummary();
-  }, [appliedFilters, loadingOptions, requiresCustomRange, shouldBlockAcademicMode]);
+  }, [
+    appliedFilters,
+    hasNoCalendarData,
+    loadingOptions,
+    requiresCalendarRange,
+    requiresCustomRange,
+    shouldBlockAcademicMode,
+  ]);
 
   useEffect(() => {
     if (loadingOptions) return;
     if (appliedView !== "records") return;
     if (!appliedFilters.ay || !appliedFilters.committee) return;
-    if (shouldBlockAcademicMode || requiresCustomRange) {
+    if (shouldBlockAcademicMode || requiresCustomRange || requiresCalendarRange || hasNoCalendarData) {
       setRecords(null);
       setError(null);
       return;
@@ -470,6 +562,8 @@ export default function ReportsPage() {
           term: appliedFilters.term as "ALL" | 1 | 2 | 3,
           startDate: appliedFilters.startDate || undefined,
           endDate: appliedFilters.endDate || undefined,
+          startYear: appliedFilters.startYear || undefined,
+          endYear: appliedFilters.endYear || undefined,
           committee: appliedFilters.committee,
           college: appliedFilters.college,
           panel: appliedFilters.panel,
@@ -496,6 +590,8 @@ export default function ReportsPage() {
     loadingOptions,
     page,
     pageSize,
+    hasNoCalendarData,
+    requiresCalendarRange,
     requiresCustomRange,
     shouldBlockAcademicMode,
     sort,
@@ -611,18 +707,29 @@ export default function ReportsPage() {
   }, [draftFilters.college, records, summary]);
 
   const selectionSummary = useMemo(() => {
-    const scopeBits = [
+    const periodSummary =
       appliedFilters.periodMode === "CUSTOM"
         ? `Custom range ${
             appliedFilters.startDate ? formatRangeDate(appliedFilters.startDate) : "—"
           } to ${appliedFilters.endDate ? formatRangeDate(appliedFilters.endDate) : "—"}`
+        : appliedFilters.periodMode === "CALENDAR"
+        ? appliedFilters.startYear && appliedFilters.endYear
+          ? appliedFilters.startYear === appliedFilters.endYear
+            ? `Calendar year ${appliedFilters.startYear}`
+            : `Calendar years ${appliedFilters.startYear} to ${appliedFilters.endYear}`
+          : "Calendar year range"
         : appliedFilters.ay === "ALL"
         ? "All academic years"
-        : `Academic year ${appliedFilters.ay}`,
+        : `Academic year ${appliedFilters.ay}`;
+
+    const scopeBits = [
+      periodSummary,
       appliedFilters.periodMode === "ACADEMIC"
         ? appliedFilters.term === "ALL"
           ? "All terms"
           : `Term ${appliedFilters.term}`
+        : appliedFilters.periodMode === "CALENDAR"
+        ? "Year-based view"
         : "Date-based view",
       appliedFilters.committee === "ALL"
         ? "All committees"
@@ -724,9 +831,27 @@ export default function ReportsPage() {
     setDraftFilters((prev) => {
       const next = { ...prev, [key]: value } as ReportsDraftFilters;
 
-      if (key === "periodMode" && value === "ACADEMIC") {
-        next.startDate = "";
-        next.endDate = "";
+      if (key === "periodMode") {
+        if (value === "ACADEMIC") {
+          next.startDate = "";
+          next.endDate = "";
+          next.startYear = "";
+          next.endYear = "";
+        }
+        if (value === "CUSTOM") {
+          next.startYear = "";
+          next.endYear = "";
+          next.term = "ALL";
+        }
+        if (value === "CALENDAR") {
+          next.startDate = "";
+          next.endDate = "";
+          next.term = "ALL";
+          if (calendarYearRange) {
+            next.startYear = String(calendarYearRange.startYear);
+            next.endYear = String(calendarYearRange.endYear);
+          }
+        }
       }
 
       if (key === "committee") {
@@ -759,9 +884,7 @@ export default function ReportsPage() {
   };
 
   const onReset = () => {
-    const reset: ReportsDraftFilters = hasAcademicTerms
-      ? normalizeReportFilters({ ...defaultFilters })
-      : applyMissingAcademicTermsFallback({ ...defaultFilters }, fallbackRange);
+    const reset: ReportsDraftFilters = normalizeReportFilters({ ...defaultFilters });
     setDraftFilters(reset);
     setSearchParams(
       toSearchParams(appliedView, reset, {
@@ -813,7 +936,7 @@ export default function ReportsPage() {
     !loadingSummary &&
     !summary &&
     !visibleError &&
-    requiresCustomRange;
+    (requiresCustomRange || hasNoCalendarData);
 
   return (
     <div className="reports-page portal-page portal-page--dense">
@@ -862,6 +985,7 @@ export default function ReportsPage() {
 
         <ReportFiltersBar
           years={years}
+          calendarYearRange={calendarYearRange}
           committees={committees}
           colleges={collegeOptions}
           panels={panels}
