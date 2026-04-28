@@ -364,27 +364,29 @@ function StackedRowsChart({
   return (
     <>
       <div className="stacked-rows">
-        {items.map((item) => (
-          <div key={item.key} className="stacked-row">
-            <div className="stacked-row-meta">
-              <span>{item.label}</span>
-              <strong>{item.total}</strong>
-            </div>
-            <div className="stacked-row-track">
-              {item.segments.map((segment) =>
-                segment.value > 0 ? (
+        {items.map((item) => {
+          const visibleSegments = item.segments.filter((segment) => segment.value > 0);
+
+          return (
+            <div key={item.key} className="stacked-row">
+              <div className="stacked-row-meta">
+                <span>{item.label}</span>
+                <strong>{item.total}</strong>
+              </div>
+              <div className="stacked-row-track">
+                {visibleSegments.map((segment) => (
                   <div
                     key={segment.key}
                     className={`stack-segment ${segment.className ?? ""}`}
                     style={segmentStyle(segment.value, Math.max(item.total, 1))}
                     title={`${segment.label}: ${segment.value}`}
                   />
-                ) : null
-              )}
+                ))}
+              </div>
+              {item.caption ? <span className="stacked-row-caption">{item.caption}</span> : null}
             </div>
-            {item.caption ? <span className="stacked-row-caption">{item.caption}</span> : null}
-          </div>
-        ))}
+          );
+        })}
       </div>
       {legend?.length ? (
         <div className="stacked-legend">
