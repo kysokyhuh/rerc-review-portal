@@ -862,6 +862,17 @@
   line-height: 1.5;
 }
 
+.chart-context-note {
+  margin: -4px 0 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(116, 138, 125, 0.18);
+  border-radius: 12px;
+  background: rgba(247, 250, 247, 0.92);
+  color: #62736a;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
 .chart-empty {
   border: 1px dashed var(--report-border);
   border-radius: 16px;
@@ -969,6 +980,12 @@
   letter-spacing: -0.02em;
 }
 
+.stacked-row-total-note {
+  color: #6d7d74;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
 .stacked-row-track {
   height: 22px;
   border: 1px solid #d8e3dc;
@@ -977,6 +994,17 @@
   overflow: hidden;
   display: flex;
   align-items: stretch;
+}
+
+.stacked-row-track-empty {
+  align-items: center;
+  padding: 0 12px;
+}
+
+.stacked-row-empty-label {
+  color: #6d7d74;
+  font-size: 0.74rem;
+  line-height: 1.45;
 }
 
 .stacked-row-caption {

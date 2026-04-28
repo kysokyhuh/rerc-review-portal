@@ -54,7 +54,9 @@ type StackedRowItem = {
   key: string;
   label: string;
   total: number;
+  metaLabel?: string;
   caption?: string;
+  emptyStateLabel?: string;
   segments: StackedSegment[];
 };
 
@@ -366,22 +368,34 @@ function StackedRowsChart({
       <div className="stacked-rows">
         {items.map((item) => {
           const visibleSegments = item.segments.filter((segment) => segment.value > 0);
+          const isEmpty = item.total <= 0 || visibleSegments.length === 0;
 
           return (
             <div key={item.key} className="stacked-row">
               <div className="stacked-row-meta">
                 <span>{item.label}</span>
                 <strong>{item.total}</strong>
+                {item.metaLabel ? (
+                  <small className="stacked-row-total-note">{item.metaLabel}</small>
+                ) : null}
               </div>
-              <div className="stacked-row-track">
-                {visibleSegments.map((segment) => (
-                  <div
-                    key={segment.key}
-                    className={`stack-segment ${segment.className ?? ""}`}
-                    style={segmentStyle(segment.value, Math.max(item.total, 1))}
-                    title={`${segment.label}: ${segment.value}`}
-                  />
-                ))}
+              <div
+                className={`stacked-row-track ${isEmpty ? "stacked-row-track-empty" : ""}`}
+              >
+                {isEmpty ? (
+                  <span className="stacked-row-empty-label">
+                    {item.emptyStateLabel ?? "No records in this report scope."}
+                  </span>
+                ) : (
+                  visibleSegments.map((segment) => (
+                    <div
+                      key={segment.key}
+                      className={`stack-segment ${segment.className ?? ""}`}
+                      style={segmentStyle(segment.value, Math.max(item.total, 1))}
+                      title={`${segment.label}: ${segment.value}`}
+                    />
+                  ))
+                )}
               </div>
               {item.caption ? <span className="stacked-row-caption">{item.caption}</span> : null}
             </div>
@@ -809,7 +823,9 @@ export default function AnalyticsCharts({
     key: item.label,
     label: item.label,
     total: item.within + item.overdue,
-    caption: `${item.within} within / ${item.overdue} overdue`,
+    metaLabel: `${item.within + item.overdue} evaluated`,
+    caption: `Within SLA: ${item.within} • Overdue: ${item.overdue}`,
+    emptyStateLabel: `No ${item.label.toLowerCase()} records in this report scope.`,
     segments: [
       {
         key: `${item.label}-within`,
@@ -1116,11 +1132,14 @@ export default function AnalyticsCharts({
           {performanceFocus === "sla" ? (
             <section className="chart-card chart-card-wide">
               <ChartHeading
-                title="Within SLA vs overdue"
-                description="Stage compliance uses the configured committee SLA."
+                title="SLA compliance by stage"
+                description="Includes completed and still-open stages measured against the configured committee SLA."
                 requestedGraph={graphType}
                 effectiveGraph={slaGraph}
               />
+              <div className="chart-context-note">
+                Green shows records still within target. Orange shows records that exceeded the target days. Empty rows mean no qualifying records were counted for that stage in the current report scope.
+              </div>
               <StackedRowsChart
                 items={slaRows}
                 legend={[
