@@ -10,4 +10,5 @@ export { default as ClassificationMatrix } from "./ClassificationMatrix";
 export { default as WithdrawnTable } from "./WithdrawnTable";
 export { default as CollegeBreakdownTable } from "./CollegeBreakdownTable";
 export { default as AnalyticsCharts } from "./AnalyticsCharts";
+export type { AnalyticsGraphType } from "./AnalyticsCharts";
 export { default as SubmissionRecordsTable } from "./SubmissionRecordsTable";

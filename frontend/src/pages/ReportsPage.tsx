@@ -11,6 +11,7 @@ import {
   ReportSummaryCards,
   ReportViewSwitch,
   SubmissionRecordsTable,
+  type AnalyticsGraphType,
   type ReportView,
   type ReportsDraftFilters,
 } from "@/components/reports";
@@ -38,6 +39,9 @@ const parseTerm = (value: string | null): "ALL" | 1 | 2 | 3 => {
 
 const parseView = (value: string | null): ReportView =>
   value === "analytics" || value === "records" ? value : "summary";
+
+const parseAnalyticsGraph = (value: string | null): AnalyticsGraphType =>
+  value === "line" || value === "donut" ? value : "bar";
 
 const parsePeriodMode = (
   value: string | null
@@ -108,10 +112,12 @@ const applyCalendarYearRangeFallback = (
 const toSearchParams = (
   view: ReportView,
   filters: ReportsDraftFilters,
+  analyticsGraph: AnalyticsGraphType,
   extra?: Record<string, string>
 ) => {
   const next = new URLSearchParams();
   next.set("view", view);
+  next.set("analyticsGraph", analyticsGraph);
   next.set("periodMode", filters.periodMode);
   next.set("ay", filters.ay);
   next.set("term", String(filters.term));
@@ -279,6 +285,7 @@ export default function ReportsPage() {
   );
 
   const appliedView = parseView(searchParams.get("view"));
+  const analyticsGraph = parseAnalyticsGraph(searchParams.get("analyticsGraph"));
   const page = Math.max(1, Number(searchParams.get("page") ?? "1") || 1);
   const pageSize = Math.min(100, Math.max(1, Number(searchParams.get("pageSize") ?? "20") || 20));
   const sort = searchParams.get("sort") || "receivedDate:desc";
@@ -433,11 +440,17 @@ export default function ReportsPage() {
       appliedFilters.periodMode === "CALENDAR" && !searchParams.get("startYear");
     const isMissingEndYear =
       appliedFilters.periodMode === "CALENDAR" && !searchParams.get("endYear");
+    const isMissingAnalyticsGraph = !searchParams.get("analyticsGraph");
+    const hasInvalidAnalyticsGraph =
+      searchParams.get("analyticsGraph") !== null &&
+      searchParams.get("analyticsGraph") !== analyticsGraph;
     const needsInitialization =
       isMissingPeriodMode ||
       isMissingAy ||
       isMissingCommittee ||
-      (calendarYearRange !== null && (isMissingStartYear || isMissingEndYear));
+      (calendarYearRange !== null && (isMissingStartYear || isMissingEndYear)) ||
+      isMissingAnalyticsGraph ||
+      hasInvalidAnalyticsGraph;
     const needsMissingTermsFallback = !hasAcademicTerms && appliedFilters.periodMode === "ACADEMIC";
     const needsCalendarFallback =
       appliedFilters.periodMode === "CALENDAR" &&
@@ -472,7 +485,7 @@ export default function ReportsPage() {
         : normalizeReportFilters(initializedFilters);
 
     setSearchParams(
-      toSearchParams(appliedView, nextFilters, {
+      toSearchParams(appliedView, nextFilters, analyticsGraph, {
         page: "1",
         pageSize: String(pageSize),
         sort,
@@ -493,6 +506,7 @@ export default function ReportsPage() {
     searchParams,
     setSearchParams,
     sort,
+    analyticsGraph,
   ]);
 
   useEffect(() => {
@@ -875,7 +889,7 @@ export default function ReportsPage() {
     const filtersToApply = normalizeReportFilters(nextFilters ?? draftFilters);
     setDraftFilters(filtersToApply);
     setSearchParams(
-      toSearchParams(appliedView, filtersToApply, {
+      toSearchParams(appliedView, filtersToApply, analyticsGraph, {
         page: "1",
         pageSize: String(pageSize),
         sort,
@@ -887,7 +901,7 @@ export default function ReportsPage() {
     const reset: ReportsDraftFilters = normalizeReportFilters({ ...defaultFilters });
     setDraftFilters(reset);
     setSearchParams(
-      toSearchParams(appliedView, reset, {
+      toSearchParams(appliedView, reset, analyticsGraph, {
         page: "1",
         pageSize: "20",
         sort: "receivedDate:desc",
@@ -896,7 +910,23 @@ export default function ReportsPage() {
   };
 
   const onViewChange = (view: ReportView) => {
-    setSearchParams(toSearchParams(view, appliedFilters, { page: "1", pageSize: String(pageSize), sort }));
+    setSearchParams(
+      toSearchParams(view, appliedFilters, analyticsGraph, {
+        page: "1",
+        pageSize: String(pageSize),
+        sort,
+      })
+    );
+  };
+
+  const onAnalyticsGraphChange = (nextGraph: AnalyticsGraphType) => {
+    setSearchParams(
+      toSearchParams(appliedView, appliedFilters, nextGraph, {
+        page: String(page),
+        pageSize: String(pageSize),
+        sort,
+      })
+    );
   };
 
   const onExportPdf = async () => {
@@ -908,6 +938,7 @@ export default function ReportsPage() {
         summary,
         selectionSummary,
         generatedAt: new Date(),
+        analyticsGraph,
       });
     } catch (e: unknown) {
       setError(getErrorMessage(e, "Failed to export report PDF."));
@@ -927,7 +958,13 @@ export default function ReportsPage() {
       category: filters.category ?? appliedFilters.category,
       reviewType: filters.reviewType ?? appliedFilters.reviewType,
     };
-    setSearchParams(toSearchParams("records", next, { page: "1", pageSize: String(pageSize), sort }));
+    setSearchParams(
+      toSearchParams("records", next, analyticsGraph, {
+        page: "1",
+        pageSize: String(pageSize),
+        sort,
+      })
+    );
   };
 
   const visibleError =
@@ -1128,11 +1165,16 @@ export default function ReportsPage() {
         ) : null}
 
         {appliedView === "analytics" && summary ? (
-          <ReportSection
-            title="Focused analytics"
-            subtitle="Each section shows only the charts needed for the current question, with toggles for deeper comparison."
-          >
-            <AnalyticsCharts summary={summary} onDrilldown={onDrilldown} />
+            <ReportSection
+              title="Focused analytics"
+              subtitle="Each section shows only the charts needed for the current question, with toggles for deeper comparison."
+            >
+            <AnalyticsCharts
+              summary={summary}
+              graphType={analyticsGraph}
+              onGraphTypeChange={onAnalyticsGraphChange}
+              onDrilldown={onDrilldown}
+            />
           </ReportSection>
         ) : null}
 
@@ -1146,11 +1188,17 @@ export default function ReportsPage() {
               loading={loadingRecords}
               sort={sort}
               onSort={(nextSort) =>
-                setSearchParams(toSearchParams("records", appliedFilters, { page: "1", pageSize: String(pageSize), sort: nextSort }))
+                setSearchParams(
+                  toSearchParams("records", appliedFilters, analyticsGraph, {
+                    page: "1",
+                    pageSize: String(pageSize),
+                    sort: nextSort,
+                  })
+                )
               }
               onPageChange={(nextPage) =>
                 setSearchParams(
-                  toSearchParams("records", appliedFilters, {
+                  toSearchParams("records", appliedFilters, analyticsGraph, {
                     page: String(Math.max(1, nextPage)),
                     pageSize: String(pageSize),
                     sort,

@@ -1,8 +1,13 @@
-import { useState, type CSSProperties } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import type { AnnualReportSummaryResponse } from "@/types";
+
+export type AnalyticsGraphType = "bar" | "line" | "donut";
 
 type AnalyticsChartsProps = {
   summary: AnnualReportSummaryResponse;
+  graphType: AnalyticsGraphType;
+  showGraphSelector?: boolean;
+  onGraphTypeChange?: (value: AnalyticsGraphType) => void;
   onDrilldown: (filters: {
     college?: string;
     reviewType?: "EXEMPT" | "EXPEDITED" | "FULL_BOARD";
@@ -16,8 +21,122 @@ type SegmentControlProps = {
   onChange: (value: string) => void;
 };
 
+type GraphPresentation = {
+  family: AnalyticsGraphType;
+  label: string;
+};
+
+type HorizontalBarItem = {
+  key: string;
+  label: string;
+  count: number;
+  disabled?: boolean;
+  toneClassName?: string;
+  onClick?: () => void;
+};
+
+type VerticalBarItem = {
+  key: string;
+  label: string;
+  count: number;
+  toneClassName?: string;
+};
+
+type StackedSegment = {
+  key: string;
+  label: string;
+  value: number;
+  color: string;
+  className?: string;
+};
+
+type StackedRowItem = {
+  key: string;
+  label: string;
+  total: number;
+  caption?: string;
+  segments: StackedSegment[];
+};
+
+type StackedColumnItem = {
+  key: string;
+  label: string;
+  total: number;
+  segments: StackedSegment[];
+};
+
+type DonutItem = {
+  key: string;
+  label: string;
+  count: number;
+  color: string;
+  disabled?: boolean;
+  onClick?: () => void;
+};
+
+type LineSeriesMeta = {
+  key: string;
+  label: string;
+  color: string;
+};
+
+type LineChartItem = {
+  label: string;
+  values: Record<string, number>;
+};
+
+const GRAPH_TYPE_LABELS: Record<AnalyticsGraphType, string> = {
+  bar: "Bar",
+  line: "Line",
+  donut: "Donut",
+};
+
+const GRAPH_OPTIONS = [
+  { label: "Bar", value: "bar" },
+  { label: "Line", value: "line" },
+  { label: "Donut", value: "donut" },
+] as const;
+
+const CATEGORY_COLORS: Record<
+  "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING",
+  string
+> = {
+  UNDERGRAD: "#2f7a54",
+  GRAD: "#5577b0",
+  FACULTY: "#d18b2f",
+  NON_TEACHING: "#879a6d",
+};
+
+const outcomeMeta = {
+  exempted: { label: "Exempted", className: "tone-exempt", color: "#2f7a54" },
+  expedited: { label: "Expedited", className: "tone-expedited", color: "#d18b2f" },
+  fullReview: { label: "Full review", className: "tone-full", color: "#5577b0" },
+  withdrawn: { label: "Withdrawn", className: "tone-withdrawn", color: "#b76161" },
+  unclassified: { label: "Unclassified", className: "tone-unclassified", color: "#97a2b0" },
+} as const;
+
+const phase2Keys = ["exempted", "expedited", "fullReview", "withdrawn", "unclassified"] as const;
+const comparativeKeys = ["exempted", "expedited", "fullReview", "withdrawn"] as const;
+const performanceMeta = {
+  within: { label: "Within SLA", className: "tone-within", color: "#2f7a54" },
+  overdue: { label: "Overdue", className: "tone-overdue", color: "#d9643b" },
+} as const;
+const MONTHLY_RECEIVED_COLOR = "#2f7a54";
+const MONTHLY_WITHDRAWN_COLOR = "#b76161";
+
+const horizontalBarGraph: GraphPresentation = { family: "bar", label: "horizontal bar" };
+const verticalBarGraph: GraphPresentation = { family: "bar", label: "bar" };
+const stackedBarGraph: GraphPresentation = { family: "bar", label: "stacked bar" };
+const lineGraph: GraphPresentation = { family: "line", label: "line" };
+const donutGraph: GraphPresentation = { family: "donut", label: "donut" };
+
 const maxOf = (arr: Array<{ count: number }>) =>
   arr.length ? Math.max(...arr.map((item) => item.count), 1) : 1;
+
+const scaleToPercent = (value: number, maxValue: number, minimum = 3) => {
+  if (value <= 0 || maxValue <= 0) return 0;
+  return Math.max(minimum, Math.round((value / maxValue) * 100));
+};
 
 const isOthersLabel = (value: string) =>
   /^others?\b/i.test(value.trim()) || /^other\b/i.test(value.trim());
@@ -29,16 +148,41 @@ const formatDays = (value: number | null) => {
   return Number.isInteger(value) ? `${value} days` : `${value.toFixed(1)} days`;
 };
 
-const outcomeMeta = {
-  exempted: { label: "Exempted", className: "tone-exempt" },
-  expedited: { label: "Expedited", className: "tone-expedited" },
-  fullReview: { label: "Full review", className: "tone-full" },
-  withdrawn: { label: "Withdrawn", className: "tone-withdrawn" },
-  unclassified: { label: "Unclassified", className: "tone-unclassified" },
-} as const;
+const toReviewTypeDrilldown = (label: string) => {
+  if (label === "Exempted") return "EXEMPT";
+  if (label === "Expedited") return "EXPEDITED";
+  if (label === "Full Review") return "FULL_BOARD";
+  return undefined;
+};
 
-const phase2Keys = ["exempted", "expedited", "fullReview", "withdrawn", "unclassified"] as const;
-const comparativeKeys = ["exempted", "expedited", "fullReview", "withdrawn"] as const;
+const segmentStyle = (value: number, total: number) =>
+  ({
+    width: `${total > 0 ? (value / total) * 100 : 0}%`,
+  }) as CSSProperties;
+
+const stackedHeightStyle = (value: number, total: number) =>
+  ({
+    height: `${total > 0 ? (value / total) * 100 : 0}%`,
+  }) as CSSProperties;
+
+const buildDonutBackground = (items: DonutItem[]) => {
+  const total = items.reduce((sum, item) => sum + item.count, 0);
+
+  if (total <= 0) {
+    return "conic-gradient(#dfe9e2 0deg 360deg)";
+  }
+
+  let cursor = 0;
+  const stops = items
+    .filter((item) => item.count > 0)
+    .map((item) => {
+      const start = cursor;
+      cursor += (item.count / total) * 360;
+      return `${item.color} ${start}deg ${cursor}deg`;
+    });
+
+  return `conic-gradient(${stops.join(", ")})`;
+};
 
 function SegmentControl({ ariaLabel, options, value, onChange }: SegmentControlProps) {
   return (
@@ -55,6 +199,365 @@ function SegmentControl({ ariaLabel, options, value, onChange }: SegmentControlP
         </button>
       ))}
     </div>
+  );
+}
+
+function ChartFallbackChip({
+  requestedGraph,
+  effectiveGraph,
+}: {
+  requestedGraph: AnalyticsGraphType;
+  effectiveGraph: GraphPresentation;
+}) {
+  if (requestedGraph === effectiveGraph.family) return null;
+
+  return <span className="chart-fallback-chip">Using {effectiveGraph.label}</span>;
+}
+
+function ChartHeading({
+  title,
+  description,
+  requestedGraph,
+  effectiveGraph,
+  actions,
+}: {
+  title: string;
+  description: string;
+  requestedGraph: AnalyticsGraphType;
+  effectiveGraph: GraphPresentation;
+  actions?: ReactNode;
+}) {
+  const showActions = Boolean(actions) || requestedGraph !== effectiveGraph.family;
+
+  return (
+    <div className={`chart-card-heading ${showActions ? "chart-card-heading-inline" : ""}`}>
+      <div>
+        <h4>{title}</h4>
+        <p>{description}</p>
+      </div>
+      {showActions ? (
+        <div className="chart-card-heading-actions">
+          <ChartFallbackChip
+            requestedGraph={requestedGraph}
+            effectiveGraph={effectiveGraph}
+          />
+          {actions}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function HorizontalBarChart({ items }: { items: HorizontalBarItem[] }) {
+  const maxValue = maxOf(items.map((item) => ({ count: item.count })));
+
+  return (
+    <div className="h-bars">
+      {items.map((item) => {
+        const content = (
+          <>
+            <span>{item.label}</span>
+            <div className="h-bar-track">
+              <div
+                className={`h-bar-fill ${item.toneClassName ?? ""}`}
+                style={{ width: `${scaleToPercent(item.count, maxValue)}%` }}
+              />
+            </div>
+            <strong>{item.count}</strong>
+          </>
+        );
+
+        if (item.onClick || item.disabled) {
+          return (
+            <button
+              key={item.key}
+              type="button"
+              className="h-bar-item chart-action"
+              onClick={item.onClick}
+              disabled={item.disabled}
+            >
+              {content}
+            </button>
+          );
+        }
+
+        return (
+          <div key={item.key} className="h-bar-item">
+            {content}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function VerticalBarChart({
+  items,
+  compact = false,
+}: {
+  items: VerticalBarItem[];
+  compact?: boolean;
+}) {
+  const maxValue = maxOf(items.map((item) => ({ count: item.count })));
+
+  return (
+    <div className={`v-chart-shell ${compact ? "compact" : ""}`}>
+      <div className="v-chart">
+        {items.map((item) => (
+          <div key={item.key} className="v-bar-item">
+            <strong>{item.count}</strong>
+            <div className="v-bar-track">
+              <div
+                className={`v-bar-fill ${item.toneClassName ?? ""}`}
+                style={{ height: `${scaleToPercent(item.count, maxValue, 6)}%` }}
+              />
+            </div>
+            <span>{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StackedVerticalBarChart({ items }: { items: StackedColumnItem[] }) {
+  const maxValue = maxOf(items.map((item) => ({ count: item.total })));
+
+  return (
+    <div className="v-chart-shell">
+      <div className="stacked-v-chart">
+        {items.map((item) => (
+          <div key={item.key} className="stacked-v-item">
+            <strong>{item.total}</strong>
+            <div className="stacked-v-track">
+              <div
+                className="stacked-v-fill"
+                style={{ height: `${scaleToPercent(item.total, maxValue, 6)}%` }}
+              >
+                {item.segments.map((segment) =>
+                  segment.value > 0 ? (
+                    <div
+                      key={segment.key}
+                      className={`stack-segment ${segment.className ?? ""}`}
+                      style={stackedHeightStyle(segment.value, item.total)}
+                      title={`${segment.label}: ${segment.value}`}
+                    />
+                  ) : null
+                )}
+              </div>
+            </div>
+            <span>{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StackedRowsChart({
+  items,
+  legend,
+}: {
+  items: StackedRowItem[];
+  legend?: Array<{ key: string; label: string; className?: string; color: string }>;
+}) {
+  return (
+    <>
+      <div className="stacked-rows">
+        {items.map((item) => (
+          <div key={item.key} className="stacked-row">
+            <div className="stacked-row-meta">
+              <span>{item.label}</span>
+              <strong>{item.total}</strong>
+            </div>
+            <div className="stacked-row-track">
+              {item.segments.map((segment) =>
+                segment.value > 0 ? (
+                  <div
+                    key={segment.key}
+                    className={`stack-segment ${segment.className ?? ""}`}
+                    style={segmentStyle(segment.value, Math.max(item.total, 1))}
+                    title={`${segment.label}: ${segment.value}`}
+                  />
+                ) : null
+              )}
+            </div>
+            {item.caption ? <span className="stacked-row-caption">{item.caption}</span> : null}
+          </div>
+        ))}
+      </div>
+      {legend?.length ? (
+        <div className="stacked-legend">
+          {legend.map((item) => (
+            <span key={item.key} className="legend-chip">
+              <i
+                className={`legend-dot ${item.className ?? ""}`}
+                style={{ background: item.color }}
+              />
+              {item.label}
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function DonutChart({ items }: { items: DonutItem[] }) {
+  const total = items.reduce((sum, item) => sum + item.count, 0);
+
+  return (
+    <div className="donut-chart-shell">
+      <div
+        className="donut-chart-visual"
+        style={{ background: buildDonutBackground(items) }}
+        aria-hidden="true"
+      >
+        <div className="donut-chart-center">
+          <span>Total</span>
+          <strong>{total}</strong>
+        </div>
+      </div>
+
+      <div className="donut-legend">
+        {items.map((item) => {
+          const row = (
+            <>
+              <span className="donut-legend-label">
+                <i className="legend-dot" style={{ background: item.color }} />
+                {item.label}
+              </span>
+              <strong>{item.count}</strong>
+            </>
+          );
+
+          if (item.onClick || item.disabled) {
+            return (
+              <button
+                key={item.key}
+                type="button"
+                className="donut-legend-item chart-action"
+                onClick={item.onClick}
+                disabled={item.disabled}
+              >
+                {row}
+              </button>
+            );
+          }
+
+          return (
+            <div key={item.key} className="donut-legend-item">
+              {row}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function LineChart({
+  items,
+  series,
+  compact = false,
+}: {
+  items: LineChartItem[];
+  series: LineSeriesMeta[];
+  compact?: boolean;
+}) {
+  const visibleSeries =
+    series.filter((meta) => items.some((item) => (item.values[meta.key] ?? 0) > 0)) || series;
+  const normalizedSeries = visibleSeries.length ? visibleSeries : series;
+  const maxValue = Math.max(
+    1,
+    ...items.flatMap((item) =>
+      normalizedSeries.map((meta) => item.values[meta.key] ?? 0)
+    )
+  );
+  const width = Math.max(360, items.length * 88);
+  const height = compact ? 232 : 260;
+  const padding = { top: 18, right: 18, bottom: 16, left: 18 };
+  const plotWidth = width - padding.left - padding.right;
+  const plotHeight = height - padding.top - padding.bottom;
+  const tickFractions = [0, 0.25, 0.5, 0.75, 1];
+  const xFor = (index: number) =>
+    items.length === 1
+      ? padding.left + plotWidth / 2
+      : padding.left + (index / (items.length - 1)) * plotWidth;
+  const yFor = (value: number) =>
+    padding.top + plotHeight - (value / maxValue) * plotHeight;
+
+  return (
+    <>
+      <div className={`line-chart-shell ${compact ? "compact" : ""}`}>
+        <svg
+          className="line-chart"
+          viewBox={`0 0 ${width} ${height}`}
+          style={{ width: `${width}px`, height: `${height}px` }}
+        >
+          {tickFractions.map((fraction) => {
+            const y = padding.top + plotHeight - plotHeight * fraction;
+            return (
+              <line
+                key={fraction}
+                className="line-grid-line"
+                x1={padding.left}
+                y1={y}
+                x2={width - padding.right}
+                y2={y}
+              />
+            );
+          })}
+
+          {normalizedSeries.map((meta) => {
+            const points = items
+              .map((item, index) => `${xFor(index)},${yFor(item.values[meta.key] ?? 0)}`)
+              .join(" ");
+
+            return (
+              <g key={meta.key}>
+                <polyline
+                  className="line-series-path"
+                  points={points}
+                  fill="none"
+                  stroke={meta.color}
+                />
+                {items.map((item, index) => (
+                  <circle
+                    key={`${meta.key}-${item.label}`}
+                    className="line-series-point"
+                    cx={xFor(index)}
+                    cy={yFor(item.values[meta.key] ?? 0)}
+                    r="4"
+                    fill={meta.color}
+                  />
+                ))}
+              </g>
+            );
+          })}
+        </svg>
+
+        <div
+          className="line-axis-labels"
+          style={{ gridTemplateColumns: `repeat(${Math.max(items.length, 1)}, minmax(72px, 1fr))` }}
+        >
+          {items.map((item) => (
+            <span key={item.label}>{item.label}</span>
+          ))}
+        </div>
+      </div>
+
+      {normalizedSeries.length > 1 ? (
+        <div className="stacked-legend">
+          {normalizedSeries.map((meta) => (
+            <span key={meta.key} className="legend-chip">
+              <i className="legend-dot" style={{ background: meta.color }} />
+              {meta.label}
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -75,18 +578,19 @@ function ChartEmpty({
   );
 }
 
-export default function AnalyticsCharts({ summary, onDrilldown }: AnalyticsChartsProps) {
+export default function AnalyticsCharts({
+  summary,
+  graphType,
+  showGraphSelector = true,
+  onGraphTypeChange,
+  onDrilldown,
+}: AnalyticsChartsProps) {
   const [volumeFocus, setVolumeFocus] = useState<"composition" | "institutions">("composition");
   const [trendFocus, setTrendFocus] = useState<"monthly" | "comparison">("monthly");
   const [monthlyVolumeFocus, setMonthlyVolumeFocus] = useState<"received" | "withdrawn">("received");
   const [performanceFocus, setPerformanceFocus] = useState<"sla" | "workflow">("sla");
 
   const { charts, performanceCharts } = summary;
-  const monthMax = maxOf(charts.receivedByMonth);
-  const withdrawnByMonthMax = maxOf(charts.withdrawnByMonth);
-  const reviewTypeByMonthMax = maxOf(
-    charts.reviewTypeByMonth.map((item) => ({ count: item.total }))
-  );
   const topReceivedInstitutions = [...charts.receivedByCollege]
     .sort((a, b) => {
       const aOther = isOthersLabel(a.label);
@@ -96,7 +600,6 @@ export default function AnalyticsCharts({ summary, onDrilldown }: AnalyticsChart
       return b.count - a.count;
     })
     .slice(0, 5);
-  const topInstitutionMax = maxOf(topReceivedInstitutions);
   const topOutcomeInstitutions = [...charts.outcomeByCollege]
     .sort((a, b) => {
       const aOther = isOthersLabel(a.label);
@@ -106,13 +609,6 @@ export default function AnalyticsCharts({ summary, onDrilldown }: AnalyticsChart
       return b.total - a.total;
     })
     .slice(0, 5);
-  const reviewMax = maxOf(charts.reviewTypeDistribution);
-  const categoryMax = maxOf(
-    charts.proponentCategoryDistribution.map((item) => ({ count: item.count }))
-  );
-  const committeeMax = maxOf(charts.committeeDistribution);
-  const funnelMax = maxOf(performanceCharts.workflowFunnel);
-
   const averageCards = [
     ...performanceCharts.averages.daysToResults.map((item) => ({
       label: `${item.label} to results`,
@@ -131,10 +627,16 @@ export default function AnalyticsCharts({ summary, onDrilldown }: AnalyticsChart
     },
   ];
 
-  const segmentStyle = (value: number, total: number) =>
-    ({
-      width: `${total > 0 ? (value / total) * 100 : 0}%`,
-    }) as CSSProperties;
+  const categoryGraph = graphType === "donut" ? donutGraph : horizontalBarGraph;
+  const reviewGraph = graphType === "donut" ? donutGraph : horizontalBarGraph;
+  const institutionsGraph = graphType === "donut" ? donutGraph : horizontalBarGraph;
+  const institutionOutcomeGraph = stackedBarGraph;
+  const reviewPathByMonthGraph = graphType === "line" ? lineGraph : stackedBarGraph;
+  const monthlyVolumeGraph = graphType === "line" ? lineGraph : verticalBarGraph;
+  const comparativeGraph = graphType === "line" ? lineGraph : stackedBarGraph;
+  const committeeGraph = graphType === "donut" ? donutGraph : horizontalBarGraph;
+  const slaGraph = stackedBarGraph;
+  const workflowGraph = horizontalBarGraph;
 
   const monthlyItems =
     monthlyVolumeFocus === "withdrawn" ? charts.withdrawnByMonth : charts.receivedByMonth;
@@ -146,11 +648,211 @@ export default function AnalyticsCharts({ summary, onDrilldown }: AnalyticsChart
     monthlyVolumeFocus === "withdrawn"
       ? "Monthly withdrawal trends are shown only when one academic or calendar year is selected."
       : "Select a single academic or calendar year to view monthly received proposals.";
-  const monthlyMax =
-    monthlyVolumeFocus === "withdrawn" ? withdrawnByMonthMax : monthMax;
+  const monthlyColor =
+    monthlyVolumeFocus === "withdrawn" ? MONTHLY_WITHDRAWN_COLOR : MONTHLY_RECEIVED_COLOR;
+
+  const categoryBarItems: HorizontalBarItem[] = charts.proponentCategoryDistribution.map((item) => ({
+    key: item.category,
+    label: item.label,
+    count: item.count,
+  }));
+  const categoryDonutItems: DonutItem[] = charts.proponentCategoryDistribution.map((item) => ({
+    key: item.category,
+    label: item.label,
+    count: item.count,
+    color: CATEGORY_COLORS[item.category],
+  }));
+  const reviewDistributionBarItems: HorizontalBarItem[] = charts.reviewTypeDistribution.map((item) => ({
+    key: item.label,
+    label: item.label,
+    count: item.count,
+    onClick: () => {
+      const reviewType = toReviewTypeDrilldown(item.label);
+      onDrilldown(reviewType ? { reviewType } : {});
+    },
+  }));
+  const reviewDistributionDonutItems: DonutItem[] = charts.reviewTypeDistribution.map((item) => ({
+    key: item.label,
+    label: item.label,
+    count: item.count,
+    color:
+      item.label === "Exempted"
+        ? outcomeMeta.exempted.color
+        : item.label === "Expedited"
+        ? outcomeMeta.expedited.color
+        : item.label === "Full Review"
+        ? outcomeMeta.fullReview.color
+        : item.label === "Withdrawn"
+        ? outcomeMeta.withdrawn.color
+        : outcomeMeta.unclassified.color,
+    onClick: () => {
+      const reviewType = toReviewTypeDrilldown(item.label);
+      onDrilldown(reviewType ? { reviewType } : {});
+    },
+  }));
+  const topInstitutionBarItems: HorizontalBarItem[] = topReceivedInstitutions.map((item) => ({
+    key: item.label,
+    label: toCollegeLabel(item.label),
+    count: item.count,
+    disabled: isOthersLabel(item.label),
+    onClick: () => onDrilldown({ college: item.label }),
+  }));
+  const topInstitutionDonutItems: DonutItem[] = topReceivedInstitutions.map((item) => ({
+    key: item.label,
+    label: toCollegeLabel(item.label),
+    count: item.count,
+    color: CATEGORY_COLORS[
+      (["UNDERGRAD", "GRAD", "FACULTY", "NON_TEACHING"][
+        topReceivedInstitutions.indexOf(item) % 4
+      ] ?? "UNDERGRAD") as "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING"
+    ],
+    disabled: isOthersLabel(item.label),
+    onClick: () => onDrilldown({ college: item.label }),
+  }));
+  const outcomeRows: StackedRowItem[] = topOutcomeInstitutions.map((item) => ({
+    key: item.label,
+    label: toCollegeLabel(item.label),
+    total: item.total,
+    segments: phase2Keys.map((key) => ({
+      key: `${item.label}-${key}`,
+      label: outcomeMeta[key].label,
+      value: item[key],
+      color: outcomeMeta[key].color,
+      className: outcomeMeta[key].className,
+    })),
+  }));
+  const outcomeLegend = phase2Keys.map((key) => ({
+    key,
+    label: outcomeMeta[key].label,
+    color: outcomeMeta[key].color,
+    className: outcomeMeta[key].className,
+  }));
+  const reviewPathByMonthColumns: StackedColumnItem[] = charts.reviewTypeByMonth.map((item) => ({
+    key: item.label,
+    label: item.label,
+    total: item.total,
+    segments: phase2Keys.map((key) => ({
+      key: `${item.label}-${key}`,
+      label: outcomeMeta[key].label,
+      value: item[key],
+      color: outcomeMeta[key].color,
+      className: outcomeMeta[key].className,
+    })),
+  }));
+  const reviewPathByMonthSeries: LineSeriesMeta[] = phase2Keys.map((key) => ({
+    key,
+    label: outcomeMeta[key].label,
+    color: outcomeMeta[key].color,
+  }));
+  const reviewPathByMonthLineItems: LineChartItem[] = charts.reviewTypeByMonth.map((item) => ({
+    label: item.label,
+    values: phase2Keys.reduce<Record<string, number>>((accumulator, key) => {
+      accumulator[key] = item[key];
+      return accumulator;
+    }, {}),
+  }));
+  const monthlyBarItems: VerticalBarItem[] = monthlyItems.map((item) => ({
+    key: `${monthlyVolumeFocus}-${item.label}`,
+    label: item.label,
+    count: item.count,
+    toneClassName: monthlyVolumeFocus === "withdrawn" ? "tone-withdrawn" : "",
+  }));
+  const monthlyLineItems: LineChartItem[] = monthlyItems.map((item) => ({
+    label: item.label,
+    values: { total: item.count },
+  }));
+  const monthlyLineSeries: LineSeriesMeta[] = [
+    {
+      key: "total",
+      label: monthlyVolumeFocus === "withdrawn" ? "Withdrawn" : "Received",
+      color: monthlyColor,
+    },
+  ];
+  const comparativeRows: StackedRowItem[] = charts.comparativeYearTrend.map((item) => ({
+    key: item.label,
+    label: item.label,
+    total: item.exempted + item.expedited + item.fullReview + item.withdrawn,
+    segments: comparativeKeys.map((key) => ({
+      key: `${item.label}-${key}`,
+      label: outcomeMeta[key].label,
+      value: item[key],
+      color: outcomeMeta[key].color,
+      className: outcomeMeta[key].className,
+    })),
+  }));
+  const comparativeLineSeries: LineSeriesMeta[] = comparativeKeys.map((key) => ({
+    key,
+    label: outcomeMeta[key].label,
+    color: outcomeMeta[key].color,
+  }));
+  const comparativeLineItems: LineChartItem[] = charts.comparativeYearTrend.map((item) => ({
+    label: item.label,
+    values: comparativeKeys.reduce<Record<string, number>>((accumulator, key) => {
+      accumulator[key] = item[key];
+      return accumulator;
+    }, {}),
+  }));
+  const committeeBarItems: HorizontalBarItem[] = charts.committeeDistribution.map((item) => ({
+    key: item.label,
+    label: item.label,
+    count: item.count,
+  }));
+  const committeeDonutItems: DonutItem[] = charts.committeeDistribution.map((item, index) => ({
+    key: item.label,
+    label: item.label,
+    count: item.count,
+    color: Object.values(CATEGORY_COLORS)[index % Object.values(CATEGORY_COLORS).length],
+  }));
+  const slaRows: StackedRowItem[] = performanceCharts.slaCompliance.map((item) => ({
+    key: item.label,
+    label: item.label,
+    total: item.within + item.overdue,
+    caption: `${item.within} within / ${item.overdue} overdue`,
+    segments: [
+      {
+        key: `${item.label}-within`,
+        label: performanceMeta.within.label,
+        value: item.within,
+        color: performanceMeta.within.color,
+        className: performanceMeta.within.className,
+      },
+      {
+        key: `${item.label}-overdue`,
+        label: performanceMeta.overdue.label,
+        value: item.overdue,
+        color: performanceMeta.overdue.color,
+        className: performanceMeta.overdue.className,
+      },
+    ],
+  }));
+  const workflowBarItems: HorizontalBarItem[] = performanceCharts.workflowFunnel.map((item) => ({
+    key: item.label,
+    label: item.label,
+    count: item.count,
+  }));
 
   return (
     <div className="analytics-layout">
+      <section className="analytics-global-controls">
+        <div>
+          <span className="section-kicker">Graph style</span>
+          <h4>Choose one chart style for the analytics view.</h4>
+          <p>Bar is the default. Sections that do not support line or donut fall back automatically.</p>
+        </div>
+        {showGraphSelector && onGraphTypeChange ? (
+          <SegmentControl
+            ariaLabel="Analytics graph style"
+            value={graphType}
+            onChange={(value) => onGraphTypeChange(value as AnalyticsGraphType)}
+            options={GRAPH_OPTIONS.map((option) => ({ ...option }))}
+          />
+        ) : (
+          <span className="chart-fallback-chip analytics-graph-badge">
+            Graph style: {GRAPH_TYPE_LABELS[graphType]}
+          </span>
+        )}
+      </section>
+
       <section className="analytics-section">
         <div className="analytics-section-header">
           <div>
@@ -181,128 +883,57 @@ export default function AnalyticsCharts({ summary, onDrilldown }: AnalyticsChart
           {volumeFocus === "composition" ? (
             <>
               <section className="chart-card">
-                <div className="chart-card-heading">
-                  <h4>Proponent category mix</h4>
-                  <p>Current applicant mix across the selected report scope.</p>
-                </div>
-                <div className="h-bars">
-                  {charts.proponentCategoryDistribution.map((item) => (
-                    <div key={item.category} className="h-bar-item">
-                      <span>{item.label}</span>
-                      <div className="h-bar-track">
-                        <div
-                          className="h-bar-fill"
-                          style={{
-                            width: `${Math.max(3, Math.round((item.count / categoryMax) * 100))}%`,
-                          }}
-                        />
-                      </div>
-                      <strong>{item.count}</strong>
-                    </div>
-                  ))}
-                </div>
+                <ChartHeading
+                  title="Proponent category mix"
+                  description="Current applicant mix across the selected report scope."
+                  requestedGraph={graphType}
+                  effectiveGraph={categoryGraph}
+                />
+                {categoryGraph.family === "donut" ? (
+                  <DonutChart items={categoryDonutItems} />
+                ) : (
+                  <HorizontalBarChart items={categoryBarItems} />
+                )}
               </section>
 
               <section className="chart-card">
-                <div className="chart-card-heading">
-                  <h4>Review path distribution</h4>
-                  <p>Use this to see which pathway dominates before opening deeper comparisons.</p>
-                </div>
-                <div className="h-bars">
-                  {charts.reviewTypeDistribution.map((item) => (
-                    <button
-                      key={item.label}
-                      type="button"
-                      className="h-bar-item chart-action"
-                      onClick={() =>
-                        item.label === "Exempted"
-                          ? onDrilldown({ reviewType: "EXEMPT" })
-                          : item.label === "Expedited"
-                          ? onDrilldown({ reviewType: "EXPEDITED" })
-                          : item.label === "Full Review"
-                          ? onDrilldown({ reviewType: "FULL_BOARD" })
-                          : onDrilldown({})
-                      }
-                    >
-                      <span>{item.label}</span>
-                      <div className="h-bar-track">
-                        <div
-                          className="h-bar-fill"
-                          style={{ width: `${Math.max(3, Math.round((item.count / reviewMax) * 100))}%` }}
-                        />
-                      </div>
-                      <strong>{item.count}</strong>
-                    </button>
-                  ))}
-                </div>
+                <ChartHeading
+                  title="Review path distribution"
+                  description="Use this to see which pathway dominates before opening deeper comparisons."
+                  requestedGraph={graphType}
+                  effectiveGraph={reviewGraph}
+                />
+                {reviewGraph.family === "donut" ? (
+                  <DonutChart items={reviewDistributionDonutItems} />
+                ) : (
+                  <HorizontalBarChart items={reviewDistributionBarItems} />
+                )}
               </section>
             </>
           ) : (
             <>
               <section className="chart-card chart-card-wide">
-                <div className="chart-card-heading">
-                  <h4>Outcome mix across top institutions</h4>
-                  <p>Showing the top 5 units by filtered volume to keep the comparison readable.</p>
-                </div>
-                <div className="stacked-rows">
-                  {topOutcomeInstitutions.map((item) => (
-                    <div key={item.label} className="stacked-row">
-                      <div className="stacked-row-meta">
-                        <span>{toCollegeLabel(item.label)}</span>
-                        <strong>{item.total}</strong>
-                      </div>
-                      <div className="stacked-row-track">
-                        {phase2Keys.map((key) =>
-                          item[key] > 0 ? (
-                            <div
-                              key={`${item.label}-${key}`}
-                              className={`stack-segment ${outcomeMeta[key].className}`}
-                              style={segmentStyle(item[key], item.total)}
-                              title={`${outcomeMeta[key].label}: ${item[key]}`}
-                            />
-                          ) : null
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="stacked-legend">
-                  {phase2Keys.map((key) => (
-                    <span key={key} className="legend-chip">
-                      <i className={`legend-dot ${outcomeMeta[key].className}`} />
-                      {outcomeMeta[key].label}
-                    </span>
-                  ))}
-                </div>
+                <ChartHeading
+                  title="Outcome mix across top institutions"
+                  description="Showing the top 5 units by filtered volume to keep the comparison readable."
+                  requestedGraph={graphType}
+                  effectiveGraph={institutionOutcomeGraph}
+                />
+                <StackedRowsChart items={outcomeRows} legend={outcomeLegend} />
               </section>
 
               <section className="chart-card">
-                <div className="chart-card-heading">
-                  <h4>Top colleges by received</h4>
-                  <p>Showing the top 5 institutions in the current scope.</p>
-                </div>
-                <div className="h-bars">
-                  {topReceivedInstitutions.map((item) => (
-                    <button
-                      key={item.label}
-                      type="button"
-                      className="h-bar-item chart-action"
-                      disabled={isOthersLabel(item.label)}
-                      onClick={() => onDrilldown({ college: item.label })}
-                    >
-                      <span>{toCollegeLabel(item.label)}</span>
-                      <div className="h-bar-track">
-                        <div
-                          className="h-bar-fill"
-                          style={{
-                            width: `${Math.max(3, Math.round((item.count / topInstitutionMax) * 100))}%`,
-                          }}
-                        />
-                      </div>
-                      <strong>{item.count}</strong>
-                    </button>
-                  ))}
-                </div>
+                <ChartHeading
+                  title="Top colleges by received"
+                  description="Showing the top 5 institutions in the current scope."
+                  requestedGraph={graphType}
+                  effectiveGraph={institutionsGraph}
+                />
+                {institutionsGraph.family === "donut" ? (
+                  <DonutChart items={topInstitutionDonutItems} />
+                ) : (
+                  <HorizontalBarChart items={topInstitutionBarItems} />
+                )}
               </section>
             </>
           )}
@@ -331,44 +962,30 @@ export default function AnalyticsCharts({ summary, onDrilldown }: AnalyticsChart
             <>
               {charts.reviewTypeByMonth.length ? (
                 <section className="chart-card chart-card-wide">
-                  <div className="chart-card-heading">
-                    <h4>Review path by month</h4>
-                    <p>Exclusive stacked monthly trend, including unclassified proposals where applicable.</p>
-                  </div>
-                  <div className="v-chart-shell">
-                    <div className="stacked-v-chart">
-                      {charts.reviewTypeByMonth.map((item) => (
-                        <div key={item.label} className="stacked-v-item">
-                          <strong>{item.total}</strong>
-                          <div className="stacked-v-track">
-                            <div
-                              className="stacked-v-fill"
-                              style={{
-                                height: `${Math.max(
-                                  6,
-                                  Math.round((item.total / reviewTypeByMonthMax) * 100)
-                                )}%`,
-                              }}
-                            >
-                              {phase2Keys.map((key) =>
-                                item[key] > 0 ? (
-                                  <div
-                                    key={`${item.label}-${key}`}
-                                    className={`stack-segment ${outcomeMeta[key].className}`}
-                                    style={{
-                                      height: `${(item[key] / item.total) * 100}%`,
-                                    }}
-                                    title={`${outcomeMeta[key].label}: ${item[key]}`}
-                                  />
-                                ) : null
-                              )}
-                            </div>
-                          </div>
-                          <span>{item.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <ChartHeading
+                    title="Review path by month"
+                    description="Exclusive monthly trend, including unclassified proposals where applicable."
+                    requestedGraph={graphType}
+                    effectiveGraph={reviewPathByMonthGraph}
+                  />
+                  {reviewPathByMonthGraph.family === "line" ? (
+                    <LineChart items={reviewPathByMonthLineItems} series={reviewPathByMonthSeries} />
+                  ) : (
+                    <>
+                      <StackedVerticalBarChart items={reviewPathByMonthColumns} />
+                      <div className="stacked-legend">
+                        {outcomeLegend.map((item) => (
+                          <span key={item.key} className="legend-chip">
+                            <i
+                              className={`legend-dot ${item.className ?? ""}`}
+                              style={{ background: item.color }}
+                            />
+                            {item.label}
+                          </span>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </section>
               ) : (
                 <ChartEmpty
@@ -379,47 +996,34 @@ export default function AnalyticsCharts({ summary, onDrilldown }: AnalyticsChart
 
               {monthlyItems.length ? (
                 <section className="chart-card">
-                  <div className="chart-card-heading chart-card-heading-inline">
-                    <div>
-                      <h4>{monthlyTitle}</h4>
-                      <p>Switch between intake and withdrawals without adding another chart wall.</p>
-                    </div>
-                    <SegmentControl
-                      ariaLabel="Monthly volume focus"
-                      value={monthlyVolumeFocus}
-                      onChange={(next) =>
-                        setMonthlyVolumeFocus(next as "received" | "withdrawn")
-                      }
-                      options={[
-                        { label: "Received", value: "received" },
-                        {
-                          label: "Withdrawn",
-                          value: "withdrawn",
-                          disabled: charts.withdrawnByMonth.length === 0,
-                        },
-                      ]}
-                    />
-                  </div>
-                  <div className="v-chart-shell compact">
-                    <div className="v-chart">
-                      {monthlyItems.map((item) => (
-                        <div key={`${monthlyVolumeFocus}-${item.label}`} className="v-bar-item">
-                          <strong>{item.count}</strong>
-                          <div className="v-bar-track">
-                            <div
-                              className={`v-bar-fill ${
-                                monthlyVolumeFocus === "withdrawn" ? "tone-withdrawn" : ""
-                              }`}
-                              style={{
-                                height: `${Math.max(6, Math.round((item.count / monthlyMax) * 100))}%`,
-                              }}
-                            />
-                          </div>
-                          <span>{item.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <ChartHeading
+                    title={monthlyTitle}
+                    description="Switch between intake and withdrawals without adding another chart wall."
+                    requestedGraph={graphType}
+                    effectiveGraph={monthlyVolumeGraph}
+                    actions={
+                      <SegmentControl
+                        ariaLabel="Monthly volume focus"
+                        value={monthlyVolumeFocus}
+                        onChange={(next) =>
+                          setMonthlyVolumeFocus(next as "received" | "withdrawn")
+                        }
+                        options={[
+                          { label: "Received", value: "received" },
+                          {
+                            label: "Withdrawn",
+                            value: "withdrawn",
+                            disabled: charts.withdrawnByMonth.length === 0,
+                          },
+                        ]}
+                      />
+                    }
+                  />
+                  {monthlyVolumeGraph.family === "line" ? (
+                    <LineChart items={monthlyLineItems} series={monthlyLineSeries} compact />
+                  ) : (
+                    <VerticalBarChart items={monthlyBarItems} compact />
+                  )}
                 </section>
               ) : (
                 <ChartEmpty title={monthlyTitle} message={monthlyMessage} />
@@ -428,60 +1032,40 @@ export default function AnalyticsCharts({ summary, onDrilldown }: AnalyticsChart
           ) : (
             <>
               <section className="chart-card chart-card-wide">
-                <div className="chart-card-heading">
-                  <h4>Comparative by academic year</h4>
-                  <p>Yearly totals aggregated from the comparative proponent tables.</p>
-                </div>
-                <div className="stacked-rows">
-                  {charts.comparativeYearTrend.map((item) => {
-                    const total =
-                      item.exempted + item.expedited + item.fullReview + item.withdrawn;
-                    return (
-                      <div key={item.label} className="stacked-row">
-                        <div className="stacked-row-meta">
-                          <span>{item.label}</span>
-                          <strong>{total}</strong>
-                        </div>
-                        <div className="stacked-row-track">
-                          {comparativeKeys.map((key) =>
-                            item[key] > 0 ? (
-                              <div
-                                key={`${item.label}-${key}`}
-                                className={`stack-segment ${outcomeMeta[key].className}`}
-                                style={segmentStyle(item[key], Math.max(total, 1))}
-                                title={`${outcomeMeta[key].label}: ${item[key]}`}
-                              />
-                            ) : null
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <ChartHeading
+                  title="Comparative year trend"
+                  description="Yearly totals aggregated from the comparative proponent tables."
+                  requestedGraph={graphType}
+                  effectiveGraph={comparativeGraph}
+                />
+                {comparativeGraph.family === "line" ? (
+                  <LineChart items={comparativeLineItems} series={comparativeLineSeries} />
+                ) : (
+                  <StackedRowsChart
+                    items={comparativeRows}
+                    legend={comparativeKeys.map((key) => ({
+                      key,
+                      label: outcomeMeta[key].label,
+                      color: outcomeMeta[key].color,
+                      className: outcomeMeta[key].className,
+                    }))}
+                  />
+                )}
               </section>
 
               {charts.committeeDistribution.length > 1 ? (
                 <section className="chart-card">
-                  <div className="chart-card-heading">
-                    <h4>Committee distribution</h4>
-                    <p>Available only when the scope includes more than one committee.</p>
-                  </div>
-                  <div className="h-bars">
-                    {charts.committeeDistribution.map((item) => (
-                      <div key={item.label} className="h-bar-item">
-                        <span>{item.label}</span>
-                        <div className="h-bar-track">
-                          <div
-                            className="h-bar-fill"
-                            style={{
-                              width: `${Math.max(3, Math.round((item.count / committeeMax) * 100))}%`,
-                            }}
-                          />
-                        </div>
-                        <strong>{item.count}</strong>
-                      </div>
-                    ))}
-                  </div>
+                  <ChartHeading
+                    title="Committee distribution"
+                    description="Available only when the scope includes more than one committee."
+                    requestedGraph={graphType}
+                    effectiveGraph={committeeGraph}
+                  />
+                  {committeeGraph.family === "donut" ? (
+                    <DonutChart items={committeeDonutItems} />
+                  ) : (
+                    <HorizontalBarChart items={committeeBarItems} />
+                  )}
                 </section>
               ) : (
                 <ChartEmpty
@@ -529,73 +1113,39 @@ export default function AnalyticsCharts({ summary, onDrilldown }: AnalyticsChart
 
           {performanceFocus === "sla" ? (
             <section className="chart-card chart-card-wide">
-              <div className="chart-card-heading">
-                <h4>Within SLA vs overdue</h4>
-                <p>Stage compliance uses the configured committee SLA.</p>
-              </div>
-              <div className="stacked-rows">
-                {performanceCharts.slaCompliance.map((item) => {
-                  const total = item.within + item.overdue;
-                  return (
-                    <div key={item.label} className="stacked-row">
-                      <div className="stacked-row-meta">
-                        <span>{item.label}</span>
-                        <strong>{total}</strong>
-                      </div>
-                      <div className="stacked-row-track">
-                        <div
-                          className="stack-segment tone-within"
-                          style={{
-                            width: `${Math.max(0, total > 0 ? (item.within / total) * 100 : 0)}%`,
-                          }}
-                          title={`Within SLA: ${item.within}`}
-                        />
-                        <div
-                          className="stack-segment tone-overdue"
-                          style={{
-                            width: `${Math.max(0, total > 0 ? (item.overdue / total) * 100 : 0)}%`,
-                          }}
-                          title={`Overdue: ${item.overdue}`}
-                        />
-                      </div>
-                      <span className="stacked-row-caption">
-                        {item.within} within / {item.overdue} overdue
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="stacked-legend">
-                <span className="legend-chip">
-                  <i className="legend-dot tone-within" />
-                  Within SLA
-                </span>
-                <span className="legend-chip">
-                  <i className="legend-dot tone-overdue" />
-                  Overdue
-                </span>
-              </div>
+              <ChartHeading
+                title="Within SLA vs overdue"
+                description="Stage compliance uses the configured committee SLA."
+                requestedGraph={graphType}
+                effectiveGraph={slaGraph}
+              />
+              <StackedRowsChart
+                items={slaRows}
+                legend={[
+                  {
+                    key: "within",
+                    label: performanceMeta.within.label,
+                    color: performanceMeta.within.color,
+                    className: performanceMeta.within.className,
+                  },
+                  {
+                    key: "overdue",
+                    label: performanceMeta.overdue.label,
+                    color: performanceMeta.overdue.color,
+                    className: performanceMeta.overdue.className,
+                  },
+                ]}
+              />
             </section>
           ) : (
             <section className="chart-card chart-card-wide">
-              <div className="chart-card-heading">
-                <h4>Workflow stage reach</h4>
-                <p>Counts show how many filtered submissions reached each lifecycle stage at least once.</p>
-              </div>
-              <div className="h-bars">
-                {performanceCharts.workflowFunnel.map((item) => (
-                  <div key={item.label} className="h-bar-item">
-                    <span>{item.label}</span>
-                    <div className="h-bar-track">
-                      <div
-                        className="h-bar-fill"
-                        style={{ width: `${Math.max(3, Math.round((item.count / funnelMax) * 100))}%` }}
-                      />
-                    </div>
-                    <strong>{item.count}</strong>
-                  </div>
-                ))}
-              </div>
+              <ChartHeading
+                title="Workflow stage reach"
+                description="Counts show how many filtered submissions reached each lifecycle stage at least once."
+                requestedGraph={graphType}
+                effectiveGraph={workflowGraph}
+              />
+              <HorizontalBarChart items={workflowBarItems} />
             </section>
           )}
         </div>

@@ -9,6 +9,7 @@ import {
   ProponentComparativeTables,
   ReportSection,
   ReportSummaryCards,
+  type AnalyticsGraphType,
 } from "@/components/reports";
 import type { AnnualReportSummaryResponse } from "@/types";
 
@@ -16,6 +17,7 @@ type ExportReportsPdfParams = {
   summary: AnnualReportSummaryResponse;
   selectionSummary: string;
   generatedAt: Date;
+  analyticsGraph: AnalyticsGraphType;
 };
 
 const PAGE_WIDTH = 1240;
@@ -159,6 +161,7 @@ function PdfExportDocument({
   summary,
   selectionSummary,
   generatedAt,
+  analyticsGraph,
 }: ExportReportsPdfParams) {
   return (
     <div style={{ background: EXPORT_BG }}>
@@ -259,7 +262,12 @@ function PdfExportDocument({
             title="Focused analytics"
             subtitle="Visual analytics exported using the same report components shown in the website."
           >
-            <AnalyticsCharts summary={summary} onDrilldown={() => {}} />
+            <AnalyticsCharts
+              summary={summary}
+              graphType={analyticsGraph}
+              showGraphSelector={false}
+              onDrilldown={() => {}}
+            />
           </ReportSection>
         </div>
       </div>
@@ -276,6 +284,7 @@ export async function exportReportsPdf({
   summary,
   selectionSummary,
   generatedAt,
+  analyticsGraph,
 }: ExportReportsPdfParams) {
   const mountNode = document.createElement("div");
   mountNode.style.position = "fixed";
@@ -294,6 +303,7 @@ export async function exportReportsPdf({
         summary={summary}
         selectionSummary={selectionSummary}
         generatedAt={generatedAt}
+        analyticsGraph={analyticsGraph}
       />
     );
 
