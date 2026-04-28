@@ -9,6 +9,7 @@ jest.mock("../../src/services/projects/projectService", () => {
     getProjectFull: jest.fn(),
     archiveProject: jest.fn(),
     restoreProjectArchive: jest.fn(),
+    bulkDeleteProjectRecords: jest.fn(),
     deleteProjectRecord: jest.fn(),
     getRecentlyDeletedProjects: jest.fn(),
     restoreDeletedProjectRecord: jest.fn(),
@@ -20,6 +21,7 @@ const projectService = jest.requireMock("../../src/services/projects/projectServ
   getProjectFull: jest.Mock;
   archiveProject: jest.Mock;
   restoreProjectArchive: jest.Mock;
+  bulkDeleteProjectRecords: jest.Mock;
   deleteProjectRecord: jest.Mock;
   getRecentlyDeletedProjects: jest.Mock;
   restoreDeletedProjectRecord: jest.Mock;
@@ -150,6 +152,18 @@ describe("project archive routes", () => {
     expect(projectService.deleteProjectRecord).not.toHaveBeenCalled();
   });
 
+  it("denies non-chair-admin bulk delete attempts", async () => {
+    const response = await request(app)
+      .post("/projects/bulk/delete")
+      .set(csrfHeaders)
+      .set("X-User-ID", "12")
+      .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+      .send({ projectIds: [10, 11], reason: "Duplicate protocols" });
+
+    expect(response.status).toBe(403);
+    expect(projectService.bulkDeleteProjectRecords).not.toHaveBeenCalled();
+  });
+
   it("deletes a project for admin users", async () => {
     projectService.deleteProjectRecord.mockResolvedValue({
       project: {
@@ -168,6 +182,55 @@ describe("project archive routes", () => {
 
     expect(response.status).toBe(200);
     expect(projectService.deleteProjectRecord).toHaveBeenCalledWith(10, "Duplicate protocol", 9);
+  });
+
+  it("bulk deletes projects for chair users", async () => {
+    projectService.bulkDeleteProjectRecords.mockResolvedValue({
+      requestedCount: 2,
+      succeeded: 1,
+      skipped: 1,
+      failed: 0,
+      results: [
+        {
+          projectId: 10,
+          projectCode: "2023-007E",
+          status: "SUCCEEDED",
+          message: "Protocol moved to Recently Deleted.",
+        },
+        {
+          projectId: 11,
+          projectCode: "2023-008E",
+          status: "SKIPPED",
+          message: "Project is already in Recently Deleted",
+        },
+      ],
+    });
+
+    const response = await request(app)
+      .post("/projects/bulk/delete")
+      .set(csrfHeaders)
+      .set("X-User-ID", "7")
+      .set("X-User-Roles", "CHAIR")
+      .send({ projectIds: [10, 11], reason: "Duplicate protocols" });
+
+    expect(response.status).toBe(200);
+    expect(projectService.bulkDeleteProjectRecords).toHaveBeenCalledWith(
+      [10, 11],
+      "Duplicate protocols",
+      7
+    );
+  });
+
+  it("validates bulk delete payloads", async () => {
+    const response = await request(app)
+      .post("/projects/bulk/delete")
+      .set(csrfHeaders)
+      .set("X-User-ID", "7")
+      .set("X-User-Roles", "CHAIR")
+      .send({ projectIds: [], reason: "" });
+
+    expect(response.status).toBe(400);
+    expect(projectService.bulkDeleteProjectRecords).not.toHaveBeenCalled();
   });
 
   it("lists recently deleted protocols for chair users", async () => {

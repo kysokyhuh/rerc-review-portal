@@ -265,6 +265,21 @@ export interface BulkActionResponse {
   results: BulkActionResult[];
 }
 
+export interface BulkProjectDeleteResult {
+  projectId: number | null;
+  projectCode: string | null;
+  status: "SUCCEEDED" | "SKIPPED" | "FAILED";
+  message: string;
+}
+
+export interface BulkProjectDeleteResponse {
+  requestedCount: number;
+  succeeded: number;
+  skipped: number;
+  failed: number;
+  results: BulkProjectDeleteResult[];
+}
+
 export interface SubmissionReminderLogEntry {
   id: number;
   target: BulkReminderTarget;

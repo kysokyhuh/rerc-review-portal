@@ -182,6 +182,13 @@ export const deleteProjectSchema = z
   })
   .strict();
 
+export const bulkDeleteProjectsSchema = z
+  .object({
+    projectIds: z.array(z.number().int().positive()).min(1, "projectIds is required"),
+    reason: z.string().trim().min(1, "reason is required").max(1000),
+  })
+  .strict();
+
 export const restoreDeletedProjectSchema = z
   .object({
     reason: z.string().trim().min(1, "reason is required").max(1000),

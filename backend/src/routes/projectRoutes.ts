@@ -30,6 +30,7 @@ import {
   deleteMilestone,
   createSubmissionForProject,
   archiveProject,
+  bulkDeleteProjectRecords,
   deleteProjectRecord,
   restoreProjectArchive,
   restoreDeletedProjectRecord,
@@ -37,6 +38,7 @@ import {
 } from "../services/projects/projectService";
 import {
   archiveProjectSchema,
+  bulkDeleteProjectsSchema,
   createPortalFollowUpSubmissionSchema,
   createPortalIntakeProjectSchema,
   createMilestoneSchema,
@@ -209,6 +211,24 @@ router.get(
             ? (req.query.sortDir as "asc" | "desc")
             : "desc",
       });
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
+  "/projects/bulk/delete",
+  requireAnyRole([RoleType.CHAIR, RoleType.ADMIN]),
+  validate(bulkDeleteProjectsSchema),
+  async (req, res, next) => {
+    try {
+      const result = await bulkDeleteProjectRecords(
+        req.body.projectIds,
+        req.body.reason,
+        req.user!.id
+      );
       res.json(result);
     } catch (error) {
       next(error);

@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   fetchCommittees,
   fetchCommitteePanels,
   fetchSubmissionDetail,
+  deleteProjectRecord,
   updateSubmissionWorkflowStage,
   setSubmissionReviewTrack,
   updateProtocolProfile,
@@ -35,6 +36,7 @@ import {
 import type { OverviewFormState } from "@/components/submission";
 import type { CommitteeSummary, ProtocolMilestone, SubmissionDetail } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { getErrorMessage } from "@/utils";
 
 type ClassificationStatusStage =
   | "AWAITING_CLASSIFICATION"
@@ -215,6 +217,7 @@ function SubmissionDetailLoadingState() {
 export const SubmissionDetailPage: React.FC = () => {
   const { submissionId } = useParams<{ submissionId: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const { user } = useAuth();
   const locationState = (location.state as
@@ -247,6 +250,10 @@ export const SubmissionDetailPage: React.FC = () => {
   const [classificationSaving, setClassificationSaving] = useState(false);
   const [classificationMessage, setClassificationMessage] = useState<string | null>(null);
   const [classificationError, setClassificationError] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [creationBannerVisible, setCreationBannerVisible] = useState(
     Boolean(locationState?.createdProtocol)
   );
@@ -421,6 +428,10 @@ export const SubmissionDetailPage: React.FC = () => {
   };
 
   const isChair = Boolean(user?.roles?.includes("CHAIR"));
+  const canDeleteProtocol = Boolean(
+    projectId &&
+      user?.roles?.some((role) => role === "CHAIR" || role === "ADMIN")
+  );
   const canManageClassification = isChair;
   const currentStatus = normalizeClassificationStatus(submission?.status ?? "CLASSIFIED");
   const currentReviewType = REVIEW_TYPE_OPTIONS.includes(
@@ -495,6 +506,43 @@ export const SubmissionDetailPage: React.FC = () => {
       setClassificationError(message);
     } finally {
       setClassificationSaving(false);
+    }
+  };
+
+  const openDeleteDialog = () => {
+    setDeleteDialogOpen(true);
+    setDeleteReason("");
+    setDeleteError(null);
+  };
+
+  const closeDeleteDialog = () => {
+    if (deleteSubmitting) return;
+    setDeleteDialogOpen(false);
+    setDeleteReason("");
+    setDeleteError(null);
+  };
+
+  const handleDeleteProtocol = async () => {
+    if (!projectId) return;
+
+    const trimmedReason = deleteReason.trim();
+    if (!trimmedReason) {
+      setDeleteError("Reason is required.");
+      return;
+    }
+
+    try {
+      setDeleteSubmitting(true);
+      setDeleteError(null);
+      await deleteProjectRecord(projectId, { reason: trimmedReason });
+      setDeleteDialogOpen(false);
+      setDeleteReason("");
+      setDeleteError(null);
+      navigate("/recently-deleted", { replace: true });
+    } catch (err) {
+      setDeleteError(getErrorMessage(err, "Failed to delete protocol."));
+    } finally {
+      setDeleteSubmitting(false);
     }
   };
 
@@ -579,9 +627,22 @@ export const SubmissionDetailPage: React.FC = () => {
             <h1 className="detail-title">{title}</h1>
             <span className="detail-subtitle">Submission #{submission.id}</span>
           </div>
-          <span className={`badge badge-lg ${getStatusVariant(submission.status)}`}>
-            {submission.status.replace(/_/g, " ")}
-          </span>
+          <div className="detail-hero-actions">
+            <span className={`badge badge-lg ${getStatusVariant(submission.status)}`}>
+              {submission.status.replace(/_/g, " ")}
+            </span>
+            {canDeleteProtocol ? (
+              <div className="archive-hero-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={openDeleteDialog}
+                >
+                  Delete Protocol
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
       </header>
 
@@ -707,6 +768,73 @@ export const SubmissionDetailPage: React.FC = () => {
       )}
 
       <EditHistoryCard changeHistory={changeHistory} committees={committees} />
+
+      {deleteDialogOpen ? (
+        <div
+          className="archive-dialog-backdrop"
+          role="dialog"
+          aria-modal="true"
+          onClick={closeDeleteDialog}
+        >
+          <div className="archive-dialog" onClick={(event) => event.stopPropagation()}>
+            <div className="archive-dialog-header">
+              <div>
+                <h3>Delete Protocol</h3>
+                <p>
+                  Deleting moves this protocol to Recently Deleted for 30 days. It
+                  becomes read-only until restored.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="archive-dialog-close"
+                onClick={closeDeleteDialog}
+                aria-label="Close delete dialog"
+              >
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 5l10 10M15 5L5 15" />
+                </svg>
+              </button>
+            </div>
+            <div className="archive-dialog-body">
+              <label htmlFor="submission-delete-reason" className="archive-dialog-label">
+                Reason
+              </label>
+              <textarea
+                id="submission-delete-reason"
+                className="archive-dialog-textarea"
+                value={deleteReason}
+                onChange={(event) => setDeleteReason(event.target.value)}
+                placeholder="Explain why this protocol is being deleted."
+                disabled={deleteSubmitting}
+              />
+              {deleteError ? (
+                <p className="archive-dialog-error" role="alert">
+                  {deleteError}
+                </p>
+              ) : null}
+            </div>
+            <div className="archive-dialog-footer">
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={closeDeleteDialog}
+                disabled={deleteSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={handleDeleteProtocol}
+                disabled={deleteSubmitting}
+              >
+                {deleteSubmitting ? "Deleting..." : "Delete Protocol"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

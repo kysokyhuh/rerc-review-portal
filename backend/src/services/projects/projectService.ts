@@ -107,6 +107,21 @@ const getProjectGuardSelect = async <const T extends Prisma.ProjectSelect>(selec
   } as T & { deletedAt?: true; purgedAt?: true };
 };
 
+type BulkProjectDeleteResult = {
+  projectId: number;
+  projectCode: string | null;
+  status: "SUCCEEDED" | "SKIPPED" | "FAILED";
+  message: string;
+};
+
+type BulkProjectDeleteResponse = {
+  requestedCount: number;
+  succeeded: number;
+  skipped: number;
+  failed: number;
+  results: BulkProjectDeleteResult[];
+};
+
 export async function purgeExpiredDeletedProjects() {
   if (!(await hasProjectSoftDeleteColumns())) {
     return;
@@ -514,6 +529,20 @@ export async function deleteProjectRecord(
     throw new AppError(400, "REASON_REQUIRED", "Delete reason is required");
   }
 
+  const updatedProject = await deleteProjectRecordInternal(
+    projectId,
+    trimmedReason,
+    actorId
+  );
+
+  return { project: updatedProject };
+}
+
+async function deleteProjectRecordInternal(
+  projectId: number,
+  trimmedReason: string,
+  actorId: number
+) {
   const now = new Date();
   const purgeAt = addDays(now, SOFT_DELETE_RETENTION_DAYS);
 
@@ -524,6 +553,7 @@ export async function deleteProjectRecord(
     },
     select: {
       id: true,
+      projectCode: true,
       overallStatus: true,
       deletedAt: true,
       purgedAt: true,
@@ -538,7 +568,7 @@ export async function deleteProjectRecord(
     throw new AppError(409, "ALREADY_DELETED", "Project is already in Recently Deleted");
   }
 
-  const updatedProject = await prisma.project.update({
+  return prisma.project.update({
     where: { id: projectId },
     data: {
       deletedAt: now,
@@ -550,6 +580,7 @@ export async function deleteProjectRecord(
     },
     select: {
       id: true,
+      projectCode: true,
       overallStatus: true,
       deletedAt: true,
       deletePurgeAt: true,
@@ -564,8 +595,81 @@ export async function deleteProjectRecord(
       },
     },
   });
+}
 
-  return { project: updatedProject };
+export async function bulkDeleteProjectRecords(
+  projectIds: number[],
+  reason: string,
+  actorId: number
+): Promise<BulkProjectDeleteResponse> {
+  await purgeExpiredDeletedProjects();
+  await requireProjectSoftDeleteColumns();
+
+  const trimmedReason = reason.trim();
+  if (!trimmedReason) {
+    throw new AppError(400, "REASON_REQUIRED", "Delete reason is required");
+  }
+
+  const normalizedProjectIds = Array.from(
+    new Set(projectIds.filter((projectId) => Number.isInteger(projectId) && projectId > 0))
+  );
+
+  if (normalizedProjectIds.length === 0) {
+    throw new AppError(400, "PROJECT_IDS_REQUIRED", "At least one project id is required");
+  }
+
+  const results: BulkProjectDeleteResult[] = [];
+  let succeeded = 0;
+  let skipped = 0;
+  let failed = 0;
+
+  for (const projectId of normalizedProjectIds) {
+    try {
+      const deletedProject = await deleteProjectRecordInternal(
+        projectId,
+        trimmedReason,
+        actorId
+      );
+      succeeded += 1;
+      results.push({
+        projectId,
+        projectCode: deletedProject.projectCode ?? null,
+        status: "SUCCEEDED",
+        message: "Protocol moved to Recently Deleted.",
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        const status = error.code === "ALREADY_DELETED" ? "SKIPPED" : "FAILED";
+        if (status === "SKIPPED") {
+          skipped += 1;
+        } else {
+          failed += 1;
+        }
+        results.push({
+          projectId,
+          projectCode: null,
+          status,
+          message: error.message,
+        });
+      } else {
+        failed += 1;
+        results.push({
+          projectId,
+          projectCode: null,
+          status: "FAILED",
+          message: "Failed to delete protocol.",
+        });
+      }
+    }
+  }
+
+  return {
+    requestedCount: normalizedProjectIds.length,
+    succeeded,
+    skipped,
+    failed,
+    results,
+  };
 }
 
 export async function restoreDeletedProjectRecord(

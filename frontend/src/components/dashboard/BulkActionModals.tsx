@@ -3,10 +3,12 @@ import {
   bulkAssignReviewers,
   bulkCreateReminders,
   bulkRunStatusAction,
+  deleteProjectRecordsBulk,
   fetchReviewerCandidates,
 } from "@/services/api";
 import type {
   BulkActionResponse,
+  BulkProjectDeleteResponse,
   BulkReminderTarget,
   BulkStatusAction,
   DecoratedQueueItem,
@@ -219,6 +221,53 @@ function BulkResultSummary({
               <p>{entry.message}</p>
             </div>
             <span className={`bulk-result-status bulk-result-status-${entry.status.toLowerCase()}`}>
+              {entry.status.replace(/_/g, " ")}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function BulkProjectDeleteSummary({
+  result,
+}: {
+  result: BulkProjectDeleteResponse;
+}) {
+  return (
+    <section className="bulk-result-summary">
+      <div className="bulk-result-metrics">
+        <div className="bulk-result-metric">
+          <strong>{result.succeeded}</strong>
+          <span>Succeeded</span>
+        </div>
+        <div className="bulk-result-metric">
+          <strong>{result.skipped}</strong>
+          <span>Skipped</span>
+        </div>
+        <div className="bulk-result-metric">
+          <strong>{result.failed}</strong>
+          <span>Failed</span>
+        </div>
+      </div>
+
+      <div className="bulk-result-list">
+        {result.results.map((entry, index) => (
+          <div
+            className="bulk-result-row"
+            key={`${entry.projectId ?? entry.projectCode ?? "unmapped"}-${entry.status}-${index}`}
+          >
+            <div className="bulk-result-row-main">
+              <span className="bulk-result-code">
+                {entry.projectCode ??
+                  (entry.projectId ? `Project #${entry.projectId}` : "Unmapped submission")}
+              </span>
+              <p>{entry.message}</p>
+            </div>
+            <span
+              className={`bulk-result-status bulk-result-status-${entry.status.toLowerCase()}`}
+            >
               {entry.status.replace(/_/g, " ")}
             </span>
           </div>
@@ -975,6 +1024,211 @@ export function ChangeStatusBulkModal({
 
       {error ? <div className="bulk-form-error">{error}</div> : null}
       {result ? <BulkResultSummary result={result} /> : null}
+    </BulkModalShell>
+  );
+}
+
+export function DeleteProtocolsBulkModal({
+  open,
+  onClose,
+  selectedItems,
+  onApplied,
+}: BulkModalBaseProps) {
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<BulkProjectDeleteResponse | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setReason("");
+    setError(null);
+    setResult(null);
+  }, [open]);
+
+  const missingProjectItems = useMemo(
+    () => selectedItems.filter((item) => !item.projectId),
+    [selectedItems]
+  );
+
+  const uniqueProjectEntries = useMemo(() => {
+    const itemsByProjectId = new Map<number, DecoratedQueueItem>();
+    selectedItems.forEach((item) => {
+      if (!item.projectId || itemsByProjectId.has(item.projectId)) return;
+      itemsByProjectId.set(item.projectId, item);
+    });
+    return Array.from(itemsByProjectId.entries()).map(([projectId, item]) => ({
+      projectId,
+      item,
+    }));
+  }, [selectedItems]);
+
+  const duplicateSelectionCount = Math.max(
+    0,
+    selectedItems.filter((item) => Boolean(item.projectId)).length - uniqueProjectEntries.length
+  );
+  const selectionPreviewItems = selectedItems.slice(0, 3);
+  const remainingSelectionCount = Math.max(0, selectedItems.length - selectionPreviewItems.length);
+
+  const buildSkippedOnlyResult = () =>
+    ({
+      requestedCount: missingProjectItems.length,
+      succeeded: 0,
+      skipped: missingProjectItems.length,
+      failed: 0,
+      results: missingProjectItems.map((item) => ({
+        projectId: null,
+        projectCode: item.projectCode ?? null,
+        status: "SKIPPED" as const,
+        message: "This submission has no linked protocol record, so it was skipped.",
+      })),
+    }) satisfies BulkProjectDeleteResponse;
+
+  const mergeDeleteResults = (response: BulkProjectDeleteResponse) => {
+    if (missingProjectItems.length === 0) {
+      return response;
+    }
+
+    const skippedResults = missingProjectItems.map((item) => ({
+      projectId: null,
+      projectCode: item.projectCode ?? null,
+      status: "SKIPPED" as const,
+      message: "This submission has no linked protocol record, so it was skipped.",
+    }));
+
+    return {
+      requestedCount: response.requestedCount + missingProjectItems.length,
+      succeeded: response.succeeded,
+      skipped: response.skipped + missingProjectItems.length,
+      failed: response.failed,
+      results: [...response.results, ...skippedResults],
+    } satisfies BulkProjectDeleteResponse;
+  };
+
+  const handleSubmit = async () => {
+    const trimmedReason = reason.trim();
+    if (!trimmedReason) {
+      setError("Reason is required before deleting protocols.");
+      return;
+    }
+
+    if (uniqueProjectEntries.length === 0 && missingProjectItems.length === 0) {
+      setError("Select at least one protocol to delete.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const nextResult =
+        uniqueProjectEntries.length > 0
+          ? mergeDeleteResults(
+              await deleteProjectRecordsBulk({
+                projectIds: uniqueProjectEntries.map((entry) => entry.projectId),
+                reason: trimmedReason,
+              })
+            )
+          : buildSkippedOnlyResult();
+      setResult(nextResult);
+      if (nextResult.succeeded > 0) {
+        onApplied?.();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete selected protocols");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <BulkModalShell
+      open={open}
+      onClose={onClose}
+      title="Delete selected protocols"
+      description="Move selected protocols to Recently Deleted without permanently erasing them."
+      modalClassName="bulk-modal--danger"
+      footer={
+        <>
+          <button className="ghost-btn" type="button" onClick={onClose}>
+            Close
+          </button>
+          <button
+            className="primary-btn bulk-danger-btn"
+            type="button"
+            onClick={handleSubmit}
+            disabled={submitting}
+          >
+            {submitting ? "Deleting…" : "Delete selected"}
+          </button>
+        </>
+      }
+    >
+      <section className="bulk-modal-selection bulk-modal-selection-strong">
+        <div className="bulk-modal-selection-copy">
+          <span className="bulk-section-label">Selected batch</span>
+          <strong>{formatSubmissionCountLabel(selectedItems.length)}</strong>
+          <span>
+            Each protocol is deleted once, even if multiple selected submissions point to the
+            same protocol record.
+          </span>
+        </div>
+        <div className="bulk-selection-tags" aria-label="Selected submissions">
+          {selectionPreviewItems.map((item) => (
+            <div className="bulk-selection-tag" key={item.id}>
+              <strong>{item.projectCode || `Submission #${item.id}`}</strong>
+              {selectedItems.length === 1 ? <span>{item.projectTitle}</span> : null}
+            </div>
+          ))}
+          {remainingSelectionCount > 0 ? (
+            <div className="bulk-selection-tag bulk-selection-tag-muted">
+              <strong>+{remainingSelectionCount} more</strong>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      <section className="bulk-modal-section bulk-delete-intent">
+        <div className="bulk-section-header">
+          <span className="bulk-section-label">Delete policy</span>
+          <h4>Soft delete only</h4>
+          <p>
+            Deleting moves the selected protocols to Recently Deleted for 30 days. They become
+            read-only until restored.
+          </p>
+        </div>
+
+        <div className="bulk-form-note">
+          <p>{uniqueProjectEntries.length} protocol record(s) will be sent to Recently Deleted.</p>
+          {missingProjectItems.length > 0 ? (
+            <p>
+              {missingProjectItems.length} selected submission(s) do not have a linked protocol
+              record and will be skipped.
+            </p>
+          ) : null}
+          {duplicateSelectionCount > 0 ? (
+            <p>
+              {duplicateSelectionCount} duplicate submission selection(s) map to a protocol already
+              included in this batch.
+            </p>
+          ) : null}
+        </div>
+
+        <label className="bulk-form-field">
+          <span>Reason</span>
+          <textarea
+            className="bulk-form-textarea"
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            placeholder="Explain why these protocols are being deleted."
+            rows={4}
+            disabled={submitting}
+          />
+        </label>
+      </section>
+
+      {error ? <div className="bulk-form-error">{error}</div> : null}
+      {result ? <BulkProjectDeleteSummary result={result} /> : null}
     </BulkModalShell>
   );
 }

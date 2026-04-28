@@ -4250,6 +4250,11 @@ button.quick-action:disabled {
   background: var(--surface-muted);
 }
 
+.bulk-modal--danger .bulk-modal-kicker {
+  background: rgba(176, 42, 28, 0.08);
+  color: var(--danger);
+}
+
 .bulk-modal-selection-strong {
   gap: 12px;
   background: linear-gradient(180deg, rgba(248, 250, 248, 0.98) 0%, rgba(243, 247, 244, 0.94) 100%);
@@ -4734,6 +4739,11 @@ button.quick-action:disabled {
   line-height: 1.5;
 }
 
+.bulk-delete-intent {
+  border-color: rgba(176, 42, 28, 0.14);
+  background: linear-gradient(180deg, rgba(255, 248, 247, 0.98) 0%, rgba(255, 252, 251, 0.96) 100%);
+}
+
 .bulk-blocked-state {
   padding: 16px;
   border-radius: var(--radius-md);
@@ -4867,6 +4877,27 @@ button.quick-action:disabled {
   background: rgba(176, 42, 28, 0.1);
   border-color: rgba(176, 42, 28, 0.16);
   color: var(--danger);
+}
+
+.bulk-delete-btn {
+  color: var(--danger);
+  border-color: rgba(176, 42, 28, 0.18);
+}
+
+.bulk-delete-btn:hover {
+  background: rgba(176, 42, 28, 0.08);
+  border-color: rgba(176, 42, 28, 0.28);
+}
+
+.bulk-danger-btn {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.bulk-danger-btn:hover:not(:disabled) {
+  background: #912318;
+  border-color: #912318;
 }
 
 @media (max-width: 720px) {

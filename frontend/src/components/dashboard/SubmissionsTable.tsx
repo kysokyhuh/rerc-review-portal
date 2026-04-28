@@ -83,6 +83,7 @@ interface SubmissionsTableProps {
   onBulkAssign: () => void;
   onBulkReminder: () => void;
   onBulkStatusChange: () => void;
+  onBulkDelete: () => void;
 
   tableRef: RefObject<HTMLDivElement>;
 }
@@ -130,6 +131,7 @@ export function SubmissionsTable({
   onBulkAssign,
   onBulkReminder,
   onBulkStatusChange,
+  onBulkDelete,
   tableRef,
 }: SubmissionsTableProps) {
   return (
@@ -407,6 +409,7 @@ export function SubmissionsTable({
                   <button className="ghost-btn" type="button" onClick={onBulkAssign}>Assign reviewers</button>
                   <button className="ghost-btn" type="button" onClick={onBulkReminder}>Send reminders</button>
                   <button className="ghost-btn" type="button" onClick={onBulkStatusChange}>Change status</button>
+                  <button className="ghost-btn bulk-delete-btn" type="button" onClick={onBulkDelete}>Delete selected</button>
                   <button className="primary-btn" type="button" onClick={onExportSelected}>Export selected</button>
                 </div>
               </div>

@@ -16,6 +16,7 @@ export type {
   DecoratedQueueItem,
   ReviewerCandidate,
   BulkActionResponse,
+  BulkProjectDeleteResponse,
   BulkReminderTarget,
   BulkStatusAction,
   AttentionMetrics,
@@ -72,6 +73,7 @@ import type {
   SubmissionSlaSummary,
   ReviewerCandidate,
   BulkActionResponse,
+  BulkProjectDeleteResponse,
   BulkReminderTarget,
   BulkStatusAction,
   DashboardActivityEntry,
@@ -787,6 +789,7 @@ export async function deleteProjectRecord(
   return response.data as {
     project: {
       id: number;
+      projectCode?: string | null;
       overallStatus: string;
       deletedAt: string | null;
       deletePurgeAt: string | null;
@@ -799,6 +802,14 @@ export async function deleteProjectRecord(
       } | null;
     };
   };
+}
+
+export async function deleteProjectRecordsBulk(payload: {
+  projectIds: number[];
+  reason: string;
+}) {
+  const response = await api.post("/projects/bulk/delete", payload);
+  return response.data as BulkProjectDeleteResponse;
 }
 
 export async function restoreDeletedProjectRecord(

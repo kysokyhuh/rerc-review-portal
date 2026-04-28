@@ -21,6 +21,7 @@ import {
 import {
   AssignReviewersBulkModal,
   ChangeStatusBulkModal,
+  DeleteProtocolsBulkModal,
   SendRemindersBulkModal,
 } from "@/components/dashboard/BulkActionModals";
 import {
@@ -72,7 +73,9 @@ export const DashboardPage: React.FC = () => {
   const [quickViewLoading, setQuickViewLoading] = useState(false);
   const [quickViewError, setQuickViewError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [bulkModal, setBulkModal] = useState<"assign" | "reminders" | "status" | null>(null);
+  const [bulkModal, setBulkModal] = useState<
+    "assign" | "reminders" | "status" | "delete" | null
+  >(null);
   const [dashboardFilters, setDashboardFilters] = useState<Record<string, string>>({});
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -201,6 +204,7 @@ export const DashboardPage: React.FC = () => {
   const handleBulkAssign = () => { if (selectedIds.size) setBulkModal("assign"); };
   const handleBulkReminder = () => { if (selectedIds.size) setBulkModal("reminders"); };
   const handleBulkStatusChange = () => { if (selectedIds.size) setBulkModal("status"); };
+  const handleBulkDelete = () => { if (selectedIds.size) setBulkModal("delete"); };
   const handleExportSelected = () => {
     const rows = sortedItems.filter((r) => selectedIds.has(r.id));
     exportRowsToCsv(rows, `submissions_selected_${Date.now()}.csv`);
@@ -381,6 +385,7 @@ export const DashboardPage: React.FC = () => {
           onBulkAssign={handleBulkAssign}
           onBulkReminder={handleBulkReminder}
           onBulkStatusChange={handleBulkStatusChange}
+          onBulkDelete={handleBulkDelete}
           tableRef={tableRef}
         />
       </section>
@@ -412,6 +417,12 @@ export const DashboardPage: React.FC = () => {
       />
       <ChangeStatusBulkModal
         open={bulkModal === "status"}
+        onClose={() => setBulkModal(null)}
+        selectedItems={selectedItems}
+        onApplied={handleBulkActionApplied}
+      />
+      <DeleteProtocolsBulkModal
+        open={bulkModal === "delete"}
         onClose={() => setBulkModal(null)}
         selectedItems={selectedItems}
         onApplied={handleBulkActionApplied}
