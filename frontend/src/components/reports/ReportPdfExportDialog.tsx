@@ -1,5 +1,9 @@
 import type { ReportPdfSection } from "@/utils/reportPdfExport";
-import { getReportPdfPageKinds, REPORT_PDF_RECORDS_PER_PAGE } from "@/utils/reportPdfExport";
+import {
+  getReportPdfPageKinds,
+  REPORT_PDF_RECORDS_PER_PAGE,
+  type ReportPdfPageKind,
+} from "@/utils/reportPdfExport";
 
 export type ReportPdfPreset = "executive" | "summary" | "full" | "custom";
 
@@ -77,7 +81,7 @@ const SECTION_OPTIONS: Array<{
   {
     key: "analytics",
     label: "Analytics",
-    description: "Current visual chart selection.",
+    description: "Separated pages for composition, trends, and performance.",
   },
   {
     key: "records",
@@ -89,6 +93,19 @@ const SECTION_OPTIONS: Array<{
 export function getReportPdfPresetConfig(preset: ReportPdfPreset) {
   return REPORT_PDF_PRESETS.find((item) => item.key === preset) ?? REPORT_PDF_PRESETS[2];
 }
+
+const getPreviewLabel = (kind: ReportPdfPageKind) => {
+  if (kind === "executive") return "Executive overview";
+  if (kind === "details") return "Summary details";
+  if (kind === "comparative") return "Comparative summary";
+  if (kind === "analyticsComposition") return "Analytics: composition";
+  if (kind === "analyticsTrends") return "Analytics: trends";
+  if (kind === "analyticsPerformance") return "Analytics: performance";
+  return "Records appendix";
+};
+
+const getPreviewClassName = (kind: ReportPdfPageKind) =>
+  kind.startsWith("analytics") ? "preview-analytics" : `preview-${kind}`;
 
 export default function ReportPdfExportDialog({
   open,
@@ -209,20 +226,13 @@ export default function ReportPdfExportDialog({
           </div>
           <div className="report-export-preview-strip">
             {previewKinds.map((kind, index) => (
-              <article key={`${kind}-${index}`} className={`report-export-preview-page preview-${kind}`}>
+              <article
+                key={`${kind}-${index}`}
+                className={`report-export-preview-page ${getPreviewClassName(kind)}`}
+              >
                 <div className="report-export-preview-paper">
                   <span>{index + 1}</span>
-                  <strong>
-                    {kind === "executive"
-                      ? "Executive overview"
-                      : kind === "details"
-                      ? "Summary details"
-                      : kind === "comparative"
-                      ? "Comparative summary"
-                      : kind === "analytics"
-                      ? "Analytics"
-                      : "Records appendix"}
-                  </strong>
+                  <strong>{getPreviewLabel(kind)}</strong>
                   <div className="report-export-preview-lines">
                     <i />
                     <i />

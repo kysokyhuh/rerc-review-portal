@@ -836,7 +836,7 @@ export default function ReportsPage() {
     if (selected.has("executive")) count += 1;
     if (selected.has("overview") || selected.has("matrix")) count += 1;
     if (selected.has("comparative")) count += 1;
-    if (selected.has("analytics")) count += 1;
+    if (selected.has("analytics")) count += 3;
     if (selected.has("records")) {
       const boundedRecords = Math.min(Math.max(estimatedPdfRecordCount, 1), RECORDS_EXPORT_PAGE_SIZE);
       count += Math.max(1, Math.ceil(boundedRecords / REPORT_PDF_RECORDS_PER_PAGE));

@@ -3,7 +3,6 @@ import { createRoot } from "react-dom/client";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import {
-  AnalyticsCharts,
   ClassificationMatrix,
   OverviewTable,
   ReportSection,
@@ -32,16 +31,27 @@ type ExportReportsPdfParams = {
 
 export const REPORT_PDF_RECORDS_PER_PAGE = 12;
 
+export type ReportPdfPageKind =
+  | "executive"
+  | "details"
+  | "comparative"
+  | "analyticsComposition"
+  | "analyticsTrends"
+  | "analyticsPerformance"
+  | "records";
+
 export function getReportPdfPageKinds(
   sections: ReportPdfSection[],
   recordCount = 0
-): Array<"executive" | "details" | "comparative" | "analytics" | "records"> {
+): ReportPdfPageKind[] {
   const selected = new Set(sections);
-  const pageKinds: Array<"executive" | "details" | "comparative" | "analytics" | "records"> = [];
+  const pageKinds: ReportPdfPageKind[] = [];
   if (selected.has("executive")) pageKinds.push("executive");
   if (selected.has("overview") || selected.has("matrix")) pageKinds.push("details");
   if (selected.has("comparative")) pageKinds.push("comparative");
-  if (selected.has("analytics")) pageKinds.push("analytics");
+  if (selected.has("analytics")) {
+    pageKinds.push("analyticsComposition", "analyticsTrends", "analyticsPerformance");
+  }
   if (selected.has("records")) {
     const recordPages = Math.max(1, Math.ceil(Math.max(recordCount, 1) / REPORT_PDF_RECORDS_PER_PAGE));
     for (let index = 0; index < recordPages; index += 1) pageKinds.push("records");
@@ -88,6 +98,22 @@ const formatLabel = (value: string) =>
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+
+const formatGraphLabel = (value: AnalyticsGraphType) =>
+  value.charAt(0).toUpperCase() + value.slice(1);
+
+const formatDays = (value: number | null) => {
+  if (value === null || Number.isNaN(value)) return "—";
+  return Number.isInteger(value) ? `${value} days` : `${value.toFixed(1)} days`;
+};
+
+const getMaxCount = (items: Array<{ count: number }>) =>
+  items.length ? Math.max(...items.map((item) => item.count), 1) : 1;
+
+const getPercent = (value: number, maxValue: number) => {
+  if (value <= 0 || maxValue <= 0) return 0;
+  return Math.max(4, Math.round((value / maxValue) * 100));
+};
 
 const computeOverviewInsight = (summary: AnnualReportSummaryResponse) => {
   const reviewMix = [
@@ -146,6 +172,284 @@ function SimpleSummaryCards({ summary }: { summary: AnnualReportSummaryResponse 
         </article>
       ))}
     </section>
+  );
+}
+
+function ExportStatCards({
+  items,
+}: {
+  items: Array<{ label: string; value: number | string; tone?: string }>;
+}) {
+  return (
+    <div className="report-export-stat-grid">
+      {items.map((item) => (
+        <article key={item.label} className={`report-export-stat-card ${item.tone ?? ""}`}>
+          <span>{item.label}</span>
+          <strong>{typeof item.value === "number" ? item.value.toLocaleString("en-US") : item.value}</strong>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function ExportBarList({
+  items,
+  maxItems = 8,
+}: {
+  items: Array<{ label: string; count: number }>;
+  maxItems?: number;
+}) {
+  const visibleItems = items.slice(0, maxItems);
+  const maxValue = getMaxCount(visibleItems);
+
+  return (
+    <div className="report-export-bar-list">
+      {visibleItems.map((item) => (
+        <div key={item.label} className="report-export-bar-row">
+          <div>
+            <span>{item.label}</span>
+            <strong>{item.count.toLocaleString("en-US")}</strong>
+          </div>
+          <i>
+            <b style={{ width: `${getPercent(item.count, maxValue)}%` }} />
+          </i>
+        </div>
+      ))}
+      {visibleItems.length === 0 ? (
+        <p className="report-export-empty">No data available for the selected report scope.</p>
+      ) : null}
+    </div>
+  );
+}
+
+function ExportStackedRows({
+  items,
+}: {
+  items: Array<{
+    label: string;
+    total: number;
+    segments: Array<{ label: string; value: number; color: string }>;
+  }>;
+}) {
+  return (
+    <div className="report-export-stacked-list">
+      {items.map((item) => (
+        <article key={item.label} className="report-export-stacked-row">
+          <div>
+            <strong>{item.label}</strong>
+            <span>{item.total.toLocaleString("en-US")} total</span>
+          </div>
+          <div className="report-export-stacked-track">
+            {item.total > 0 ? (
+              item.segments.map((segment) => (
+                <i
+                  key={`${item.label}-${segment.label}`}
+                  title={`${segment.label}: ${segment.value}`}
+                  style={{
+                    width: `${(segment.value / item.total) * 100}%`,
+                    background: segment.color,
+                  }}
+                />
+              ))
+            ) : (
+              <i className="empty" />
+            )}
+          </div>
+          <p>
+            {item.segments.map((segment) => (
+              <span key={segment.label}>
+                {segment.label}: <b>{segment.value.toLocaleString("en-US")}</b>
+              </span>
+            ))}
+          </p>
+        </article>
+      ))}
+      {items.length === 0 ? (
+        <p className="report-export-empty">No data available for the selected report scope.</p>
+      ) : null}
+    </div>
+  );
+}
+
+function AnalyticsCompositionPage({
+  summary,
+  selectionSummary,
+  generatedAt,
+  analyticsGraph,
+  presetLabel,
+}: Pick<ExportReportsPdfParams, "summary" | "selectionSummary" | "generatedAt" | "analyticsGraph" | "presetLabel">) {
+  const { charts } = summary;
+  const graphLabel = formatGraphLabel(analyticsGraph);
+  const topColleges = [...charts.receivedByCollege].sort((a, b) => b.count - a.count);
+
+  return (
+    <div className="reports-page report-export-page" style={pageStyle}>
+      <ExportHeader
+        summary={summary}
+        selectionSummary={selectionSummary}
+        generatedAt={generatedAt}
+        pageLabel="Analytics: volume and composition"
+        presetLabel={presetLabel}
+      />
+      <div className="reports-view portal-content">
+        <ReportSection
+          title="Volume and composition"
+          subtitle={`Separated analytics page for readable distribution charts. Current graph setting: ${graphLabel}.`}
+        >
+          <ExportStatCards
+            items={charts.proposalsPerTerm.map((item) => ({
+              label: item.label,
+              value: item.count,
+            }))}
+          />
+          <div className="report-export-analytics-grid">
+            <article className="report-export-analytics-card">
+              <h4>Proponent category mix</h4>
+              <p>Current applicant mix across the selected report scope.</p>
+              <ExportBarList items={charts.proponentCategoryDistribution} />
+            </article>
+            <article className="report-export-analytics-card">
+              <h4>Review path distribution</h4>
+              <p>How submissions are classified within the current filters.</p>
+              <ExportBarList items={charts.reviewTypeDistribution} />
+            </article>
+            <article className="report-export-analytics-card wide">
+              <h4>Top institutions by received submissions</h4>
+              <p>Largest colleges or service units in the selected reporting period.</p>
+              <ExportBarList items={topColleges} maxItems={6} />
+            </article>
+          </div>
+        </ReportSection>
+      </div>
+    </div>
+  );
+}
+
+function AnalyticsTrendsPage({
+  summary,
+  selectionSummary,
+  generatedAt,
+  analyticsGraph,
+  presetLabel,
+}: Pick<ExportReportsPdfParams, "summary" | "selectionSummary" | "generatedAt" | "analyticsGraph" | "presetLabel">) {
+  const { charts } = summary;
+  const graphLabel = formatGraphLabel(analyticsGraph);
+  const comparativeRows = charts.comparativeYearTrend.map((item) => {
+    const segments = [
+      { label: "Exempted", value: item.exempted, color: "#2f7a54" },
+      { label: "Expedited", value: item.expedited, color: "#d18b2f" },
+      { label: "Full review", value: item.fullReview, color: "#5577b0" },
+      { label: "Withdrawn", value: item.withdrawn, color: "#b76161" },
+    ];
+    return {
+      label: item.label,
+      total: segments.reduce((sum, segment) => sum + segment.value, 0),
+      segments,
+    };
+  });
+
+  return (
+    <div className="reports-page report-export-page" style={pageStyle}>
+      <ExportHeader
+        summary={summary}
+        selectionSummary={selectionSummary}
+        generatedAt={generatedAt}
+        pageLabel="Analytics: trends"
+        presetLabel={presetLabel}
+      />
+      <div className="reports-view portal-content">
+        <ReportSection
+          title="Trend and comparison"
+          subtitle={`Separated analytics page for monthly and year comparison views. Current graph setting: ${graphLabel}.`}
+        >
+          <div className="report-export-analytics-grid">
+            <article className="report-export-analytics-card">
+              <h4>Received proposals by month</h4>
+              <p>Monthly received volume when the selected scope supports monthly grouping.</p>
+              <ExportBarList items={charts.receivedByMonth} maxItems={12} />
+            </article>
+            <article className="report-export-analytics-card">
+              <h4>Withdrawn proposals by month</h4>
+              <p>Monthly withdrawal volume within the same reporting scope.</p>
+              <ExportBarList items={charts.withdrawnByMonth} maxItems={12} />
+            </article>
+            <article className="report-export-analytics-card wide">
+              <h4>Year comparison by review path</h4>
+              <p>Review-path mix by year for broader trend reading.</p>
+              <ExportStackedRows items={comparativeRows} />
+            </article>
+          </div>
+        </ReportSection>
+      </div>
+    </div>
+  );
+}
+
+function AnalyticsPerformancePage({
+  summary,
+  selectionSummary,
+  generatedAt,
+  analyticsGraph,
+  presetLabel,
+}: Pick<ExportReportsPdfParams, "summary" | "selectionSummary" | "generatedAt" | "analyticsGraph" | "presetLabel">) {
+  const { performanceCharts } = summary;
+  const graphLabel = formatGraphLabel(analyticsGraph);
+  const averageCards = [
+    ...performanceCharts.averages.daysToResults.map((item) => ({
+      label: `${item.label} to results`,
+      value: formatDays(item.value),
+      tone: "tone-results",
+    })),
+    ...performanceCharts.averages.daysToClearance.map((item) => ({
+      label: `${item.label} to clearance`,
+      value: formatDays(item.value),
+      tone: "tone-clearance",
+    })),
+    {
+      label: "Average resubmission",
+      value: formatDays(performanceCharts.averages.daysToResubmit),
+      tone: "tone-revision",
+    },
+  ];
+  const slaRows = performanceCharts.slaCompliance.map((item) => ({
+    label: item.label,
+    total: item.within + item.overdue,
+    segments: [
+      { label: "Within SLA", value: item.within, color: "#2f7a54" },
+      { label: "Overdue", value: item.overdue, color: "#d9643b" },
+    ],
+  }));
+
+  return (
+    <div className="reports-page report-export-page" style={pageStyle}>
+      <ExportHeader
+        summary={summary}
+        selectionSummary={selectionSummary}
+        generatedAt={generatedAt}
+        pageLabel="Analytics: performance"
+        presetLabel={presetLabel}
+      />
+      <div className="reports-view portal-content">
+        <ReportSection
+          title="Performance"
+          subtitle={`Separated analytics page for turnaround, SLA, and workflow metrics. Current graph setting: ${graphLabel}.`}
+        >
+          <ExportStatCards items={averageCards} />
+          <div className="report-export-analytics-grid">
+            <article className="report-export-analytics-card wide">
+              <h4>SLA compliance by stage</h4>
+              <p>Completed and still-open stages measured against the configured committee SLA.</p>
+              <ExportStackedRows items={slaRows} />
+            </article>
+            <article className="report-export-analytics-card wide">
+              <h4>Workflow reach</h4>
+              <p>How many submissions reached each major workflow milestone.</p>
+              <ExportBarList items={performanceCharts.workflowFunnel} />
+            </article>
+          </div>
+        </ReportSection>
+      </div>
+    </div>
   );
 }
 
@@ -380,28 +684,29 @@ function PdfExportDocument({
       ) : null}
 
       {selected.has("analytics") ? (
-        <div className="reports-page report-export-page" style={pageStyle}>
-          <ExportHeader
+        <>
+          <AnalyticsCompositionPage
             summary={summary}
             selectionSummary={selectionSummary}
             generatedAt={generatedAt}
-            pageLabel="Analytics"
+            analyticsGraph={analyticsGraph}
             presetLabel={presetLabel}
           />
-          <div className="reports-view portal-content">
-            <ReportSection
-              title="Focused analytics"
-              subtitle="Visual analytics exported using the same report components shown in the website."
-            >
-              <AnalyticsCharts
-                summary={summary}
-                graphType={analyticsGraph}
-                showGraphSelector={false}
-                onDrilldown={() => {}}
-              />
-            </ReportSection>
-          </div>
-        </div>
+          <AnalyticsTrendsPage
+            summary={summary}
+            selectionSummary={selectionSummary}
+            generatedAt={generatedAt}
+            analyticsGraph={analyticsGraph}
+            presetLabel={presetLabel}
+          />
+          <AnalyticsPerformancePage
+            summary={summary}
+            selectionSummary={selectionSummary}
+            generatedAt={generatedAt}
+            analyticsGraph={analyticsGraph}
+            presetLabel={presetLabel}
+          />
+        </>
       ) : null}
 
       {selected.has("records") && records ? (
