@@ -1,11 +1,25 @@
 # RERC Review Portal
 
-RERC Review Portal is a web-based research ethics review management system for tracking protocols, submissions, review workflows, reviewer assignments, documents, reports, and administrative account approvals.
+RERC Review Portal is a full-stack research ethics review management system designed for Research Ethics Review Committees that need a structured, auditable way to manage protocols from intake through review, reporting, archiving, and recovery.
 
-The application is built as a React/Vite single-page app served by an Express API. PostgreSQL is managed through Prisma migrations, with Render and Neon supported as the primary free-tier deployment path.
+**Live Application:** [https://rerc-review-portal.onrender.com](https://rerc-review-portal.onrender.com)
+
+The portal centralizes protocol submissions, review classification, reviewer assignments, SLA tracking, document workflows, CSV imports, reports, user approvals, and soft-delete recovery. It is built as a React/Vite single-page application served by an Express API, with PostgreSQL managed through Prisma migrations.
+
+## Project Status
+
+| Item | Details |
+| --- | --- |
+| Application | Research ethics review and protocol management portal |
+| Deployment | Render Web Service, single-origin frontend and API |
+| Database | PostgreSQL, tested with Neon |
+| Production URL | [rerc-review-portal.onrender.com](https://rerc-review-portal.onrender.com) |
+| Primary Users | Chair, Admin, Research Associate, Research Assistant, Reviewer |
+| Repository Branch | `main` |
 
 ## Contents
 
+- [Project Status](#project-status)
 - [Features](#features)
 - [Architecture](#architecture)
 - [Prerequisites](#prerequisites)
@@ -20,15 +34,15 @@ The application is built as a React/Vite single-page app served by an Express AP
 
 ## Features
 
-- Protocol and submission tracking with status-driven workflows
-- Chair, Research Associate, Research Assistant, reviewer, and administrator roles
-- Signup approval flow managed by Chair/Admin users
+- End-to-end protocol and submission tracking with status-driven workflows
+- Role-based access for Chair, Admin, Research Associate, Research Assistant, and Reviewer users
+- Account signup, approval, rejection, activation, disablement, and password reset workflows
 - Secure cookie-based authentication with forced password-change support
-- Classification controls, reviewer assignments, SLA tracking, reminders, and history logs
-- CSV import tooling for project data
+- Classification controls, reviewer assignments, SLA tracking, reminders, and audit history
+- CSV import tooling for legacy or bulk project data
 - Mail merge and letter generation support
-- Reports, archives, Recently Deleted, and soft-delete recovery workflows
-- Render free-tier cold-start handling through liveness/readiness endpoints
+- Reports, archives, Recently Deleted, restore, and soft-delete recovery workflows
+- Render free-tier cold-start handling through dedicated liveness and readiness endpoints
 
 ## Architecture
 
