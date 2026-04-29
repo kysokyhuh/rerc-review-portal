@@ -6,6 +6,7 @@ import {
   bulkRunStatusAction,
   deleteProjectRecordsBulk,
   fetchReviewerCandidates,
+  waitForBackendReady,
 } from "@/services/api";
 import type {
   BulkActionResponse,
@@ -1108,11 +1109,6 @@ export function DeleteProtocolsBulkModal({
   };
 
   const handleSubmit = async () => {
-    if (isColdStart) {
-      setError("The server is still waking up. Please wait a few seconds and try again.");
-      return;
-    }
-
     const trimmedReason = reason.trim();
     if (!trimmedReason) {
       setError("Reason is required before deleting protocols.");
@@ -1128,6 +1124,7 @@ export function DeleteProtocolsBulkModal({
     setError(null);
 
     try {
+      await waitForBackendReady();
       const nextResult =
         uniqueProjectEntries.length > 0
           ? mergeDeleteResults(

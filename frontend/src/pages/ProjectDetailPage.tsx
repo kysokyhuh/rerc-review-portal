@@ -11,10 +11,12 @@ import {
   restoreProjectRecord,
   updateProtocolMilestone,
   updateProtocolProfile,
+  waitForBackendReady,
 } from "@/services/api";
 import { Timeline } from "@/components/Timeline";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useAuth } from "@/contexts/AuthContext";
+import { useColdStartStatus } from "@/hooks/useColdStartStatus";
 import {
   ProtocolProfileSection,
   profileToFormState,
@@ -47,6 +49,7 @@ export const ProjectDetailPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isColdStart = useColdStartStatus();
   const [exporting, setExporting] = useState<string | null>(null);
   const [profileEditing, setProfileEditing] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
@@ -213,6 +216,7 @@ export const ProjectDetailPage: React.FC = () => {
     try {
       setArchiveSubmitting(true);
       setArchiveError(null);
+      await waitForBackendReady();
       if (archiveDialog.kind === "archive") {
         await archiveProjectRecord(project.id, {
           mode: archiveDialog.mode,
@@ -748,8 +752,13 @@ export const ProjectDetailPage: React.FC = () => {
                     ? "Explain why this protocol is being deleted."
                     : "Explain why this protocol is being archived."
                 }
-                disabled={archiveSubmitting}
+                disabled={archiveSubmitting || isColdStart}
               />
+              {isColdStart ? (
+                <p className="archive-dialog-error" role="status">
+                  The server is still waking up. Wait for the banner to clear before continuing.
+                </p>
+              ) : null}
               {archiveError ? (
                 <p className="archive-dialog-error" role="alert">
                   {archiveError}
@@ -769,7 +778,7 @@ export const ProjectDetailPage: React.FC = () => {
                 type="button"
                 className="btn btn-primary btn-sm"
                 onClick={handleArchiveAction}
-                disabled={archiveSubmitting}
+                disabled={archiveSubmitting || isColdStart}
               >
                 {archiveSubmitting
                   ? archiveDialog.kind === "restore"
@@ -777,6 +786,8 @@ export const ProjectDetailPage: React.FC = () => {
                     : archiveDialog.kind === "delete"
                     ? "Deleting..."
                     : "Archiving..."
+                  : isColdStart
+                  ? "Server waking up..."
                   : archiveDialog.kind === "restore"
                   ? "Confirm Restore"
                   : archiveDialog.kind === "delete"

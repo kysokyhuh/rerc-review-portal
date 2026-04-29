@@ -40,7 +40,7 @@ export function ColdStartToast() {
       }}
     >
       <span style={{ marginRight: "0.5rem" }}>&#9889;</span>
-      Waking up server... This may take up to 30 seconds on first load.
+      Waking up server... This may take up to 60 seconds on first load.
     </div>
   );
 }

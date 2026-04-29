@@ -8,7 +8,9 @@ export function enforceForcedPasswordChange(
   if (
     !req.user?.forcePasswordChange ||
     req.path === "/" ||
-    req.path === "/health"
+    req.path === "/health" ||
+    req.path === "/live" ||
+    req.path === "/ready"
   ) {
     return next();
   }

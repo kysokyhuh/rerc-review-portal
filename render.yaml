@@ -10,7 +10,7 @@ services:
     buildCommand: cd backend && npm ci --include=dev && npx prisma generate && npm run build
     preDeployCommand: cd backend && npx prisma migrate deploy
     startCommand: cd backend && node dist/server.js
-    healthCheckPath: /health
+    healthCheckPath: /live
     envVars:
       - key: DATABASE_URL
         sync: false            # use the direct Neon connection string

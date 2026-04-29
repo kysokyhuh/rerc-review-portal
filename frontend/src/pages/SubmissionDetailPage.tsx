@@ -5,6 +5,7 @@ import {
   fetchCommitteePanels,
   fetchSubmissionDetail,
   deleteProjectRecord,
+  waitForBackendReady,
   updateSubmissionWorkflowStage,
   setSubmissionReviewTrack,
   updateProtocolProfile,
@@ -526,11 +527,6 @@ export const SubmissionDetailPage: React.FC = () => {
 
   const handleDeleteProtocol = async () => {
     if (!projectId) return;
-    if (isColdStart) {
-      setDeleteError("The server is still waking up. Please wait a few seconds and try again.");
-      return;
-    }
-
     const trimmedReason = deleteReason.trim();
     if (!trimmedReason) {
       setDeleteError("Reason is required.");
@@ -540,6 +536,7 @@ export const SubmissionDetailPage: React.FC = () => {
     try {
       setDeleteSubmitting(true);
       setDeleteError(null);
+      await waitForBackendReady();
       await deleteProjectRecord(projectId, { reason: trimmedReason });
       setDeleteDialogOpen(false);
       setDeleteReason("");

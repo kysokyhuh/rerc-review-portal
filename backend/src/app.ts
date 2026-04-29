@@ -162,7 +162,7 @@ app.use(
       ignore: (req) => {
         // Don't log health checks
         const url = (req as any).url || "";
-        return url === "/health" || url === "/";
+        return url === "/health" || url === "/live" || url === "/ready" || url === "/";
       },
     },
     customProps: (req) => ({
@@ -197,7 +197,7 @@ app.use(authRoutes);
 // Users flagged for forced password change may only use auth/session routes
 app.use(enforceForcedPasswordChange);
 
-// Health & status routes (/, /health)
+// Health & status routes (/, /health, /live, /ready)
 app.use(healthRoutes);
 
 // Committee & panel routes (/committees, /panels)

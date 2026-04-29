@@ -390,7 +390,19 @@ export async function fetchMyProfile(): Promise<AuthProfile> {
 }
 
 export async function warmBackendConnection(): Promise<void> {
-  await api.get("/auth/profile");
+  await api.get("/live", {
+    headers: {
+      "Cache-Control": "no-cache",
+    },
+  });
+}
+
+export async function waitForBackendReady(): Promise<void> {
+  await api.get("/ready", {
+    headers: {
+      "Cache-Control": "no-cache",
+    },
+  });
 }
 
 export async function updateMyProfile(
@@ -422,15 +434,19 @@ export function forceSessionExpiredRedirect(nextPath?: string | null) {
   window.location.assign(buildExpiredLoginUrl(nextPath ?? getCurrentPath()));
 }
 // ---------------------------------------------------------------------------
-// Cold-start retry — Render free tier can take ~30s to spin up
+// Cold-start retry — Render free tier can take up to ~60s to spin up
 // ---------------------------------------------------------------------------
 
-const COLD_START_MAX_RETRIES = 3;
-const COLD_START_BACKOFF_MS = [1500, 3000, 6000];
+const COLD_START_MAX_RETRIES = 6;
+const COLD_START_BACKOFF_MS = [1500, 3000, 6000, 10000, 15000, 20000];
+const COLD_START_RETRY_METHODS = new Set(["get", "head", "options"]);
 
-function setColdStartWindowState(active: boolean) {
+function emitColdStartWindowState(active: boolean) {
   if (typeof window === "undefined") return;
   window.__rercColdStartActive = active;
+  window.dispatchEvent(
+    new Event(active ? "rerc:cold-start" : "rerc:cold-start-resolved")
+  );
 }
 
 function isColdStartError(error: unknown): boolean {
@@ -439,12 +455,14 @@ function isColdStartError(error: unknown): boolean {
   return status === 502 || status === 503 || status === 504;
 }
 
+function canRetryColdStartRequest(config: InternalAxiosRequestConfig): boolean {
+  const method = (config.method || "get").toLowerCase();
+  return COLD_START_RETRY_METHODS.has(method);
+}
+
 api.interceptors.response.use(
   (response) => {
-    if (typeof window !== "undefined") {
-      setColdStartWindowState(false);
-      window.dispatchEvent(new Event("rerc:cold-start-resolved"));
-    }
+    emitColdStartWindowState(false);
     return response;
   },
   async (error) => {
@@ -455,18 +473,18 @@ api.interceptors.response.use(
     }
 
     if (isColdStartError(error)) {
+      emitColdStartWindowState(true);
       const retryCount = config._coldRetry || 0;
-      if (retryCount < COLD_START_MAX_RETRIES) {
+      if (
+        canRetryColdStartRequest(config) &&
+        retryCount < COLD_START_MAX_RETRIES
+      ) {
         config._coldRetry = retryCount + 1;
-        if (typeof window !== "undefined") {
-          setColdStartWindowState(true);
-          window.dispatchEvent(new Event("rerc:cold-start"));
-        }
         const delay = COLD_START_BACKOFF_MS[retryCount] ?? 6000;
         await new Promise((r) => setTimeout(r, delay));
         return api(config);
       }
-      setColdStartWindowState(false);
+      emitColdStartWindowState(false);
     }
 
     if (error.response?.status === 401 && !config._sessionRetry) {
