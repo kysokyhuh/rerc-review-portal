@@ -1253,7 +1253,16 @@ export async function buildAnnualSummaryPayload(
     ];
 
     for (const [key, stageSummary] of complianceRows) {
-      if (stageSummary.configuredDays == null || stageSummary.actualDays == null) continue;
+      // Only count stages that have actually completed. Without this, an
+      // open stage with no end timestamp falls back to `now` for its
+      // elapsed-days calc and is reported as overdue forever — which makes
+      // every Exempt Notification / Revision look 100% overdue when the
+      // completion timestamp was never written for that submission.
+      if (
+        stageSummary.configuredDays == null ||
+        stageSummary.actualDays == null ||
+        stageSummary.end == null
+      ) continue;
       const bucket = slaCompliance.get(key)!;
       if (stageSummary.withinSla === false) bucket.overdue += 1;
       else bucket.within += 1;

@@ -438,7 +438,7 @@ function AnalyticsPerformancePage({
           <div className="report-export-analytics-grid">
             <article className="report-export-analytics-card wide">
               <h4>Service Level Agreement (SLA) compliance by stage</h4>
-              <p>Completed and still-open stages measured against the configured committee SLA.</p>
+              <p>Counts only completed stages measured against the configured committee SLA.</p>
               <ExportStackedRows items={slaRows} />
             </article>
             <article className="report-export-analytics-card wide">

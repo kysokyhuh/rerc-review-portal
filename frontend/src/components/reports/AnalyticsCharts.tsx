@@ -1133,7 +1133,7 @@ export default function AnalyticsCharts({
             <section className="chart-card chart-card-wide">
               <ChartHeading
                 title="Service Level Agreement (SLA) compliance by stage"
-                description="Includes completed and still-open stages measured against the configured committee SLA."
+                description="Counts only completed stages measured against the configured committee SLA. Active stages still in flight are tracked on the Queue page."
                 requestedGraph={graphType}
                 effectiveGraph={slaGraph}
               />
