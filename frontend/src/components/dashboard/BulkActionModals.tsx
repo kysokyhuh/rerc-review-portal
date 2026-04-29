@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useColdStartStatus } from "@/hooks/useColdStartStatus";
 import {
   bulkAssignReviewers,
   bulkCreateReminders,
@@ -1034,6 +1035,7 @@ export function DeleteProtocolsBulkModal({
   selectedItems,
   onApplied,
 }: BulkModalBaseProps) {
+  const isColdStart = useColdStartStatus();
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1106,6 +1108,11 @@ export function DeleteProtocolsBulkModal({
   };
 
   const handleSubmit = async () => {
+    if (isColdStart) {
+      setError("The server is still waking up. Please wait a few seconds and try again.");
+      return;
+    }
+
     const trimmedReason = reason.trim();
     if (!trimmedReason) {
       setError("Reason is required before deleting protocols.");
@@ -1157,9 +1164,9 @@ export function DeleteProtocolsBulkModal({
             className="primary-btn bulk-danger-btn"
             type="button"
             onClick={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || isColdStart}
           >
-            {submitting ? "Deleting…" : "Delete selected"}
+            {submitting ? "Deleting…" : isColdStart ? "Server waking up..." : "Delete selected"}
           </button>
         </>
       }
@@ -1222,11 +1229,16 @@ export function DeleteProtocolsBulkModal({
             onChange={(event) => setReason(event.target.value)}
             placeholder="Explain why these protocols are being deleted."
             rows={4}
-            disabled={submitting}
+            disabled={submitting || isColdStart}
           />
         </label>
       </section>
 
+      {isColdStart ? (
+        <div className="bulk-form-error" role="status">
+          The server is still waking up. Wait for the banner to clear before deleting.
+        </div>
+      ) : null}
       {error ? <div className="bulk-form-error">{error}</div> : null}
       {result ? <BulkProjectDeleteSummary result={result} /> : null}
     </BulkModalShell>

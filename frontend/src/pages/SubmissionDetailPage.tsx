@@ -14,6 +14,7 @@ import {
   deleteProtocolMilestone,
 } from "@/services/api";
 import { useSubmissionDetail } from "@/hooks/useSubmissionDetail";
+import { useColdStartStatus } from "@/hooks/useColdStartStatus";
 import { Timeline } from "@/components/Timeline";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import {
@@ -220,6 +221,7 @@ export const SubmissionDetailPage: React.FC = () => {
   const navigate = useNavigate();
 
   const { user } = useAuth();
+  const isColdStart = useColdStartStatus();
   const locationState = (location.state as
     | { createdProtocol?: boolean; banner?: string; projectCode?: string }
     | null) ?? null;
@@ -524,6 +526,10 @@ export const SubmissionDetailPage: React.FC = () => {
 
   const handleDeleteProtocol = async () => {
     if (!projectId) return;
+    if (isColdStart) {
+      setDeleteError("The server is still waking up. Please wait a few seconds and try again.");
+      return;
+    }
 
     const trimmedReason = deleteReason.trim();
     if (!trimmedReason) {
@@ -806,8 +812,13 @@ export const SubmissionDetailPage: React.FC = () => {
                 value={deleteReason}
                 onChange={(event) => setDeleteReason(event.target.value)}
                 placeholder="Explain why this protocol is being deleted."
-                disabled={deleteSubmitting}
+                disabled={deleteSubmitting || isColdStart}
               />
+              {isColdStart ? (
+                <p className="archive-dialog-error" role="status">
+                  The server is still waking up. Wait for the banner to clear before deleting.
+                </p>
+              ) : null}
               {deleteError ? (
                 <p className="archive-dialog-error" role="alert">
                   {deleteError}
@@ -827,9 +838,9 @@ export const SubmissionDetailPage: React.FC = () => {
                 type="button"
                 className="btn btn-primary btn-sm"
                 onClick={handleDeleteProtocol}
-                disabled={deleteSubmitting}
+                disabled={deleteSubmitting || isColdStart}
               >
-                {deleteSubmitting ? "Deleting..." : "Delete Protocol"}
+                {deleteSubmitting ? "Deleting..." : isColdStart ? "Server waking up..." : "Delete Protocol"}
               </button>
             </div>
           </div>

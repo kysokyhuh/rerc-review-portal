@@ -20,6 +20,11 @@ export function getErrorData<T extends ApiErrorData = ApiErrorData>(
 }
 
 export function getErrorMessage(error: unknown, fallback: string): string {
+  const status = getErrorStatus(error);
+  if (status === 502 || status === 503 || status === 504) {
+    return "The server is still waking up. Please wait a few seconds and try again.";
+  }
+
   const responseMessage = getErrorData(error)?.message;
   if (typeof responseMessage === "string" && responseMessage.trim()) {
     return responseMessage;

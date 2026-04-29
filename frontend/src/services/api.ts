@@ -424,6 +424,11 @@ export function forceSessionExpiredRedirect(nextPath?: string | null) {
 const COLD_START_MAX_RETRIES = 3;
 const COLD_START_BACKOFF_MS = [1500, 3000, 6000];
 
+function setColdStartWindowState(active: boolean) {
+  if (typeof window === "undefined") return;
+  window.__rercColdStartActive = active;
+}
+
 function isColdStartError(error: unknown): boolean {
   if (!axios.isAxiosError(error) || !error.response) return true; // network error
   const status = error.response.status;
@@ -433,6 +438,7 @@ function isColdStartError(error: unknown): boolean {
 api.interceptors.response.use(
   (response) => {
     if (typeof window !== "undefined") {
+      setColdStartWindowState(false);
       window.dispatchEvent(new Event("rerc:cold-start-resolved"));
     }
     return response;
@@ -449,12 +455,14 @@ api.interceptors.response.use(
       if (retryCount < COLD_START_MAX_RETRIES) {
         config._coldRetry = retryCount + 1;
         if (typeof window !== "undefined") {
+          setColdStartWindowState(true);
           window.dispatchEvent(new Event("rerc:cold-start"));
         }
         const delay = COLD_START_BACKOFF_MS[retryCount] ?? 6000;
         await new Promise((r) => setTimeout(r, delay));
         return api(config);
       }
+      setColdStartWindowState(false);
     }
 
     if (error.response?.status === 401 && !config._sessionRetry) {

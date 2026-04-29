@@ -6,7 +6,9 @@ import { useEffect, useState } from "react";
  * interceptor when a cold-start retry is in progress.
  */
 export function ColdStartToast() {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(
+    typeof window !== "undefined" ? Boolean(window.__rercColdStartActive) : false
+  );
 
   useEffect(() => {
     const handleShow = () => setVisible(true);
