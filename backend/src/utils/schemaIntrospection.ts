@@ -44,8 +44,6 @@ const loadSchemaColumns = async () => {
     }
 
     return tableColumns;
-  } catch {
-    return new Map<string, Set<string>>();
   } finally {
     await client.end().catch(() => {});
   }
@@ -53,7 +51,10 @@ const loadSchemaColumns = async () => {
 
 const getSchemaColumns = async () => {
   if (!schemaColumnsPromise) {
-    schemaColumnsPromise = loadSchemaColumns();
+    schemaColumnsPromise = loadSchemaColumns().catch((error) => {
+      schemaColumnsPromise = null;
+      throw error;
+    });
   }
 
   return schemaColumnsPromise;
