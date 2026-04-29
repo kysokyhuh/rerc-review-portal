@@ -45,6 +45,9 @@ type ClassificationStatusStage =
   | "UNDER_CLASSIFICATION"
   | "CLASSIFIED";
 
+const COLD_START_DELETE_ERROR =
+  "The server is still waking up. Please wait a few seconds and try again.";
+
 const REVIEW_TYPE_OPTIONS = ["", "EXEMPT", "EXPEDITED", "FULL_BOARD"] as const;
 
 const normalizeClassificationStatus = (
@@ -524,6 +527,13 @@ export const SubmissionDetailPage: React.FC = () => {
     setDeleteReason("");
     setDeleteError(null);
   };
+
+  useEffect(() => {
+    if (!deleteDialogOpen || isColdStart || deleteError !== COLD_START_DELETE_ERROR) {
+      return;
+    }
+    setDeleteError(null);
+  }, [deleteDialogOpen, deleteError, isColdStart]);
 
   const handleDeleteProtocol = async () => {
     if (!projectId) return;

@@ -12,6 +12,7 @@
     "seed:academic-terms": "npx tsx src/scripts/seedAcademicTerms.ts",
     "repair:legacy-profiles": "npx tsx src/scripts/repairLegacyProtocolProfiles.ts",
     "backfill:legacy-imports-to-live": "npx tsx src/scripts/backfillLegacyImportsToLive.ts --apply",
+    "admin:delete-project": "npx tsx src/scripts/adminSoftDeleteProject.ts",
     "seed:reports-demo": "npx tsx src/config/seedReportsDemo.ts",
     "test": "jest",
     "test:unit": "jest tests/unit",
