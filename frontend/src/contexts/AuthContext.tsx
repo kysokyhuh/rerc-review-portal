@@ -16,6 +16,7 @@ import {
   refreshAccessSession,
   registerSessionExpiredHandler,
   updateMyProfile,
+  warmBackendConnection,
 } from "@/services/api";
 import type {
   AuthProfile,
@@ -23,6 +24,7 @@ import type {
   UpdateProfilePayload,
 } from "@/types";
 import { getErrorStatus } from "@/utils";
+import { useRef } from "react";
 
 export type AuthUser = AuthProfile;
 
@@ -46,6 +48,7 @@ interface AuthContextValue extends AuthState {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+const BACKEND_KEEP_WARM_INTERVAL_MS = 10 * 60 * 1000;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
@@ -53,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: false,
     isLoading: true,
   });
+  const lastWarmAtRef = useRef(Date.now());
 
   const setAuthenticatedUser = useCallback((user: AuthUser) => {
     setState({
@@ -104,6 +108,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void refreshMe();
   }, [refreshMe]);
+
+  useEffect(() => {
+    if (!state.isAuthenticated) {
+      return undefined;
+    }
+
+    lastWarmAtRef.current = Date.now();
+
+    const runKeepWarm = async () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        return;
+      }
+
+      try {
+        await warmBackendConnection();
+        lastWarmAtRef.current = Date.now();
+      } catch {
+        // Ignore warm-up failures. Normal user-triggered requests still surface errors.
+      }
+    };
+
+    const handleResume = () => {
+      if (Date.now() - lastWarmAtRef.current >= BACKEND_KEEP_WARM_INTERVAL_MS / 2) {
+        void runKeepWarm();
+      }
+    };
+
+    const intervalId = window.setInterval(() => {
+      void runKeepWarm();
+    }, BACKEND_KEEP_WARM_INTERVAL_MS);
+
+    window.addEventListener("focus", handleResume);
+    document.addEventListener("visibilitychange", handleResume);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", handleResume);
+      document.removeEventListener("visibilitychange", handleResume);
+    };
+  }, [state.isAuthenticated]);
 
   const login = useCallback(async (email: string, password: string) => {
     await ensureCsrfCookie();

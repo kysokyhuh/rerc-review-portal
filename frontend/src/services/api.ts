@@ -389,6 +389,10 @@ export async function fetchMyProfile(): Promise<AuthProfile> {
   return response.data.user as AuthProfile;
 }
 
+export async function warmBackendConnection(): Promise<void> {
+  await api.get("/auth/profile");
+}
+
 export async function updateMyProfile(
   payload: UpdateProfilePayload
 ): Promise<AuthProfile> {
