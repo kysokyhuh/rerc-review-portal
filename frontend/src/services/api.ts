@@ -457,7 +457,8 @@ function isColdStartError(error: unknown): boolean {
 
 function canRetryColdStartRequest(config: InternalAxiosRequestConfig): boolean {
   const method = (config.method || "get").toLowerCase();
-  return COLD_START_RETRY_METHODS.has(method);
+  if (COLD_START_RETRY_METHODS.has(method)) return true;
+  return Boolean((config as { _retryOnColdStart?: boolean })._retryOnColdStart);
 }
 
 api.interceptors.response.use(
@@ -815,7 +816,9 @@ export async function deleteProjectRecord(
     reason: string;
   }
 ) {
-  const response = await api.post(`/projects/${projectId}/delete`, payload);
+  const response = await api.post(`/projects/${projectId}/delete`, payload, {
+    _retryOnColdStart: true,
+  } as never);
   return response.data as {
     project: {
       id: number;
@@ -838,7 +841,9 @@ export async function deleteProjectRecordsBulk(payload: {
   projectIds: number[];
   reason: string;
 }) {
-  const response = await api.post("/projects/bulk/delete", payload);
+  const response = await api.post("/projects/bulk/delete", payload, {
+    _retryOnColdStart: true,
+  } as never);
   return response.data as BulkProjectDeleteResponse;
 }
 
@@ -849,7 +854,9 @@ export async function restoreDeletedProjectRecord(
     targetStatus: "DRAFT" | "ACTIVE" | "INACTIVE" | "WITHDRAWN" | "CLOSED";
   }
 ) {
-  const response = await api.post(`/projects/${projectId}/restore-deleted`, payload);
+  const response = await api.post(`/projects/${projectId}/restore-deleted`, payload, {
+    _retryOnColdStart: true,
+  } as never);
   return response.data as {
     project: {
       id: number;
