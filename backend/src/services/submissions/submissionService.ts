@@ -123,18 +123,6 @@ const submissionProjectDetailSelect: Prisma.ProjectSelect = {
   title: true,
   piName: true,
   piAffiliation: true,
-  deletedAt: true,
-  deletedReason: true,
-  deletedFromStatus: true,
-  deletePurgeAt: true,
-  purgedAt: true,
-  deletedBy: {
-    select: {
-      id: true,
-      fullName: true,
-      email: true,
-    },
-  },
   approvalStartDate: true,
   approvalEndDate: true,
   committee: {
@@ -658,6 +646,86 @@ async function loadOptionalSubmissionRelations(submissionId: number) {
   };
 }
 
+type ProjectDeletionMetadata = {
+  deletedAt: Date | null;
+  deletedReason: string | null;
+  deletedFromStatus: ProjectStatus | null;
+  deletePurgeAt: Date | null;
+  purgedAt: Date | null;
+  deletedBy: {
+    id: number;
+    fullName: string;
+    email: string;
+  } | null;
+};
+
+async function loadProjectDeletionMetadata(
+  projectId: number | null | undefined
+): Promise<ProjectDeletionMetadata | null> {
+  if (!projectId || !(await hasProjectSoftDeleteColumns())) {
+    return null;
+  }
+
+  const rows = await prisma.$queryRaw<
+    Array<{
+      deletedAt: Date | null;
+      deletedReason: string | null;
+      deletedFromStatus: ProjectStatus | null;
+      deletePurgeAt: Date | null;
+      purgedAt: Date | null;
+      deletedById: number | null;
+      deletedByFullName: string | null;
+      deletedByEmail: string | null;
+    }>
+  >`
+    SELECT
+      p."deletedAt",
+      p."deletedReason",
+      p."deletedFromStatus",
+      p."deletePurgeAt",
+      p."purgedAt",
+      u."id" AS "deletedById",
+      u."fullName" AS "deletedByFullName",
+      u."email" AS "deletedByEmail"
+    FROM "Project" p
+    LEFT JOIN "User" u ON u."id" = p."deletedById"
+    WHERE p."id" = ${projectId}
+    LIMIT 1
+  `.catch((error: unknown) => {
+    if (isMissingOptionalRelationError(error)) {
+      logger.warn(
+        {
+          projectId,
+          prismaCode: error.code,
+          message: error.message,
+        },
+        "Project soft-delete metadata unavailable; returning submission detail without delete metadata"
+      );
+      return [];
+    }
+    throw error;
+  });
+
+  const row = rows[0];
+  if (!row) return null;
+
+  return {
+    deletedAt: row.deletedAt,
+    deletedReason: row.deletedReason,
+    deletedFromStatus: row.deletedFromStatus,
+    deletePurgeAt: row.deletePurgeAt,
+    purgedAt: row.purgedAt,
+    deletedBy:
+      row.deletedById && row.deletedByFullName && row.deletedByEmail
+        ? {
+            id: row.deletedById,
+            fullName: row.deletedByFullName,
+            email: row.deletedByEmail,
+          }
+        : null,
+  };
+}
+
 export async function getSubmissionById(id: number) {
   const submission = await prisma.submission.findUnique({
     where: { id },
@@ -680,8 +748,16 @@ export async function getSubmissionById(id: number) {
   });
   if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
   const optionalRelations = await loadOptionalSubmissionRelations(id);
+  const deletionMetadata = await loadProjectDeletionMetadata(submission.project?.id);
   return {
     ...submission,
+    project:
+      submission.project && deletionMetadata
+        ? {
+            ...submission.project,
+            ...deletionMetadata,
+          }
+        : submission.project,
     ...optionalRelations,
   };
 }
