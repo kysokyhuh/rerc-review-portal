@@ -86,7 +86,7 @@ const SECTION_OPTIONS: Array<{
   {
     key: "records",
     label: "Records appendix",
-    description: `Up to 100 matching submissions, ${REPORT_PDF_RECORDS_PER_PAGE} rows per PDF page.`,
+    description: `All matching submissions, ${REPORT_PDF_RECORDS_PER_PAGE} rows per PDF page.`,
   },
 ];
 
@@ -208,9 +208,9 @@ export default function ReportPdfExportDialog({
             </p>
             {hasRecords ? (
               <p>
-                Records appendix will include up to{" "}
-                {Math.min(estimatedRecordCount || 100, 100).toLocaleString("en-US")} rows. If more match,
-                the PDF will note that it is showing the first 100.
+                Records appendix will include all{" "}
+                {(estimatedRecordCount || 0).toLocaleString("en-US")} matching submissions
+                ({REPORT_PDF_RECORDS_PER_PAGE} per page).
               </p>
             ) : null}
           </aside>

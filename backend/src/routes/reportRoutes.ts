@@ -61,7 +61,7 @@ export const getReportSubmissionsHandler = async (req: Request, res: Response, n
   try {
     const filters = parseReportFilters(req.query as Record<string, unknown>);
     const page = Math.max(1, Number(req.query.page ?? 1) || 1);
-    const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize ?? 20) || 20));
+    const pageSize = Math.min(5000, Math.max(1, Number(req.query.pageSize ?? 20) || 20));
     const sort = String(req.query.sort ?? "receivedDate:desc");
 
     const termWindows = await resolveReportWindows(filters);

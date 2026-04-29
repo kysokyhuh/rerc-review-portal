@@ -726,13 +726,12 @@ function PdfExportDocument({
               >
                 {records.totalCount > records.items.length ? (
                   <p className="report-export-record-note">
-                    Showing {records.items.length.toLocaleString("en-US")} of{" "}
-                    {records.totalCount.toLocaleString("en-US")} matching submissions
-                    (sampled across the reporting window).
+                    Showing first {records.items.length.toLocaleString("en-US")} of{" "}
+                    {records.totalCount.toLocaleString("en-US")} matching submissions.
                   </p>
                 ) : (
                   <p className="report-export-record-note">
-                    Showing {records.items.length.toLocaleString("en-US")} matching submissions.
+                    Showing all {records.items.length.toLocaleString("en-US")} matching submissions.
                   </p>
                 )}
                 <table className="report-export-records-table">
