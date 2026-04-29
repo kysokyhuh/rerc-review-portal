@@ -515,6 +515,16 @@ export interface SubmissionDetail {
     title: string | null;
     piName: string | null;
     piAffiliation?: string | null;
+    deletedAt?: string | null;
+    deletedReason?: string | null;
+    deletedFromStatus?: string | null;
+    deletePurgeAt?: string | null;
+    purgedAt?: string | null;
+    deletedBy?: {
+      id: number;
+      fullName: string;
+      email: string;
+    } | null;
     committee?: {
       id: number;
       code: string;

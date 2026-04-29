@@ -123,6 +123,18 @@ const submissionProjectDetailSelect: Prisma.ProjectSelect = {
   title: true,
   piName: true,
   piAffiliation: true,
+  deletedAt: true,
+  deletedReason: true,
+  deletedFromStatus: true,
+  deletePurgeAt: true,
+  purgedAt: true,
+  deletedBy: {
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+    },
+  },
   approvalStartDate: true,
   approvalEndDate: true,
   committee: {

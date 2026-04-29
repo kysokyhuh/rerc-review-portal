@@ -3,6 +3,7 @@ import axios from "axios";
 type ApiErrorData = {
   code?: string;
   message?: string;
+  error?: string;
   errors?: unknown;
   projectId?: number;
 };
@@ -25,7 +26,8 @@ export function getErrorMessage(error: unknown, fallback: string): string {
     return "The server is still waking up. Please wait a few seconds and try again.";
   }
 
-  const responseMessage = getErrorData(error)?.message;
+  const data = getErrorData(error);
+  const responseMessage = data?.message ?? data?.error;
   if (typeof responseMessage === "string" && responseMessage.trim()) {
     return responseMessage;
   }

@@ -38,7 +38,7 @@ import {
 import type { OverviewFormState } from "@/components/submission";
 import type { CommitteeSummary, ProtocolMilestone, SubmissionDetail } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
-import { getErrorMessage } from "@/utils";
+import { getErrorData, getErrorMessage } from "@/utils";
 
 type ClassificationStatusStage =
   | "AWAITING_CLASSIFICATION"
@@ -269,6 +269,7 @@ export const SubmissionDetailPage: React.FC = () => {
     useSubmissionDetail(numericId);
   const backTarget = `/dashboard${location.search ?? ""}`;
   const projectId = submission?.project?.id;
+  const isProjectDeleted = Boolean(submission?.project?.deletedAt);
 
   /* ── helpers ── */
   const resetFormState = (source: SubmissionDetail) => {
@@ -436,6 +437,7 @@ export const SubmissionDetailPage: React.FC = () => {
   const isChair = Boolean(user?.roles?.includes("CHAIR"));
   const canDeleteProtocol = Boolean(
     projectId &&
+      !isProjectDeleted &&
       user?.roles?.some((role) => role === "CHAIR" || role === "ADMIN")
   );
   const canManageClassification = isChair;
@@ -516,6 +518,10 @@ export const SubmissionDetailPage: React.FC = () => {
   };
 
   const openDeleteDialog = () => {
+    if (isProjectDeleted) {
+      navigate("/recently-deleted", { replace: true });
+      return;
+    }
     setDeleteDialogOpen(true);
     setDeleteReason("");
     setDeleteError(null);
@@ -553,6 +559,14 @@ export const SubmissionDetailPage: React.FC = () => {
       setDeleteError(null);
       navigate("/recently-deleted", { replace: true });
     } catch (err) {
+      const errorCode = getErrorData(err)?.code;
+      if (errorCode === "ALREADY_DELETED" || errorCode === "PROJECT_DELETED") {
+        setDeleteDialogOpen(false);
+        setDeleteReason("");
+        setDeleteError(null);
+        navigate("/recently-deleted", { replace: true });
+        return;
+      }
       setDeleteError(getErrorMessage(err, "Failed to delete protocol."));
     } finally {
       setDeleteSubmitting(false);
@@ -644,7 +658,14 @@ export const SubmissionDetailPage: React.FC = () => {
             <span className={`badge badge-lg ${getStatusVariant(submission.status)}`}>
               {submission.status.replace(/_/g, " ")}
             </span>
-            {canDeleteProtocol ? (
+            {isProjectDeleted ? (
+              <div className="archive-hero-actions">
+                <span className="badge badge-lg badge-warning">Recently Deleted</span>
+                <Link to="/recently-deleted" className="btn btn-secondary btn-sm">
+                  View Recently Deleted
+                </Link>
+              </div>
+            ) : canDeleteProtocol ? (
               <div className="archive-hero-actions">
                 <button
                   type="button"
