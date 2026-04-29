@@ -170,6 +170,53 @@ const REVIEW_TYPE_LABELS: Record<ReportsDraftFilters["reviewType"], string> = {
 
 const RECORDS_EXPORT_PAGE_SIZE = 100;
 
+/**
+ * Fetch records for the PDF appendix, distributing the budget across years
+ * when the report spans more than one calendar year. Otherwise behaves like
+ * a single fetchAnnualReportSubmissions call.
+ *
+ * Without this, a `receivedDate:desc` sort with a 100-row cap is dominated
+ * by the most recent year — older years never make it into the appendix.
+ */
+async function fetchExportRecords(
+  baseParams: Parameters<typeof fetchAnnualReportSubmissions>[0]
+): Promise<AnnualReportSubmissionsResponse> {
+  const limit = baseParams.pageSize;
+  const startYear = Number(baseParams.startYear);
+  const endYear = Number(baseParams.endYear);
+  const isCalendarMultiYear =
+    baseParams.periodMode === "CALENDAR" &&
+    Number.isFinite(startYear) &&
+    Number.isFinite(endYear) &&
+    endYear > startYear;
+
+  if (!isCalendarMultiYear) {
+    return fetchAnnualReportSubmissions(baseParams);
+  }
+
+  const years = Array.from(
+    { length: endYear - startYear + 1 },
+    (_, i) => startYear + i
+  );
+  const perYear = Math.max(1, Math.ceil(limit / years.length));
+
+  const responses = await Promise.all(
+    years.map((year) =>
+      fetchAnnualReportSubmissions({
+        ...baseParams,
+        startYear: String(year),
+        endYear: String(year),
+        pageSize: perYear,
+      })
+    )
+  );
+
+  const items = responses.flatMap((r) => r.items).slice(0, limit);
+  const totalCount = responses.reduce((sum, r) => sum + r.totalCount, 0);
+
+  return { totalCount, page: 1, pageSize: limit, items };
+}
+
 const formatRangeDate = (value: string) => {
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime())
@@ -995,7 +1042,7 @@ export default function ReportsPage() {
       let exportRecords: AnnualReportSubmissionsResponse | null = null;
 
       if (sections.includes("records")) {
-        exportRecords = await fetchAnnualReportSubmissions({
+        exportRecords = await fetchExportRecords({
           periodMode: appliedFilters.periodMode,
           ay: appliedFilters.ay,
           term: appliedFilters.term as "ALL" | 1 | 2 | 3,
