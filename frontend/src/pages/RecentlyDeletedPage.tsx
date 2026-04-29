@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   fetchRecentlyDeletedProjects,
   fetchColleges,
   restoreDeletedProjectRecord,
   type RecentlyDeletedProject,
+  type RecentlyDeletedProjectsResponse,
 } from "@/services/api";
 import { Breadcrumbs } from "@/components";
 import { BRAND } from "@/config/branding";
@@ -16,6 +17,57 @@ const PROJECT_STATUS_OPTIONS = ["DRAFT", "ACTIVE", "INACTIVE", "WITHDRAWN", "CLO
 
 type ProjectStatus = (typeof PROJECT_STATUS_OPTIONS)[number];
 type ListSort = "lastModifiedDesc" | "lastModifiedAsc" | "submittedDesc" | "submittedAsc";
+
+const RECENTLY_DELETED_CACHE_KEY = "rerc:recently-deleted:last-default-response";
+const RECENTLY_DELETED_LOAD_TIMEOUT_MS = 20_000;
+
+type RecentlyDeletedCache = {
+  savedAt: string;
+  response: RecentlyDeletedProjectsResponse;
+};
+
+function readRecentlyDeletedCache(): RecentlyDeletedCache | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(RECENTLY_DELETED_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as RecentlyDeletedCache;
+    if (!parsed?.response || !Array.isArray(parsed.response.items)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeRecentlyDeletedCache(response: RecentlyDeletedProjectsResponse) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      RECENTLY_DELETED_CACHE_KEY,
+      JSON.stringify({
+        savedAt: new Date().toISOString(),
+        response,
+      } satisfies RecentlyDeletedCache)
+    );
+  } catch {
+    // Cache is only a UX fallback.
+  }
+}
+
+function withLoadTimeout<T>(promise: Promise<T>): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_resolve, reject) => {
+      window.setTimeout(() => {
+        reject(
+          new Error(
+            "The server is taking longer than expected. The page is ready, but the list data may still be waking up."
+          )
+        );
+      }, RECENTLY_DELETED_LOAD_TIMEOUT_MS);
+    }),
+  ]);
+}
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return "—";
@@ -52,12 +104,18 @@ const formatReviewType = (reviewType: string | null) => {
 export default function RecentlyDeletedPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [items, setItems] = useState<RecentlyDeletedProject[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [cachedSnapshot, setCachedSnapshot] = useState<RecentlyDeletedCache | null>(
+    () => readRecentlyDeletedCache()
+  );
+  const [items, setItems] = useState<RecentlyDeletedProject[]>(
+    () => cachedSnapshot?.response.items ?? []
+  );
+  const [loading, setLoading] = useState(!cachedSnapshot);
+  const [isRefreshing, setIsRefreshing] = useState(Boolean(cachedSnapshot));
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [total, setTotal] = useState(0);
+  const [total, setTotal] = useState(cachedSnapshot?.response.total ?? 0);
   const [offset, setOffset] = useState(0);
   const [statusFilter, setStatusFilter] = useState("");
   const [reviewTypeFilter, setReviewTypeFilter] = useState("");
@@ -69,6 +127,7 @@ export default function RecentlyDeletedPage() {
   const [restoreStatus, setRestoreStatus] = useState<ProjectStatus>("ACTIVE");
   const [restoreSubmitting, setRestoreSubmitting] = useState(false);
   const [restoreError, setRestoreError] = useState<string | null>(null);
+  const loadRequestIdRef = useRef(0);
   const limit = 50;
   const canManageDeleted = Boolean(
     user?.roles.some((role) => role === "CHAIR" || role === "ADMIN")
@@ -102,29 +161,55 @@ export default function RecentlyDeletedPage() {
   })();
 
   const loadDeleted = useCallback(async () => {
+    const requestId = loadRequestIdRef.current + 1;
+    loadRequestIdRef.current = requestId;
+    const hasVisibleRows = items.length > 0;
+    const isDefaultListView =
+      offset === 0 &&
+      !debouncedSearch &&
+      !statusFilter &&
+      !reviewTypeFilter &&
+      !collegeFilter &&
+      sort === "lastModifiedDesc";
+
     try {
-      setLoading(true);
+      setLoading(!hasVisibleRows);
+      setIsRefreshing(hasVisibleRows);
       setError(null);
-      const response = await fetchRecentlyDeletedProjects({
-        committeeCode: BRAND.defaultCommitteeCode,
-        limit,
-        offset,
-        search: debouncedSearch || undefined,
-        status: statusFilter || undefined,
-        reviewType: reviewTypeFilter || undefined,
-        college: collegeFilter || undefined,
-        sortBy: sortParams.sortBy,
-        sortDir: sortParams.sortDir,
-      });
+      const response = await withLoadTimeout(
+        fetchRecentlyDeletedProjects({
+          committeeCode: BRAND.defaultCommitteeCode,
+          limit,
+          offset,
+          search: debouncedSearch || undefined,
+          status: statusFilter || undefined,
+          reviewType: reviewTypeFilter || undefined,
+          college: collegeFilter || undefined,
+          sortBy: sortParams.sortBy,
+          sortDir: sortParams.sortDir,
+        })
+      );
+      if (requestId !== loadRequestIdRef.current) return;
       setItems(response.items);
       setTotal(response.total);
+      if (isDefaultListView) {
+        writeRecentlyDeletedCache(response);
+        setCachedSnapshot({
+          savedAt: new Date().toISOString(),
+          response,
+        });
+      }
     } catch (err: unknown) {
+      if (requestId !== loadRequestIdRef.current) return;
       console.error("Failed to load recently deleted protocols:", err);
       setError(getErrorMessage(err, "Failed to load recently deleted protocols"));
     } finally {
-      setLoading(false);
+      if (requestId === loadRequestIdRef.current) {
+        setLoading(false);
+        setIsRefreshing(false);
+      }
     }
-  }, [offset, debouncedSearch, statusFilter, reviewTypeFilter, collegeFilter, sortParams.sortBy, sortParams.sortDir]);
+  }, [items.length, offset, debouncedSearch, statusFilter, reviewTypeFilter, collegeFilter, sort, sortParams.sortBy, sortParams.sortDir]);
 
   useEffect(() => {
     loadDeleted();
@@ -201,7 +286,9 @@ export default function RecentlyDeletedPage() {
               Deleted protocols are kept for 30 days and can be restored during that window.
             </span>
           </div>
-          <span className="badge badge-lg badge-neutral">{total} total</span>
+          <span className="badge badge-lg badge-neutral">
+            {loading && total === 0 ? "Loading..." : `${total} total`}
+          </span>
         </div>
       </header>
 
@@ -226,6 +313,8 @@ export default function RecentlyDeletedPage() {
             {!loading && (
               <span>
                 Showing {items.length} of {total} deleted protocols
+                {isRefreshing ? " - refreshing" : ""}
+                {cachedSnapshot && error ? " - showing last saved list" : ""}
               </span>
             )}
           </div>
@@ -292,14 +381,25 @@ export default function RecentlyDeletedPage() {
       {error && (
         <div className="archives-error card detail-card">
           <p>{error}</p>
-          <button onClick={loadDeleted}>Retry</button>
+          <div className="archives-error-actions">
+            <button type="button" onClick={loadDeleted}>Retry loading</button>
+            <a href={`${window.location.origin}/live`} target="_blank" rel="noreferrer">
+              Wake server
+            </a>
+            <a href={`${window.location.origin}/ready`} target="_blank" rel="noreferrer">
+              Check database
+            </a>
+          </div>
         </div>
       )}
 
-      {loading ? (
+      {loading && items.length === 0 ? (
         <div className="archives-loading card detail-card">
           <div className="loading-spinner" />
           <p>Loading recently deleted protocols...</p>
+          <span className="archives-loading-note">
+            The page is loaded. Waiting for the protected database list.
+          </span>
         </div>
       ) : items.length === 0 ? (
         <div className="archives-empty card detail-card">
