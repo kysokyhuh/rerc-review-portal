@@ -8,10 +8,13 @@ import {
   ReportFiltersBar,
   ReportSection,
   ProponentComparativeTables,
+  ReportPdfExportDialog,
   ReportSummaryCards,
   ReportViewSwitch,
   SubmissionRecordsTable,
+  getReportPdfPresetConfig,
   type AnalyticsGraphType,
+  type ReportPdfPreset,
   type ReportView,
   type ReportsDraftFilters,
 } from "@/components/reports";
@@ -28,7 +31,7 @@ import {
   type ReportsAcademicYearsResponse,
 } from "@/services/api";
 import { getErrorMessage } from "@/utils";
-import { exportReportsPdf } from "@/utils/reportPdfExport";
+import { exportReportsPdf, type ReportPdfSection } from "@/utils/reportPdfExport";
 import "../styles/reports.css";
 
 const parseTerm = (value: string | null): "ALL" | 1 | 2 | 3 => {
@@ -160,6 +163,9 @@ const REVIEW_TYPE_LABELS: Record<ReportsDraftFilters["reviewType"], string> = {
   WITHDRAWN: "Withdrawn",
 };
 
+const RECORDS_EXPORT_PAGE_SIZE = 100;
+const RECORDS_PER_PDF_PAGE = 20;
+
 const formatRangeDate = (value: string) => {
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime())
@@ -250,7 +256,12 @@ export default function ReportsPage() {
   const [loadingComparisonSummary, setLoadingComparisonSummary] = useState(false);
   const [loadingRecords, setLoadingRecords] = useState(false);
   const [loadingOptions, setLoadingOptions] = useState(true);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [selectedPdfPreset, setSelectedPdfPreset] = useState<ReportPdfPreset>("full");
+  const [selectedPdfSections, setSelectedPdfSections] = useState<ReportPdfSection[]>(
+    () => getReportPdfPresetConfig("full").sections
+  );
   const [error, setError] = useState<string | null>(null);
 
   const defaultAy = years[0]?.academicYear ?? "ALL";
@@ -810,6 +821,25 @@ export default function ReportsPage() {
     };
   }, [comparisonSummary, demoComparisonCounts]);
 
+  const estimatedPdfRecordCount = useMemo(() => {
+    if (records) return records.totalCount;
+    return summary?.summaryCounts.received ?? 0;
+  }, [records, summary]);
+
+  const estimatedPdfPages = useMemo(() => {
+    let count = 0;
+    const selected = new Set(selectedPdfSections);
+    if (selected.has("executive")) count += 1;
+    if (selected.has("overview") || selected.has("matrix")) count += 1;
+    if (selected.has("comparative")) count += 1;
+    if (selected.has("analytics")) count += 1;
+    if (selected.has("records")) {
+      const boundedRecords = Math.min(Math.max(estimatedPdfRecordCount, 1), RECORDS_EXPORT_PAGE_SIZE);
+      count += Math.max(1, Math.ceil(boundedRecords / RECORDS_PER_PDF_PAGE));
+    }
+    return Math.max(1, count);
+  }, [estimatedPdfRecordCount, selectedPdfSections]);
+
   const overviewInsight = useMemo(() => {
     if (!summary) return null;
     const reviewMix = [
@@ -929,17 +959,63 @@ export default function ReportsPage() {
     );
   };
 
+  const onPdfPresetChange = (preset: ReportPdfPreset) => {
+    setSelectedPdfPreset(preset);
+    setSelectedPdfSections(getReportPdfPresetConfig(preset).sections);
+  };
+
+  const onPdfSectionToggle = (section: ReportPdfSection) => {
+    setSelectedPdfPreset("custom");
+    setSelectedPdfSections((prev) =>
+      prev.includes(section)
+        ? prev.filter((item) => item !== section)
+        : [...prev, section]
+    );
+  };
+
   const onExportPdf = async () => {
     if (!summary || exportingPdf) return;
 
     try {
       setExportingPdf(true);
+      const sections = [...selectedPdfSections];
+      let exportRecords: AnnualReportSubmissionsResponse | null = null;
+
+      if (sections.includes("records")) {
+        exportRecords = await fetchAnnualReportSubmissions({
+          periodMode: appliedFilters.periodMode,
+          ay: appliedFilters.ay,
+          term: appliedFilters.term as "ALL" | 1 | 2 | 3,
+          startDate: appliedFilters.startDate || undefined,
+          endDate: appliedFilters.endDate || undefined,
+          startYear: appliedFilters.startYear || undefined,
+          endYear: appliedFilters.endYear || undefined,
+          committee: appliedFilters.committee,
+          college: appliedFilters.college,
+          panel: appliedFilters.panel,
+          category: appliedFilters.category,
+          reviewType: appliedFilters.reviewType,
+          status: appliedFilters.status,
+          q: appliedFilters.q,
+          page: 1,
+          pageSize: RECORDS_EXPORT_PAGE_SIZE,
+          sort,
+        });
+      }
+
       await exportReportsPdf({
         summary,
         selectionSummary,
         generatedAt: new Date(),
         analyticsGraph,
+        presetLabel:
+          selectedPdfPreset === "custom"
+            ? "Custom report pack"
+            : getReportPdfPresetConfig(selectedPdfPreset).label,
+        sections,
+        records: exportRecords,
       });
+      setExportDialogOpen(false);
     } catch (e: unknown) {
       setError(getErrorMessage(e, "Failed to export report PDF."));
     } finally {
@@ -1011,7 +1087,7 @@ export default function ReportsPage() {
             <button
               type="button"
               className="report-btn-primary"
-              onClick={onExportPdf}
+              onClick={() => setExportDialogOpen(true)}
               disabled={!summary || exportingPdf}
             >
               {exportingPdf ? "Exporting PDF..." : "Export PDF"}
@@ -1213,6 +1289,22 @@ export default function ReportsPage() {
           </ReportSection>
         ) : null}
       </div>
+
+      <ReportPdfExportDialog
+        open={exportDialogOpen}
+        selectedPreset={selectedPdfPreset}
+        selectedSections={selectedPdfSections}
+        estimatedPages={estimatedPdfPages}
+        estimatedRecordCount={estimatedPdfRecordCount}
+        exporting={exportingPdf}
+        exportDisabled={!summary || exportingPdf || selectedPdfSections.length === 0}
+        onClose={() => {
+          if (!exportingPdf) setExportDialogOpen(false);
+        }}
+        onPresetChange={onPdfPresetChange}
+        onSectionToggle={onPdfSectionToggle}
+        onExport={onExportPdf}
+      />
     </div>
   );
 }
