@@ -250,6 +250,55 @@ describe("GET /reports/academic-year-summary", () => {
         ],
         reviews: [],
       },
+      {
+        id: 104,
+        createdAt: new Date("2025-07-01T00:00:00.000Z"),
+        receivedDate: new Date("2025-07-01T00:00:00.000Z"),
+        sequenceNumber: 1,
+        status: SubmissionStatus.CLASSIFIED,
+        resultsNotifiedAt: null,
+        finalDecision: null,
+        finalDecisionDate: null,
+        classification: {
+          reviewType: ReviewType.EXPEDITED,
+          classificationDate: new Date("2025-07-02T00:00:00.000Z"),
+          panel: null,
+        },
+        project: {
+          id: 4,
+          deletedAt: new Date("2026-04-29T00:00:00.000Z"),
+          purgedAt: null,
+          projectCode: "RERC-2025-DELETED",
+          title: "Deleted Protocol",
+          proponent: "Deleted Team",
+          piName: "Deleted Team",
+          piAffiliation: "College of Science",
+          collegeOrUnit: "College of Science",
+          department: "Biology",
+          proponentCategory: "UNDERGRAD",
+          committeeId: 10,
+          approvalStartDate: null,
+          protocolProfile: {
+            dateOfSubmission: new Date("2025-07-01T00:00:00.000Z"),
+            typeOfReview: "Expedited",
+            status: "Classified",
+            finishDate: null,
+            panel: null,
+          },
+          committee: { code: "RERC-HUMAN", name: "RERC Human" },
+        },
+        statusHistory: [
+          {
+            newStatus: SubmissionStatus.AWAITING_CLASSIFICATION,
+            effectiveDate: new Date("2025-07-01T00:00:00.000Z"),
+          },
+          {
+            newStatus: SubmissionStatus.CLASSIFIED,
+            effectiveDate: new Date("2025-07-02T00:00:00.000Z"),
+          },
+        ],
+        reviews: [],
+      },
     ]);
 
     prisma.$queryRaw.mockResolvedValue([
@@ -885,6 +934,82 @@ describe("GET /reports/academic-year-summary", () => {
           panel: "Panel 4",
         }),
       ],
+    });
+  });
+
+  it("excludes soft-deleted projects from report records", async () => {
+    prisma.academicTerm.findMany.mockResolvedValue([
+      {
+        academicYear: "2022-2023",
+        term: 2,
+        startDate: new Date("2023-01-01T00:00:00.000Z"),
+        endDate: new Date("2023-04-30T00:00:00.000Z"),
+      },
+    ]);
+
+    prisma.submission.findMany.mockResolvedValue([
+      {
+        id: 801,
+        createdAt: new Date("2023-03-12T00:00:00.000Z"),
+        receivedDate: new Date("2023-03-12T00:00:00.000Z"),
+        sequenceNumber: 1,
+        status: SubmissionStatus.CLASSIFIED,
+        resultsNotifiedAt: null,
+        finalDecision: null,
+        finalDecisionDate: null,
+        classification: {
+          reviewType: ReviewType.EXPEDITED,
+          classificationDate: new Date("2023-03-13T00:00:00.000Z"),
+          panel: null,
+        },
+        project: {
+          id: 80,
+          deletedAt: new Date("2026-04-29T00:00:00.000Z"),
+          purgedAt: null,
+          projectCode: "RERC-DELETED-REC",
+          title: "Deleted Report Row",
+          proponent: "Faculty Team",
+          piName: "Dr. Deleted",
+          piAffiliation: "College of Science",
+          collegeOrUnit: "College of Science",
+          department: "Biology",
+          proponentCategory: "FACULTY",
+          committeeId: 10,
+          approvalStartDate: null,
+          protocolProfile: {
+            typeOfReview: "Expedited",
+            status: "Classified",
+            college: "College of Science",
+            department: "Biology",
+            dateOfSubmission: new Date("2023-03-12T00:00:00.000Z"),
+            proponent: "Faculty",
+            finishDate: null,
+            panel: null,
+          },
+          committee: { code: "RERC-HUMAN", name: "RERC Human" },
+        },
+        statusHistory: [],
+        reviews: [],
+      },
+    ]);
+
+    const req: any = {
+      query: {
+        periodMode: "CUSTOM",
+        startDate: "2023-03-01",
+        endDate: "2023-03-31",
+      },
+    };
+    const res = createResponseMock();
+
+    await getReportSubmissionsHandler(req, res as any, jest.fn());
+
+    expect(res.status).not.toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({
+      totalCount: 0,
+      page: 1,
+      pageSize: 20,
+      items: [],
     });
   });
 });

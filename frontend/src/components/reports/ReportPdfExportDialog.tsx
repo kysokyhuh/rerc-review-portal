@@ -1,4 +1,5 @@
 import type { ReportPdfSection } from "@/utils/reportPdfExport";
+import { getReportPdfPageKinds, REPORT_PDF_RECORDS_PER_PAGE } from "@/utils/reportPdfExport";
 
 export type ReportPdfPreset = "executive" | "summary" | "full" | "custom";
 
@@ -16,6 +17,7 @@ type ReportPdfExportDialogProps = {
   selectedSections: ReportPdfSection[];
   estimatedPages: number;
   estimatedRecordCount: number;
+  previewPageKinds: ReturnType<typeof getReportPdfPageKinds>;
   exporting: boolean;
   exportDisabled: boolean;
   onClose: () => void;
@@ -80,7 +82,7 @@ const SECTION_OPTIONS: Array<{
   {
     key: "records",
     label: "Records appendix",
-    description: "Up to 100 matching submissions, 20 rows per PDF page.",
+    description: `Up to 100 matching submissions, ${REPORT_PDF_RECORDS_PER_PAGE} rows per PDF page.`,
   },
 ];
 
@@ -94,6 +96,7 @@ export default function ReportPdfExportDialog({
   selectedSections,
   estimatedPages,
   estimatedRecordCount,
+  previewPageKinds,
   exporting,
   exportDisabled,
   onClose,
@@ -105,6 +108,9 @@ export default function ReportPdfExportDialog({
 
   const selectedSet = new Set(selectedSections);
   const hasRecords = selectedSet.has("records");
+  const previewKinds = previewPageKinds.length
+    ? previewPageKinds
+    : getReportPdfPageKinds(selectedSections, estimatedRecordCount);
 
   return (
     <div className="report-export-dialog-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
@@ -192,6 +198,43 @@ export default function ReportPdfExportDialog({
             ) : null}
           </aside>
         </div>
+
+        <section className="report-export-preview" aria-label="PDF preview">
+          <div className="report-export-preview-head">
+            <div>
+              <h3>Preview</h3>
+              <p>Approximate page order and density before export.</p>
+            </div>
+            <span>{estimatedPages} {estimatedPages === 1 ? "page" : "pages"}</span>
+          </div>
+          <div className="report-export-preview-strip">
+            {previewKinds.map((kind, index) => (
+              <article key={`${kind}-${index}`} className={`report-export-preview-page preview-${kind}`}>
+                <div className="report-export-preview-paper">
+                  <span>{index + 1}</span>
+                  <strong>
+                    {kind === "executive"
+                      ? "Executive overview"
+                      : kind === "details"
+                      ? "Summary details"
+                      : kind === "comparative"
+                      ? "Comparative summary"
+                      : kind === "analytics"
+                      ? "Analytics"
+                      : "Records appendix"}
+                  </strong>
+                  <div className="report-export-preview-lines">
+                    <i />
+                    <i />
+                    <i />
+                    {kind !== "executive" ? <i /> : null}
+                    {kind === "records" ? <i /> : null}
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
 
         <footer className="report-export-dialog-footer">
           <button type="button" className="report-btn-secondary" onClick={onClose} disabled={exporting}>

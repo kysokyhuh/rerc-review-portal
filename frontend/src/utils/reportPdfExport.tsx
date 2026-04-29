@@ -6,7 +6,6 @@ import {
   AnalyticsCharts,
   ClassificationMatrix,
   OverviewTable,
-  ProponentComparativeTables,
   ReportSection,
   ReportSummaryCards,
   type AnalyticsGraphType,
@@ -31,14 +30,33 @@ type ExportReportsPdfParams = {
   records?: AnnualReportSubmissionsResponse | null;
 };
 
-const PAGE_WIDTH = 1240;
+export const REPORT_PDF_RECORDS_PER_PAGE = 12;
+
+export function getReportPdfPageKinds(
+  sections: ReportPdfSection[],
+  recordCount = 0
+): Array<"executive" | "details" | "comparative" | "analytics" | "records"> {
+  const selected = new Set(sections);
+  const pageKinds: Array<"executive" | "details" | "comparative" | "analytics" | "records"> = [];
+  if (selected.has("executive")) pageKinds.push("executive");
+  if (selected.has("overview") || selected.has("matrix")) pageKinds.push("details");
+  if (selected.has("comparative")) pageKinds.push("comparative");
+  if (selected.has("analytics")) pageKinds.push("analytics");
+  if (selected.has("records")) {
+    const recordPages = Math.max(1, Math.ceil(Math.max(recordCount, 1) / REPORT_PDF_RECORDS_PER_PAGE));
+    for (let index = 0; index < recordPages; index += 1) pageKinds.push("records");
+  }
+  return pageKinds.length ? pageKinds : ["executive"];
+}
+
+const PAGE_WIDTH = 820;
 const EXPORT_BG = "#f4f7f5";
 const CAPTURE_SCALE = 1.15;
-const RECORDS_PER_EXPORT_PAGE = 20;
 
 const pageStyle: CSSProperties = {
   width: `${PAGE_WIDTH}px`,
-  padding: "24px",
+  minHeight: "1160px",
+  padding: "28px",
   background: EXPORT_BG,
   boxSizing: "border-box",
 };
@@ -98,6 +116,39 @@ const computeOverviewInsight = (summary: AnnualReportSummaryResponse) => {
   };
 };
 
+function SimpleSummaryCards({ summary }: { summary: AnnualReportSummaryResponse }) {
+  const cards = [
+    { label: "Received", value: summary.summaryCounts.received },
+    { label: "Exempt", value: summary.summaryCounts.exempted },
+    { label: "Expedited", value: summary.summaryCounts.expedited },
+    { label: "Full review", value: summary.summaryCounts.fullReview },
+    { label: "Withdrawn", value: summary.summaryCounts.withdrawn },
+  ];
+  const categories = [
+    { label: "Undergraduate", value: summary.summaryCounts.byProponentCategory.UNDERGRAD },
+    { label: "Graduate", value: summary.summaryCounts.byProponentCategory.GRAD },
+    { label: "Faculty", value: summary.summaryCounts.byProponentCategory.FACULTY },
+    { label: "Non-teaching / Staff", value: summary.summaryCounts.byProponentCategory.NON_TEACHING },
+  ];
+
+  return (
+    <section className="report-export-simple-grid">
+      {cards.map((card) => (
+        <article key={card.label} className="report-export-simple-card">
+          <span>{card.label}</span>
+          <strong>{card.value.toLocaleString("en-US")}</strong>
+        </article>
+      ))}
+      {categories.map((category) => (
+        <article key={category.label} className="report-export-simple-card muted">
+          <span>{category.label}</span>
+          <strong>{category.value.toLocaleString("en-US")}</strong>
+        </article>
+      ))}
+    </section>
+  );
+}
+
 function ExportHeader({
   summary,
   selectionSummary,
@@ -149,7 +200,7 @@ function OverviewBand({
     : "Closed reporting period";
 
   return (
-    <section className="portal-summary reports-overview-band">
+    <section className="portal-summary reports-overview-band report-export-overview-band">
       <article className="reports-overview-callout">
         <span className="section-kicker">Overview</span>
         <h2>{overviewInsight.title}</h2>
@@ -213,8 +264,8 @@ function PdfExportDocument({
   ];
   const recordItems = records?.items ?? [];
   const recordPages: Array<typeof recordItems> = [];
-  for (let index = 0; index < recordItems.length; index += RECORDS_PER_EXPORT_PAGE) {
-    recordPages.push(recordItems.slice(index, index + RECORDS_PER_EXPORT_PAGE));
+  for (let index = 0; index < recordItems.length; index += REPORT_PDF_RECORDS_PER_PAGE) {
+    recordPages.push(recordItems.slice(index, index + REPORT_PDF_RECORDS_PER_PAGE));
   }
 
   return (
@@ -247,6 +298,7 @@ function PdfExportDocument({
                 title="Overview table"
                 subtitle="High-level totals for the current report scope."
               >
+                <SimpleSummaryCards summary={summary} />
                 <OverviewTable
                   title="Current report scope"
                   rows={summary.overviewTable.rows}
@@ -282,15 +334,46 @@ function PdfExportDocument({
           />
           <div className="reports-view portal-content">
             <ReportSection
-              title="Comparative breakdown"
-              subtitle="Detailed comparative tables by proponent category."
+              title="Comparative breakdown summary"
+              subtitle="Category totals are shown here. Use the website for expanded row-level comparative tables."
             >
-              <ProponentComparativeTables
-                tables={summary.comparativeByProponent}
-                selectedAy={summary.selection.ay}
-                selectedCategory={summary.selection.category}
-                selectedReviewType={summary.selection.reviewType}
-              />
+              <div className="report-export-comparative-grid">
+                {summary.comparativeByProponent.map((table) => {
+                  const totals = [
+                    {
+                      label: "Exempted",
+                      value: Object.values(table.totals.exempted).reduce((sum, value) => sum + value, 0),
+                    },
+                    {
+                      label: "Expedited",
+                      value: Object.values(table.totals.expedited).reduce((sum, value) => sum + value, 0),
+                    },
+                    {
+                      label: "Full review",
+                      value: Object.values(table.totals.fullReview).reduce((sum, value) => sum + value, 0),
+                    },
+                    {
+                      label: "Withdrawn",
+                      value: Object.values(table.totals.withdrawn).reduce((sum, value) => sum + value, 0),
+                    },
+                  ];
+                  const total = totals.reduce((sum, item) => sum + item.value, 0);
+                  return (
+                    <article key={table.category} className="report-export-comparative-card">
+                      <span className="section-kicker">{formatLabel(table.category)}</span>
+                      <strong>{total.toLocaleString("en-US")} total submissions</strong>
+                      <p>{table.rows.length.toLocaleString("en-US")} units across {table.years.length} year columns</p>
+                      <div>
+                        {totals.map((item) => (
+                          <span key={item.label}>
+                            {item.label}: <strong>{item.value.toLocaleString("en-US")}</strong>
+                          </span>
+                        ))}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
             </ReportSection>
           </div>
         </div>
@@ -355,7 +438,6 @@ function PdfExportDocument({
                       <th>College / Unit</th>
                       <th>Review path</th>
                       <th>Status</th>
-                      <th>Received</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -367,7 +449,6 @@ function PdfExportDocument({
                         <td>{item.college}</td>
                         <td>{formatLabel(item.reviewType)}</td>
                         <td>{formatLabel(item.status)}</td>
-                        <td>{formatDate(item.receivedDate)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -428,7 +509,7 @@ export async function exportReportsPdf({
     if (pages.length === 0) {
       throw new Error("Select at least one section to export.");
     }
-    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const pdfWidth = doc.internal.pageSize.getWidth();
     const pdfHeight = doc.internal.pageSize.getHeight();
     const margin = 8;

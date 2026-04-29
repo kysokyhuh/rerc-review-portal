@@ -31,7 +31,12 @@ import {
   type ReportsAcademicYearsResponse,
 } from "@/services/api";
 import { getErrorMessage } from "@/utils";
-import { exportReportsPdf, type ReportPdfSection } from "@/utils/reportPdfExport";
+import {
+  REPORT_PDF_RECORDS_PER_PAGE,
+  exportReportsPdf,
+  getReportPdfPageKinds,
+  type ReportPdfSection,
+} from "@/utils/reportPdfExport";
 import "../styles/reports.css";
 
 const parseTerm = (value: string | null): "ALL" | 1 | 2 | 3 => {
@@ -164,7 +169,6 @@ const REVIEW_TYPE_LABELS: Record<ReportsDraftFilters["reviewType"], string> = {
 };
 
 const RECORDS_EXPORT_PAGE_SIZE = 100;
-const RECORDS_PER_PDF_PAGE = 20;
 
 const formatRangeDate = (value: string) => {
   const parsed = new Date(value);
@@ -835,10 +839,19 @@ export default function ReportsPage() {
     if (selected.has("analytics")) count += 1;
     if (selected.has("records")) {
       const boundedRecords = Math.min(Math.max(estimatedPdfRecordCount, 1), RECORDS_EXPORT_PAGE_SIZE);
-      count += Math.max(1, Math.ceil(boundedRecords / RECORDS_PER_PDF_PAGE));
+      count += Math.max(1, Math.ceil(boundedRecords / REPORT_PDF_RECORDS_PER_PAGE));
     }
     return Math.max(1, count);
   }, [estimatedPdfRecordCount, selectedPdfSections]);
+
+  const previewPageKinds = useMemo(
+    () =>
+      getReportPdfPageKinds(
+        selectedPdfSections,
+        Math.min(Math.max(estimatedPdfRecordCount, 1), RECORDS_EXPORT_PAGE_SIZE)
+      ),
+    [estimatedPdfRecordCount, selectedPdfSections]
+  );
 
   const overviewInsight = useMemo(() => {
     if (!summary) return null;
@@ -1296,6 +1309,7 @@ export default function ReportsPage() {
         selectedSections={selectedPdfSections}
         estimatedPages={estimatedPdfPages}
         estimatedRecordCount={estimatedPdfRecordCount}
+        previewPageKinds={previewPageKinds}
         exporting={exportingPdf}
         exportDisabled={!summary || exportingPdf || selectedPdfSections.length === 0}
         onClose={() => {

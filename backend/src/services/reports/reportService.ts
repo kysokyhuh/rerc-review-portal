@@ -542,6 +542,8 @@ export async function resolveReportFallbackRange(): Promise<ReportFallbackRange 
       receivedDate: true,
       project: {
         select: {
+          deletedAt: true,
+          purgedAt: true,
           protocolProfile: {
             select: {
               dateOfSubmission: true,
@@ -553,6 +555,7 @@ export async function resolveReportFallbackRange(): Promise<ReportFallbackRange 
   });
 
   const dates = submissions
+    .filter((submission) => !submission.project?.deletedAt && !submission.project?.purgedAt)
     .map((submission) => resolveReportReceivedDate(submission))
     .filter((value): value is Date => value instanceof Date && !Number.isNaN(value.getTime()));
 
@@ -704,6 +707,8 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
       project: {
         select: {
           id: true,
+          deletedAt: true,
+          purgedAt: true,
           projectCode: true,
           title: true,
           proponent: true,
@@ -741,6 +746,8 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
   });
 
   return submissions.filter((submission) => {
+    if (submission.project?.deletedAt || submission.project?.purgedAt) return false;
+
     const effectiveReceivedDate = resolveReportReceivedDate(submission);
     if (!effectiveReceivedDate) return false;
     const matchedWindow = findReportWindowForDate(termWindows, effectiveReceivedDate);
