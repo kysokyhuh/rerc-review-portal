@@ -1,252 +1,339 @@
-# rerc-review-portal
+# RERC Review Portal
 
-Web-based Research Ethics Review Committee (RERC) system for managing projects, submissions, reviews, and mail-merge letters.
+RERC Review Portal is a web-based research ethics review management system for tracking protocols, submissions, review workflows, reviewer assignments, documents, reports, and administrative account approvals.
+
+The application is built as a React/Vite single-page app served by an Express API. PostgreSQL is managed through Prisma migrations, with Render and Neon supported as the primary free-tier deployment path.
+
+## Contents
+
+- [Features](#features)
+- [Architecture](#architecture)
+- [Prerequisites](#prerequisites)
+- [Environment Variables](#environment-variables)
+- [Local Setup](#local-setup)
+- [Development](#development)
+- [Database Operations](#database-operations)
+- [Testing and Build Checks](#testing-and-build-checks)
+- [Deployment](#deployment)
+- [Operational Notes](#operational-notes)
+- [Project Structure](#project-structure)
+
+## Features
+
+- Protocol and submission tracking with status-driven workflows
+- Chair, Research Associate, Research Assistant, reviewer, and administrator roles
+- Signup approval flow managed by Chair/Admin users
+- Secure cookie-based authentication with forced password-change support
+- Classification controls, reviewer assignments, SLA tracking, reminders, and history logs
+- CSV import tooling for project data
+- Mail merge and letter generation support
+- Reports, archives, Recently Deleted, and soft-delete recovery workflows
+- Render free-tier cold-start handling through liveness/readiness endpoints
+
+## Architecture
+
+| Layer | Technology | Notes |
+| --- | --- | --- |
+| Frontend | React 18, Vite, TypeScript | SPA built into `frontend/dist` |
+| Backend | Express 5, TypeScript | Serves API routes and the production frontend bundle |
+| Database | PostgreSQL | Prisma ORM and forward-only migrations |
+| Auth | JWT cookies | Access/refresh secrets configured by environment |
+| Testing | Jest, Supertest | Backend API/unit/integration tests |
+| Deployment | Render Web Service | Single-origin deployment for frontend and API |
+
+In production, the backend serves the compiled frontend from `frontend/dist`. This keeps the app same-origin, which is important for cookie-based auth on free hosting.
 
 ## Prerequisites
 
-- **Node.js 20+** — `node -v`
-- **npm 10+** — `npm -v`
-- **PostgreSQL 15+** (local or Neon free tier) — `psql --version`
+- Node.js 20 or newer
+- npm 10 or newer
+- PostgreSQL 15 or newer, or a hosted PostgreSQL database such as Neon
+
+Check your local versions:
+
+```bash
+node -v
+npm -v
+psql --version
+```
 
 ## Environment Variables
 
-Copy the example file and fill in real values:
+Create the backend environment file from the example:
 
 ```bash
 cp .env.example backend/.env
 ```
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `DATABASE_URL` | **Yes** | — | PostgreSQL connection string. For the first Render + Neon deploy, use the direct Neon URL. |
-| `JWT_ACCESS_SECRET` | **Yes** | — | 48-byte hex string for access tokens |
-| `JWT_REFRESH_SECRET` | **Yes** | — | 48-byte hex string for refresh tokens |
-| `JWT_ISSUER` | No | `urerb-review-portal` | JWT issuer claim |
-| `JWT_AUDIENCE` | No | `urerb-review-portal-users` | JWT audience claim |
-| `PORT` | No | `3000` | Backend HTTP port |
-| `NODE_ENV` | No | `development` | `development` or `production` |
-| `DEV_HEADER_AUTH` | No | `false` | Enables `x-user-*` debug headers only in local development/test |
-| `CORS_ORIGINS` | No | `http://localhost:5173` | Comma-separated allowed origins |
-| `VITE_API_URL` | No | `http://localhost:3000` | Frontend → API base URL (build-time) |
-| `SEED_CHAIR_PASSWORD` | No | `changeme123` | Seed password for `chair@urerb.com` |
-| `SEED_ASSOC_PASSWORD` | No | `changeme123` | Seed password for `assoc@urerb.com` |
-| `SEED_ASSIST_PASSWORD` | No | `changeme123` | Seed password for `assist@urerb.com` |
+Required production variables:
 
-Generate JWT secrets:
+| Variable | Required | Description |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | PostgreSQL connection string. Use a direct Neon URL for migrations. |
+| `JWT_ACCESS_SECRET` | Yes | Secret for access-token signing. |
+| `JWT_REFRESH_SECRET` | Yes | Secret for refresh-token signing. |
+| `APP_BASE_URL` | Recommended | Public app URL, for example `https://rerc-review-portal.onrender.com`. |
+| `CORS_ORIGINS` | Recommended | Comma-separated allowed browser origins. For same-origin Render deploys, use the public app URL. |
+
+Common optional variables:
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `PORT` | `3000` | Backend HTTP port. |
+| `NODE_ENV` | `development` | Use `production` in deployed environments. |
+| `JWT_ISSUER` | `urerb-review-portal` | JWT issuer claim. |
+| `JWT_AUDIENCE` | `urerb-review-portal-users` | JWT audience claim. |
+| `VITE_API_URL` | local API or current origin | Frontend API base URL. In same-origin production this can be omitted. |
+| `DEV_HEADER_AUTH` | `false` | Enables local/test-only debug auth headers. Do not enable in production. |
+| `IMPORT_MAX_ROWS` | `5000` | Maximum rows per CSV import. |
+| `IMPORT_BATCH_SIZE` | `250` | CSV import batch size. |
+| `SEED_CHAIR_PASSWORD` | `changeme123` | Seed password for the Chair account. |
+| `SEED_ASSOC_PASSWORD` | `changeme123` | Seed password for the Research Associate account. |
+| `SEED_ASSIST_PASSWORD` | `changeme123` | Seed password for the Research Assistant account. |
+
+Generate strong JWT secrets:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 ```
 
-## MVP Auth Flow
+## Local Setup
 
-The current MVP uses simple password auth plus chair review:
-
-1. A user signs up with first name, last name, email, password, and confirm password.
-2. The backend creates the account as `PENDING` and inactive.
-3. A `CHAIR` reviews the request and can approve, reject, disable, enable, or assign the final role.
-4. Only `APPROVED` + active users can sign in.
-5. Password recovery is internal-only in this MVP: `CHAIR` and `ADMIN` can set a temporary password, and the user is forced to change it on next login.
-
-## Setup
-
-### Quick start (repo root)
+Install dependencies from the repository root:
 
 ```bash
 npm install
 npm run install:all
+```
+
+Generate the Prisma client, apply migrations, and seed base users:
+
+```bash
 npm run db:generate
 npm run db:migrate
+npm run db:seed
+```
+
+Start the full local stack:
+
+```bash
 npm run dev
 ```
 
-This starts:
+Default local URLs:
 
-- Backend: http://localhost:3000
-- Frontend: http://localhost:5173
+| Service | URL |
+| --- | --- |
+| Frontend | `http://localhost:5173` |
+| Backend API | `http://localhost:3000` |
+| Health | `http://localhost:3000/health` |
+| Liveness | `http://localhost:3000/live` |
+| Readiness | `http://localhost:3000/ready` |
 
-### Step-by-step
+Seeded accounts:
 
-```bash
-# 1. Backend
-cd backend && npm install
-npm run setup          # pushes DB schema + seeds demo users
-
-# 2. Frontend
-cd ../frontend && npm install
-
-# 3. Shared package (optional)
-cd ../packages/shared && npm install
-```
-
-### Default login credentials
-
-After running `npm run setup`, the following accounts are seeded:
-
-| Email | Password Env | Role |
+| Email | Role | Password source |
 | --- | --- | --- |
-| chair@urerb.com | `SEED_CHAIR_PASSWORD` | Chair |
-| assoc@urerb.com | `SEED_ASSOC_PASSWORD` | Research Associate |
-| assist@urerb.com | `SEED_ASSIST_PASSWORD` | Research Assistant |
+| `chair@urerb.com` | Chair | `SEED_CHAIR_PASSWORD` |
+| `assoc@urerb.com` | Research Associate | `SEED_ASSOC_PASSWORD` |
+| `assist@urerb.com` | Research Assistant | `SEED_ASSIST_PASSWORD` |
+
+If seed password variables are not set, each account defaults to `changeme123`.
 
 ## Development
 
-### Option A: Two terminals (recommended)
+Run frontend and backend together:
 
 ```bash
-# Terminal 1 — Backend
-cd backend && npm run dev
-
-# Terminal 2 — Frontend
-cd frontend && npm run dev
+npm run dev
 ```
 
-### Option B: Single command
+Or run them separately:
 
 ```bash
-npm run dev    # uses concurrently
+npm run dev:backend
+npm run dev:frontend
 ```
 
-### Quick checks
-
-- Backend health: http://localhost:3000/health
-- Frontend: http://localhost:5173
-
-### Lint & typecheck
+Useful package-level commands:
 
 ```bash
-# Frontend
-cd frontend && npm run lint && npx tsc --noEmit
-
-# Backend
-cd backend && npx tsc --noEmit && npm test
+npm --prefix backend run dev
+npm --prefix frontend run dev
+npm --prefix backend run seed
+npm --prefix frontend run lint
 ```
 
-## CI/CD
+## Database Operations
 
-GitHub Actions runs on every push/PR to `main` (see `.github/workflows/ci.yml`):
+Generate Prisma client:
 
-| Job | Steps |
-|-----|-------|
-| **backend** | Install → Prisma generate → TypeScript check → Build → Test |
-| **frontend** | Install → TypeScript check → Lint → Vite build |
+```bash
+npm run db:generate
+```
 
-## Deploy a Free Test Environment
+Apply committed migrations:
 
-The safest first live test for this repo is:
+```bash
+npm run db:migrate
+```
 
-- **Neon Free** for PostgreSQL
-- **Render Static Site** for the frontend
-- **Render Web Service** for the backend
+Seed base data:
 
-Do not use Cloudflare Pages for the first test run. The app currently uses secure cookie auth with `SameSite=Lax`, so a frontend on `*.pages.dev` talking to an API on `*.onrender.com` is a cross-site setup that is likely to break auth cookies.
+```bash
+npm run db:seed
+```
 
-### 1. Database — Neon
+Seed or repair academic terms only:
 
-1. Create a free project at [neon.tech](https://neon.tech)
-2. Copy the **direct** PostgreSQL connection string
-3. Use that direct URL as `DATABASE_URL` for this first Render test deploy
+```bash
+npm --prefix backend run seed:academic-terms
+```
 
-### 2. Frontend + Backend — Render
+Run the admin soft-delete fallback from a machine with `DATABASE_URL` configured:
 
-1. In Render, create a **Blueprint** from this repo so Render reads [`render.yaml`](./render.yaml)
-2. The blueprint creates:
-   - `rerc-web` — static frontend
-   - `rerc-api` — Node/Express backend
-3. Initial environment setup:
-   - `rerc-web`
-     - `VITE_API_URL` — set a temporary value such as `https://placeholder.invalid` for the first deploy
-   - `rerc-api`
-     - `DATABASE_URL` — Neon direct connection string
-     - `CORS_ORIGINS` — set this after the frontend URL exists
-     - `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` — auto-generated by `render.yaml`
-     - `JWT_ISSUER` / `JWT_AUDIENCE` — set by `render.yaml`
-4. Render settings already included in the blueprint:
-   - frontend build: `cd frontend && npm ci && npm run build`
-   - frontend publish dir: `frontend/dist`
-   - frontend SPA rewrite: `/* -> /index.html`
-   - backend build: `cd backend && npm ci && npx prisma generate && npm run build`
-   - backend pre-deploy migration: `cd backend && npx prisma migrate deploy`
-   - backend health check: `/health`
-   - backend region: Singapore
-5. After the first deploy completes:
-   - copy the frontend URL from `rerc-web`
-   - set `CORS_ORIGINS=<frontend URL>` on `rerc-api`
-   - copy the backend URL from `rerc-api`
-   - set `VITE_API_URL=<backend URL>` on `rerc-web`
-   - redeploy both services
+```bash
+npm --prefix backend run admin:delete-project -- --submission-id 512 --reason "Administrative cleanup" --apply
+```
 
-### 3. Seed demo data
+The admin delete script supports `--submission-id` or `--project-id`. Without `--apply`, it performs a dry run.
 
-Render does not seed this app automatically. After the backend is live, run the seed once from your local machine against the deployed Neon database:
+## Testing and Build Checks
+
+Frontend build:
+
+```bash
+npm --prefix frontend run build
+```
+
+Backend TypeScript build:
+
+```bash
+npm --prefix backend run build:server
+```
+
+Backend tests:
+
+```bash
+npm --prefix backend test
+```
+
+Targeted API test example:
+
+```bash
+npm --prefix backend test -- --runInBand backend/tests/api/healthRoutes.test.ts
+```
+
+Full production-style backend build:
+
+```bash
+npm --prefix backend run build
+```
+
+This command also installs and builds the frontend because production Express serves the compiled SPA.
+
+## Deployment
+
+The current Render blueprint deploys a single Web Service named `rerc-review-portal`.
+
+Render reads [`render.yaml`](./render.yaml), which configures:
+
+| Setting | Value |
+| --- | --- |
+| Runtime | Node |
+| Region | Singapore |
+| Plan | Free |
+| Build command | `cd backend && npm ci --include=dev && npx prisma generate && npm run build` |
+| Pre-deploy command | `cd backend && npx prisma migrate deploy` |
+| Start command | `cd backend && node dist/server.js` |
+| Health check path | `/live` |
+
+### Recommended Free-Tier Setup
+
+1. Create a Neon PostgreSQL database.
+2. Copy the direct PostgreSQL connection string.
+3. Create a Render Blueprint from this repository.
+4. Set the Render Web Service environment variables:
+   - `DATABASE_URL`
+   - `APP_BASE_URL`
+   - `CORS_ORIGINS`
+   - `JWT_ACCESS_SECRET`
+   - `JWT_REFRESH_SECRET`
+5. Let Render run the build and pre-deploy migration.
+6. Seed initial users once from your local machine:
 
 ```bash
 cd backend
-npm ci
-DATABASE_URL='<your direct Neon connection string>' npx prisma generate
-DATABASE_URL='<your direct Neon connection string>' npm run seed
+DATABASE_URL="<direct Neon connection string>" npx prisma generate
+DATABASE_URL="<direct Neon connection string>" npm run seed
 ```
 
-This seeds:
+### Render Free-Tier Behavior
 
-- `chair@urerb.com`
-- `assoc@urerb.com`
-- `assist@urerb.com`
+Render free instances spin down after inactivity. The app includes:
 
-If you did not override the seed env vars, all three default to `changeme123`.
+- `/live` for lightweight liveness checks
+- `/ready` for database readiness checks
+- frontend cold-start messaging
+- guarded retries for safe requests
+- delete/archive actions that wait for backend readiness before mutating data
 
-If reports are live but show `No academic terms configured.`, repair only the reporting calendar without reseeding users or demo data:
+Mutating requests are not blindly replayed. This prevents duplicate or stale writes during a cold start.
 
-```bash
-cd backend
-npm ci
-DATABASE_URL='<your direct Neon connection string>' npx prisma generate
-DATABASE_URL='<your direct Neon connection string>' npm run seed:academic-terms
-```
+## Operational Notes
 
-### MVP Auth Checklist
+### Auth and Account Approval
 
-Before go-live:
+1. New users sign up with basic profile and password fields.
+2. Accounts are created as pending and inactive.
+3. Chair/Admin users approve, reject, enable, disable, or assign roles.
+4. Only approved and active accounts can sign in.
+5. Admin password resets can force the user through `/change-password`.
 
-1. Sign up a new user and confirm the account is created as pending.
-2. Approve that user from the chair account and assign the final role.
-3. Confirm pending, rejected, disabled, and inactive accounts all fail login with the same public message.
-4. Reset an approved user's password from the admin account-management screen and confirm the next login is forced through `/change-password`.
+### Recently Deleted
 
-### Cold-start behavior
+Deleting a protocol soft-deletes the project and moves it to Recently Deleted for 30 days. During that window:
 
-Render free tier sleeps after 15 minutes of inactivity. On the first request after sleeping:
+- the protocol is read-only
+- users can restore it from Recently Deleted
+- expired deleted records can be purged by the backend logic
+- the admin delete script can be used as a database-level fallback when the free-tier web service is unavailable
 
-- The API client automatically retries up to 3 times with backoff (1.5s, 3s, 6s)
-- A toast notification ("Server waking up...") appears in the UI
-- The toast auto-dismisses once the server responds
+### CSV Imports
+
+CSV imports are handled by the backend in validated batches. Import limits are controlled by the `IMPORT_*` environment variables. Imported records become normal database records and are still managed through the same project, submission, delete, restore, and reporting workflows.
 
 ### Rollback
 
-- **Render Static Site / Web Service**: redeploy a previous successful deployment from the dashboard
-- **Database**: Prisma migrations are forward-only; keep migration SQL in repo for manual revert
+- Application rollback: redeploy a previous successful Render deploy.
+- Database rollback: Prisma migrations are forward-only. Write a new corrective migration or perform a controlled manual database repair.
+- Data repair: prefer targeted scripts in `backend/src/scripts` over ad hoc database edits.
 
 ## Project Structure
 
-```
-├── backend/           Express + Prisma API
-│   ├── prisma/        Schema & migrations
-│   ├── src/
-│   │   ├── config/    Database, logger, seeding
-│   │   ├── middleware/ Auth, validation, error handling
-│   │   ├── routes/    Thin controllers
-│   │   ├── services/  Business logic
-│   │   └── schemas/   Zod validation schemas
-│   └── tests/         Jest tests (unit, integration, API)
-├── frontend/          React + Vite SPA
-│   └── src/
-│       ├── components/ Reusable UI (dashboard/, submission/, etc.)
-│       ├── hooks/      TanStack Query hooks
-│       ├── pages/      Route-level components
-│       ├── services/   API client (Axios + interceptors)
-│       └── types/      TypeScript interfaces
-├── packages/shared/   Shared types & utilities
-├── .github/workflows/ CI pipeline
-├── render.yaml        Render deployment blueprint
-└── .env.example       Environment variable reference
+```text
+.
+|-- backend/
+|   |-- prisma/                 Prisma schema and migrations
+|   |-- src/
+|   |   |-- config/             Database, logger, auth, seed configuration
+|   |   |-- middleware/         Auth, CSRF, validation, rate limits, errors
+|   |   |-- routes/             Express route modules
+|   |   |-- schemas/            Zod request schemas
+|   |   |-- scripts/            Operational and repair scripts
+|   |   `-- services/           Business logic
+|   `-- tests/                  Jest tests
+|-- frontend/
+|   `-- src/
+|       |-- components/         Reusable UI components
+|       |-- contexts/           React context providers
+|       |-- hooks/              Data and UI hooks
+|       |-- pages/              Route-level pages
+|       |-- services/           Axios API client
+|       |-- styles/             CSS modules and global styles
+|       `-- types/              Frontend TypeScript interfaces
+|-- packages/shared/            Shared package placeholder
+|-- render.yaml                 Render deployment blueprint
+|-- .env.example                Environment reference
+`-- package.json                Root development scripts
 ```
