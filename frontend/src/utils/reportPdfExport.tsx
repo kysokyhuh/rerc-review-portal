@@ -432,12 +432,12 @@ function AnalyticsPerformancePage({
       <div className="reports-view portal-content">
         <ReportSection
           title="Performance"
-          subtitle={`Separated analytics page for turnaround, SLA, and workflow metrics. Current graph setting: ${graphLabel}.`}
+          subtitle={`Separated analytics page for turnaround, Service Level Agreement (SLA), and workflow metrics. Current graph setting: ${graphLabel}.`}
         >
           <ExportStatCards items={averageCards} />
           <div className="report-export-analytics-grid">
             <article className="report-export-analytics-card wide">
-              <h4>SLA compliance by stage</h4>
+              <h4>Service Level Agreement (SLA) compliance by stage</h4>
               <p>Completed and still-open stages measured against the configured committee SLA.</p>
               <ExportStackedRows items={slaRows} />
             </article>

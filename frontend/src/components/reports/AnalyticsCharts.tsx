@@ -1132,7 +1132,7 @@ export default function AnalyticsCharts({
           {performanceFocus === "sla" ? (
             <section className="chart-card chart-card-wide">
               <ChartHeading
-                title="SLA compliance by stage"
+                title="Service Level Agreement (SLA) compliance by stage"
                 description="Includes completed and still-open stages measured against the configured committee SLA."
                 requestedGraph={graphType}
                 effectiveGraph={slaGraph}
