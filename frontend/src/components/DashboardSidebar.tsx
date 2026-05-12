@@ -4,6 +4,7 @@ import type { QueueCounts } from "@/types";
 import { BRAND } from "@/config/branding";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/services/api";
+import { getPrimaryRoleLabel, getRoleCapabilities } from "@/utils/roleUtils";
 
 type DashboardSidebarProps = {
   counts: QueueCounts | null;
@@ -42,19 +43,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
   const [pendingApprovalCount, setPendingApprovalCount] = useState(0);
 
   const roles = user?.roles ?? [];
-  const canOperate = roles.includes("CHAIR") || roles.includes("RESEARCH_ASSOCIATE");
-  const isChair = roles.includes("CHAIR");
-  const isAdmin = roles.includes("ADMIN");
-  const primaryRole = roles[0] || "";
-
-  const roleLabelMap: Record<string, string> = {
-    CHAIR: "Chair",
-    ADMIN: "Admin",
-    RESEARCH_ASSOCIATE: "Research Associate",
-    RESEARCH_ASSISTANT: "Research Assistant",
-  };
-
-  const roleLabel = roleLabelMap[primaryRole] || "User";
+  const capabilities = getRoleCapabilities(roles);
+  const roleLabel = getPrimaryRoleLabel(roles);
   const displayName = user?.fullName?.trim() || "User";
   const sidebarTaglineSource =
     typeof BRAND.tagline === "string" && BRAND.tagline.trim().length > 0
@@ -63,7 +53,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
   const sidebarTagline = sidebarTaglineSource.replace(/\s+Portal$/i, "");
 
   useEffect(() => {
-    if (!isChair) {
+    if (!capabilities.isChair) {
       return;
     }
 
@@ -89,7 +79,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
     return () => {
       mounted = false;
     };
-  }, [isChair]);
+  }, [capabilities.isChair]);
 
   return (
     <aside className="dashboard-sidebar">
@@ -122,11 +112,11 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
                 }
               />
             </NavLink>
-            {isChair || isAdmin ? (
+            {capabilities.canAdministerAccounts ? (
               <NavLink to="/admin/account-management" className={navClassName}>
                 <SidebarItemContent
                   label="Account Management"
-                  badge={isChair ? pendingApprovalCount : undefined}
+                  badge={capabilities.isChair ? pendingApprovalCount : undefined}
                   badgeTone="warning"
                   icon={
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -165,7 +155,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
                 }
               />
             </NavLink>
-            {canOperate ? (
+            {capabilities.canOperateProtocols ? (
               <NavLink to="/queues/exempted" className={navClassName}>
                 <SidebarItemContent
                   label="Exempted"
@@ -198,7 +188,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
         <div className="nav-section">
           <div className="nav-section-title">Tools</div>
           <div className="nav-section-items">
-            {canOperate ? (
+            {capabilities.canCreateProtocol ? (
               <button className="nav-item" type="button" onClick={() => navigate("/projects/new")}>
                 <SidebarItemContent
                   label="New Protocol"
@@ -211,7 +201,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
                 />
               </button>
             ) : null}
-            {canOperate ? (
+            {capabilities.canImportProjects ? (
               <NavLink to="/imports/projects" className={navClassName}>
                 <SidebarItemContent
                   label="Import CSV"
@@ -226,7 +216,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
                 />
               </NavLink>
             ) : null}
-            {canOperate ? (
+            {capabilities.canGenerateReports ? (
               <NavLink to="/reports" className={navClassName}>
                 <SidebarItemContent
                   label="Reports"
@@ -238,19 +228,21 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
                 />
               </NavLink>
             ) : null}
-            <NavLink to="/archives" className={navClassName}>
-              <SidebarItemContent
-                label="Archives"
-                icon={
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 8v13H3V8" />
-                    <path d="M1 3h22v5H1z" />
-                    <path d="M10 12h4" />
-                  </svg>
-                }
-              />
-            </NavLink>
-            {user?.roles.some((role) => role === "CHAIR" || role === "ADMIN") ? (
+            {capabilities.canViewArchives ? (
+              <NavLink to="/archives" className={navClassName}>
+                <SidebarItemContent
+                  label="Archives"
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 8v13H3V8" />
+                      <path d="M1 3h22v5H1z" />
+                      <path d="M10 12h4" />
+                    </svg>
+                  }
+                />
+              </NavLink>
+            ) : null}
+            {capabilities.canViewRecentlyDeleted ? (
               <NavLink to="/recently-deleted" className={navClassName}>
                 <SidebarItemContent
                   label="Recently Deleted"
@@ -264,17 +256,19 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
                 />
               </NavLink>
             ) : null}
-            <NavLink to="/calendar" className={navClassName}>
-              <SidebarItemContent
-                label="Calendar"
-                icon={
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" />
-                    <path d="M16 2v4M8 2v4M3 10h18" />
-                  </svg>
-                }
-              />
-            </NavLink>
+            {capabilities.canManageCalendar ? (
+              <NavLink to="/calendar" className={navClassName}>
+                <SidebarItemContent
+                  label="Calendar"
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" />
+                      <path d="M16 2v4M8 2v4M3 10h18" />
+                    </svg>
+                  }
+                />
+              </NavLink>
+            ) : null}
           </div>
         </div>
       </nav>

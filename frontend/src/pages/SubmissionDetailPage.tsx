@@ -39,6 +39,7 @@ import type { OverviewFormState } from "@/components/submission";
 import type { CommitteeSummary, ProtocolMilestone, SubmissionDetail } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { getErrorData, getErrorMessage } from "@/utils";
+import { getRoleCapabilities } from "@/utils/roleUtils";
 
 type ClassificationStatusStage =
   | "AWAITING_CLASSIFICATION"
@@ -434,13 +435,13 @@ export const SubmissionDetailPage: React.FC = () => {
     }
   };
 
-  const isChair = Boolean(user?.roles?.includes("CHAIR"));
+  const capabilities = getRoleCapabilities(user?.roles ?? []);
   const canDeleteProtocol = Boolean(
     projectId &&
       !isProjectDeleted &&
       user?.roles?.some((role) => role === "CHAIR" || role === "ADMIN")
   );
-  const canManageClassification = isChair;
+  const canManageClassification = capabilities.canManageClassification;
   const currentStatus = normalizeClassificationStatus(submission?.status ?? "CLASSIFIED");
   const currentReviewType = REVIEW_TYPE_OPTIONS.includes(
     (submission?.classification?.reviewType ?? "") as
@@ -685,6 +686,7 @@ export const SubmissionDetailPage: React.FC = () => {
         saving={saving} saveError={saveError}
         formState={formState} setFormState={setFormState}
         onEditStart={handleEditStart} onEditCancel={handleEditCancel} onSave={handleSave}
+        canEdit={capabilities.canEditSubmissionOverview}
       />
 
       <section className="card detail-card">
@@ -781,12 +783,14 @@ export const SubmissionDetailPage: React.FC = () => {
         profileForm={profileForm} setProfileForm={setProfileForm}
         onEdit={() => setProfileEditing(true)} onSave={handleProfileSave}
         onCancel={() => setProfileEditing(false)}
+        canEdit={capabilities.canEditProtocolProfile}
       >
         <MilestoneTable
           milestones={milestones} setMilestones={setMilestones}
           newMilestoneLabel={newMilestoneLabel} setNewMilestoneLabel={setNewMilestoneLabel}
           onAddMilestone={handleAddMilestone} onLoadStandardTimeline={handleLoadStandardTimeline}
           onSaveMilestone={handleMilestoneSave} onDeleteMilestone={handleMilestoneDelete}
+          canEdit={capabilities.canEditProtocolProfile}
         />
       </ProtocolProfileSection>
 

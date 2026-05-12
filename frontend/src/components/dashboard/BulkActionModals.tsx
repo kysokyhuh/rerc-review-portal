@@ -8,6 +8,8 @@ import {
   fetchReviewerCandidates,
   waitForBackendReady,
 } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { getRoleCapabilities } from "@/utils/roleUtils";
 import type {
   BulkActionResponse,
   BulkProjectDeleteResponse,
@@ -98,6 +100,10 @@ const REASON_REQUIRED_ACTIONS = new Set<BulkStatusAction>([
 ]);
 
 const REVIEWER_REQUIRED_MESSAGE = "Select a reviewer before assigning this batch.";
+const CHAIR_ONLY_STATUS_ACTIONS = new Set<BulkStatusAction>([
+  "MOVE_TO_UNDER_CLASSIFICATION",
+  "MARK_CLASSIFIED",
+]);
 
 const selectionPreview = (selectedItems: DecoratedQueueItem[]) => {
   const codes = selectedItems
@@ -315,9 +321,15 @@ function actionAllowedForItem(
   }
 }
 
-function getStatusActionAvailability(selectedItems: DecoratedQueueItem[]) {
-  const availableActions = BULK_STATUS_ACTION_OPTIONS.filter((action) =>
-    selectedItems.every((item) => actionAllowedForItem(action.value, item))
+function getStatusActionAvailability(
+  selectedItems: DecoratedQueueItem[],
+  options?: { includeChairOnlyActions?: boolean }
+) {
+  const includeChairOnlyActions = options?.includeChairOnlyActions ?? false;
+  const availableActions = BULK_STATUS_ACTION_OPTIONS.filter(
+    (action) =>
+      (includeChairOnlyActions || !CHAIR_ONLY_STATUS_ACTIONS.has(action.value)) &&
+      selectedItems.every((item) => actionAllowedForItem(action.value, item))
   );
 
   const reasons: string[] = [];
@@ -851,9 +863,17 @@ export function ChangeStatusBulkModal({
   selectedItems,
   onApplied,
 }: BulkModalBaseProps) {
+  const { user } = useAuth();
+  const capabilities = useMemo(
+    () => getRoleCapabilities(user?.roles ?? []),
+    [user?.roles]
+  );
   const { availableActions, reasons } = useMemo(
-    () => getStatusActionAvailability(selectedItems),
-    [selectedItems]
+    () =>
+      getStatusActionAvailability(selectedItems, {
+        includeChairOnlyActions: capabilities.canManageClassification,
+      }),
+    [selectedItems, capabilities.canManageClassification]
   );
   const [action, setAction] = useState<BulkStatusAction | "">("");
   const [note, setNote] = useState("");

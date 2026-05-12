@@ -2,6 +2,7 @@ import React, { type RefObject } from "react";
 import { formatTimeAgo } from "./utils";
 import type { ProjectSearchResult } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { getPrimaryRoleLabel } from "@/utils/roleUtils";
 
 interface DashboardTopBarProps {
   greeting: string;
@@ -36,13 +37,7 @@ export function DashboardTopBar({
 }: DashboardTopBarProps) {
   const { user } = useAuth();
   const firstName = user?.fullName?.trim().split(/\s+/)[0] || "User";
-  const primaryRole = user?.roles?.[0] || "";
-  const roleLabelMap: Record<string, string> = {
-    CHAIR: "Chair",
-    RESEARCH_ASSOCIATE: "Research Associate",
-    RESEARCH_ASSISTANT: "Research Assistant",
-  };
-  const roleLabel = roleLabelMap[primaryRole] || "User";
+  const roleLabel = getPrimaryRoleLabel(user?.roles ?? []);
 
   return (
     <div className="dashboard-topbar">

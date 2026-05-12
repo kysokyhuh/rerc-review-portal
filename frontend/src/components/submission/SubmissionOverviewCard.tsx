@@ -22,12 +22,14 @@ interface SubmissionOverviewCardProps {
   onEditStart: () => void;
   onEditCancel: () => void;
   onSave: () => void;
+  canEdit?: boolean;
 }
 
 export function SubmissionOverviewCard({
   submission, isEditing, saving, saveError,
   formState, setFormState,
   onEditStart, onEditCancel, onSave,
+  canEdit = true,
 }: SubmissionOverviewCardProps) {
   const updateField = (field: keyof OverviewFormState, value: string) =>
     setFormState((prev) => ({ ...prev, [field]: value }));
@@ -49,11 +51,11 @@ export function SubmissionOverviewCard({
                 Cancel
               </button>
             </>
-          ) : (
+          ) : canEdit ? (
             <button className="btn btn-secondary btn-sm" onClick={onEditStart}>
               ✎ Edit overview
             </button>
-          )}
+          ) : null}
         </div>
       </div>
       <div className="header-grid">

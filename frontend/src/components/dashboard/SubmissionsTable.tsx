@@ -84,6 +84,10 @@ interface SubmissionsTableProps {
   onBulkReminder: () => void;
   onBulkStatusChange: () => void;
   onBulkDelete: () => void;
+  canBulkAssignReviewers: boolean;
+  canBulkSendReminders: boolean;
+  canBulkChangeStatus: boolean;
+  canBulkDeleteRecords: boolean;
 
   tableRef: RefObject<HTMLDivElement>;
 }
@@ -132,8 +136,18 @@ export function SubmissionsTable({
   onBulkReminder,
   onBulkStatusChange,
   onBulkDelete,
+  canBulkAssignReviewers,
+  canBulkSendReminders,
+  canBulkChangeStatus,
+  canBulkDeleteRecords,
   tableRef,
 }: SubmissionsTableProps) {
+  const canSelectRows =
+    canBulkAssignReviewers ||
+    canBulkSendReminders ||
+    canBulkChangeStatus ||
+    canBulkDeleteRecords;
+
   return (
     <>
       <div className="content-grid rail-collapsed">
@@ -263,7 +277,9 @@ export function SubmissionsTable({
               <table className="data-table table-skeleton">
                 <thead>
                   <tr>
-                    <th className="table-select" scope="col"><span className="skeleton-box"></span></th>
+                    {canSelectRows ? (
+                      <th className="table-select" scope="col"><span className="skeleton-box"></span></th>
+                    ) : null}
                     <th scope="col">Submission</th>
                     <th scope="col">Stage / SLA</th>
                     <th scope="col" className="table-actions-header">Actions</th>
@@ -272,7 +288,7 @@ export function SubmissionsTable({
                 <tbody>
                   {SKELETON_ROWS.map((row) => (
                     <tr key={row} className="skeleton-row">
-                      <td><span className="skeleton-box"></span></td>
+                      {canSelectRows ? <td><span className="skeleton-box"></span></td> : null}
                       <td>
                         <div className="skeleton-line wide"></div>
                         <div className="skeleton-line"></div>
@@ -302,9 +318,11 @@ export function SubmissionsTable({
               <table className={`data-table ${loading ? "is-loading" : ""}`}>
                 <thead>
                   <tr>
-                    <th className="table-select" scope="col">
-                      <input type="checkbox" aria-label="Select all visible submissions" checked={allVisibleSelected} onChange={onToggleSelectAll} />
-                    </th>
+                    {canSelectRows ? (
+                      <th className="table-select" scope="col">
+                        <input type="checkbox" aria-label="Select all visible submissions" checked={allVisibleSelected} onChange={onToggleSelectAll} />
+                      </th>
+                    ) : null}
                     <th scope="col">Submission</th>
                     <th scope="col">Stage / SLA</th>
                     <th scope="col" className="table-actions-header">Actions</th>
@@ -321,15 +339,17 @@ export function SubmissionsTable({
                         onClick={() => onNavigate(`/submissions/${item.id}`)}
                         style={{ cursor: "pointer" }}
                       >
-                        <td>
-                          <input
-                            type="checkbox"
-                            aria-label={`Select ${item.projectCode}`}
-                            checked={selectedIds.has(item.id)}
-                            onChange={(e) => { e.stopPropagation(); onToggleSelection(item.id); }}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </td>
+                        {canSelectRows ? (
+                          <td>
+                            <input
+                              type="checkbox"
+                              aria-label={`Select ${item.projectCode}`}
+                              checked={selectedIds.has(item.id)}
+                              onChange={(e) => { e.stopPropagation(); onToggleSelection(item.id); }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </td>
+                        ) : null}
                         <td>
                           <div className="table-title">
                             {item.projectCode}
@@ -399,17 +419,25 @@ export function SubmissionsTable({
             )}
 
             {/* Bulk action bar */}
-            {selectedCount > 0 && (
+            {canSelectRows && selectedCount > 0 && (
               <div className="bulk-action-bar" role="region" aria-label="Bulk actions">
                 <div className="bulk-selection">
                   {selectedCount} selected
                   <button className="bulk-clear" type="button" onClick={onClearSelection}>Clear</button>
                 </div>
                 <div className="bulk-actions">
-                  <button className="ghost-btn" type="button" onClick={onBulkAssign}>Assign reviewers</button>
-                  <button className="ghost-btn" type="button" onClick={onBulkReminder}>Send reminders</button>
-                  <button className="ghost-btn" type="button" onClick={onBulkStatusChange}>Change status</button>
-                  <button className="ghost-btn bulk-delete-btn" type="button" onClick={onBulkDelete}>Delete selected</button>
+                  {canBulkAssignReviewers ? (
+                    <button className="ghost-btn" type="button" onClick={onBulkAssign}>Assign reviewers</button>
+                  ) : null}
+                  {canBulkSendReminders ? (
+                    <button className="ghost-btn" type="button" onClick={onBulkReminder}>Send reminders</button>
+                  ) : null}
+                  {canBulkChangeStatus ? (
+                    <button className="ghost-btn" type="button" onClick={onBulkStatusChange}>Change status</button>
+                  ) : null}
+                  {canBulkDeleteRecords ? (
+                    <button className="ghost-btn bulk-delete-btn" type="button" onClick={onBulkDelete}>Delete selected</button>
+                  ) : null}
                   <button className="primary-btn" type="button" onClick={onExportSelected}>Export selected</button>
                 </div>
               </div>

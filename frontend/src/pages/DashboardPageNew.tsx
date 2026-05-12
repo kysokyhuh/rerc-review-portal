@@ -11,6 +11,8 @@ import {
 import type { DecoratedQueueItem, ProjectSearchResult, SubmissionDetail, SubmissionSlaSummary } from "@/types";
 import { DUE_SOON_THRESHOLD } from "@/constants";
 import { BRAND } from "@/config/branding";
+import { useAuth } from "@/contexts/AuthContext";
+import { getRoleCapabilities } from "@/utils/roleUtils";
 import {
   DashboardTopBar,
   AnnouncementBanner,
@@ -52,6 +54,11 @@ type OverdueOwnerFilter =
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+  const capabilities = useMemo(
+    () => getRoleCapabilities(user?.roles ?? []),
+    [user?.roles]
+  );
 
   // ── State ──────────────────────────────────────────────
   const [greeting] = useState(getGreeting());
@@ -201,10 +208,18 @@ export const DashboardPage: React.FC = () => {
 
   // ── Bulk / export handlers ─────────────────────────────
   const handleExportFiltered = () => exportRowsToCsv(sortedItems, `submissions_export_${Date.now()}.csv`);
-  const handleBulkAssign = () => { if (selectedIds.size) setBulkModal("assign"); };
-  const handleBulkReminder = () => { if (selectedIds.size) setBulkModal("reminders"); };
-  const handleBulkStatusChange = () => { if (selectedIds.size) setBulkModal("status"); };
-  const handleBulkDelete = () => { if (selectedIds.size) setBulkModal("delete"); };
+  const handleBulkAssign = () => {
+    if (selectedIds.size && capabilities.canBulkAssignReviewers) setBulkModal("assign");
+  };
+  const handleBulkReminder = () => {
+    if (selectedIds.size && capabilities.canBulkSendReminders) setBulkModal("reminders");
+  };
+  const handleBulkStatusChange = () => {
+    if (selectedIds.size && capabilities.canBulkChangeStatus) setBulkModal("status");
+  };
+  const handleBulkDelete = () => {
+    if (selectedIds.size && capabilities.canBulkDeleteRecords) setBulkModal("delete");
+  };
   const handleExportSelected = () => {
     const rows = sortedItems.filter((r) => selectedIds.has(r.id));
     exportRowsToCsv(rows, `submissions_selected_${Date.now()}.csv`);
@@ -386,6 +401,10 @@ export const DashboardPage: React.FC = () => {
           onBulkReminder={handleBulkReminder}
           onBulkStatusChange={handleBulkStatusChange}
           onBulkDelete={handleBulkDelete}
+          canBulkAssignReviewers={capabilities.canBulkAssignReviewers}
+          canBulkSendReminders={capabilities.canBulkSendReminders}
+          canBulkChangeStatus={capabilities.canBulkChangeStatus}
+          canBulkDeleteRecords={capabilities.canBulkDeleteRecords}
           tableRef={tableRef}
         />
       </section>

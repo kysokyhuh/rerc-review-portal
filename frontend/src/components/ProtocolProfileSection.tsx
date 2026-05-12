@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import type { ProtocolProfile, UpdateProtocolProfilePayload } from "@/types";
 import { formatDateDisplay } from "@/utils/dateUtils";
 import "../styles/protocol-profile.css";
@@ -243,6 +243,7 @@ export type ProtocolProfileSectionProps = {
   onEdit: () => void;
   onSave: () => void;
   onCancel: () => void;
+  canEdit?: boolean;
   /** Optional: slot for extra content after the profile (e.g. milestones table) */
   children?: React.ReactNode;
 };
@@ -257,13 +258,16 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
   onEdit,
   onSave,
   onCancel,
+  canEdit = true,
   children,
 }) => {
   // Track which groups are open
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     PROFILE_GROUPS.forEach((g) => {
-      initial[g.name] = g.defaultOpen;
+      if (!ADDABLE_LEGACY_GROUP_NAMES.has(g.name)) {
+        initial[g.name] = g.defaultOpen;
+      }
     });
     return initial;
   });
@@ -271,40 +275,25 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
   const [legacyPickerOpen, setLegacyPickerOpen] = useState(false);
   const [legacyPickerValue, setLegacyPickerValue] = useState("");
 
-  const hasSavedValue = (group: ProfileGroup) =>
-    group.fields.some((field) => {
-      const value = profile?.[field.key as keyof ProtocolProfile];
-      return value !== null && value !== undefined && value !== "";
-    });
-
-  const autoEnabledLegacyNames = useMemo(
-    () => ADDABLE_LEGACY_GROUPS.filter((group) => hasSavedValue(group)).map((group) => group.name),
-    [profile]
-  );
-
-  useEffect(() => {
-    if (!autoEnabledLegacyNames.length) return;
-    setEnabledLegacySections((prev) => {
-      const next = { ...prev };
-      autoEnabledLegacyNames.forEach((name) => {
-        next[name] = true;
+  const autoEnabledLegacyNames = useMemo(() => {
+    const hasSavedValue = (group: ProfileGroup) =>
+      group.fields.some((field) => {
+        const value = profile?.[field.key as keyof ProtocolProfile];
+        return value !== null && value !== undefined && value !== "";
       });
-      return next;
-    });
-    setOpenGroups((prev) => {
-      const next = { ...prev };
-      autoEnabledLegacyNames.forEach((name) => {
-        next[name] = true;
-      });
-      return next;
-    });
-  }, [autoEnabledLegacyNames]);
+
+    return new Set(
+      ADDABLE_LEGACY_GROUPS
+        .filter((group) => hasSavedValue(group))
+        .map((group) => group.name)
+    );
+  }, [profile]);
 
   const visibleAddableLegacyGroups = ADDABLE_LEGACY_GROUPS.filter(
-    (group) => enabledLegacySections[group.name]
+    (group) => enabledLegacySections[group.name] || autoEnabledLegacyNames.has(group.name)
   );
   const availableLegacyGroups = ADDABLE_LEGACY_GROUPS.filter(
-    (group) => !enabledLegacySections[group.name]
+    (group) => !enabledLegacySections[group.name] && !autoEnabledLegacyNames.has(group.name)
   );
 
   const toggleGroup = (name: string) => {
@@ -367,7 +356,9 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
       onHide?: () => void;
     }
   ) => {
-    const isOpen = openGroups[group.name] ?? group.defaultOpen;
+    const isOpen =
+      openGroups[group.name] ??
+      (autoEnabledLegacyNames.has(group.name) ? true : group.defaultOpen);
     const filled = filledCount(group);
     const total = group.fields.length + (group.hasWithdrawn ? 1 : 0);
 
@@ -385,7 +376,7 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
             <span className="pp-group-name">{group.name}</span>
             <span className="pp-group-count">{filled}/{total}</span>
           </button>
-          {options?.canHide ? (
+          {options?.canHide && canEdit ? (
             <button type="button" className="btn btn-ghost btn-sm pp-hide-btn" onClick={options.onHide}>
               Hide
             </button>
@@ -491,11 +482,11 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
                 Cancel
               </button>
             </>
-          ) : (
+          ) : canEdit ? (
             <button className="btn btn-secondary btn-sm" type="button" onClick={onEdit}>
               Edit profile
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -513,14 +504,16 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
           </span>
         </div>
         <div className="pp-legacy-controls">
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => setLegacyPickerOpen((prev) => !prev)}
-            disabled={availableLegacyGroups.length === 0}
-          >
-            Add Section
-          </button>
+          {canEdit ? (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => setLegacyPickerOpen((prev) => !prev)}
+              disabled={availableLegacyGroups.length === 0}
+            >
+              Add Section
+            </button>
+          ) : null}
           {legacyPickerOpen ? (
             <select
               className="pp-field-input pp-legacy-picker"

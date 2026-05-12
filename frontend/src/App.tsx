@@ -121,7 +121,14 @@ function App() {
                   />
                   <Route path="/queues/:queueKey" element={<QueuePage />} />
                   <Route path="/holidays" element={<Navigate to="/calendar" replace />} />
-                  <Route path="/calendar" element={<CalendarPage />} />
+                  <Route
+                    path="/calendar"
+                    element={
+                      <ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE", "ADMIN"]}>
+                        <CalendarPage />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route
                     path="/admin/users"
                     element={
@@ -145,7 +152,7 @@ function App() {
                 <Route
                   path="/projects/new"
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}>
                       <NewProtocolPage />
                     </ProtectedRoute>
                   }
@@ -153,7 +160,7 @@ function App() {
                 <Route
                   path="/projects/new-classic"
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}>
                       <NewProtocolClassicPage />
                     </ProtectedRoute>
                   }
@@ -177,7 +184,7 @@ function App() {
                 <Route
                   path="/archives"
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE", "ADMIN"]}>
                       <ArchivesPage />
                     </ProtectedRoute>
                   }

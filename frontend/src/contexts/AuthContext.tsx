@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: false,
     isLoading: true,
   });
-  const lastWarmAtRef = useRef(Date.now());
+  const lastWarmAtRef = useRef(0);
 
   const setAuthenticatedUser = useCallback((user: AuthUser) => {
     setState({
