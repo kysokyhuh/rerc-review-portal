@@ -988,6 +988,18 @@ export async function updateManagedUser(
     }
 
     const assignedRole = sanitizeAssignedRole(input.role);
+    if (
+      userId === actorId &&
+      user.roles.includes(RoleType.CHAIR) &&
+      assignedRole !== RoleType.CHAIR
+    ) {
+      throw new AuthError(
+        400,
+        "VALIDATION_ERROR",
+        "You cannot remove Chair access from your own active session."
+      );
+    }
+
     payload.roles = [assignedRole];
     await logAuditEvent({
       actorId,

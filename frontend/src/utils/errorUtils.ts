@@ -28,6 +28,10 @@ export function getErrorMessage(error: unknown, fallback: string): string {
 
   const data = getErrorData(error);
   const responseMessage = data?.message ?? data?.error;
+  if (status === 403 && responseMessage === "Forbidden") {
+    return "Your current session does not have access to this action. Sign out and sign back in with a Chair or Admin account.";
+  }
+
   if (typeof responseMessage === "string" && responseMessage.trim()) {
     return responseMessage;
   }

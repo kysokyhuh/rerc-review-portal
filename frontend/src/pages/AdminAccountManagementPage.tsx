@@ -422,12 +422,17 @@ export default function AdminAccountManagementPage() {
 
     const payload: Record<string, unknown> = {};
     const currentRole = firstEditableRole(entry.roles);
+    const isSelf = user?.id === entry.id;
 
     if (draft.fullName.trim() && draft.fullName.trim() !== entry.fullName) {
       payload.fullName = draft.fullName.trim();
     }
 
     if (draft.selectedRole && draft.selectedRole !== currentRole) {
+      if (isSelf && currentRole === "CHAIR" && draft.selectedRole !== "CHAIR") {
+        setError("You cannot remove Chair access from your own active session.");
+        return;
+      }
       payload.role = draft.selectedRole;
     }
 

@@ -501,6 +501,23 @@ api.interceptors.response.use(
       }
     }
 
+    if (
+      error.response?.status === 403 &&
+      error.response?.data?.message === "Forbidden" &&
+      !config._forbiddenSessionRetry
+    ) {
+      config._forbiddenSessionRetry = true;
+      try {
+        await refreshAccessSession();
+        clearCsrfTokenCache();
+        clearCsrfHeaders(config);
+        return api(config);
+      } catch {
+        forceSessionExpiredRedirect();
+        return Promise.reject(error);
+      }
+    }
+
     const method = (config.method || "get").toLowerCase();
     if (
       error.response?.status === 403 &&
