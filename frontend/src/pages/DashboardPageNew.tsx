@@ -81,6 +81,7 @@ export const DashboardPage: React.FC = () => {
   const [quickViewLoading, setQuickViewLoading] = useState(false);
   const [quickViewError, setQuickViewError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [directAssignItem, setDirectAssignItem] = useState<DecoratedQueueItem | null>(null);
   const [bulkModal, setBulkModal] = useState<
     "assign" | "reminders" | "status" | "delete" | null
   >(null);
@@ -236,6 +237,9 @@ export const DashboardPage: React.FC = () => {
   const handleBulkActionApplied = () => {
     handleRefresh();
     setSelectedIds(new Set());
+  };
+  const handleDirectAssignmentApplied = () => {
+    handleRefresh();
   };
 
   // ── Overdue data ───────────────────────────────────────
@@ -404,6 +408,7 @@ export const DashboardPage: React.FC = () => {
           totalFiltered={totalFiltered}
           onPageChange={setCurrentPage}
           onQuickView={openQuickView}
+          onAssignReviewer={setDirectAssignItem}
           onNavigate={(p) => navigate(p)}
           onExportFiltered={handleExportFiltered}
           onExportSelected={handleExportSelected}
@@ -438,6 +443,13 @@ export const DashboardPage: React.FC = () => {
         onClose={() => setBulkModal(null)}
         selectedItems={selectedItems}
         onApplied={handleBulkActionApplied}
+      />
+      <AssignReviewersBulkModal
+        open={Boolean(directAssignItem)}
+        onClose={() => setDirectAssignItem(null)}
+        selectedItems={directAssignItem ? [directAssignItem] : []}
+        onApplied={handleDirectAssignmentApplied}
+        mode="single"
       />
       <SendRemindersBulkModal
         open={bulkModal === "reminders"}

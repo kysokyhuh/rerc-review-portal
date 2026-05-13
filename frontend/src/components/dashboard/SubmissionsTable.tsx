@@ -77,6 +77,7 @@ interface SubmissionsTableProps {
 
   // Actions
   onQuickView: (item: DecoratedQueueItem) => void;
+  onAssignReviewer?: (item: DecoratedQueueItem) => void;
   onNavigate: (path: string) => void;
   onExportFiltered: () => void;
   onExportSelected: () => void;
@@ -130,6 +131,7 @@ export function SubmissionsTable({
   totalFiltered,
   onPageChange,
   onQuickView,
+  onAssignReviewer,
   onNavigate,
   onExportFiltered,
   onExportSelected,
@@ -149,6 +151,13 @@ export function SubmissionsTable({
     canBulkSendReminders ||
     canBulkChangeStatus ||
     canBulkDeleteRecords;
+  const canDirectAssignReviewer = (item: DecoratedQueueItem) =>
+    Boolean(
+      canBulkAssignReviewers &&
+        onAssignReviewer &&
+        item.classification?.reviewType &&
+        item.classification.reviewType !== "EXEMPT"
+    );
 
   return (
     <>
@@ -398,6 +407,25 @@ export function SubmissionsTable({
                                 <circle cx="12" cy="12" r="3" />
                               </svg>
                             </button>
+                            {canDirectAssignReviewer(item) ? (
+                              <button
+                                type="button"
+                                className="row-action-btn"
+                                title="Assign reviewer"
+                                aria-label={`Assign reviewer to ${item.projectCode}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onAssignReviewer?.(item);
+                                }}
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <circle cx="9" cy="8" r="4" />
+                                  <path d="M3 21c0-3.5 2.7-6 6-6 1.2 0 2.3.3 3.2.9" />
+                                  <path d="M17 11v6" />
+                                  <path d="M14 14h6" />
+                                </svg>
+                              </button>
+                            ) : null}
                             <button type="button" className="row-action-btn" title="Open details" aria-label="Open submission details"
                               onClick={(e) => { e.stopPropagation(); onNavigate(`/submissions/${item.id}`); }}>
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

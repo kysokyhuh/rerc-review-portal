@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Navigate, useParams, useSearchParams } from "react-router-dom";
+import { AssignReviewersBulkModal } from "@/components/dashboard/BulkActionModals";
 import { QueueDataTable } from "@/components/queue/QueueDataTable";
 import { QueueFilters } from "@/components/queue/QueueFilters";
 import { QueueKpiCards } from "@/components/queue/QueueKpiCards";
@@ -72,6 +73,7 @@ export default function QueuePage() {
   const { user } = useAuth();
   const capabilities = getRoleCapabilities(user?.roles ?? []);
   const assignedOnly = capabilities.hasAssignedOnlyAccess;
+  const [directAssignItem, setDirectAssignItem] = useState<DecoratedQueueItem | null>(null);
   const queueKey = isQueueRouteKey(routeQueueKey) ? routeQueueKey : "classification";
   const shouldRedirect = !isQueueRouteKey(routeQueueKey);
   const shouldRedirectAssignedOnly =
@@ -100,7 +102,7 @@ export default function QueuePage() {
     | "overdue"
     | "blocked";
 
-  const { classificationQueue, reviewQueue, exemptedQueue, revisionQueue, loading, error } =
+  const { classificationQueue, reviewQueue, exemptedQueue, revisionQueue, loading, error, refresh } =
     useDashboardQueues(BRAND.defaultCommitteeCode);
 
   useEffect(() => {
@@ -381,6 +383,15 @@ export default function QueuePage() {
         onClearFilters={activeFilters.length > 0 ? clearFilters : undefined}
         showHeader
         showReviewType={queueKey === "under-review"}
+        canAssignReviewers={capabilities.canBulkAssignReviewers && !assignedOnly}
+        onAssignReviewer={setDirectAssignItem}
+      />
+      <AssignReviewersBulkModal
+        open={Boolean(directAssignItem)}
+        onClose={() => setDirectAssignItem(null)}
+        selectedItems={directAssignItem ? [directAssignItem] : []}
+        onApplied={refresh}
+        mode="single"
       />
     </div>
   );

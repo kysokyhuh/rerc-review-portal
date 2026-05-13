@@ -19,6 +19,7 @@ import { useSubmissionDetail } from "@/hooks/useSubmissionDetail";
 import { useColdStartStatus } from "@/hooks/useColdStartStatus";
 import { Timeline } from "@/components/Timeline";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { AssignReviewersBulkModal } from "@/components/dashboard/BulkActionModals";
 import {
   ProtocolProfileSection,
   profileToFormState,
@@ -274,6 +275,7 @@ export const SubmissionDetailPage: React.FC = () => {
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewSubmitError, setReviewSubmitError] = useState<string | null>(null);
   const [reviewSubmitMessage, setReviewSubmitMessage] = useState<string | null>(null);
+  const [assignReviewerOpen, setAssignReviewerOpen] = useState(false);
   const [creationBannerVisible, setCreationBannerVisible] = useState(
     Boolean(locationState?.createdProtocol)
   );
@@ -481,6 +483,19 @@ export const SubmissionDetailPage: React.FC = () => {
         | "FULL_BOARD")
     : "";
   const currentPanelId = submission?.classification?.panelId ?? null;
+  const canAssignReviewer = Boolean(
+    capabilities.canBulkAssignReviewers &&
+      !isProjectDeleted &&
+      submission?.classification?.reviewType &&
+      submission.classification.reviewType !== "EXEMPT"
+  );
+  const assignmentTarget = submission
+    ? {
+        id: submission.id,
+        projectCode: submission.project?.projectCode ?? `Submission #${submission.id}`,
+        projectTitle: submission.project?.title ?? "Untitled submission",
+      }
+    : null;
   const reviewTypeEnabled =
     classificationStatusPending === "UNDER_CLASSIFICATION" ||
     currentStatus === "CLASSIFIED" ||
@@ -617,6 +632,12 @@ export const SubmissionDetailPage: React.FC = () => {
     } finally {
       setReviewSubmitting(false);
     }
+  };
+
+  const handleReviewerAssigned = async () => {
+    if (!Number.isFinite(numericId)) return;
+    const refreshed = await fetchSubmissionDetail(numericId);
+    setSubmission(refreshed);
   };
 
   /* ── derived data ── */
@@ -930,7 +951,11 @@ export const SubmissionDetailPage: React.FC = () => {
         </section>
       ) : null}
 
-      <ReviewerAssignmentsCard reviewerRows={reviewerRows} />
+      <ReviewerAssignmentsCard
+        reviewerRows={reviewerRows}
+        canAssignReviewer={canAssignReviewer}
+        onAssignReviewer={() => setAssignReviewerOpen(true)}
+      />
       <DocumentsCard documents={submission.documents ?? []} />
       {slaSummary && <SlaTrackingCard slaSummary={slaSummary} />}
       <ReminderLogCard reminders={submission.reminderLogs ?? []} />
@@ -1014,6 +1039,13 @@ export const SubmissionDetailPage: React.FC = () => {
           </div>
         </div>
       ) : null}
+      <AssignReviewersBulkModal
+        open={assignReviewerOpen}
+        onClose={() => setAssignReviewerOpen(false)}
+        selectedItems={assignmentTarget ? [assignmentTarget] : []}
+        onApplied={() => void handleReviewerAssigned()}
+        mode="single"
+      />
     </div>
   );
 };

@@ -79,6 +79,8 @@ type QueueDataTableProps = {
   onClearFilters?: () => void;
   showHeader?: boolean;
   showReviewType?: boolean;
+  canAssignReviewers?: boolean;
+  onAssignReviewer?: (item: DecoratedQueueItem) => void;
 };
 
 export const QueueDataTable: React.FC<QueueDataTableProps> = ({
@@ -94,8 +96,17 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
   onClearFilters,
   showHeader = true,
   showReviewType = false,
+  canAssignReviewers = false,
+  onAssignReviewer,
 }) => {
   const navigate = useNavigate();
+  const canAssignReviewerToItem = (item: DecoratedQueueItem) =>
+    Boolean(
+      canAssignReviewers &&
+        onAssignReviewer &&
+        item.classification?.reviewType &&
+        item.classification.reviewType !== "EXEMPT"
+    );
 
   const renderState = (stateTitle: string, stateBody: string, isError = false) => (
     <div className={`queue-focused-state ${isError ? "error" : ""}`} role={isError ? "alert" : undefined}>
@@ -153,6 +164,7 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                     <th>{showReviewType ? "Review Type" : "Status"}</th>
                     <th>Received</th>
                     <th>SLA</th>
+                    {canAssignReviewers ? <th className="table-actions-header">Actions</th> : null}
                   </tr>
                 </thead>
                 <tbody>
@@ -221,6 +233,31 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                             <span className="queue-sla-meta">{getSlaMeta(item)}</span>
                           </div>
                         </td>
+                        {canAssignReviewers ? (
+                          <td className="table-actions">
+                            {canAssignReviewerToItem(item) ? (
+                              <button
+                                type="button"
+                                className="row-action-btn"
+                                title="Assign reviewer"
+                                aria-label={`Assign reviewer to ${item.projectCode}`}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  onAssignReviewer?.(item);
+                                }}
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <circle cx="9" cy="8" r="4" />
+                                  <path d="M3 21c0-3.5 2.7-6 6-6 1.2 0 2.3.3 3.2.9" />
+                                  <path d="M17 11v6" />
+                                  <path d="M14 14h6" />
+                                </svg>
+                              </button>
+                            ) : (
+                              <span className="table-muted">—</span>
+                            )}
+                          </td>
+                        ) : null}
                       </tr>
                     );
                   })}

@@ -17,16 +17,33 @@ interface ReviewerRow {
 
 interface ReviewerAssignmentsCardProps {
   reviewerRows: ReviewerRow[];
+  canAssignReviewer?: boolean;
+  onAssignReviewer?: () => void;
 }
 
-export function ReviewerAssignmentsCard({ reviewerRows }: ReviewerAssignmentsCardProps) {
+export function ReviewerAssignmentsCard({
+  reviewerRows,
+  canAssignReviewer = false,
+  onAssignReviewer,
+}: ReviewerAssignmentsCardProps) {
   return (
     <section className="card detail-card">
       <div className="section-title">
-        <h2>Reviewer assignments</h2>
-        {reviewerRows.length > 0 && (
-          <span className="badge">{reviewerRows.length} reviewer{reviewerRows.length !== 1 ? "s" : ""}</span>
-        )}
+        <div className="section-title-left">
+          <h2>Reviewer assignments</h2>
+          {reviewerRows.length > 0 && (
+            <span className="badge">{reviewerRows.length} reviewer{reviewerRows.length !== 1 ? "s" : ""}</span>
+          )}
+        </div>
+        {canAssignReviewer ? (
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={onAssignReviewer}
+          >
+            Assign reviewer
+          </button>
+        ) : null}
       </div>
       {reviewerRows.length === 0 ? (
         <div className="empty-history">

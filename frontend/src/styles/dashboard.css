@@ -4722,6 +4722,22 @@ button.quick-action:disabled {
   line-height: 1.5;
 }
 
+.bulk-form-success {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(45, 106, 79, 0.18);
+  background: rgba(45, 106, 79, 0.08);
+  color: var(--success);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.table-muted {
+  color: var(--neutral-400);
+  font-size: 12px;
+}
+
 .bulk-form-note {
   display: flex;
   flex-direction: column;

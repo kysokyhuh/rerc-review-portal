@@ -901,7 +901,20 @@ export async function submitAssignedReviewDecision(
     remarks?: string | null;
   }
 ) {
-  const response = await api.post(`/submissions/reviews/${reviewId}/decision`, payload);
+  const response = await api.post(`/reviews/${reviewId}/decision`, payload);
+  return response.data;
+}
+
+export async function assignReviewerToSubmission(
+  submissionId: number,
+  payload: {
+    reviewerId: number;
+    reviewerRole: "SCIENTIST" | "LAY" | "INDEPENDENT_CONSULTANT";
+    dueDate?: string | null;
+    isPrimary?: boolean;
+  }
+) {
+  const response = await api.post(`/submissions/${submissionId}/reviews`, payload);
   return response.data;
 }
 

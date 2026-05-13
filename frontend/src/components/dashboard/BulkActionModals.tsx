@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useColdStartStatus } from "@/hooks/useColdStartStatus";
 import {
+  assignReviewerToSubmission,
   bulkAssignReviewers,
   bulkCreateReminders,
   bulkRunStatusAction,
@@ -25,6 +26,16 @@ interface BulkModalBaseProps {
   onClose: () => void;
   selectedItems: DecoratedQueueItem[];
   onApplied?: () => void;
+}
+
+type ReviewerAssignmentTarget = Pick<DecoratedQueueItem, "id" | "projectCode" | "projectTitle">;
+
+interface AssignReviewersModalProps {
+  open: boolean;
+  onClose: () => void;
+  selectedItems: ReviewerAssignmentTarget[];
+  onApplied?: () => void;
+  mode?: "bulk" | "single";
 }
 
 interface BulkModalShellProps {
@@ -404,7 +415,8 @@ export function AssignReviewersBulkModal({
   onClose,
   selectedItems,
   onApplied,
-}: BulkModalBaseProps) {
+  mode = "bulk",
+}: AssignReviewersModalProps) {
   const [candidates, setCandidates] = useState<ReviewerCandidate[]>([]);
   const [loadingCandidates, setLoadingCandidates] = useState(false);
   const [reviewerId, setReviewerId] = useState("");
@@ -418,7 +430,9 @@ export function AssignReviewersBulkModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<BulkActionResponse | null>(null);
+  const [singleSuccess, setSingleSuccess] = useState<string | null>(null);
   const reviewerPickerRef = useRef<HTMLDivElement | null>(null);
+  const isSingleMode = mode === "single";
 
   useEffect(() => {
     if (!open) return;
@@ -430,6 +444,7 @@ export function AssignReviewersBulkModal({
     setIsPrimary(false);
     setError(null);
     setResult(null);
+    setSingleSuccess(null);
   }, [open]);
 
   useEffect(() => {
@@ -516,18 +531,30 @@ export function AssignReviewersBulkModal({
 
     setSubmitting(true);
     setError(null);
+    setSingleSuccess(null);
 
     try {
-      const response = await bulkAssignReviewers({
-        submissionIds: selectedItems.map((item) => item.id),
-        reviewerId: Number(reviewerId),
-        reviewerRole,
-        dueDate: dueDate || null,
-        isPrimary,
-      });
-      setResult(response);
-      if (response.succeeded > 0) {
+      if (isSingleMode && selectedItems.length === 1) {
+        await assignReviewerToSubmission(selectedItems[0].id, {
+          reviewerId: Number(reviewerId),
+          reviewerRole,
+          dueDate: dueDate || null,
+          isPrimary,
+        });
+        setSingleSuccess("Reviewer assigned.");
         onApplied?.();
+      } else {
+        const response = await bulkAssignReviewers({
+          submissionIds: selectedItems.map((item) => item.id),
+          reviewerId: Number(reviewerId),
+          reviewerRole,
+          dueDate: dueDate || null,
+          isPrimary,
+        });
+        setResult(response);
+        if (response.succeeded > 0) {
+          onApplied?.();
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to assign reviewers");
@@ -540,8 +567,12 @@ export function AssignReviewersBulkModal({
     <BulkModalShell
       open={open}
       onClose={onClose}
-      title="Assign reviewers"
-      description="Apply one reviewer setup across the selected submission batch."
+      title={isSingleMode ? "Assign reviewer" : "Assign reviewers"}
+      description={
+        isSingleMode
+          ? "Assign one reviewer to this submission."
+          : "Apply one reviewer setup across the selected submission batch."
+      }
       modalClassName="bulk-modal--assign"
       footer={
         <>
@@ -549,17 +580,25 @@ export function AssignReviewersBulkModal({
             Close
           </button>
           <button className="primary-btn" type="button" onClick={handleSubmit} disabled={!canSubmit}>
-            {submitting ? "Assigning…" : "Assign reviewers"}
+            {submitting ? "Assigning…" : isSingleMode ? "Assign reviewer" : "Assign reviewers"}
           </button>
         </>
       }
     >
       <section className="bulk-modal-selection bulk-modal-selection-strong">
         <div className="bulk-modal-selection-copy">
-          <span className="bulk-section-label">Selected batch</span>
-          <strong>{formatSubmissionCountLabel(selectedItems.length)}</strong>
+          <span className="bulk-section-label">
+            {isSingleMode ? "Selected submission" : "Selected batch"}
+          </span>
+          <strong>
+            {isSingleMode
+              ? selectedItems[0]?.projectCode || `Submission #${selectedItems[0]?.id ?? ""}`
+              : formatSubmissionCountLabel(selectedItems.length)}
+          </strong>
           <span>
-            This reviewer setup will be applied to every eligible submission in the current batch.
+            {isSingleMode
+              ? "This reviewer setup will be applied to this submission only."
+              : "This reviewer setup will be applied to every eligible submission in the current batch."}
           </span>
         </div>
         <div className="bulk-selection-tags" aria-label="Selected submissions">
@@ -580,7 +619,7 @@ export function AssignReviewersBulkModal({
       <section className="bulk-modal-section">
         <div className="bulk-section-header">
           <span className="bulk-section-label">Reviewer assignment</span>
-          <h4>Choose who will receive this batch</h4>
+          <h4>{isSingleMode ? "Choose who will review this submission" : "Choose who will receive this batch"}</h4>
           <p>Set the reviewer, assign the role, and add an optional review deadline.</p>
         </div>
 
@@ -687,8 +726,12 @@ export function AssignReviewersBulkModal({
             </div>
             <small className={reviewerFieldError ? "bulk-field-error" : undefined}>
               {reviewerFieldError
-                ? REVIEWER_REQUIRED_MESSAGE
-                : "Choose from active approved accounts and apply one reviewer to every eligible submission."}
+                ? isSingleMode
+                  ? "Select a reviewer before assigning this submission."
+                  : REVIEWER_REQUIRED_MESSAGE
+                : isSingleMode
+                  ? "Choose from active approved accounts."
+                  : "Choose from active approved accounts and apply one reviewer to every eligible submission."}
             </small>
           </div>
 
@@ -710,7 +753,11 @@ export function AssignReviewersBulkModal({
                 <option value="INDEPENDENT_CONSULTANT">Independent consultant</option>
               </select>
             </div>
-            <small>This role will be applied uniformly across the batch.</small>
+            <small>
+              {isSingleMode
+                ? "This role will be used for this assignment."
+                : "This role will be applied uniformly across the batch."}
+            </small>
           </label>
 
           <label className="bulk-form-field">
@@ -729,7 +776,11 @@ export function AssignReviewersBulkModal({
         <div className="bulk-options-card">
           <div className="bulk-options-header">
             <span className="bulk-section-label">Assignment options</span>
-            <p>Use this only when the same reviewer should be the lead reviewer for the batch.</p>
+            <p>
+              {isSingleMode
+                ? "Use this when the reviewer should be the lead reviewer for this submission."
+                : "Use this only when the same reviewer should be the lead reviewer for the batch."}
+            </p>
           </div>
 
           <label className="bulk-checkbox-card">
@@ -741,13 +792,18 @@ export function AssignReviewersBulkModal({
             />
             <div className="bulk-checkbox-copy">
               <strong>Mark as primary reviewer</strong>
-              <span>Assign this reviewer as the primary reviewer for every eligible submission.</span>
+              <span>
+                {isSingleMode
+                  ? "Assign this reviewer as the primary reviewer for this submission."
+                  : "Assign this reviewer as the primary reviewer for every eligible submission."}
+              </span>
             </div>
           </label>
         </div>
       </section>
 
       {generalError ? <div className="bulk-form-error">{generalError}</div> : null}
+      {singleSuccess ? <div className="bulk-form-success">{singleSuccess}</div> : null}
       {result ? <BulkResultSummary result={result} /> : null}
     </BulkModalShell>
   );
