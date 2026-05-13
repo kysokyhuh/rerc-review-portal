@@ -21,17 +21,17 @@ const WEAK_PASSWORD_PATTERNS = [
   /^(?:1234|abcd|qwer|asdf)/i,
 ];
 
-export function isPasswordAllowed(password: string, email?: string | null) {
-  if (password.length < 12) return false;
-  if (!/[A-Z]/.test(password)) return false;
-  if (!/[a-z]/.test(password)) return false;
-  if (!/\d/.test(password)) return false;
+export function getPasswordPolicyFailure(password: string, email?: string | null) {
+  if (password.length < 12) return "Password must be at least 12 characters.";
+  if (!/[A-Z]/.test(password)) return "Password must include an uppercase letter.";
+  if (!/[a-z]/.test(password)) return "Password must include a lowercase letter.";
+  if (!/\d/.test(password)) return "Password must include a number.";
 
   const normalized = password.trim().toLowerCase();
-  if (!normalized) return false;
-  if (COMMON_PASSWORDS.has(normalized)) return false;
+  if (!normalized) return "Password is required.";
+  if (COMMON_PASSWORDS.has(normalized)) return "Password is too common.";
   if (WEAK_PASSWORD_PATTERNS.some((pattern) => pattern.test(password))) {
-    return false;
+    return "Password uses a common weak pattern.";
   }
 
   const compact = normalized.replace(/[^a-z0-9]/g, "");
@@ -41,15 +41,19 @@ export function isPasswordAllowed(password: string, email?: string | null) {
     compact === "letmein" ||
     compact === "qwerty"
   ) {
-    return false;
+    return "Password is too common.";
   }
 
   if (email) {
     const emailLocalPart = email.split("@")[0]?.trim().toLowerCase();
     if (emailLocalPart && normalized.includes(emailLocalPart)) {
-      return false;
+      return "Password cannot include the email username.";
     }
   }
 
-  return true;
+  return null;
+}
+
+export function isPasswordAllowed(password: string, email?: string | null) {
+  return getPasswordPolicyFailure(password, email) === null;
 }

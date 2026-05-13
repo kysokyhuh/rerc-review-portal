@@ -36,8 +36,8 @@ export default function SignupPage() {
   const trimmedLastName = lastName.trim();
   const trimmedEmail = email.trim();
   const emailValid = trimmedEmail.length === 0 ? null : EMAIL_REGEX.test(trimmedEmail);
-  const passwordStrength = getPasswordStrength(password);
-  const passwordMeetsClientRules = passwordMeetsRules(password);
+  const passwordStrength = getPasswordStrength(password, trimmedEmail);
+  const passwordMeetsClientRules = passwordMeetsRules(password, trimmedEmail);
 
   const showGroupedNameError = submitAttempted && !trimmedFirstName && !trimmedLastName;
   const showFirstNameError =
@@ -373,7 +373,7 @@ export default function SignupPage() {
                 ) : null}
                 {!showPasswordRequired && showPasswordRuleError ? (
                   <p id="signup-password-error" className="login-field-error signup-inline-error" role="alert">
-                    Use at least {MIN_PASSWORD_LENGTH} characters with uppercase, lowercase, and a number.
+                    Use at least {MIN_PASSWORD_LENGTH} characters with uppercase, lowercase, a number, and no email username.
                   </p>
                 ) : null}
               </div>

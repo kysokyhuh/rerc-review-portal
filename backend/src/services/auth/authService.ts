@@ -15,7 +15,7 @@ import {
   verifyAccessToken,
   verifyRefreshToken,
 } from "../../utils/jwt";
-import { isPasswordAllowed } from "../../utils/passwordPolicy";
+import { getPasswordPolicyFailure } from "../../utils/passwordPolicy";
 import { getSessionPolicy } from "./sessionPolicy";
 
 const BCRYPT_ROUNDS = 12;
@@ -113,11 +113,12 @@ function ensurePasswordsMatch(password: string, confirmPassword: string) {
 }
 
 function ensurePasswordPolicy(password: string, email?: string | null) {
-  if (!isPasswordAllowed(password, email)) {
+  const failure = getPasswordPolicyFailure(password, email);
+  if (failure) {
     throw new AuthError(
       400,
       "VALIDATION_ERROR",
-      "Password does not meet security requirements."
+      failure
     );
   }
 }
