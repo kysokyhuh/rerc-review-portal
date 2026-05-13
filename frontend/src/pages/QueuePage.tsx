@@ -4,8 +4,10 @@ import { QueueDataTable } from "@/components/queue/QueueDataTable";
 import { QueueFilters } from "@/components/queue/QueueFilters";
 import { QueueKpiCards } from "@/components/queue/QueueKpiCards";
 import { BRAND } from "@/config/branding";
+import { useAuth } from "@/contexts/AuthContext";
 import { useDashboardQueues } from "@/hooks/useDashboardQueues";
 import type { DecoratedQueueItem } from "@/types";
+import { getRoleCapabilities } from "@/utils/roleUtils";
 
 type QueueRouteKey = "classification" | "under-review" | "exempted" | "revisions";
 
@@ -67,10 +69,24 @@ const isQueueRouteKey = (value: string | undefined): value is QueueRouteKey =>
 export default function QueuePage() {
   const { queueKey: routeQueueKey } = useParams<{ queueKey: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { user } = useAuth();
+  const capabilities = getRoleCapabilities(user?.roles ?? []);
+  const assignedOnly = capabilities.hasAssignedOnlyAccess;
   const queueKey = isQueueRouteKey(routeQueueKey) ? routeQueueKey : "classification";
   const shouldRedirect = !isQueueRouteKey(routeQueueKey);
+  const shouldRedirectAssignedOnly =
+    assignedOnly && isQueueRouteKey(routeQueueKey) && routeQueueKey !== "under-review";
 
-  const meta = QUEUE_META[queueKey];
+  const meta = assignedOnly && queueKey === "under-review"
+    ? {
+        title: "My Reviews",
+        description:
+          "Assigned protocols awaiting your review decision or remarks. Only records assigned to you are shown.",
+        emptyTitle: "No assigned reviews are waiting for you.",
+        emptyHint:
+          "Assigned reviews will appear here when the Chair or Research Associate routes a protocol to you.",
+      }
+    : QUEUE_META[queueKey];
   const search = searchParams.get("search") ?? "";
   const segment = searchParams.get("segment") ?? "ALL";
   const effectiveSegment =
@@ -251,7 +267,10 @@ export default function QueuePage() {
     return filters;
   }, [effectiveSegment, search, segmentTabs, sla]);
 
-  if (shouldRedirect) {
+  if (shouldRedirect || shouldRedirectAssignedOnly) {
+    if (shouldRedirectAssignedOnly) {
+      return <Navigate to="/queues/under-review" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -259,7 +278,9 @@ export default function QueuePage() {
     <div className="dashboard-content queue-page-content portal-page">
       <header className="queue-page-header portal-context">
         <div className="queue-page-header-main">
-          <span className="queue-page-eyebrow">Queue operations</span>
+          <span className="queue-page-eyebrow">
+            {assignedOnly ? "Assigned review work" : "Queue operations"}
+          </span>
           <h1>{meta.title}</h1>
           <p>{meta.description}</p>
         </div>
@@ -279,7 +300,11 @@ export default function QueuePage() {
           <div className="queue-control-header">
             <div className="queue-control-header-copy">
               <span className="queue-control-eyebrow">Controls</span>
-              <h2>Search, filter, and focus the records that need action now.</h2>
+              <h2>
+                {assignedOnly
+                  ? "Search and focus the assigned reviews that need your response."
+                  : "Search, filter, and focus the records that need action now."}
+              </h2>
             </div>
           </div>
 
@@ -338,7 +363,11 @@ export default function QueuePage() {
 
       <QueueDataTable
         title="Queue results"
-        subtitle="Review active protocols in this lane, monitor SLA pressure, and open any row for the full submission record."
+        subtitle={
+          assignedOnly
+            ? "Open an assigned protocol to submit your review decision and remarks."
+            : "Review active protocols in this lane, monitor SLA pressure, and open any row for the full submission record."
+        }
         items={filteredItems}
         emptyMessage={meta.emptyTitle}
         emptyHint={

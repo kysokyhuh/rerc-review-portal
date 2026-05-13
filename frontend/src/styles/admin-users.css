@@ -598,6 +598,44 @@
   font-weight: 600;
 }
 
+.admin-role-guide {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-role-guide-item {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid #dbe3de;
+  border-radius: 8px;
+  background: #fbfcfb;
+}
+
+.admin-role-guide-item strong {
+  color: #23342b;
+  font-size: 13px;
+}
+
+.admin-role-guide-item span,
+.admin-role-description {
+  color: #6f7c75;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.admin-role-readonly {
+  display: grid;
+  gap: 3px;
+  max-width: 220px;
+}
+
+.admin-role-description {
+  display: block;
+  margin: 4px 0 0;
+}
+
 .admin-note-meta {
   display: block;
   color: #6f7c75;

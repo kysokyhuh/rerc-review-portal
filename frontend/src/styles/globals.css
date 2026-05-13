@@ -1301,6 +1301,39 @@ a:hover {
   max-width: 340px;
 }
 
+.assigned-review-card .section-title {
+  align-items: flex-start;
+}
+
+.assigned-review-form,
+.assigned-review-summary {
+  display: grid;
+  grid-template-columns: minmax(180px, 280px) minmax(180px, 280px);
+  gap: 12px;
+}
+
+.assigned-review-form .field-wide,
+.assigned-review-summary .field-wide {
+  grid-column: 1 / -1;
+}
+
+.assigned-review-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.assigned-review-remarks {
+  min-height: 64px;
+  align-items: flex-start;
+  white-space: pre-wrap;
+}
+
+.assigned-review-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-start;
+}
+
 .project-detail-page .history-list {
   display: flex;
   flex-direction: column;
@@ -1927,6 +1960,31 @@ a:hover {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
+}
+
+.not-authorized-page {
+  max-width: 720px;
+  margin: 80px auto;
+  padding: 28px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 8px;
+  background: var(--surface-card);
+  color: var(--neutral-700);
+}
+
+.not-authorized-page h1 {
+  margin: 0 0 10px;
+  color: var(--neutral-900);
+}
+
+.not-authorized-page p {
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.not-authorized-required {
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .section-title-left {

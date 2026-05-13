@@ -59,6 +59,7 @@ export const DashboardPage: React.FC = () => {
     () => getRoleCapabilities(user?.roles ?? []),
     [user?.roles]
   );
+  const assignedOnly = capabilities.hasAssignedOnlyAccess;
 
   // ── State ──────────────────────────────────────────────
   const [greeting] = useState(getGreeting());
@@ -94,6 +95,14 @@ export const DashboardPage: React.FC = () => {
   useEffect(() => { document.title = "URERB Portal — Dashboard Overview"; }, []);
   useEffect(() => { if (queueFilter !== "overdue" && queueFilter !== "due-soon") setOverdueOwnerFilter("all"); }, [queueFilter]);
   useEffect(() => { setCurrentPage(1); }, [queueFilter, searchTerm, overdueOwnerFilter]);
+  useEffect(() => {
+    if (
+      assignedOnly &&
+      ["classification", "revision", "blocked", "unassigned"].includes(queueFilter)
+    ) {
+      setQueueFilter("all");
+    }
+  }, [assignedOnly, queueFilter]);
 
   const handleDashboardFilterChange = useCallback((values: DashboardFilterValues) => {
     setDashboardFilters(filtersToParams(values));
@@ -355,6 +364,7 @@ export const DashboardPage: React.FC = () => {
           attention={attention}
           onFilterChange={(f) => setQueueFilter(f as QueueFilter)}
           tableRef={tableRef}
+          assignedOnly={assignedOnly}
         />
       </section>
 
@@ -406,6 +416,7 @@ export const DashboardPage: React.FC = () => {
           canBulkChangeStatus={capabilities.canBulkChangeStatus}
           canBulkDeleteRecords={capabilities.canBulkDeleteRecords}
           tableRef={tableRef}
+          assignedOnly={assignedOnly}
         />
       </section>
 

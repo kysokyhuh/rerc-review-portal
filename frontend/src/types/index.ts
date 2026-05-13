@@ -323,6 +323,13 @@ export interface SubmissionReviewerEntry {
   };
 }
 
+export type ReviewDecision =
+  | "APPROVED"
+  | "MINOR_REVISIONS"
+  | "MAJOR_REVISIONS"
+  | "DISAPPROVED"
+  | "INFO_ONLY";
+
 export interface SubmissionReviewAssignmentEntry {
   id: number;
   roundSequence: number;

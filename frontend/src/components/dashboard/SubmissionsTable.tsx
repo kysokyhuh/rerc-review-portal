@@ -90,6 +90,7 @@ interface SubmissionsTableProps {
   canBulkDeleteRecords: boolean;
 
   tableRef: RefObject<HTMLDivElement>;
+  assignedOnly?: boolean;
 }
 
 const SKELETON_ROWS = Array.from({ length: 6 }, (_, i) => i);
@@ -141,6 +142,7 @@ export function SubmissionsTable({
   canBulkChangeStatus,
   canBulkDeleteRecords,
   tableRef,
+  assignedOnly = false,
 }: SubmissionsTableProps) {
   const canSelectRows =
     canBulkAssignReviewers ||
@@ -154,7 +156,9 @@ export function SubmissionsTable({
         <div className="panel" ref={tableRef}>
           <div className="panel-header">
             <div>
-              <h3 className="panel-title">Queue workspace</h3>
+              <h3 className="panel-title">
+                {assignedOnly ? "My assigned reviews" : "Queue workspace"}
+              </h3>
             </div>
             <div className="panel-actions">
               <span className="panel-count">{filteredItems.length} submissions</span>
@@ -171,7 +175,7 @@ export function SubmissionsTable({
             </div>
           </div>
 
-          <DashboardFilters onChange={onDashboardFilterChange} />
+          {!assignedOnly ? <DashboardFilters onChange={onDashboardFilterChange} /> : null}
 
           {/* Filter tabs */}
           <div className="filter-bar">
@@ -179,16 +183,23 @@ export function SubmissionsTable({
               <div className="filter-group">
                 <span className="filter-label">Queues</span>
                 <div className="filter-tabs">
-                  {[
-                    { key: "all", label: "All", count: allItems.length },
-                    { key: "due-soon", label: "Due ≤3 days", count: dueSoonSubmissions.length },
-                    { key: "overdue", label: "Overdue", count: overdueSubmissions.length },
-                    { key: "blocked", label: "Blocked", count: allItems.filter(isBlocked).length },
-                    { key: "classification", label: "Awaiting classification", count: classificationQueue.length },
-                    { key: "review", label: "Under review", count: reviewQueue.length },
-                    { key: "revision", label: "Revisions", count: revisionQueue.length },
-                    { key: "unassigned", label: "Unassigned", count: allItems.filter((item) => !item.staffInChargeName).length },
-                  ].map((tab) => (
+                  {(assignedOnly
+                    ? [
+                        { key: "all", label: "All assigned", count: allItems.length },
+                        { key: "review", label: "Needs review", count: reviewQueue.length },
+                        { key: "due-soon", label: "Due ≤3 days", count: dueSoonSubmissions.length },
+                        { key: "overdue", label: "Overdue", count: overdueSubmissions.length },
+                      ]
+                    : [
+                        { key: "all", label: "All", count: allItems.length },
+                        { key: "due-soon", label: "Due ≤3 days", count: dueSoonSubmissions.length },
+                        { key: "overdue", label: "Overdue", count: overdueSubmissions.length },
+                        { key: "blocked", label: "Blocked", count: allItems.filter(isBlocked).length },
+                        { key: "classification", label: "Awaiting classification", count: classificationQueue.length },
+                        { key: "review", label: "Under review", count: reviewQueue.length },
+                        { key: "revision", label: "Revisions", count: revisionQueue.length },
+                        { key: "unassigned", label: "Unassigned", count: allItems.filter((item) => !item.staffInChargeName).length },
+                      ]).map((tab) => (
                     <button
                       key={tab.key}
                       className={`filter-tab ${queueFilter === tab.key ? "active" : ""} ${
@@ -223,7 +234,7 @@ export function SubmissionsTable({
               </div>
             )}
 
-            {(queueFilter === "overdue" || queueFilter === "due-soon") && (
+            {!assignedOnly && (queueFilter === "overdue" || queueFilter === "due-soon") && (
               <div className="overdue-owner-filters" role="group" aria-label="Filter by responsible role">
                 <span className="owner-filter-label">Responsible role</span>
                 <button
@@ -308,8 +319,8 @@ export function SubmissionsTable({
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <h3>No submissions match this view</h3>
-                <p>Clear filters or switch to “All” to see more.</p>
+                <h3>{assignedOnly ? "No assigned reviews match this view" : "No submissions match this view"}</h3>
+                <p>{assignedOnly ? "Clear filters or switch to “All assigned” to see more." : "Clear filters or switch to “All” to see more."}</p>
                 <button className="ghost-btn" type="button" onClick={() => { onQueueFilterChange("all"); onSearchTermChange(""); }}>
                   Reset filters
                 </button>

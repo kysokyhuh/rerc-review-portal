@@ -2,7 +2,7 @@ import React, { type RefObject } from "react";
 import { formatTimeAgo } from "./utils";
 import type { ProjectSearchResult } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
-import { getPrimaryRoleLabel } from "@/utils/roleUtils";
+import { getPrimaryRoleDescription, getPrimaryRoleLabel } from "@/utils/roleUtils";
 
 interface DashboardTopBarProps {
   greeting: string;
@@ -38,6 +38,7 @@ export function DashboardTopBar({
   const { user } = useAuth();
   const firstName = user?.fullName?.trim().split(/\s+/)[0] || "User";
   const roleLabel = getPrimaryRoleLabel(user?.roles ?? []);
+  const roleDescription = getPrimaryRoleDescription(user?.roles ?? []);
 
   return (
     <div className="dashboard-topbar">
@@ -45,7 +46,7 @@ export function DashboardTopBar({
         <div className="topbar-greeting">
           <h2>
             {greeting}, {firstName}{" "}
-            <span className="topbar-role-muted">({roleLabel})</span>
+            <span className="topbar-role-muted" title={roleDescription}>({roleLabel})</span>
           </h2>
           <p>
             {lastUpdated

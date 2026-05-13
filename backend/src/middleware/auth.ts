@@ -191,7 +191,11 @@ export const requireAnyRole = (allowed: RoleType[]) => {
     const hasRole = (req.user.roles || []).some((role) => allowedSet.has(role));
     if (!hasRole) {
       logAccessDenied(req, "forbidden", allowed);
-      return res.status(403).json({ message: "Forbidden" });
+      return res.status(403).json({
+        message: "Forbidden",
+        requiredRoles: allowed,
+        userRoles: req.user.roles || [],
+      });
     }
     return next();
   };

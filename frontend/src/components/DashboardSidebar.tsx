@@ -45,6 +45,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
   const roles = user?.roles ?? [];
   const capabilities = getRoleCapabilities(roles);
   const roleLabel = getPrimaryRoleLabel(roles);
+  const assignedOnly = capabilities.hasAssignedOnlyAccess;
   const displayName = user?.fullName?.trim() || "User";
   const sidebarTaglineSource =
     typeof BRAND.tagline === "string" && BRAND.tagline.trim().length > 0
@@ -131,22 +132,24 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
         </div>
 
         <div className="nav-section">
-          <div className="nav-section-title">Queues</div>
+          <div className="nav-section-title">{assignedOnly ? "Assignments" : "Queues"}</div>
           <div className="nav-section-items">
-            <NavLink to="/queues/classification" className={navClassName}>
-              <SidebarItemContent
-                label="Classification"
-                badge={counts?.forClassification ?? undefined}
-                icon={
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M4 6h16M4 12h16M4 18h7" />
-                  </svg>
-                }
-              />
-            </NavLink>
+            {!assignedOnly ? (
+              <NavLink to="/queues/classification" className={navClassName}>
+                <SidebarItemContent
+                  label="Classification"
+                  badge={counts?.forClassification ?? undefined}
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M4 6h16M4 12h16M4 18h7" />
+                    </svg>
+                  }
+                />
+              </NavLink>
+            ) : null}
             <NavLink to="/queues/under-review" className={navClassName}>
               <SidebarItemContent
-                label="Under Review"
+                label={assignedOnly ? "My Reviews" : "Under Review"}
                 badge={counts?.forReview ?? undefined}
                 icon={
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -170,6 +173,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
                 />
               </NavLink>
             ) : null}
+            {!assignedOnly ? (
             <NavLink to="/queues/revisions" className={navClassName}>
               <SidebarItemContent
                 label="Revisions"
@@ -182,6 +186,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
                 }
               />
             </NavLink>
+            ) : null}
           </div>
         </div>
 

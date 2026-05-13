@@ -26,6 +26,7 @@ export type {
   LetterTemplateReadiness,
   StatusHistoryEntry,
   SubmissionDetail,
+  ReviewDecision,
   ProjectDetail,
   SubmissionSlaSummary,
   CommitteeSummary,
@@ -70,6 +71,7 @@ import type {
   QueueType,
   ProjectDetail,
   SubmissionDetail,
+  ReviewDecision,
   SubmissionSlaSummary,
   ReviewerCandidate,
   BulkActionResponse,
@@ -81,14 +83,12 @@ import type {
   ProjectSearchResult,
   CommitteeSummary,
   ImportResult,
-  ImportMode,
   ProjectImportPreview,
   CreateProjectPayload,
   CreateProjectResponse,
   ArchivedProjectsResponse,
   RecentlyDeletedProjectsResponse,
   ExemptedQueueResponse,
-  ReportsAcademicYearOption,
   ReportsAcademicYearsResponse,
   ReportsSummaryResponse,
   AnnualReportSummaryResponse,
@@ -892,6 +892,17 @@ export async function restoreDeletedProjectRecord(
 export async function fetchSubmissionDetail(submissionId: number) {
   const response = await api.get(`/submissions/${submissionId}`);
   return response.data as SubmissionDetail;
+}
+
+export async function submitAssignedReviewDecision(
+  reviewId: number,
+  payload: {
+    decision: ReviewDecision;
+    remarks?: string | null;
+  }
+) {
+  const response = await api.post(`/submissions/reviews/${reviewId}/decision`, payload);
+  return response.data;
 }
 
 export async function fetchReviewerCandidates() {

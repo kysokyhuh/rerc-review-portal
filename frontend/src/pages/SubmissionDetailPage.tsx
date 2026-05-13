@@ -13,6 +13,7 @@ import {
   createProtocolMilestone,
   updateProtocolMilestone,
   deleteProtocolMilestone,
+  submitAssignedReviewDecision,
 } from "@/services/api";
 import { useSubmissionDetail } from "@/hooks/useSubmissionDetail";
 import { useColdStartStatus } from "@/hooks/useColdStartStatus";
@@ -36,7 +37,7 @@ import {
   STANDARD_MILESTONES,
 } from "@/components/submission";
 import type { OverviewFormState } from "@/components/submission";
-import type { CommitteeSummary, ProtocolMilestone, SubmissionDetail } from "@/types";
+import type { CommitteeSummary, ProtocolMilestone, ReviewDecision, SubmissionDetail } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { getErrorData, getErrorMessage } from "@/utils";
 import { getRoleCapabilities } from "@/utils/roleUtils";
@@ -50,6 +51,13 @@ const COLD_START_DELETE_ERROR =
   "The server is still waking up. Please wait a few seconds and try again.";
 
 const REVIEW_TYPE_OPTIONS = ["", "EXEMPT", "EXPEDITED", "FULL_BOARD"] as const;
+const REVIEW_DECISION_OPTIONS: Array<{ value: ReviewDecision; label: string }> = [
+  { value: "APPROVED", label: "Approved" },
+  { value: "MINOR_REVISIONS", label: "Minor revisions" },
+  { value: "MAJOR_REVISIONS", label: "Major revisions" },
+  { value: "DISAPPROVED", label: "Disapproved" },
+  { value: "INFO_ONLY", label: "Information only" },
+];
 
 const normalizeClassificationStatus = (
   value: string
@@ -261,6 +269,11 @@ export const SubmissionDetailPage: React.FC = () => {
   const [deleteReason, setDeleteReason] = useState("");
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [reviewDecision, setReviewDecision] = useState<ReviewDecision>("APPROVED");
+  const [reviewRemarks, setReviewRemarks] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewSubmitError, setReviewSubmitError] = useState<string | null>(null);
+  const [reviewSubmitMessage, setReviewSubmitMessage] = useState<string | null>(null);
   const [creationBannerVisible, setCreationBannerVisible] = useState(
     Boolean(locationState?.createdProtocol)
   );
@@ -436,6 +449,17 @@ export const SubmissionDetailPage: React.FC = () => {
   };
 
   const capabilities = getRoleCapabilities(user?.roles ?? []);
+  const assignedReview = useMemo(() => {
+    if (!submission || !user?.id || !capabilities.canSubmitAssignedReview) return null;
+    return (
+      (submission.reviews ?? []).find((item) => item.reviewer?.id === user.id) ??
+      null
+    );
+  }, [capabilities.canSubmitAssignedReview, submission, user?.id]);
+  const hasSubmittedAssignedReview = Boolean(assignedReview?.respondedAt);
+  const canSubmitCurrentAssignedReview = Boolean(
+    assignedReview && !hasSubmittedAssignedReview && !isProjectDeleted
+  );
   const canDeleteProtocol = Boolean(
     projectId &&
       !isProjectDeleted &&
@@ -574,6 +598,27 @@ export const SubmissionDetailPage: React.FC = () => {
     }
   };
 
+  const handleAssignedReviewSubmit = async () => {
+    if (!assignedReview) return;
+    setReviewSubmitting(true);
+    setReviewSubmitError(null);
+    setReviewSubmitMessage(null);
+    try {
+      await submitAssignedReviewDecision(assignedReview.id, {
+        decision: reviewDecision,
+        remarks: reviewRemarks.trim() || null,
+      });
+      const refreshed = await fetchSubmissionDetail(numericId);
+      setSubmission(refreshed);
+      setReviewRemarks("");
+      setReviewSubmitMessage("Review decision submitted.");
+    } catch (err) {
+      setReviewSubmitError(getErrorMessage(err, "Failed to submit review decision."));
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
   /* ── derived data ── */
   const changeHistory = useMemo(() => {
     if (!submission) return [];
@@ -697,7 +742,8 @@ export const SubmissionDetailPage: React.FC = () => {
         </div>
         {!canManageClassification && (
           <p className="field-helper">
-            Classification controls are managed by the Chair.
+            Classification is managed by the Chair. Research Associates handle
+            operational workflow routing after classification.
           </p>
         )}
         <div className="classification-controls-grid">
@@ -793,6 +839,96 @@ export const SubmissionDetailPage: React.FC = () => {
           canEdit={capabilities.canEditProtocolProfile}
         />
       </ProtocolProfileSection>
+
+      {capabilities.canSubmitAssignedReview ? (
+        <section className="card detail-card assigned-review-card">
+          <div className="section-title">
+            <div className="section-title-left">
+              <h2>My review decision</h2>
+              <p className="field-helper">
+                Research Assistant access is limited to assigned reviews for this protocol.
+              </p>
+            </div>
+          </div>
+
+          {!assignedReview ? (
+            <p className="field-helper">
+              No active review record is assigned to your account for this submission.
+            </p>
+          ) : hasSubmittedAssignedReview ? (
+            <div className="assigned-review-summary">
+              <div className="field">
+                <label>Decision</label>
+                <div className="field-input classification-readonly">
+                  {assignedReview.decision
+                    ? assignedReview.decision.replace(/_/g, " ")
+                    : "Submitted"}
+                </div>
+              </div>
+              <div className="field">
+                <label>Submitted</label>
+                <div className="field-input classification-readonly">
+                  {assignedReview.respondedAt
+                    ? new Date(assignedReview.respondedAt).toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })
+                    : "Submitted"}
+                </div>
+              </div>
+              <div className="field field-wide">
+                <label>Remarks</label>
+                <div className="field-input classification-readonly assigned-review-remarks">
+                  {assignedReview.remarks || "No remarks provided."}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="assigned-review-form">
+              <div className="field">
+                <label>Decision</label>
+                <select
+                  className="field-input"
+                  value={reviewDecision}
+                  onChange={(event) => setReviewDecision(event.target.value as ReviewDecision)}
+                  disabled={!canSubmitCurrentAssignedReview || reviewSubmitting}
+                >
+                  {REVIEW_DECISION_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field field-wide">
+                <label>Remarks</label>
+                <textarea
+                  className="field-input assigned-review-textarea"
+                  value={reviewRemarks}
+                  onChange={(event) => setReviewRemarks(event.target.value)}
+                  placeholder="Add review remarks for the Chair and Research Associate."
+                  disabled={!canSubmitCurrentAssignedReview || reviewSubmitting}
+                />
+              </div>
+              <div className="assigned-review-actions">
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => void handleAssignedReviewSubmit()}
+                  disabled={!canSubmitCurrentAssignedReview || reviewSubmitting}
+                >
+                  {reviewSubmitting ? "Submitting..." : "Submit review decision"}
+                </button>
+              </div>
+              {reviewSubmitMessage ? <p className="field-success">{reviewSubmitMessage}</p> : null}
+              {reviewSubmitError ? <p className="error-text">{reviewSubmitError}</p> : null}
+            </div>
+          )}
+        </section>
+      ) : null}
 
       <ReviewerAssignmentsCard reviewerRows={reviewerRows} />
       <DocumentsCard documents={submission.documents ?? []} />

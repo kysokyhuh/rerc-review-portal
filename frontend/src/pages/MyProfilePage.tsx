@@ -8,17 +8,8 @@ import {
   passwordMeetsRules,
 } from "@/utils/passwordStrength";
 import { getErrorMessage } from "@/utils";
+import { getRoleDescription, getRoleLabel } from "@/utils/roleUtils";
 import "@/styles/profile-settings.css";
-
-const ROLE_LABELS: Record<string, string> = {
-  CHAIR: "Chair",
-  ADMIN: "Admin",
-  RESEARCH_ASSOCIATE: "Research Associate",
-  RESEARCH_ASSISTANT: "Research Assistant",
-  REVIEWER: "Reviewer",
-};
-
-const formatRoleLabel = (role: string) => ROLE_LABELS[role] || role.replace(/_/g, " ");
 
 const formatStatusLabel = (status?: string | null) => {
   if (!status) return "Active";
@@ -293,7 +284,7 @@ export default function MyProfilePage() {
                   {formatStatusLabel(activeProfile.status)}
                 </span>
                 <span className="profile-role-summary">
-                  {(activeProfile.roles || []).map(formatRoleLabel).join(", ") || "Portal user"}
+                  {(activeProfile.roles || []).map(getRoleLabel).join(", ") || "Portal user"}
                 </span>
               </div>
             </div>
@@ -652,8 +643,8 @@ export default function MyProfilePage() {
                 <dd className="profile-role-list">
                   {(activeProfile.roles || []).length > 0
                     ? activeProfile.roles.map((role) => (
-                        <span key={role} className="profile-role-chip">
-                          {formatRoleLabel(role)}
+                        <span key={role} className="profile-role-chip" title={getRoleDescription(role)}>
+                          {getRoleLabel(role)}
                         </span>
                       ))
                     : <span className="profile-muted-value">No role assigned</span>}

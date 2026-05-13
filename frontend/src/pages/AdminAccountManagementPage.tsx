@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import api from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { getErrorMessage } from "@/utils";
+import { getRoleDescription, getRoleLabel } from "@/utils/roleUtils";
 import "@/styles/admin-users.css";
 
 type UserStatus = "PENDING" | "APPROVED" | "REJECTED" | "DISABLED";
@@ -40,12 +41,6 @@ const ACCOUNT_TABS: AccountTabConfig[] = [
   { key: "DISABLED", label: "Disabled", description: "Previously approved accounts with access suspended." },
 ];
 
-const ROLE_LABELS: Record<string, string> = {
-  CHAIR: "Chair",
-  RESEARCH_ASSOCIATE: "Research Associate",
-  RESEARCH_ASSISTANT: "Research Assistant",
-};
-
 const ROLE_SORT_ORDER: Record<string, number> = {
   CHAIR: 0,
   RESEARCH_ASSOCIATE: 1,
@@ -56,7 +51,7 @@ const firstEditableRole = (roles: string[]) =>
   roles.find((role) => EDITABLE_ROLES.includes(role)) || "";
 
 const roleText = (role: string | null | undefined) =>
-  role ? ROLE_LABELS[role] || role : "Unassigned";
+  role ? getRoleLabel(role) : "Unassigned";
 
 const statusBadgeClass = (status: UserStatus) =>
   `admin-status-chip ${status.toLowerCase()}`;
@@ -555,6 +550,17 @@ export default function AdminAccountManagementPage() {
       {error ? <div className="admin-notice error portal-support">{error}</div> : null}
       {!error && notice ? <div className="admin-notice success portal-support">{notice}</div> : null}
 
+      {isChair ? (
+        <section className="admin-role-guide portal-support" aria-label="Role guide">
+          {EDITABLE_ROLES.map((role) => (
+            <div className="admin-role-guide-item" key={role}>
+              <strong>{roleText(role)}</strong>
+              <span>{getRoleDescription(role)}</span>
+            </div>
+          ))}
+        </section>
+      ) : null}
+
       <section className="panel admin-soft-panel admin-data-panel portal-content">
         <div className="panel-header admin-table-header">
           <div>
@@ -655,41 +661,62 @@ export default function AdminAccountManagementPage() {
                         </td>
                         <td>
                           {activeTab === "PENDING" && isChair ? (
-                            <select
-                              className="admin-select clean"
-                              value={draft?.selectedRole ?? ""}
-                              onChange={(event) =>
-                                updateDraft(entry.id, { selectedRole: event.target.value })
-                              }
-                              disabled={busy}
-                            >
-                              <option value="">Select role</option>
-                              {EDITABLE_ROLES.map((role) => (
-                                <option key={role} value={role}>
-                                  {roleText(role)}
-                                </option>
-                              ))}
-                            </select>
+                            <>
+                              <select
+                                className="admin-select clean"
+                                value={draft?.selectedRole ?? ""}
+                                onChange={(event) =>
+                                  updateDraft(entry.id, { selectedRole: event.target.value })
+                                }
+                                disabled={busy}
+                              >
+                                <option value="">Select role</option>
+                                {EDITABLE_ROLES.map((role) => (
+                                  <option key={role} value={role}>
+                                    {roleText(role)}
+                                  </option>
+                                ))}
+                              </select>
+                              {draft?.selectedRole ? (
+                                <p className="admin-role-description">
+                                  {getRoleDescription(draft.selectedRole)}
+                                </p>
+                              ) : null}
+                            </>
                           ) : activeTab === "APPROVED" && isEditing && isChair ? (
-                            <select
-                              className="admin-select clean"
-                              value={draft?.selectedRole ?? ""}
-                              onChange={(event) =>
-                                updateDraft(entry.id, { selectedRole: event.target.value })
-                              }
-                              disabled={busy}
-                            >
-                              <option value="">Select role</option>
-                              {EDITABLE_ROLES.map((role) => (
-                                <option key={role} value={role}>
-                                  {roleText(role)}
-                                </option>
-                              ))}
-                            </select>
+                            <>
+                              <select
+                                className="admin-select clean"
+                                value={draft?.selectedRole ?? ""}
+                                onChange={(event) =>
+                                  updateDraft(entry.id, { selectedRole: event.target.value })
+                                }
+                                disabled={busy}
+                              >
+                                <option value="">Select role</option>
+                                {EDITABLE_ROLES.map((role) => (
+                                  <option key={role} value={role}>
+                                    {roleText(role)}
+                                  </option>
+                                ))}
+                              </select>
+                              {draft?.selectedRole ? (
+                                <p className="admin-role-description">
+                                  {getRoleDescription(draft.selectedRole)}
+                                </p>
+                              ) : null}
+                            </>
                           ) : (
-                            <span className={`admin-role-text ${currentRole ? "" : "unassigned"}`.trim()}>
-                              {roleText(currentRole)}
-                            </span>
+                            <div className="admin-role-readonly">
+                              <span className={`admin-role-text ${currentRole ? "" : "unassigned"}`.trim()}>
+                                {roleText(currentRole)}
+                              </span>
+                              {currentRole ? (
+                                <span className="admin-role-description">
+                                  {getRoleDescription(currentRole)}
+                                </span>
+                              ) : null}
+                            </div>
                           )}
                         </td>
                         <td className="admin-date-cell">
