@@ -77,14 +77,17 @@ interface SubmissionsTableProps {
 
   // Actions
   onQuickView: (item: DecoratedQueueItem) => void;
+  onAssignAssistant?: (item: DecoratedQueueItem) => void;
   onAssignReviewer?: (item: DecoratedQueueItem) => void;
   onNavigate: (path: string) => void;
   onExportFiltered: () => void;
   onExportSelected: () => void;
   onBulkAssign: () => void;
+  onBulkAssignAssistant: () => void;
   onBulkReminder: () => void;
   onBulkStatusChange: () => void;
   onBulkDelete: () => void;
+  canAssignAssistants: boolean;
   canBulkAssignReviewers: boolean;
   canBulkSendReminders: boolean;
   canBulkChangeStatus: boolean;
@@ -131,14 +134,17 @@ export function SubmissionsTable({
   totalFiltered,
   onPageChange,
   onQuickView,
+  onAssignAssistant,
   onAssignReviewer,
   onNavigate,
   onExportFiltered,
   onExportSelected,
   onBulkAssign,
+  onBulkAssignAssistant,
   onBulkReminder,
   onBulkStatusChange,
   onBulkDelete,
+  canAssignAssistants,
   canBulkAssignReviewers,
   canBulkSendReminders,
   canBulkChangeStatus,
@@ -147,6 +153,7 @@ export function SubmissionsTable({
   assignedOnly = false,
 }: SubmissionsTableProps) {
   const canSelectRows =
+    canAssignAssistants ||
     canBulkAssignReviewers ||
     canBulkSendReminders ||
     canBulkChangeStatus ||
@@ -160,6 +167,7 @@ export function SubmissionsTable({
         reviewType !== "EXEMPT"
     );
   };
+  const canDirectAssignAssistant = Boolean(canAssignAssistants && onAssignAssistant);
 
   return (
     <>
@@ -168,7 +176,7 @@ export function SubmissionsTable({
           <div className="panel-header">
             <div>
               <h3 className="panel-title">
-                {assignedOnly ? "My assigned reviews" : "Queue workspace"}
+                {assignedOnly ? "My assigned protocols" : "Queue workspace"}
               </h3>
             </div>
             <div className="panel-actions">
@@ -330,7 +338,7 @@ export function SubmissionsTable({
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <h3>{assignedOnly ? "No assigned reviews match this view" : "No submissions match this view"}</h3>
+                <h3>{assignedOnly ? "No assigned protocols match this view" : "No submissions match this view"}</h3>
                 <p>{assignedOnly ? "Clear filters or switch to “All assigned” to see more." : "Clear filters or switch to “All” to see more."}</p>
                 <button className="ghost-btn" type="button" onClick={() => { onQueueFilterChange("all"); onSearchTermChange(""); }}>
                   Reset filters
@@ -409,12 +417,30 @@ export function SubmissionsTable({
                                 <circle cx="12" cy="12" r="3" />
                               </svg>
                             </button>
+                            {canDirectAssignAssistant ? (
+                              <button
+                                type="button"
+                                className="row-action-btn"
+                                title="Assign protocol assistant"
+                                aria-label={`Assign protocol assistant to ${item.projectCode}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onAssignAssistant?.(item);
+                                }}
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <circle cx="9" cy="8" r="4" />
+                                  <path d="M3 21c0-3.5 2.7-6 6-6 1.2 0 2.3.3 3.2.9" />
+                                  <path d="M16 12l2 2 4-4" />
+                                </svg>
+                              </button>
+                            ) : null}
                             {canDirectAssignReviewer(item) ? (
                               <button
                                 type="button"
                                 className="row-action-btn"
-                                title="Assign Research Assistants"
-                                aria-label={`Assign Research Assistants to ${item.projectCode}`}
+                                title="Assign reviewer"
+                                aria-label={`Assign reviewer to ${item.projectCode}`}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   onAssignReviewer?.(item);
@@ -468,7 +494,10 @@ export function SubmissionsTable({
                 </div>
                 <div className="bulk-actions">
                   {canBulkAssignReviewers ? (
-                    <button className="ghost-btn" type="button" onClick={onBulkAssign}>Assign Research Assistants</button>
+                    <button className="ghost-btn" type="button" onClick={onBulkAssign}>Assign reviewers</button>
+                  ) : null}
+                  {canAssignAssistants ? (
+                    <button className="ghost-btn" type="button" onClick={onBulkAssignAssistant}>Assign assistant</button>
                   ) : null}
                   {canBulkSendReminders ? (
                     <button className="ghost-btn" type="button" onClick={onBulkReminder}>Send reminders</button>

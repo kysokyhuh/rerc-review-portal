@@ -165,6 +165,19 @@ export const bulkAssignReviewerSchema = z
   })
   .strict();
 
+export const assignAssistantSchema = z
+  .object({
+    assistantId: z.number().int().positive(),
+  })
+  .strict();
+
+export const bulkAssignAssistantSchema = z
+  .object({
+    submissionIds: submissionIdsSchema,
+    assistantId: z.number().int().positive(),
+  })
+  .strict();
+
 export const bulkStatusActionSchema = z
   .object({
     submissionIds: submissionIdsSchema,

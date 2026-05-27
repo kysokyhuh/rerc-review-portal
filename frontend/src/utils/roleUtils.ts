@@ -15,7 +15,7 @@ export const ROLE_DESCRIPTIONS: Record<string, string> = {
   RESEARCH_ASSOCIATE:
     "Secretariat operator for protocol intake, review workflow, reviewer assignment, reports, and operational follow-through.",
   RESEARCH_ASSISTANT:
-    "Assigned-only review support. Can see assigned protocols and submit assigned review decisions.",
+    "Assigned-only protocol operator. Can work on protocols assigned to them and submit assigned review decisions.",
   REVIEWER:
     "Assigned reviewer with access limited to assigned submissions.",
   MEMBER:
@@ -64,6 +64,7 @@ export const getRoleCapabilities = (roles: string[] = []) => {
     canGenerateReports: canOperateProtocols,
     canViewArchives: canOperateProtocols || isAdmin,
     canViewRecentlyDeleted: canAdministerAccounts,
+    canAssignAssistants: canOperateProtocols,
     canBulkAssignReviewers: canOperateProtocols,
     canBulkSendReminders: canOperateProtocols,
     canBulkChangeStatus: canOperateProtocols,

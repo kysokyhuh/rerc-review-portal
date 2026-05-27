@@ -735,6 +735,14 @@ export async function getSubmissionById(id: number) {
         select: submissionProjectDetailSelect,
       },
       classification: { include: { panel: true, classifiedBy: true } },
+      staffInCharge: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          roles: true,
+        },
+      },
       reviews: { include: { reviewer: true }, orderBy: { assignedAt: "asc" } },
       documents: { orderBy: [{ type: "asc" }, { createdAt: "asc" }] },
       statusHistory: {
@@ -1406,13 +1414,6 @@ export async function assignReviewer(
   if (!reviewer.isActive || reviewer.status !== UserStatus.APPROVED) {
     throw new AppError(400, "INVALID_REVIEWER", "Reviewer must be active and approved");
   }
-  if (!reviewer.roles.includes(RoleType.RESEARCH_ASSISTANT)) {
-    throw new AppError(
-      400,
-      "INVALID_RESEARCH_ASSISTANT",
-      "Protocols can only be assigned to active approved Research Assistants"
-    );
-  }
 
   const { reviewRole, assignmentRole } = normalizeReviewerRoles(reviewerRoleInput);
   const explicitDueDate = dueDateInput ? new Date(dueDateInput) : null;
@@ -1588,7 +1589,6 @@ export async function listReviewerCandidates() {
     where: {
       isActive: true,
       status: UserStatus.APPROVED,
-      roles: { has: RoleType.RESEARCH_ASSISTANT },
     },
     select: {
       id: true,
@@ -1600,6 +1600,140 @@ export async function listReviewerCandidates() {
     },
     orderBy: [{ fullName: "asc" }],
   });
+}
+
+export async function listAssistantCandidates() {
+  return prisma.user.findMany({
+    where: {
+      isActive: true,
+      status: UserStatus.APPROVED,
+      roles: { has: RoleType.RESEARCH_ASSISTANT },
+    },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      roles: true,
+    },
+    orderBy: [{ fullName: "asc" }],
+  });
+}
+
+export async function assignProtocolAssistant(
+  submissionId: number,
+  assistantId: number,
+  actorId: number
+) {
+  const assistant = await prisma.user.findUnique({
+    where: { id: assistantId },
+    select: {
+      id: true,
+      roles: true,
+      status: true,
+      isActive: true,
+      fullName: true,
+      email: true,
+    },
+  });
+  if (!assistant) throw new AppError(404, "NOT_FOUND", "Assistant not found");
+  if (
+    !assistant.isActive ||
+    assistant.status !== UserStatus.APPROVED ||
+    !assistant.roles.includes(RoleType.RESEARCH_ASSISTANT)
+  ) {
+    throw new AppError(
+      400,
+      "INVALID_RESEARCH_ASSISTANT",
+      "Protocol assistant must be an active approved Research Assistant"
+    );
+  }
+
+  const submission = await prisma.submission.findUnique({
+    where: { id: submissionId },
+    select: {
+      id: true,
+      staffInChargeId: true,
+      project: { select: { projectCode: true } },
+    },
+  });
+  if (!submission) throw new AppError(404, "NOT_FOUND", "Submission not found");
+
+  if (submission.staffInChargeId === assistantId) {
+    throw new AppError(
+      409,
+      "DUPLICATE_ASSISTANT_ASSIGNMENT",
+      "Research Assistant is already assigned to this protocol"
+    );
+  }
+
+  const updated = await prisma.submission.update({
+    where: { id: submissionId },
+    data: { staffInChargeId: assistantId },
+    include: {
+      staffInCharge: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          roles: true,
+        },
+      },
+    },
+  });
+
+  await logAuditEvent({
+    actorId,
+    action: "PROTOCOL_ASSISTANT_ASSIGNED",
+    entityType: "Submission",
+    entityId: submissionId,
+    metadata: { assistantId, previousAssistantId: submission.staffInChargeId },
+  });
+
+  return updated;
+}
+
+export async function bulkAssignProtocolAssistant(
+  submissionIds: number[],
+  assistantId: number,
+  actorId: number
+) {
+  const contexts = await getBulkSubmissionContexts(submissionIds);
+  const results: BulkActionResult[] = [];
+
+  for (const submissionId of submissionIds) {
+    const context = contexts.get(submissionId);
+    const projectCode = context?.project?.projectCode ?? null;
+
+    if (!context) {
+      results.push(buildBulkResult(submissionId, null, "FAILED", "Submission not found"));
+      continue;
+    }
+
+    try {
+      assertProjectIsMutable(context.project);
+      const updated = await assignProtocolAssistant(submissionId, assistantId, actorId);
+      results.push(
+        buildBulkResult(
+          submissionId,
+          projectCode,
+          "SUCCEEDED",
+          "Protocol assistant assigned",
+          { assistantId, staffInChargeId: updated.staffInChargeId }
+        )
+      );
+    } catch (error) {
+      results.push(
+        buildBulkResult(
+          submissionId,
+          projectCode,
+          getBulkResultStatusForError(error),
+          getErrorMessage(error)
+        )
+      );
+    }
+  }
+
+  return summarizeBulkResults(submissionIds.length, results);
 }
 
 export async function bulkAssignReviewerToSubmissions(

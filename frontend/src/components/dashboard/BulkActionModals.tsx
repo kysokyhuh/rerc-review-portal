@@ -1,11 +1,14 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useColdStartStatus } from "@/hooks/useColdStartStatus";
 import {
+  assignAssistantToSubmission,
   assignReviewerToSubmission,
+  bulkAssignAssistants,
   bulkAssignReviewers,
   bulkCreateReminders,
   bulkRunStatusAction,
   deleteProjectRecordsBulk,
+  fetchAssistantCandidates,
   fetchReviewerCandidates,
   waitForBackendReady,
 } from "@/services/api";
@@ -31,6 +34,14 @@ interface BulkModalBaseProps {
 type ReviewerAssignmentTarget = Pick<DecoratedQueueItem, "id" | "projectCode" | "projectTitle">;
 
 interface AssignReviewersModalProps {
+  open: boolean;
+  onClose: () => void;
+  selectedItems: ReviewerAssignmentTarget[];
+  onApplied?: () => void;
+  mode?: "bulk" | "single";
+}
+
+interface AssignAssistantsModalProps {
   open: boolean;
   onClose: () => void;
   selectedItems: ReviewerAssignmentTarget[];
@@ -110,7 +121,8 @@ const REASON_REQUIRED_ACTIONS = new Set<BulkStatusAction>([
   "MARK_NOT_ACCEPTED",
 ]);
 
-const REVIEWER_REQUIRED_MESSAGE = "Select at least one Research Assistant before assigning this batch.";
+const REVIEWER_REQUIRED_MESSAGE = "Select a reviewer before assigning this batch.";
+const ASSISTANT_REQUIRED_MESSAGE = "Select a Research Assistant before assigning this protocol.";
 const CHAIR_ONLY_STATUS_ACTIONS = new Set<BulkStatusAction>([
   "MOVE_TO_UNDER_CLASSIFICATION",
   "MARK_CLASSIFIED",
@@ -205,7 +217,7 @@ const formatReviewerCandidateMeta = (candidate: ReviewerCandidate) => {
     roleLabels.unshift("Common reviewer");
   }
 
-  return roleLabels.slice(0, 2).join(" • ") || "Research Assistant";
+  return roleLabels.slice(0, 2).join(" • ") || "Reviewer candidate";
 };
 
 function BulkResultSummary({
@@ -419,9 +431,7 @@ export function AssignReviewersBulkModal({
 }: AssignReviewersModalProps) {
   const [candidates, setCandidates] = useState<ReviewerCandidate[]>([]);
   const [loadingCandidates, setLoadingCandidates] = useState(false);
-  const [reviewerIds, setReviewerIds] = useState<string[]>([]);
-  const [reviewerQuery, setReviewerQuery] = useState("");
-  const [reviewerOpen, setReviewerOpen] = useState(false);
+  const [reviewerId, setReviewerId] = useState("");
   const [reviewerRole, setReviewerRole] = useState<
     "SCIENTIST" | "LAY" | "INDEPENDENT_CONSULTANT"
   >("SCIENTIST");
@@ -431,14 +441,11 @@ export function AssignReviewersBulkModal({
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<BulkActionResponse | null>(null);
   const [singleSuccess, setSingleSuccess] = useState<string | null>(null);
-  const reviewerPickerRef = useRef<HTMLDivElement | null>(null);
   const isSingleMode = mode === "single";
 
   useEffect(() => {
     if (!open) return;
-    setReviewerIds([]);
-    setReviewerQuery("");
-    setReviewerOpen(false);
+    setReviewerId("");
     setReviewerRole("SCIENTIST");
     setDueDate("");
     setIsPrimary(false);
@@ -459,7 +466,7 @@ export function AssignReviewersBulkModal({
       })
       .catch((err) => {
         if (active) {
-          setError(err instanceof Error ? err.message : "Failed to load Research Assistants");
+          setError(err instanceof Error ? err.message : "Failed to load reviewer candidates");
         }
       })
       .finally(() => {
@@ -472,69 +479,14 @@ export function AssignReviewersBulkModal({
     };
   }, [open]);
 
-  useEffect(() => {
-    if (!reviewerOpen) return undefined;
-    const handlePointerDown = (event: MouseEvent) => {
-      if (
-        reviewerPickerRef.current &&
-        !reviewerPickerRef.current.contains(event.target as Node)
-      ) {
-        setReviewerOpen(false);
-      }
-    };
-    window.addEventListener("mousedown", handlePointerDown);
-    return () => window.removeEventListener("mousedown", handlePointerDown);
-  }, [reviewerOpen]);
-
-  useEffect(() => {
-    if (reviewerIds.length > 1 && isPrimary) {
-      setIsPrimary(false);
-    }
-  }, [isPrimary, reviewerIds.length]);
-
-  const selectedReviewers = useMemo(
-    () => candidates.filter((candidate) => reviewerIds.includes(String(candidate.id))),
-    [candidates, reviewerIds]
-  );
-
-  const filteredCandidates = useMemo(() => {
-    const query = reviewerQuery.trim().toLowerCase();
-    if (!query) return candidates;
-    return candidates.filter((candidate) => {
-      const haystack = [
-        candidate.fullName,
-        candidate.email,
-        ...candidate.reviewerExpertise,
-        ...candidate.roles,
-        candidate.isCommonReviewer ? "common reviewer" : "",
-      ]
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(query);
-    });
-  }, [candidates, reviewerQuery]);
-
   const selectionPreviewItems = selectedItems.slice(0, 3);
   const remainingSelectionCount = Math.max(0, selectedItems.length - selectionPreviewItems.length);
   const reviewerFieldError = error === REVIEWER_REQUIRED_MESSAGE;
   const generalError = reviewerFieldError ? null : error;
-  const canSubmit = reviewerIds.length > 0 && !loadingCandidates && !submitting;
-
-  const handleSelectReviewer = (candidateId: number) => {
-    setReviewerIds((current) => {
-      const value = String(candidateId);
-      return current.includes(value)
-        ? current.filter((item) => item !== value)
-        : [...current, value];
-    });
-    setReviewerQuery("");
-    if (reviewerFieldError) {
-      setError(null);
-    }
-  };
+  const canSubmit = Boolean(reviewerId) && !loadingCandidates && !submitting;
 
   const handleSubmit = async () => {
-    if (reviewerIds.length === 0) {
+    if (!reviewerId) {
       setError(REVIEWER_REQUIRED_MESSAGE);
       return;
     }
@@ -545,48 +497,29 @@ export function AssignReviewersBulkModal({
 
     try {
       if (isSingleMode && selectedItems.length === 1) {
-        for (const selectedReviewerId of reviewerIds) {
-          await assignReviewerToSubmission(selectedItems[0].id, {
-            reviewerId: Number(selectedReviewerId),
-            reviewerRole,
-            dueDate: dueDate || null,
-            isPrimary: reviewerIds.length === 1 ? isPrimary : false,
-          });
-        }
-        setSingleSuccess(
-          `${reviewerIds.length} Research Assistant${reviewerIds.length === 1 ? "" : "s"} assigned.`
-        );
+        await assignReviewerToSubmission(selectedItems[0].id, {
+          reviewerId: Number(reviewerId),
+          reviewerRole,
+          dueDate: dueDate || null,
+          isPrimary,
+        });
+        setSingleSuccess("Reviewer assigned.");
         onApplied?.();
       } else {
-        const responses = [];
-        for (const selectedReviewerId of reviewerIds) {
-          responses.push(
-            await bulkAssignReviewers({
-              submissionIds: selectedItems.map((item) => item.id),
-              reviewerId: Number(selectedReviewerId),
-              reviewerRole,
-              dueDate: dueDate || null,
-              isPrimary: reviewerIds.length === 1 ? isPrimary : false,
-            })
-          );
-        }
-        const response = responses.reduce<BulkActionResponse>(
-          (summary, entry) => ({
-            requestedCount: summary.requestedCount + entry.requestedCount,
-            succeeded: summary.succeeded + entry.succeeded,
-            skipped: summary.skipped + entry.skipped,
-            failed: summary.failed + entry.failed,
-            results: [...summary.results, ...entry.results],
-          }),
-          { requestedCount: 0, succeeded: 0, skipped: 0, failed: 0, results: [] }
-        );
+        const response = await bulkAssignReviewers({
+          submissionIds: selectedItems.map((item) => item.id),
+          reviewerId: Number(reviewerId),
+          reviewerRole,
+          dueDate: dueDate || null,
+          isPrimary,
+        });
         setResult(response);
-        if (responses.some((entry) => entry.succeeded > 0)) {
+        if (response.succeeded > 0) {
           onApplied?.();
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to assign Research Assistants");
+      setError(err instanceof Error ? err.message : "Failed to assign reviewers");
     } finally {
       setSubmitting(false);
     }
@@ -596,11 +529,11 @@ export function AssignReviewersBulkModal({
     <BulkModalShell
       open={open}
       onClose={onClose}
-      title="Assign Research Assistants"
+      title={isSingleMode ? "Assign reviewer" : "Assign reviewers"}
       description={
         isSingleMode
-          ? "Assign one or more Research Assistants to this submission."
-          : "Apply one or more Research Assistant assignments across the selected submission batch."
+          ? "Assign one reviewer to this submission."
+          : "Apply one reviewer setup across the selected submission batch."
       }
       modalClassName="bulk-modal--assign"
       footer={
@@ -609,7 +542,7 @@ export function AssignReviewersBulkModal({
             Close
           </button>
           <button className="primary-btn" type="button" onClick={handleSubmit} disabled={!canSubmit}>
-            {submitting ? "Assigning…" : "Assign Research Assistants"}
+            {submitting ? "Assigning…" : isSingleMode ? "Assign reviewer" : "Assign reviewers"}
           </button>
         </>
       }
@@ -626,8 +559,8 @@ export function AssignReviewersBulkModal({
           </strong>
           <span>
             {isSingleMode
-              ? "These Research Assistant assignments will be applied to this submission only."
-              : "These Research Assistant assignments will be applied to every eligible submission in the current batch."}
+              ? "This reviewer setup will be applied to this submission only."
+              : "This reviewer setup will be applied to every eligible submission in the current batch."}
           </span>
         </div>
         <div className="bulk-selection-tags" aria-label="Selected submissions">
@@ -647,9 +580,9 @@ export function AssignReviewersBulkModal({
 
       <section className="bulk-modal-section">
         <div className="bulk-section-header">
-          <span className="bulk-section-label">Protocol assignment</span>
-          <h4>{isSingleMode ? "Choose assigned Research Assistants" : "Choose who will receive this batch"}</h4>
-          <p>Select one or more Research Assistants, set the assignment role, and add an optional review deadline.</p>
+          <span className="bulk-section-label">Reviewer assignment</span>
+          <h4>{isSingleMode ? "Choose who will review this submission" : "Choose who will receive this batch"}</h4>
+          <p>Set the reviewer, assign the role, and add an optional review deadline.</p>
         </div>
 
         <div className="bulk-form-grid bulk-form-grid-2 bulk-form-grid-assign">
@@ -658,116 +591,38 @@ export function AssignReviewersBulkModal({
               reviewerFieldError ? " is-invalid" : ""
             }`}
           >
-            <span>Research Assistants</span>
-            <div className="bulk-reviewer-picker" ref={reviewerPickerRef}>
-              <button
-                type="button"
-                className={`bulk-reviewer-trigger${reviewerOpen ? " is-open" : ""}`}
-                onClick={() => {
-                  if (loadingCandidates || submitting) return;
-                  setReviewerOpen((current) => !current);
+            <span>Reviewer</span>
+            <div className="bulk-select-shell">
+              <select
+                className="bulk-select-control"
+                value={reviewerId}
+                onChange={(event) => {
+                  setReviewerId(event.target.value);
+                  if (reviewerFieldError) setError(null);
                 }}
                 disabled={loadingCandidates || submitting}
-                aria-haspopup="listbox"
-                aria-expanded={reviewerOpen}
               >
-                <div className="bulk-reviewer-trigger-copy">
-                  <strong>
-                    {loadingCandidates
-                      ? "Loading Research Assistants…"
-                      : selectedReviewers.length > 0
-                        ? `${selectedReviewers.length} selected`
-                        : "Select Research Assistants"}
-                  </strong>
-                  <span>
-                    {selectedReviewers.length > 0
-                      ? selectedReviewers.map((reviewer) => reviewer.fullName).join(", ")
-                      : "Search approved Research Assistant accounts by name, email, or expertise"}
-                  </span>
-                </div>
-                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path
-                    d="M6 8L10 12L14 8"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-
-              {reviewerOpen ? (
-                <div className="bulk-reviewer-popover">
-                  <div className="bulk-reviewer-search-shell">
-                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                      <path
-                        d="M8.75 14.5a5.75 5.75 0 1 1 0-11.5a5.75 5.75 0 0 1 0 11.5Z"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                      />
-                      <path
-                        d="m13 13l4 4"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <input
-                      className="bulk-reviewer-search"
-                      type="text"
-                      value={reviewerQuery}
-                      onChange={(event) => setReviewerQuery(event.target.value)}
-                      placeholder="Search Research Assistants"
-                      autoFocus
-                    />
-                  </div>
-
-                  <div className="bulk-reviewer-results" role="listbox">
-                    {filteredCandidates.length === 0 ? (
-                      <div className="bulk-reviewer-empty">
-                        No Research Assistants match “{reviewerQuery.trim()}”.
-                      </div>
-                    ) : (
-                      filteredCandidates.map((candidate) => {
-                        const isSelected = reviewerIds.includes(String(candidate.id));
-                        return (
-                          <button
-                            key={candidate.id}
-                            type="button"
-                            className={`bulk-reviewer-option${
-                              isSelected ? " is-selected" : ""
-                            }`}
-                            onClick={() => handleSelectReviewer(candidate.id)}
-                          >
-                            <div className="bulk-reviewer-option-copy">
-                              <strong>{candidate.fullName}</strong>
-                              <span>{candidate.email}</span>
-                              <small>{formatReviewerCandidateMeta(candidate)}</small>
-                            </div>
-                            {isSelected ? (
-                              <span className="bulk-reviewer-selected-mark">Selected</span>
-                            ) : null}
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              ) : null}
+                <option value="">{loadingCandidates ? "Loading approved accounts..." : "Select a reviewer"}</option>
+                {candidates.map((candidate) => (
+                  <option key={candidate.id} value={candidate.id}>
+                    {candidate.fullName} - {candidate.email} ({formatReviewerCandidateMeta(candidate)})
+                  </option>
+                ))}
+              </select>
             </div>
             <small className={reviewerFieldError ? "bulk-field-error" : undefined}>
               {reviewerFieldError
                 ? isSingleMode
-                  ? "Select at least one Research Assistant before assigning this submission."
+                  ? "Select a reviewer before assigning this submission."
                   : REVIEWER_REQUIRED_MESSAGE
                 : isSingleMode
-                  ? "Choose from active approved Research Assistant accounts."
-                  : "Choose from active approved Research Assistant accounts and apply assignments to every eligible submission."}
+                  ? "Choose from active approved accounts."
+                  : "Choose from active approved accounts and apply one reviewer to every eligible submission."}
             </small>
           </div>
 
           <label className="bulk-form-field">
-            <span>Assignment role</span>
+            <span>Reviewer role</span>
             <div className="bulk-select-shell">
               <select
                 className="bulk-select-control"
@@ -786,7 +641,7 @@ export function AssignReviewersBulkModal({
             </div>
             <small>
               {isSingleMode
-                ? "This role will be used for each selected assistant."
+                ? "This role will be used for this assignment."
                 : "This role will be applied uniformly across the batch."}
             </small>
           </label>
@@ -809,8 +664,8 @@ export function AssignReviewersBulkModal({
             <span className="bulk-section-label">Assignment options</span>
             <p>
               {isSingleMode
-                ? "Use this only when a single assistant should be the lead reviewer for this submission."
-                : "Use this only when one selected assistant should be the lead reviewer for the batch."}
+                ? "Use this when the reviewer should be the lead reviewer for this submission."
+                : "Use this only when the same reviewer should be the lead reviewer for the batch."}
             </p>
           </div>
 
@@ -819,18 +674,196 @@ export function AssignReviewersBulkModal({
               type="checkbox"
               checked={isPrimary}
               onChange={(event) => setIsPrimary(event.target.checked)}
-              disabled={submitting || reviewerIds.length > 1}
+              disabled={submitting}
             />
             <div className="bulk-checkbox-copy">
               <strong>Mark as primary reviewer</strong>
               <span>
                 {isSingleMode
-                  ? "Available when exactly one assistant is selected for this submission."
-                  : "Available when exactly one assistant is selected for the batch."}
+                  ? "Assign this reviewer as the primary reviewer for this submission."
+                  : "Assign this reviewer as the primary reviewer for every eligible submission."}
               </span>
             </div>
           </label>
         </div>
+      </section>
+
+      {generalError ? <div className="bulk-form-error">{generalError}</div> : null}
+      {singleSuccess ? <div className="bulk-form-success">{singleSuccess}</div> : null}
+      {result ? <BulkResultSummary result={result} /> : null}
+    </BulkModalShell>
+  );
+}
+
+export function AssignAssistantsModal({
+  open,
+  onClose,
+  selectedItems,
+  onApplied,
+  mode = "bulk",
+}: AssignAssistantsModalProps) {
+  const [candidates, setCandidates] = useState<
+    Array<{ id: number; fullName: string; email: string; roles: string[] }>
+  >([]);
+  const [assistantId, setAssistantId] = useState("");
+  const [loadingCandidates, setLoadingCandidates] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<BulkActionResponse | null>(null);
+  const [singleSuccess, setSingleSuccess] = useState<string | null>(null);
+  const isSingleMode = mode === "single";
+
+  useEffect(() => {
+    if (!open) return;
+    setAssistantId("");
+    setError(null);
+    setResult(null);
+    setSingleSuccess(null);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+    setLoadingCandidates(true);
+    fetchAssistantCandidates()
+      .then((data) => {
+        if (active) setCandidates(data);
+      })
+      .catch((err) => {
+        if (active) {
+          setError(err instanceof Error ? err.message : "Failed to load Research Assistants");
+        }
+      })
+      .finally(() => {
+        if (active) setLoadingCandidates(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [open]);
+
+  const selectionPreviewItems = selectedItems.slice(0, 3);
+  const remainingSelectionCount = Math.max(0, selectedItems.length - selectionPreviewItems.length);
+  const assistantFieldError = error === ASSISTANT_REQUIRED_MESSAGE;
+  const generalError = assistantFieldError ? null : error;
+  const canSubmit = Boolean(assistantId) && !loadingCandidates && !submitting;
+
+  const handleSubmit = async () => {
+    if (!assistantId) {
+      setError(ASSISTANT_REQUIRED_MESSAGE);
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+    setSingleSuccess(null);
+    try {
+      if (isSingleMode && selectedItems.length === 1) {
+        await assignAssistantToSubmission(selectedItems[0].id, {
+          assistantId: Number(assistantId),
+        });
+        setSingleSuccess("Protocol assistant assigned.");
+        onApplied?.();
+      } else {
+        const response = await bulkAssignAssistants({
+          submissionIds: selectedItems.map((item) => item.id),
+          assistantId: Number(assistantId),
+        });
+        setResult(response);
+        if (response.succeeded > 0) onApplied?.();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to assign Research Assistant");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <BulkModalShell
+      open={open}
+      onClose={onClose}
+      title={isSingleMode ? "Assign protocol assistant" : "Assign protocol assistant"}
+      description={
+        isSingleMode
+          ? "Give one Research Assistant operator access to this protocol."
+          : "Give one Research Assistant operator access to each selected protocol."
+      }
+      modalClassName="bulk-modal--assign"
+      footer={
+        <>
+          <button className="ghost-btn" type="button" onClick={onClose}>
+            Close
+          </button>
+          <button className="primary-btn" type="button" onClick={handleSubmit} disabled={!canSubmit}>
+            {submitting ? "Assigning..." : "Assign assistant"}
+          </button>
+        </>
+      }
+    >
+      <section className="bulk-modal-selection bulk-modal-selection-strong">
+        <div className="bulk-modal-selection-copy">
+          <span className="bulk-section-label">
+            {isSingleMode ? "Selected protocol" : "Selected batch"}
+          </span>
+          <strong>
+            {isSingleMode
+              ? selectedItems[0]?.projectCode || `Submission #${selectedItems[0]?.id ?? ""}`
+              : formatSubmissionCountLabel(selectedItems.length)}
+          </strong>
+          <span>
+            {isSingleMode
+              ? "The selected assistant can operate this assigned protocol."
+              : "The selected assistant can operate every protocol in this batch."}
+          </span>
+        </div>
+        <div className="bulk-selection-tags" aria-label="Selected submissions">
+          {selectionPreviewItems.map((item) => (
+            <div className="bulk-selection-tag" key={item.id}>
+              <strong>{item.projectCode || `Submission #${item.id}`}</strong>
+              {selectedItems.length === 1 ? <span>{item.projectTitle}</span> : null}
+            </div>
+          ))}
+          {remainingSelectionCount > 0 ? (
+            <div className="bulk-selection-tag bulk-selection-tag-muted">
+              <strong>+{remainingSelectionCount} more</strong>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      <section className="bulk-modal-section">
+        <div className="bulk-section-header">
+          <span className="bulk-section-label">Protocol assistant</span>
+          <h4>Choose the Research Assistant responsible for this protocol</h4>
+          <p>This is separate from reviewer assignment and controls assigned-protocol operator access.</p>
+        </div>
+        <label className={`bulk-form-field${assistantFieldError ? " is-invalid" : ""}`}>
+          <span>Research Assistant</span>
+          <div className="bulk-select-shell">
+            <select
+              className="bulk-select-control"
+              value={assistantId}
+              onChange={(event) => {
+                setAssistantId(event.target.value);
+                if (assistantFieldError) setError(null);
+              }}
+              disabled={loadingCandidates || submitting}
+            >
+              <option value="">{loadingCandidates ? "Loading Research Assistants..." : "Select a Research Assistant"}</option>
+              {candidates.map((candidate) => (
+                <option key={candidate.id} value={candidate.id}>
+                  {candidate.fullName} - {candidate.email}
+                </option>
+              ))}
+            </select>
+          </div>
+          <small className={assistantFieldError ? "bulk-field-error" : undefined}>
+            {assistantFieldError
+              ? ASSISTANT_REQUIRED_MESSAGE
+              : "Assigned assistants can view and operate only protocols assigned to them."}
+          </small>
+        </label>
       </section>
 
       {generalError ? <div className="bulk-form-error">{generalError}</div> : null}

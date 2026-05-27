@@ -68,7 +68,12 @@ router.get("/dashboard/queues", requireUser, async (req, res, next) => {
     };
     const isAssistant = req.user?.roles.includes(RoleType.RESEARCH_ASSISTANT);
     const roleScope = isAssistant
-      ? { reviews: { some: { reviewerId: req.user!.id } } }
+      ? {
+          OR: [
+            { staffInChargeId: req.user!.id },
+            { reviews: { some: { reviewerId: req.user!.id } } },
+          ],
+        }
       : {};
     const [holidayRows, slaConfigs] = await Promise.all([
       prisma.holiday.findMany({ select: { date: true } }),

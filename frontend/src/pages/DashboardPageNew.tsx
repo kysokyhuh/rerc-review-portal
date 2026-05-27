@@ -21,6 +21,7 @@ import {
   QuickViewModal,
 } from "@/components/dashboard";
 import {
+  AssignAssistantsModal,
   AssignReviewersBulkModal,
   ChangeStatusBulkModal,
   DeleteProtocolsBulkModal,
@@ -81,9 +82,10 @@ export const DashboardPage: React.FC = () => {
   const [quickViewLoading, setQuickViewLoading] = useState(false);
   const [quickViewError, setQuickViewError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [directAssignAssistantItem, setDirectAssignAssistantItem] = useState<DecoratedQueueItem | null>(null);
   const [directAssignItem, setDirectAssignItem] = useState<DecoratedQueueItem | null>(null);
   const [bulkModal, setBulkModal] = useState<
-    "assign" | "reminders" | "status" | "delete" | null
+    "assistant" | "assign" | "reminders" | "status" | "delete" | null
   >(null);
   const [dashboardFilters, setDashboardFilters] = useState<Record<string, string>>({});
   const [currentPage, setCurrentPage] = useState(1);
@@ -221,6 +223,9 @@ export const DashboardPage: React.FC = () => {
   const handleBulkAssign = () => {
     if (selectedIds.size && capabilities.canBulkAssignReviewers) setBulkModal("assign");
   };
+  const handleBulkAssignAssistant = () => {
+    if (selectedIds.size && capabilities.canAssignAssistants) setBulkModal("assistant");
+  };
   const handleBulkReminder = () => {
     if (selectedIds.size && capabilities.canBulkSendReminders) setBulkModal("reminders");
   };
@@ -239,6 +244,10 @@ export const DashboardPage: React.FC = () => {
     setSelectedIds(new Set());
   };
   const handleDirectAssignmentApplied = () => {
+    handleRefresh();
+  };
+  const handleDirectAssistantAssigned = () => {
+    setDirectAssignAssistantItem(null);
     handleRefresh();
   };
 
@@ -408,14 +417,17 @@ export const DashboardPage: React.FC = () => {
           totalFiltered={totalFiltered}
           onPageChange={setCurrentPage}
           onQuickView={openQuickView}
+          onAssignAssistant={setDirectAssignAssistantItem}
           onAssignReviewer={setDirectAssignItem}
           onNavigate={(p) => navigate(p)}
           onExportFiltered={handleExportFiltered}
           onExportSelected={handleExportSelected}
           onBulkAssign={handleBulkAssign}
+          onBulkAssignAssistant={handleBulkAssignAssistant}
           onBulkReminder={handleBulkReminder}
           onBulkStatusChange={handleBulkStatusChange}
           onBulkDelete={handleBulkDelete}
+          canAssignAssistants={capabilities.canAssignAssistants}
           canBulkAssignReviewers={capabilities.canBulkAssignReviewers}
           canBulkSendReminders={capabilities.canBulkSendReminders}
           canBulkChangeStatus={capabilities.canBulkChangeStatus}
@@ -443,6 +455,19 @@ export const DashboardPage: React.FC = () => {
         onClose={() => setBulkModal(null)}
         selectedItems={selectedItems}
         onApplied={handleBulkActionApplied}
+      />
+      <AssignAssistantsModal
+        open={bulkModal === "assistant"}
+        onClose={() => setBulkModal(null)}
+        selectedItems={selectedItems}
+        onApplied={handleBulkActionApplied}
+      />
+      <AssignAssistantsModal
+        open={Boolean(directAssignAssistantItem)}
+        onClose={() => setDirectAssignAssistantItem(null)}
+        selectedItems={directAssignAssistantItem ? [directAssignAssistantItem] : []}
+        onApplied={handleDirectAssistantAssigned}
+        mode="single"
       />
       <AssignReviewersBulkModal
         open={Boolean(directAssignItem)}

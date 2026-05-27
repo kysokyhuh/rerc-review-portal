@@ -9,9 +9,12 @@ import {
   requireAssignedReviewerByReviewId,
   requireMutableProjectBySubmissionId,
   requireSubmissionAccess,
+  requireSubmissionOperatorAccess,
 } from "../middleware/reviewerScope";
 import {
+  assignAssistantSchema,
   acceptSubmissionForClassificationSchema,
+  bulkAssignAssistantSchema,
   bulkAssignReviewerSchema,
   bulkReminderSchema,
   bulkStatusActionSchema,
@@ -31,13 +34,16 @@ import {
 import {
   acceptSubmissionForClassification,
   addSubmissionDocument,
+  assignProtocolAssistant,
   assignReviewer,
+  bulkAssignProtocolAssistant,
   bulkAssignReviewerToSubmissions,
   bulkCreateSubmissionReminders,
   bulkRunSubmissionStatusAction,
   classifySubmission,
   getSlaSummary,
   getSubmissionById,
+  listAssistantCandidates,
   listReviewerCandidates,
   markSubmissionNotAccepted,
   recordFinalDecision,
@@ -56,7 +62,7 @@ const router = Router();
 
 router.post(
   "/submissions/:id/screening/start",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireSubmissionOperatorAccess,
   requireMutableProjectBySubmissionId,
   validate(startCompletenessCheckSchema),
   async (req, res, next) => {
@@ -75,7 +81,7 @@ router.post(
 
 router.post(
   "/submissions/:id/screening/return",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireSubmissionOperatorAccess,
   requireMutableProjectBySubmissionId,
   validate(screeningOutcomeSchema),
   async (req, res, next) => {
@@ -94,7 +100,7 @@ router.post(
 
 router.post(
   "/submissions/:id/screening/not-accepted",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireSubmissionOperatorAccess,
   requireMutableProjectBySubmissionId,
   validate(screeningOutcomeSchema),
   async (req, res, next) => {
@@ -113,7 +119,7 @@ router.post(
 
 router.post(
   "/submissions/:id/screening/accept",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireSubmissionOperatorAccess,
   requireMutableProjectBySubmissionId,
   validate(acceptSubmissionForClassificationSchema),
   async (req, res, next) => {
@@ -223,6 +229,60 @@ router.get(
   }
 );
 
+router.get(
+  "/submissions/assistant-candidates",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  async (_req, res, next) => {
+    try {
+      const candidates = await listAssistantCandidates();
+      res.json(candidates);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
+  "/submissions/:submissionId/assistant-assignment",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireMutableProjectBySubmissionId,
+  validate(assignAssistantSchema),
+  async (req, res, next) => {
+    try {
+      const submissionId = Number(req.params.submissionId);
+      if (Number.isNaN(submissionId)) {
+        return res.status(400).json({ message: "Invalid submissionId" });
+      }
+      const result = await assignProtocolAssistant(
+        submissionId,
+        req.body.assistantId,
+        req.user!.id
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
+  "/submissions/bulk/assign-assistant",
+  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  validate(bulkAssignAssistantSchema),
+  async (req, res, next) => {
+    try {
+      const result = await bulkAssignProtocolAssistant(
+        req.body.submissionIds,
+        req.body.assistantId,
+        req.user!.id
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 router.post(
   "/submissions/bulk/assign-reviewer",
   requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
@@ -319,7 +379,7 @@ router.get("/submissions/:id", requireUser, requireSubmissionAccess, async (req,
 // Update submission overview fields and log changes
 router.patch(
   "/submissions/:id/overview",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireSubmissionOperatorAccess,
   requireMutableProjectBySubmissionId,
   validate(updateSubmissionOverviewSchema),
   async (req, res, next) => {
@@ -336,8 +396,9 @@ router.patch(
   }
 );
 
-// Change submission status and log history
-// Classification-stage transitions require CHAIR; others allow CHAIR or RA.
+// Change submission status and log history. Classification-stage transitions
+// remain Chair-only; other workflow changes allow Chair, Associate, or the
+// Research Assistant assigned through Submission.staffInChargeId.
 const CLASSIFICATION_STAGE_STATUSES = new Set([
   "AWAITING_CLASSIFICATION",
   "UNDER_CLASSIFICATION",
@@ -345,7 +406,7 @@ const CLASSIFICATION_STAGE_STATUSES = new Set([
 ]);
 router.patch(
   "/submissions/:id/status",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireSubmissionOperatorAccess,
   requireMutableProjectBySubmissionId,
   validate(updateSubmissionStatusSchema),
   async (req, res, next) => {
@@ -425,7 +486,7 @@ router.post(
 // Record final decision for a submission and update project approvals
 router.post(
   "/submissions/:id/start-review",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireSubmissionOperatorAccess,
   requireMutableProjectBySubmissionId,
   validate(startReviewSchema),
   async (req, res, next) => {
@@ -444,7 +505,7 @@ router.post(
 
 router.post(
   "/submissions/:id/issue-exemption",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireSubmissionOperatorAccess,
   requireMutableProjectBySubmissionId,
   validate(issueExemptionSchema),
   async (req, res, next) => {
@@ -467,7 +528,7 @@ router.post(
 
 router.post(
   "/submissions/:id/final-decision",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireSubmissionOperatorAccess,
   requireMutableProjectBySubmissionId,
   validate(finalDecisionSchema),
   async (req, res, next) => {

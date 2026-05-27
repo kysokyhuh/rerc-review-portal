@@ -67,11 +67,24 @@ export const requireSubmissionAccess = async (
     return next();
   }
 
-  if (
-    req.user.roles.includes(RoleType.RESEARCH_ASSISTANT) ||
-    req.user.roles.includes(RoleType.REVIEWER)
-  ) {
-    // Assigned-only roles must have an explicit Review row; creator ownership does not broaden RA access.
+  if (req.user.roles.includes(RoleType.RESEARCH_ASSISTANT)) {
+    const assignedSubmission = await prisma.submission.findFirst({
+      where: {
+        id: submissionId,
+        OR: [
+          { staffInChargeId: req.user.id },
+          { reviews: { some: { reviewerId: req.user.id } } },
+        ],
+      },
+      select: { id: true },
+    });
+    if (!assignedSubmission) {
+      return res.status(403).json({ message: "Not assigned to this submission" });
+    }
+    return next();
+  }
+
+  if (req.user.roles.includes(RoleType.REVIEWER)) {
     const assignment = await prisma.review.findFirst({
       where: { submissionId, reviewerId: req.user.id },
       select: { id: true },
@@ -126,11 +139,25 @@ export const requireProjectAccess = async (
     return next();
   }
 
-  if (
-    req.user.roles.includes(RoleType.RESEARCH_ASSISTANT) ||
-    req.user.roles.includes(RoleType.REVIEWER)
-  ) {
-    // Project detail access follows the same assigned-review boundary as submission detail access.
+  if (req.user.roles.includes(RoleType.RESEARCH_ASSISTANT)) {
+    const assignedSubmission = await prisma.submission.findFirst({
+      where: {
+        projectId,
+        OR: [
+          { staffInChargeId: req.user.id },
+          { reviews: { some: { reviewerId: req.user.id } } },
+        ],
+      },
+      select: { id: true },
+    });
+    if (!assignedSubmission) {
+      return res.status(403).json({ message: "Not assigned to this project" });
+    }
+
+    return next();
+  }
+
+  if (req.user.roles.includes(RoleType.REVIEWER)) {
     const assignment = await prisma.review.findFirst({
       where: {
         reviewerId: req.user.id,
@@ -155,6 +182,66 @@ export const requireProjectAccess = async (
 
   if (project.createdById === req.user.id) {
     return next();
+  }
+
+  return res.status(403).json({ message: "Forbidden" });
+};
+
+export const requireSubmissionOperatorAccess = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const submissionId = Number(req.params.id || req.params.submissionId);
+  if (!Number.isFinite(submissionId)) {
+    return res.status(400).json({ message: "Invalid submission id" });
+  }
+
+  if (
+    req.user.roles.includes(RoleType.CHAIR) ||
+    req.user.roles.includes(RoleType.RESEARCH_ASSOCIATE)
+  ) {
+    return next();
+  }
+
+  if (req.user.roles.includes(RoleType.RESEARCH_ASSISTANT)) {
+    const assignment = await prisma.submission.findFirst({
+      where: { id: submissionId, staffInChargeId: req.user.id },
+      select: { id: true },
+    });
+    if (assignment) return next();
+    return res.status(403).json({ message: "Not assigned as protocol assistant" });
+  }
+
+  return res.status(403).json({ message: "Forbidden" });
+};
+
+export const requireProjectOperatorAccess = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const projectId = Number(req.params.id || req.params.projectId);
+  if (!Number.isFinite(projectId)) {
+    return res.status(400).json({ message: "Invalid project id" });
+  }
+
+  if (
+    req.user.roles.includes(RoleType.CHAIR) ||
+    req.user.roles.includes(RoleType.RESEARCH_ASSOCIATE)
+  ) {
+    return next();
+  }
+
+  if (req.user.roles.includes(RoleType.RESEARCH_ASSISTANT)) {
+    const assignment = await prisma.submission.findFirst({
+      where: { projectId, staffInChargeId: req.user.id },
+      select: { id: true },
+    });
+    if (assignment) return next();
+    return res.status(403).json({ message: "Not assigned as protocol assistant" });
   }
 
   return res.status(403).json({ message: "Forbidden" });

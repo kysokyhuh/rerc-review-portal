@@ -128,6 +128,7 @@ export interface QueueItem {
   piAffiliation?: string | null;
   piEmail?: string | null;
   staffInChargeName?: string | null;
+  staffInChargeId?: number | null;
   submissionType: string;
   status: string;
   receivedDate: string;
@@ -533,6 +534,12 @@ export interface SubmissionDetail {
   finalDecisionDate: string | null;
   statusHistory: StatusHistoryEntry[];
   reviews?: SubmissionReviewerEntry[];
+  staffInCharge?: {
+    id: number;
+    fullName: string;
+    email: string;
+    roles: string[];
+  } | null;
   reviewAssignments?: SubmissionReviewAssignmentEntry[];
   documents?: SubmissionDocumentEntry[];
   reminderLogs?: SubmissionReminderLogEntry[];

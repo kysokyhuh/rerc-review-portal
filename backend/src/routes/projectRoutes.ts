@@ -8,6 +8,7 @@ import { requireAnyRole, requireUser } from "../middleware/auth";
 import {
   requireMutableProjectByProjectId,
   requireProjectAccess,
+  requireProjectOperatorAccess,
 } from "../middleware/reviewerScope";
 import { validate } from "../middleware/validate";
 import {
@@ -344,7 +345,7 @@ router.get("/projects/:id/profile", requireUser, requireProjectAccess, async (re
 // Upsert profile
 router.put(
   "/projects/:id/profile",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireProjectOperatorAccess,
   requireMutableProjectByProjectId,
   validate(updateProjectProfileSchema),
   async (req, res, next) => {
@@ -362,7 +363,7 @@ router.put(
 // Create milestone
 router.post(
   "/projects/:id/profile/milestones",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireProjectOperatorAccess,
   requireMutableProjectByProjectId,
   validate(createMilestoneSchema),
   async (req, res, next) => {
@@ -380,7 +381,7 @@ router.post(
 // Update milestone
 router.patch(
   "/projects/:id/profile/milestones/:milestoneId",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireProjectOperatorAccess,
   requireMutableProjectByProjectId,
   validate(updateMilestoneSchema),
   async (req, res, next) => {
@@ -401,7 +402,7 @@ router.patch(
 // Delete milestone
 router.delete(
   "/projects/:id/profile/milestones/:milestoneId",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireProjectOperatorAccess,
   requireMutableProjectByProjectId,
   async (req, res, next) => {
     try {
@@ -421,7 +422,7 @@ router.delete(
 // Create a submission for a project
 router.post(
   "/projects/:projectId/submissions",
-  requireAnyRole([RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  requireProjectOperatorAccess,
   requireMutableProjectByProjectId,
   validate(createProjectSubmissionSchema),
   async (req, res, next) => {

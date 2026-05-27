@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Navigate, useParams, useSearchParams } from "react-router-dom";
-import { AssignReviewersBulkModal } from "@/components/dashboard/BulkActionModals";
+import {
+  AssignAssistantsModal,
+  AssignReviewersBulkModal,
+} from "@/components/dashboard/BulkActionModals";
 import { QueueDataTable } from "@/components/queue/QueueDataTable";
 import { QueueFilters } from "@/components/queue/QueueFilters";
 import { QueueKpiCards } from "@/components/queue/QueueKpiCards";
@@ -73,6 +76,7 @@ export default function QueuePage() {
   const { user } = useAuth();
   const capabilities = getRoleCapabilities(user?.roles ?? []);
   const assignedOnly = capabilities.hasAssignedOnlyAccess;
+  const [directAssignAssistantItem, setDirectAssignAssistantItem] = useState<DecoratedQueueItem | null>(null);
   const [directAssignItem, setDirectAssignItem] = useState<DecoratedQueueItem | null>(null);
   const queueKey = isQueueRouteKey(routeQueueKey) ? routeQueueKey : "classification";
   const shouldRedirect = !isQueueRouteKey(routeQueueKey);
@@ -81,18 +85,22 @@ export default function QueuePage() {
 
   const meta = assignedOnly && queueKey === "under-review"
     ? {
-        title: "My Reviews",
+        title: "My Assignments",
         description:
-          "Assigned protocols awaiting your review decision or remarks. Only records assigned to you are shown.",
-        emptyTitle: "No assigned reviews are waiting for you.",
+          "Protocols assigned to you as protocol assistant or reviewer. Only assigned records are shown.",
+        emptyTitle: "No assigned protocols are waiting for you.",
         emptyHint:
-          "Assigned reviews will appear here when the Chair or Research Associate routes a protocol to you.",
+          "Assigned protocols will appear here when the Chair or Research Associate routes one to you.",
       }
     : QUEUE_META[queueKey];
   const search = searchParams.get("search") ?? "";
   const segment = searchParams.get("segment") ?? "ALL";
-  const effectiveSegment =
-    queueKey === "under-review" && !["ALL", "EXPEDITED", "FULL_BOARD"].includes(segment)
+  const assignedSegmentValues = ["ALL", "CLASSIFICATION", "REVIEW", "EXEMPTED", "REVISION"];
+  const effectiveSegment = assignedOnly
+    ? assignedSegmentValues.includes(segment)
+      ? segment
+      : "ALL"
+    : queueKey === "under-review" && !["ALL", "EXPEDITED", "FULL_BOARD"].includes(segment)
       ? "ALL"
       : segment;
   const sla = (searchParams.get("sla") ?? "all") as
@@ -102,7 +110,7 @@ export default function QueuePage() {
     | "overdue"
     | "blocked";
 
-  const { classificationQueue, reviewQueue, exemptedQueue, revisionQueue, loading, error, refresh } =
+  const { classificationQueue, reviewQueue, exemptedQueue, revisionQueue, allItems, loading, error, refresh } =
     useDashboardQueues(BRAND.defaultCommitteeCode);
 
   useEffect(() => {
@@ -110,17 +118,34 @@ export default function QueuePage() {
   }, [meta.title]);
 
   const queueItems = useMemo(() => {
+    if (assignedOnly) return allItems;
     if (queueKey === "classification") return classificationQueue;
     if (queueKey === "under-review") return reviewQueue;
     if (queueKey === "exempted") return exemptedQueue;
     return revisionQueue;
-  }, [queueKey, classificationQueue, reviewQueue, exemptedQueue, revisionQueue]);
+  }, [assignedOnly, allItems, queueKey, classificationQueue, reviewQueue, exemptedQueue, revisionQueue]);
 
   const filteredItems = useMemo(() => {
     return queueItems.filter((item: DecoratedQueueItem) => {
       if (!matchesSearch(item, search)) return false;
       if (effectiveSegment !== "ALL") {
-        if (queueKey === "classification") {
+        if (assignedOnly) {
+          if (effectiveSegment === "CLASSIFICATION" && item.queue !== "classification") {
+            return false;
+          }
+          if (
+            effectiveSegment === "REVIEW" &&
+            (item.queue !== "review" || item.reviewType === "EXEMPT")
+          ) {
+            return false;
+          }
+          if (effectiveSegment === "EXEMPTED" && item.reviewType !== "EXEMPT") {
+            return false;
+          }
+          if (effectiveSegment === "REVISION" && item.queue !== "revision") {
+            return false;
+          }
+        } else if (queueKey === "classification") {
           if (
             effectiveSegment === "AWAITING_CLASSIFICATION" &&
             item.status !== "AWAITING_CLASSIFICATION"
@@ -142,7 +167,7 @@ export default function QueuePage() {
       if (sla === "overdue") return item.slaStatus === "OVERDUE";
       return item.missingFields.length > 0;
     });
-  }, [queueItems, search, sla, queueKey, effectiveSegment]);
+  }, [assignedOnly, queueItems, search, sla, queueKey, effectiveSegment]);
 
   const kpis = useMemo(() => {
     const overdue = queueItems.filter((item) => item.slaStatus === "OVERDUE").length;
@@ -213,6 +238,32 @@ export default function QueuePage() {
   };
 
   const segmentTabs = useMemo(() => {
+    if (assignedOnly) {
+      return [
+        { value: "ALL", label: "All assigned", count: queueItems.length },
+        {
+          value: "CLASSIFICATION",
+          label: "Classification",
+          count: queueItems.filter((item) => item.queue === "classification").length,
+        },
+        {
+          value: "REVIEW",
+          label: "Review",
+          count: queueItems.filter((item) => item.queue === "review" && item.reviewType !== "EXEMPT").length,
+        },
+        {
+          value: "EXEMPTED",
+          label: "Exempted",
+          count: queueItems.filter((item) => item.reviewType === "EXEMPT").length,
+        },
+        {
+          value: "REVISION",
+          label: "Revisions",
+          count: queueItems.filter((item) => item.queue === "revision").length,
+        },
+      ];
+    }
+
     if (queueKey === "classification") {
       return [
         { value: "ALL", label: "View All", count: queueItems.length },
@@ -246,7 +297,7 @@ export default function QueuePage() {
     }
 
     return [];
-  }, [queueItems, queueKey]);
+  }, [assignedOnly, queueItems, queueKey]);
 
   const activeFilters = useMemo(() => {
     const filters: string[] = [];
@@ -281,7 +332,7 @@ export default function QueuePage() {
       <header className="queue-page-header portal-context">
         <div className="queue-page-header-main">
           <span className="queue-page-eyebrow">
-            {assignedOnly ? "Assigned review work" : "Queue operations"}
+            {assignedOnly ? "Assigned protocol work" : "Queue operations"}
           </span>
           <h1>{meta.title}</h1>
           <p>{meta.description}</p>
@@ -304,7 +355,7 @@ export default function QueuePage() {
               <span className="queue-control-eyebrow">Controls</span>
               <h2>
                 {assignedOnly
-                  ? "Search and focus the assigned reviews that need your response."
+                  ? "Search and focus the assigned protocols that need your response."
                   : "Search, filter, and focus the records that need action now."}
               </h2>
             </div>
@@ -367,7 +418,7 @@ export default function QueuePage() {
         title="Queue results"
         subtitle={
           assignedOnly
-            ? "Open an assigned protocol to submit your review decision and remarks."
+            ? "Open an assigned protocol to update workflow details or submit review decisions when you are assigned as reviewer."
             : "Review active protocols in this lane, monitor SLA pressure, and open any row for the full submission record."
         }
         items={filteredItems}
@@ -382,9 +433,18 @@ export default function QueuePage() {
         activeFilters={activeFilters}
         onClearFilters={activeFilters.length > 0 ? clearFilters : undefined}
         showHeader
-        showReviewType={queueKey === "under-review"}
+        showReviewType={queueKey === "under-review" || assignedOnly}
+        canAssignAssistants={capabilities.canAssignAssistants && !assignedOnly}
+        onAssignAssistant={setDirectAssignAssistantItem}
         canAssignReviewers={capabilities.canBulkAssignReviewers && !assignedOnly}
         onAssignReviewer={setDirectAssignItem}
+      />
+      <AssignAssistantsModal
+        open={Boolean(directAssignAssistantItem)}
+        onClose={() => setDirectAssignAssistantItem(null)}
+        selectedItems={directAssignAssistantItem ? [directAssignAssistantItem] : []}
+        onApplied={refresh}
+        mode="single"
       />
       <AssignReviewersBulkModal
         open={Boolean(directAssignItem)}

@@ -603,6 +603,7 @@ export async function fetchDashboardQueues(
       piAffiliation?: string | null;
     } | null;
     staffInCharge?: {
+      id?: number | null;
       fullName?: string | null;
     } | null;
     submissionType?: string | null;
@@ -641,6 +642,7 @@ export async function fetchDashboardQueues(
       piName: item.project?.piName || "N/A",
       piAffiliation: item.project?.piAffiliation,
       staffInChargeName: item.staffInCharge?.fullName ?? null,
+      staffInChargeId: item.staffInCharge?.id ?? null,
       submissionType: item.submissionType ?? "UNKNOWN",
       status: item.status ?? "UNKNOWN",
       receivedDate: typeof item.receivedDate === "string" ? item.receivedDate : "",
@@ -925,6 +927,32 @@ export async function assignReviewerToSubmission(
 export async function fetchReviewerCandidates() {
   const response = await api.get("/submissions/reviewer-candidates");
   return response.data as ReviewerCandidate[];
+}
+
+export async function fetchAssistantCandidates() {
+  const response = await api.get("/submissions/assistant-candidates");
+  return response.data as Array<{
+    id: number;
+    fullName: string;
+    email: string;
+    roles: string[];
+  }>;
+}
+
+export async function assignAssistantToSubmission(
+  submissionId: number,
+  payload: { assistantId: number }
+) {
+  const response = await api.post(`/submissions/${submissionId}/assistant-assignment`, payload);
+  return response.data;
+}
+
+export async function bulkAssignAssistants(payload: {
+  submissionIds: number[];
+  assistantId: number;
+}) {
+  const response = await api.post("/submissions/bulk/assign-assistant", payload);
+  return response.data as BulkActionResponse;
 }
 
 export async function bulkAssignReviewers(payload: {

@@ -164,7 +164,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
             ) : null}
             <NavLink to="/queues/under-review" className={navClassName}>
               <SidebarItemContent
-                label={assignedOnly ? "My Reviews" : "Under Review"}
+                label={assignedOnly ? "My Assignments" : "Under Review"}
                 badge={counts?.forReview ?? undefined}
                 icon={
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

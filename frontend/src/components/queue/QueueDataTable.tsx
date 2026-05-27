@@ -79,6 +79,8 @@ type QueueDataTableProps = {
   onClearFilters?: () => void;
   showHeader?: boolean;
   showReviewType?: boolean;
+  canAssignAssistants?: boolean;
+  onAssignAssistant?: (item: DecoratedQueueItem) => void;
   canAssignReviewers?: boolean;
   onAssignReviewer?: (item: DecoratedQueueItem) => void;
 };
@@ -96,6 +98,8 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
   onClearFilters,
   showHeader = true,
   showReviewType = false,
+  canAssignAssistants = false,
+  onAssignAssistant,
   canAssignReviewers = false,
   onAssignReviewer,
 }) => {
@@ -109,6 +113,7 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
         reviewType !== "EXEMPT"
     );
   };
+  const hasActions = canAssignAssistants || canAssignReviewers;
 
   const renderState = (stateTitle: string, stateBody: string, isError = false) => (
     <div className={`queue-focused-state ${isError ? "error" : ""}`} role={isError ? "alert" : undefined}>
@@ -166,7 +171,7 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                     <th>{showReviewType ? "Review Type" : "Status"}</th>
                     <th>Received</th>
                     <th>SLA</th>
-                    {canAssignReviewers ? <th className="table-actions-header">Actions</th> : null}
+                    {hasActions ? <th className="table-actions-header">Actions</th> : null}
                   </tr>
                 </thead>
                 <tbody>
@@ -235,14 +240,32 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                             <span className="queue-sla-meta">{getSlaMeta(item)}</span>
                           </div>
                         </td>
-                        {canAssignReviewers ? (
+                        {hasActions ? (
                           <td className="table-actions">
+                            {canAssignAssistants ? (
+                              <button
+                                type="button"
+                                className="row-action-btn"
+                                title="Assign protocol assistant"
+                                aria-label={`Assign protocol assistant to ${item.projectCode}`}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  onAssignAssistant?.(item);
+                                }}
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <circle cx="9" cy="8" r="4" />
+                                  <path d="M3 21c0-3.5 2.7-6 6-6 1.2 0 2.3.3 3.2.9" />
+                                  <path d="M16 12l2 2 4-4" />
+                                </svg>
+                              </button>
+                            ) : null}
                             {canAssignReviewerToItem(item) ? (
                               <button
                                 type="button"
                                 className="row-action-btn"
-                                title="Assign Research Assistants"
-                                aria-label={`Assign Research Assistants to ${item.projectCode}`}
+                                title="Assign reviewer"
+                                aria-label={`Assign reviewer to ${item.projectCode}`}
                                 onClick={(event) => {
                                   event.stopPropagation();
                                   onAssignReviewer?.(item);
@@ -255,9 +278,9 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                                   <path d="M14 14h6" />
                                 </svg>
                               </button>
-                            ) : (
+                            ) : !canAssignAssistants ? (
                               <span className="table-muted">—</span>
-                            )}
+                            ) : null}
                           </td>
                         ) : null}
                       </tr>

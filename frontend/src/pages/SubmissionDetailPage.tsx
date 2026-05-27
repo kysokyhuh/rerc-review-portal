@@ -19,7 +19,10 @@ import { useSubmissionDetail } from "@/hooks/useSubmissionDetail";
 import { useColdStartStatus } from "@/hooks/useColdStartStatus";
 import { Timeline } from "@/components/Timeline";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { AssignReviewersBulkModal } from "@/components/dashboard/BulkActionModals";
+import {
+  AssignAssistantsModal,
+  AssignReviewersBulkModal,
+} from "@/components/dashboard/BulkActionModals";
 import {
   ProtocolProfileSection,
   profileToFormState,
@@ -275,6 +278,7 @@ export const SubmissionDetailPage: React.FC = () => {
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewSubmitError, setReviewSubmitError] = useState<string | null>(null);
   const [reviewSubmitMessage, setReviewSubmitMessage] = useState<string | null>(null);
+  const [assignAssistantOpen, setAssignAssistantOpen] = useState(false);
   const [assignReviewerOpen, setAssignReviewerOpen] = useState(false);
   const [creationBannerVisible, setCreationBannerVisible] = useState(
     Boolean(locationState?.createdProtocol)
@@ -468,6 +472,15 @@ export const SubmissionDetailPage: React.FC = () => {
       user?.roles?.some((role) => role === "CHAIR" || role === "ADMIN")
   );
   const canManageClassification = capabilities.canManageClassification;
+  const isAssignedProtocolAssistant = Boolean(
+    user?.id &&
+      capabilities.isResearchAssistant &&
+      submission?.staffInCharge?.id === user.id
+  );
+  const canOperateAssignedProtocol = Boolean(
+    !isProjectDeleted &&
+      (capabilities.canOperateProtocols || isAssignedProtocolAssistant)
+  );
   const currentStatus = normalizeClassificationStatus(submission?.status ?? "CLASSIFIED");
   const currentReviewType = REVIEW_TYPE_OPTIONS.includes(
     (submission?.classification?.reviewType ?? "") as
@@ -488,6 +501,9 @@ export const SubmissionDetailPage: React.FC = () => {
       !isProjectDeleted &&
       submission?.classification?.reviewType &&
       submission.classification.reviewType !== "EXEMPT"
+  );
+  const canAssignAssistant = Boolean(
+    capabilities.canAssignAssistants && !isProjectDeleted
   );
   const assignmentTarget = submission
     ? {
@@ -640,6 +656,13 @@ export const SubmissionDetailPage: React.FC = () => {
     setSubmission(refreshed);
   };
 
+  const handleProtocolAssistantAssigned = async () => {
+    if (!Number.isFinite(numericId)) return;
+    const refreshed = await fetchSubmissionDetail(numericId);
+    setSubmission(refreshed);
+    setAssignAssistantOpen(false);
+  };
+
   /* ── derived data ── */
   const changeHistory = useMemo(() => {
     if (!submission) return [];
@@ -752,7 +775,7 @@ export const SubmissionDetailPage: React.FC = () => {
         saving={saving} saveError={saveError}
         formState={formState} setFormState={setFormState}
         onEditStart={handleEditStart} onEditCancel={handleEditCancel} onSave={handleSave}
-        canEdit={capabilities.canEditSubmissionOverview}
+        canEdit={canOperateAssignedProtocol}
       />
 
       <section className="card detail-card">
@@ -850,14 +873,14 @@ export const SubmissionDetailPage: React.FC = () => {
         profileForm={profileForm} setProfileForm={setProfileForm}
         onEdit={() => setProfileEditing(true)} onSave={handleProfileSave}
         onCancel={() => setProfileEditing(false)}
-        canEdit={capabilities.canEditProtocolProfile}
+        canEdit={canOperateAssignedProtocol}
       >
         <MilestoneTable
           milestones={milestones} setMilestones={setMilestones}
           newMilestoneLabel={newMilestoneLabel} setNewMilestoneLabel={setNewMilestoneLabel}
           onAddMilestone={handleAddMilestone} onLoadStandardTimeline={handleLoadStandardTimeline}
           onSaveMilestone={handleMilestoneSave} onDeleteMilestone={handleMilestoneDelete}
-          canEdit={capabilities.canEditProtocolProfile}
+          canEdit={canOperateAssignedProtocol}
         />
       </ProtocolProfileSection>
 
@@ -867,7 +890,7 @@ export const SubmissionDetailPage: React.FC = () => {
             <div className="section-title-left">
               <h2>My review decision</h2>
               <p className="field-helper">
-                Research Assistant access is limited to assigned reviews for this protocol.
+                Review decisions are separate from protocol assistant assignment.
               </p>
             </div>
           </div>
@@ -950,6 +973,44 @@ export const SubmissionDetailPage: React.FC = () => {
           )}
         </section>
       ) : null}
+
+      <section className="card detail-card">
+        <div className="section-title">
+          <div className="section-title-left">
+            <h2>Protocol assistant</h2>
+            <p className="field-helper">
+              This assignment gives a Research Assistant operator access to this protocol.
+            </p>
+          </div>
+          {canAssignAssistant ? (
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => setAssignAssistantOpen(true)}
+            >
+              Assign assistant
+            </button>
+          ) : null}
+        </div>
+        <div className="header-grid">
+          <div className="field">
+            <label>Assigned assistant</label>
+            <p>{submission.staffInCharge?.fullName ?? "Unassigned"}</p>
+          </div>
+          <div className="field">
+            <label>Email</label>
+            <p>{submission.staffInCharge?.email ?? "—"}</p>
+          </div>
+          <div className="field">
+            <label>Access</label>
+            <p>
+              {submission.staffInCharge
+                ? "Assigned-protocol operator"
+                : "No assistant operator access"}
+            </p>
+          </div>
+        </div>
+      </section>
 
       <ReviewerAssignmentsCard
         reviewerRows={reviewerRows}
@@ -1044,6 +1105,13 @@ export const SubmissionDetailPage: React.FC = () => {
         onClose={() => setAssignReviewerOpen(false)}
         selectedItems={assignmentTarget ? [assignmentTarget] : []}
         onApplied={() => void handleReviewerAssigned()}
+        mode="single"
+      />
+      <AssignAssistantsModal
+        open={assignAssistantOpen}
+        onClose={() => setAssignAssistantOpen(false)}
+        selectedItems={assignmentTarget ? [assignmentTarget] : []}
+        onApplied={() => void handleProtocolAssistantAssigned()}
         mode="single"
       />
     </div>
