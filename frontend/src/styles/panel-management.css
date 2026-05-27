@@ -1,0 +1,101 @@
+.panel-management-page {
+  gap: 18px;
+}
+
+.panel-member-form-panel {
+  padding: 18px;
+}
+
+.panel-member-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.8fr) minmax(240px, 1.2fr) minmax(180px, 0.8fr) auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.panel-form-field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.panel-form-field span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.panel-add-btn {
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+.panel-management-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.panel-management-tabs .panel-tab {
+  border: 1px solid rgba(88, 71, 48, 0.16);
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.panel-management-tabs .panel-tab.active {
+  border-color: rgba(138, 46, 36, 0.28);
+  background: rgba(138, 46, 36, 0.08);
+  color: #8a2e24;
+}
+
+.panel-members-table th:nth-child(1),
+.panel-members-table td:nth-child(1) {
+  width: 24%;
+}
+
+.panel-members-table th:nth-child(2),
+.panel-members-table td:nth-child(2) {
+  width: 24%;
+}
+
+.panel-members-table th:nth-child(3),
+.panel-members-table td:nth-child(3) {
+  width: 18%;
+}
+
+.panel-members-table th:nth-child(6),
+.panel-members-table td:nth-child(6) {
+  width: 260px;
+}
+
+.panel-members-table .admin-actions.clean {
+  justify-content: flex-start;
+}
+
+@media (max-width: 1100px) {
+  .panel-member-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .panel-add-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .panel-member-form {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-management-tabs {
+    justify-content: flex-start;
+  }
+}

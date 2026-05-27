@@ -61,6 +61,8 @@ export type {
   ProtocolMilestone,
   CreateProtocolMilestonePayload,
   UpdateProtocolMilestonePayload,
+  PanelManagementPanel,
+  PanelMemberRole,
 } from "@/types";
 
 import type {
@@ -105,6 +107,8 @@ import type {
   ProtocolMilestone,
   CreateProtocolMilestonePayload,
   UpdateProtocolMilestonePayload,
+  PanelManagementPanel,
+  PanelMemberRole,
 } from "@/types";
 
 // Minimal process typing so Vite builds without Node typings
@@ -1037,6 +1041,32 @@ export async function fetchCommitteePanels(committeeCode: string) {
     panels: Array<{ id: number; name: string; code: string | null; isActive: boolean }>;
   };
   return data.panels.filter((p) => p.isActive);
+}
+
+export async function fetchPanelManagementPanels() {
+  const response = await api.get("/admin/panels");
+  return response.data as { panels: PanelManagementPanel[] };
+}
+
+export async function addPanelMember(
+  panelId: number,
+  payload: { email?: string; userId?: number; role: PanelMemberRole }
+) {
+  const response = await api.post(`/admin/panels/${panelId}/members`, payload);
+  return response.data;
+}
+
+export async function updatePanelMember(
+  memberId: number,
+  payload: { role?: PanelMemberRole; isActive?: boolean }
+) {
+  const response = await api.patch(`/admin/panel-members/${memberId}`, payload);
+  return response.data;
+}
+
+export async function deletePanelMember(memberId: number) {
+  const response = await api.delete(`/admin/panel-members/${memberId}`);
+  return response.data;
 }
 
 export async function fetchHolidays(params?: {

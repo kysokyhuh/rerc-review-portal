@@ -57,6 +57,7 @@ export const getRoleCapabilities = (roles: string[] = []) => {
     canOperateProtocols,
     canAdministerAccounts,
     canManageClassification: isChair,
+    canManagePanels: isChair,
     canManageCalendar: canOperateProtocols || isAdmin,
     canCreateProtocol: canOperateProtocols,
     canImportProjects: canOperateProtocols,

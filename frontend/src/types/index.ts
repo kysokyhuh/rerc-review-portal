@@ -51,6 +51,36 @@ export interface ChangePasswordPayload {
   confirmPassword: string;
 }
 
+export type PanelMemberRole = "CHAIR" | "MEMBER" | "SECRETARIAT";
+
+export interface PanelManagementMember {
+  id: number;
+  role: PanelMemberRole;
+  isActive: boolean;
+  createdAt: string;
+  user: {
+    id: number;
+    fullName: string;
+    email: string;
+    roles: string[];
+    status: string;
+    isActive: boolean;
+  };
+}
+
+export interface PanelManagementPanel {
+  id: number;
+  name: string;
+  code: string | null;
+  isActive: boolean;
+  committee: {
+    id: number;
+    code: string;
+    name: string;
+  };
+  members: PanelManagementMember[];
+}
+
 // Dashboard metrics
 export interface QueueCounts {
   forClassification: number;

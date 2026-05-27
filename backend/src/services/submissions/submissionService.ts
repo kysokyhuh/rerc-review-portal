@@ -7,6 +7,7 @@ import {
   Prisma,
   ProjectStatus,
   ReminderTarget,
+  RoleType,
   ReviewDecision,
   ReviewerRoleType,
   ReviewerRoundRole,
@@ -1405,6 +1406,13 @@ export async function assignReviewer(
   if (!reviewer.isActive || reviewer.status !== UserStatus.APPROVED) {
     throw new AppError(400, "INVALID_REVIEWER", "Reviewer must be active and approved");
   }
+  if (!reviewer.roles.includes(RoleType.RESEARCH_ASSISTANT)) {
+    throw new AppError(
+      400,
+      "INVALID_RESEARCH_ASSISTANT",
+      "Protocols can only be assigned to active approved Research Assistants"
+    );
+  }
 
   const { reviewRole, assignmentRole } = normalizeReviewerRoles(reviewerRoleInput);
   const explicitDueDate = dueDateInput ? new Date(dueDateInput) : null;
@@ -1580,6 +1588,7 @@ export async function listReviewerCandidates() {
     where: {
       isActive: true,
       status: UserStatus.APPROVED,
+      roles: { has: RoleType.RESEARCH_ASSISTANT },
     },
     select: {
       id: true,

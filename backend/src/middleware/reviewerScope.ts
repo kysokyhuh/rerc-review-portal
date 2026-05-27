@@ -67,6 +67,21 @@ export const requireSubmissionAccess = async (
     return next();
   }
 
+  if (
+    req.user.roles.includes(RoleType.RESEARCH_ASSISTANT) ||
+    req.user.roles.includes(RoleType.REVIEWER)
+  ) {
+    // Assigned-only roles must have an explicit Review row; creator ownership does not broaden RA access.
+    const assignment = await prisma.review.findFirst({
+      where: { submissionId, reviewerId: req.user.id },
+      select: { id: true },
+    });
+    if (!assignment) {
+      return res.status(403).json({ message: "Not assigned to this submission" });
+    }
+    return next();
+  }
+
   const submission = await prisma.submission.findUnique({
     where: { id: submissionId },
     select: {
@@ -89,21 +104,7 @@ export const requireSubmissionAccess = async (
     return next();
   }
 
-  if (
-    !req.user.roles.includes(RoleType.RESEARCH_ASSISTANT) &&
-    !req.user.roles.includes(RoleType.REVIEWER)
-  ) {
-    return res.status(403).json({ message: "Forbidden" });
-  }
-
-  const assignment = await prisma.review.findFirst({
-    where: { submissionId, reviewerId: req.user.id },
-    select: { id: true },
-  });
-  if (!assignment) {
-    return res.status(403).json({ message: "Not assigned to this submission" });
-  }
-  return next();
+  return res.status(403).json({ message: "Forbidden" });
 };
 
 export const requireProjectAccess = async (
@@ -125,6 +126,25 @@ export const requireProjectAccess = async (
     return next();
   }
 
+  if (
+    req.user.roles.includes(RoleType.RESEARCH_ASSISTANT) ||
+    req.user.roles.includes(RoleType.REVIEWER)
+  ) {
+    // Project detail access follows the same assigned-review boundary as submission detail access.
+    const assignment = await prisma.review.findFirst({
+      where: {
+        reviewerId: req.user.id,
+        submission: { projectId },
+      },
+      select: { id: true },
+    });
+    if (!assignment) {
+      return res.status(403).json({ message: "Not assigned to this project" });
+    }
+
+    return next();
+  }
+
   const project = await prisma.project.findUnique({
     where: { id: projectId },
     select: { createdById: true },
@@ -137,25 +157,7 @@ export const requireProjectAccess = async (
     return next();
   }
 
-  if (
-    !req.user.roles.includes(RoleType.RESEARCH_ASSISTANT) &&
-    !req.user.roles.includes(RoleType.REVIEWER)
-  ) {
-    return res.status(403).json({ message: "Forbidden" });
-  }
-
-  const assignment = await prisma.review.findFirst({
-    where: {
-      reviewerId: req.user.id,
-      submission: { projectId },
-    },
-    select: { id: true },
-  });
-  if (!assignment) {
-    return res.status(403).json({ message: "Not assigned to this project" });
-  }
-
-  return next();
+  return res.status(403).json({ message: "Forbidden" });
 };
 
 export const requireMutableProjectByProjectId = async (

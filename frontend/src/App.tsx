@@ -36,6 +36,7 @@ const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const SignupPage = lazy(() => import("@/pages/SignupPage"));
 const ChangePasswordPage = lazy(() => import("@/pages/ChangePasswordPage"));
 const AdminAccountManagementPage = lazy(() => import("@/pages/AdminAccountManagementPage"));
+const PanelManagementPage = lazy(() => import("@/pages/PanelManagementPage"));
 const MyProfilePage = lazy(() => import("@/pages/MyProfilePage"));
 const NotAuthorizedPage = lazy(() => import("@/pages/NotAuthorizedPage"));
 
@@ -142,6 +143,14 @@ function App() {
                     element={
                       <ProtectedRoute allowedRoles={["CHAIR", "ADMIN"]}>
                         <AdminAccountManagementPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/panel-management"
+                    element={
+                      <ProtectedRoute allowedRoles={["CHAIR"]}>
+                        <PanelManagementPage />
                       </ProtectedRoute>
                     }
                   />
