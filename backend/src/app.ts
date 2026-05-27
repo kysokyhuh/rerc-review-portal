@@ -56,6 +56,7 @@ const SPA_ROUTE_PATTERNS = [
   /^\/calendar$/,
   /^\/admin\/users$/,
   /^\/admin\/account-management$/,
+  /^\/admin\/panel-management$/,
   /^\/projects\/new$/,
   /^\/projects\/new-classic$/,
   /^\/projects\/[^/]+$/,
