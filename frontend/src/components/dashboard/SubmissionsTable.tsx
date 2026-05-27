@@ -151,13 +151,15 @@ export function SubmissionsTable({
     canBulkSendReminders ||
     canBulkChangeStatus ||
     canBulkDeleteRecords;
-  const canDirectAssignReviewer = (item: DecoratedQueueItem) =>
-    Boolean(
+  const canDirectAssignReviewer = (item: DecoratedQueueItem) => {
+    const reviewType = item.classification?.reviewType ?? item.reviewType;
+    return Boolean(
       canBulkAssignReviewers &&
         onAssignReviewer &&
-        item.classification?.reviewType &&
-        item.classification.reviewType !== "EXEMPT"
+        reviewType &&
+        reviewType !== "EXEMPT"
     );
+  };
 
   return (
     <>
@@ -411,8 +413,8 @@ export function SubmissionsTable({
                               <button
                                 type="button"
                                 className="row-action-btn"
-                                title="Assign reviewer"
-                                aria-label={`Assign reviewer to ${item.projectCode}`}
+                                title="Assign Research Assistants"
+                                aria-label={`Assign Research Assistants to ${item.projectCode}`}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   onAssignReviewer?.(item);
@@ -466,7 +468,7 @@ export function SubmissionsTable({
                 </div>
                 <div className="bulk-actions">
                   {canBulkAssignReviewers ? (
-                    <button className="ghost-btn" type="button" onClick={onBulkAssign}>Assign reviewers</button>
+                    <button className="ghost-btn" type="button" onClick={onBulkAssign}>Assign Research Assistants</button>
                   ) : null}
                   {canBulkSendReminders ? (
                     <button className="ghost-btn" type="button" onClick={onBulkReminder}>Send reminders</button>

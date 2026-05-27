@@ -41,7 +41,7 @@ export function ReviewerAssignmentsCard({
             className="btn btn-secondary btn-sm"
             onClick={onAssignReviewer}
           >
-            Assign reviewer
+            Assign Research Assistants
           </button>
         ) : null}
       </div>

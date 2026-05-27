@@ -100,13 +100,15 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
   onAssignReviewer,
 }) => {
   const navigate = useNavigate();
-  const canAssignReviewerToItem = (item: DecoratedQueueItem) =>
-    Boolean(
+  const canAssignReviewerToItem = (item: DecoratedQueueItem) => {
+    const reviewType = item.classification?.reviewType ?? item.reviewType;
+    return Boolean(
       canAssignReviewers &&
         onAssignReviewer &&
-        item.classification?.reviewType &&
-        item.classification.reviewType !== "EXEMPT"
+        reviewType &&
+        reviewType !== "EXEMPT"
     );
+  };
 
   const renderState = (stateTitle: string, stateBody: string, isError = false) => (
     <div className={`queue-focused-state ${isError ? "error" : ""}`} role={isError ? "alert" : undefined}>
@@ -239,8 +241,8 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                               <button
                                 type="button"
                                 className="row-action-btn"
-                                title="Assign reviewer"
-                                aria-label={`Assign reviewer to ${item.projectCode}`}
+                                title="Assign Research Assistants"
+                                aria-label={`Assign Research Assistants to ${item.projectCode}`}
                                 onClick={(event) => {
                                   event.stopPropagation();
                                   onAssignReviewer?.(item);
