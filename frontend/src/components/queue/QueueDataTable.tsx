@@ -48,7 +48,7 @@ const getSlaMeta = (item: DecoratedQueueItem) => {
   const unitLabel = item.slaDayMode === "CALENDAR" ? "day" : "working day";
 
   if (target == null || remaining == null || !item.slaDueDate) {
-    return "SLA will start once the current workflow deadline is set.";
+    return "Not started";
   }
 
   if (item.slaStatus === "OVERDUE") {
@@ -197,23 +197,29 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                           <div className="queue-project-cell">
                             <span className="queue-project-code">{item.projectCode}</span>
                             <div className="queue-project-title">{item.projectTitle}</div>
-                            <div className="queue-project-meta">
-                              <span>{formatLabel(item.submissionType)}</span>
-                              {item.staffInChargeName ? (
-                                <>
+                            {item.submissionType || item.staffInChargeName ? (
+                              <div className="queue-project-meta">
+                                {item.submissionType ? (
+                                  <span>{formatLabel(item.submissionType)}</span>
+                                ) : null}
+                                {item.submissionType && item.staffInChargeName ? (
                                   <span className="queue-project-meta-sep">•</span>
+                                ) : null}
+                                {item.staffInChargeName ? (
                                   <span>Owner: {item.staffInChargeName}</span>
-                                </>
-                              ) : null}
-                            </div>
+                                ) : null}
+                              </div>
+                            ) : null}
                           </div>
                         </td>
                         <td>
                           <div className="queue-pi-cell">
                             <span className="queue-pi-name">{item.piName}</span>
-                            <span className="queue-pi-meta">
-                              {item.piAffiliation || item.piEmail || "Principal investigator record"}
-                            </span>
+                            {item.piAffiliation || item.piEmail ? (
+                              <span className="queue-pi-meta">
+                                {item.piAffiliation || item.piEmail}
+                              </span>
+                            ) : null}
                           </div>
                         </td>
                         <td>
@@ -229,7 +235,6 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                         <td>
                           <div className="queue-date-cell">
                             <span className="queue-date-value">{toDate(item.receivedDate)}</span>
-                            <span className="queue-date-meta">Intake date</span>
                           </div>
                         </td>
                         <td>
