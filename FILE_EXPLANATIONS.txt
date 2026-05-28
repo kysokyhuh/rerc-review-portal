@@ -38,7 +38,9 @@ ROOT STRUCTURE:
   ├── README.md               # Project overview and setup
   ├── docs/                   # Operational docs and handoff materials
   │   ├── user-manual.md      # Source user manual for portal operators
-  │   └── user-manual.pdf     # PDF user manual for handoff/training
+  │   ├── user-manual.pdf     # PDF user manual for handoff/training
+  │   ├── neon-quota-runbook.md  # Source Neon quota recovery runbook
+  │   └── neon-quota-runbook.pdf # PDF Neon quota recovery runbook
   ├── backend/                # Express.js API server
   │   ├── src/                # Server source code
   │   ├── prisma/             # Database schema & migrations
@@ -101,6 +103,15 @@ CURRENT HANDOFF DOCUMENTS:
 
   docs/user-manual.pdf
     - PDF version of the same manual for distribution to operational users.
+
+  docs/neon-quota-runbook.md
+    - Operations runbook for Neon Free plan compute, storage, and network
+      transfer limits.
+    - Explains symptoms, emergency recovery, upgrade/wait decisions,
+      monitoring cadence, and prevention steps.
+
+  docs/neon-quota-runbook.pdf
+    - PDF version of the Neon quota runbook for handoff/training.
 
 CURRENT RBAC NOTES:
   - Panel Management is Chair-only.
@@ -1224,6 +1235,12 @@ HANDOFF DOCUMENTS:
   FILE: docs/user-manual.pdf
   PURPOSE: PDF copy of the same user manual for distribution to non-technical
            users and incoming committee staff.
+
+  FILE: docs/neon-quota-runbook.md
+  PURPOSE: Operations runbook for Neon database quota monitoring and recovery.
+
+  FILE: docs/neon-quota-runbook.pdf
+  PURPOSE: PDF copy of the Neon quota recovery runbook.
 
   FILE: README.md
   PURPOSE: Project overview with direct links to the manual source and PDF.

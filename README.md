@@ -21,6 +21,7 @@ The portal centralizes protocol submissions, review classification, reviewer ass
 
 - [Project Status](#project-status)
 - [User Manual](#user-manual)
+- [Operational Runbooks](#operational-runbooks)
 - [Features](#features)
 - [Architecture](#architecture)
 - [Prerequisites](#prerequisites)
@@ -51,6 +52,13 @@ Operational instructions for Chair, Admin, Research Associate, Research Assistan
 
 - [docs/user-manual.md](docs/user-manual.md)
 - [docs/user-manual.pdf](docs/user-manual.pdf)
+
+## Operational Runbooks
+
+Database hosting quota and recovery instructions for the Neon PostgreSQL project are available in:
+
+- [docs/neon-quota-runbook.md](docs/neon-quota-runbook.md)
+- [docs/neon-quota-runbook.pdf](docs/neon-quota-runbook.pdf)
 
 ## Architecture
 

@@ -50,6 +50,7 @@ This context pack now reflects the current role-based behavior used in the deplo
 - **Research Assistants are assigned-only users**. They can see a protocol if assigned as staff-in-charge or reviewer, but operational protocol controls require staff-in-charge assignment.
 - **Direct URL access is guarded** by backend submission/project access middleware, not only by hidden UI buttons.
 - **The handoff manual exists in both Markdown and PDF** at `docs/user-manual.md` and `docs/user-manual.pdf`.
+- **The Neon quota runbook exists in both Markdown and PDF** at `docs/neon-quota-runbook.md` and `docs/neon-quota-runbook.pdf`.
 
 ---
 
@@ -197,6 +198,8 @@ rerc-review-portal/
     ├── SECURITY.md                    # Security & RBAC documentation
     ├── user-manual.md                 # Operator handoff manual source
     ├── user-manual.pdf                # Operator handoff manual PDF
+    ├── neon-quota-runbook.md          # Neon quota recovery runbook source
+    ├── neon-quota-runbook.pdf         # Neon quota recovery runbook PDF
     ├── fixes.md                       # Integration notes
     ├── reports-date-mapping.md        # Reports date field mapping
     ├── reports-discovery-notes.md     # Reports discovery notes
@@ -1173,6 +1176,7 @@ cd backend && npm test
 
 #### RBAC and Handoff Documentation Update
 - **User manual added:** `docs/user-manual.md` and `docs/user-manual.pdf` now document the real operator workflow for Chairs, Research Associates, Research Assistants, reviewers, and admins.
+- **Neon quota runbook added:** `docs/neon-quota-runbook.md` and `docs/neon-quota-runbook.pdf` explain what to do if compute, storage, or network transfer usage approaches or exceeds the Neon Free plan allowance.
 - **Project context pack refreshed:** this document and `Project-Context-Pack.pdf` were updated for the current RBAC and assignment behavior.
 - **Panel Management documented:** Chair-only sidebar item and route at `/admin/panel-management`.
 - **Account Management documented:** account approval, role assignment, rejection, disable/enable, and reset-password workflows.
@@ -1185,6 +1189,8 @@ cd backend && npm test
 |------|--------|
 | `docs/user-manual.md` | Full editable user manual source |
 | `docs/user-manual.pdf` | PDF handoff manual |
+| `docs/neon-quota-runbook.md` | Neon database quota operations runbook |
+| `docs/neon-quota-runbook.pdf` | PDF copy of Neon quota operations runbook |
 | `docs/context-pack/Project-Context-Pack.md` | Updated source project context pack |
 | `docs/context-pack/Project-Context-Pack.pdf` | Regenerated PDF context pack |
 | `FILE_EXPLANATIONS.txt` | Updated RBAC handoff and file map |

@@ -990,5 +990,21 @@ A review assignment alone does not grant protocol-operator access.
 | Classify a protocol | Classification controls, Chair only |
 | Import spreadsheet records | Import CSV |
 | Recover deleted protocols | Recently Deleted |
+| Neon database quota is close to the limit or exhausted | Neon Free Plan Quota Runbook |
 
 Do not mix up `Assign assistant` and `Assign reviewer`. They intentionally control different access paths.
+
+## 31. Operational Runbooks
+
+The user manual explains how to operate the portal inside the application. Separate runbooks explain hosting and recovery situations outside the app.
+
+Available runbooks:
+
+| Situation | Runbook |
+| --- | --- |
+| Neon compute, storage, or network transfer is close to the Free plan limit | `docs/neon-quota-runbook.md` |
+| The database quota is exhausted and the portal cannot read or write data | `docs/neon-quota-runbook.md` |
+
+The Neon quota runbook is also available as a PDF:
+
+`docs/neon-quota-runbook.pdf`
