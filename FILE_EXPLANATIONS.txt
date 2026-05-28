@@ -1,8 +1,8 @@
 ================================================================================
 RERC SYSTEM - COMPLETE FILE EXPLANATIONS & ORGANIZATION
 ================================================================================
-Date: December 29, 2025
-Version: Restructured Monorepo (Backend + Frontend Separation)
+Date: May 28, 2026
+Version: Restructured Monorepo (Backend + Frontend Separation + RBAC Handoff)
 Repository: rerc-review-portal (kysokyhuh)
 ================================================================================
 
@@ -19,6 +19,7 @@ TABLE OF CONTENTS
 9. DEPENDENCIES & SCRIPTS
 10. WORKFLOW & DATA FLOW
 11. API ENDPOINTS REFERENCE
+12. CURRENT RBAC AND HANDOFF CONTEXT
 
 ================================================================================
 1. PROJECT STRUCTURE OVERVIEW
@@ -35,6 +36,9 @@ ROOT STRUCTURE:
   │   └── settings.json       # VS Code workspace settings
   ├── FILE_EXPLANATIONS.txt   # Complete file map (this document)
   ├── README.md               # Project overview and setup
+  ├── docs/                   # Operational docs and handoff materials
+  │   ├── user-manual.md      # Source user manual for portal operators
+  │   └── user-manual.pdf     # PDF user manual for handoff/training
   ├── backend/                # Express.js API server
   │   ├── src/                # Server source code
   │   ├── prisma/             # Database schema & migrations
@@ -85,6 +89,33 @@ HOW TO RUN:
   # Frontend runs at http://localhost:5173
 
   # Open browser to http://localhost:5173
+
+CURRENT HANDOFF DOCUMENTS:
+  docs/user-manual.md
+    - Human-readable source manual for Chair, Admin, Research Associate,
+      Research Assistant, and Reviewer workflows.
+    - Covers Dashboard, queues, Panel Management, Account Management,
+      protocol assistant assignment, reviewer assignment, assigned-only
+      Research Assistant access, reports, archives, Recently Deleted,
+      troubleshooting, and backend assignment truth.
+
+  docs/user-manual.pdf
+    - PDF version of the same manual for distribution to operational users.
+
+CURRENT RBAC NOTES:
+  - Panel Management is Chair-only.
+  - Protocol assistant assignment is separate from reviewer assignment.
+  - Assign assistant uses Submission.staffInChargeId.
+  - Assign reviewer uses Review.reviewerId.
+  - Chair and Research Associate can assign protocol assistants.
+  - Chair and Research Associate can assign reviewers.
+  - Research Assistants are assigned-only users.
+  - A Research Assistant can see a protocol if assigned as protocol assistant
+    or reviewer.
+  - A Research Assistant can operate protocol details only when assigned as
+    protocol assistant through Submission.staffInChargeId.
+  - A review assignment alone does not grant protocol-operator access.
+  - Classification-stage controls remain Chair-only.
 
 ================================================================================
 2. BACKEND FILES (backend/)
@@ -1180,10 +1211,133 @@ RA PORTAL:
   GET  /ra/submissions/:id                  → Submission detail
 
 ================================================================================
+12. CURRENT RBAC AND HANDOFF CONTEXT
+================================================================================
+
+HANDOFF DOCUMENTS:
+
+  FILE: docs/user-manual.md
+  PURPOSE: Full operator-facing manual for Chairs, Research Associates, Research
+           Assistants, reviewers, and administrators. This is the editable source
+           for the handoff manual.
+
+  FILE: docs/user-manual.pdf
+  PURPOSE: PDF copy of the same user manual for distribution to non-technical
+           users and incoming committee staff.
+
+  FILE: README.md
+  PURPOSE: Project overview with direct links to the manual source and PDF.
+
+CURRENT ROLE MODEL:
+
+  Chair:
+    - Full operational access across queues, dashboards, protocol records,
+      account governance, panel management, reports, archives, and calendar.
+    - Only role allowed to approve accounts and manage panel members.
+    - Can assign protocol staff-in-charge access to Research Assistants.
+    - Can assign reviewers through the separate review-assignment workflow.
+
+  Research Associate:
+    - Operational protocol role.
+    - Can work protocol queues and protocol records according to existing
+      workflow permissions.
+    - Can assign protocol staff-in-charge access to Research Assistants.
+    - Can assign reviewers through the separate review-assignment workflow.
+    - Does not receive Chair-only account governance or panel management access.
+
+  Research Assistant:
+    - Assigned-only protocol visibility.
+    - Can see a protocol when assigned as staff-in-charge or as a reviewer.
+    - Gets Chair/Associate-style protocol operator controls only for protocols
+      where they are assigned as staff-in-charge.
+    - Reviewer-only assignment remains limited to review work and does not become
+      full protocol-operator access.
+    - Cannot browse or directly open unassigned protocols.
+
+  Other approved users / reviewers:
+    - Limited to the records and review tasks allowed by their account role and
+      assignment state.
+
+CURRENT ASSIGNMENT MODEL:
+
+  Assign assistant:
+    - User-facing label: Assign assistant / Assign Research Assistants.
+    - Purpose: Gives a Research Assistant operational protocol access for the
+      selected protocol.
+    - Data model: stored on Submission.staffInChargeId.
+    - Allowed assigners: Chair and Research Associate.
+    - Result: assigned assistant can see the protocol and use the allowed
+      protocol workflow controls for that assigned protocol.
+
+  Assign reviewer:
+    - User-facing label: Assign reviewer / Assign reviewers.
+    - Purpose: Creates review tasks and review-decision obligations.
+    - Data model: stored as Review rows with Review.reviewerId.
+    - Allowed assigners: Chair and Research Associate.
+    - Result: assigned reviewer can access the review task, but this does not
+      grant full protocol staff-in-charge/operator access.
+
+  Important separation:
+    - Staff-in-charge assignment and reviewer assignment are intentionally
+      different features. Do not merge the data paths or permission checks unless
+      a future requirements change explicitly asks for that.
+
+CURRENT USER-FACING ROUTES:
+
+  /dashboard                         Main queue workspace and summary cards
+  /admin/account-management           Chair-only account approval and role control
+  /admin/panel-management             Chair-only panel member management
+  /queues/classification              Classification queue
+  /queues/under-review                Under-review queue
+  /queues/exempted                    Exempted protocol queue
+  /queues/revisions                   Revision queue
+  /projects/new                       New protocol entry
+  /imports/projects                   CSV import
+  /reports                            Operational reports
+  /archives                           Archived protocols
+  /recently-deleted                   Soft-deleted protocol recovery
+  /calendar                           Deadlines and review calendar
+  /account/profile                    Logged-in user profile
+  /submissions/:submissionId          Protocol detail and workflow page
+
+KEY RBAC FILES:
+
+  backend/src/middleware/reviewerScope.ts
+    - Enforces assigned-only Research Assistant access and reviewer ownership.
+
+  backend/src/routes/submissionRoutes.ts
+    - Defines submission detail, workflow, staff assignment, and review routes.
+
+  backend/src/services/submissions/submissionService.ts
+    - Centralizes submission read/write behavior used by protocol pages.
+
+  backend/src/routes/dashboardRoutes.ts
+    - Filters dashboard and queue data according to user role and assignments.
+
+  frontend/src/components/dashboard/BulkActionModals.tsx
+    - Contains assignment modal UI used from dashboard/queue workflows.
+
+  frontend/src/pages/SubmissionDetailPage.tsx
+    - Shows the protocol record, available actions, assignment panels, history,
+      documents, reminders, and review decision areas.
+
+  frontend/src/components/layout/Sidebar.tsx
+    - Shows role-filtered navigation including Chair-only Panel Management.
+
+  frontend/src/pages/admin/PanelManagementPage.tsx
+    - Chair-only panel member list/add/edit/delete interface.
+
+HANDOFF WARNING:
+
+  When modifying Research Assistant behavior, verify both frontend visibility and
+  backend guards. The sidebar and buttons are convenience controls only; direct
+  URL access must still be blocked by backend route guards and scoped queries.
+
+================================================================================
 END OF DOCUMENT
 ================================================================================
-Generated: December 29, 2025
+Generated: May 28, 2026
 Structure: Monorepo with backend/ and frontend/ separation
-Features: DLSU Theme, SLA Tracking, Workflow Actions, React + Express
+Features: DLSU Theme, SLA Tracking, Workflow Actions, RBAC, Panel Management, Protocol Assistant Assignment, React + Express
 Repository: https://github.com/kysokyhuh/rerc-review-portal
 ================================================================================

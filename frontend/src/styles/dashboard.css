@@ -2857,6 +2857,32 @@
   background: var(--primary-soft);
 }
 
+/* Assistant = add a helper (blue / info accent) */
+.row-action-btn--assistant {
+  color: var(--color-info);
+  border-color: color-mix(in srgb, var(--color-info) 35%, var(--border));
+  background: var(--color-info-soft);
+}
+
+.row-action-btn--assistant:hover:not(:disabled) {
+  color: #fff;
+  border-color: var(--color-info);
+  background: var(--color-info);
+}
+
+/* Reviewer = review checklist (green / accent) */
+.row-action-btn--reviewer {
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 35%, var(--border));
+  background: var(--color-accent-soft);
+}
+
+.row-action-btn--reviewer:hover:not(:disabled) {
+  color: #fff;
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
 .row-action-btn:active:not(:disabled) {
   transform: scale(0.90);
 }

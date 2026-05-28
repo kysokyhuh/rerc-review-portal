@@ -245,7 +245,7 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                             {canAssignAssistants ? (
                               <button
                                 type="button"
-                                className="row-action-btn"
+                                className="row-action-btn row-action-btn--assistant"
                                 title="Assign protocol assistant"
                                 aria-label={`Assign protocol assistant to ${item.projectCode}`}
                                 onClick={(event) => {
@@ -255,15 +255,16 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                               >
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                   <circle cx="9" cy="8" r="4" />
-                                  <path d="M3 21c0-3.5 2.7-6 6-6 1.2 0 2.3.3 3.2.9" />
-                                  <path d="M16 12l2 2 4-4" />
+                                  <path d="M3 21c0-3.5 2.7-6 6-6 1.4 0 2.7.4 3.8 1.1" />
+                                  <path d="M19 11v6" />
+                                  <path d="M16 14h6" />
                                 </svg>
                               </button>
                             ) : null}
                             {canAssignReviewerToItem(item) ? (
                               <button
                                 type="button"
-                                className="row-action-btn"
+                                className="row-action-btn row-action-btn--reviewer"
                                 title="Assign reviewer"
                                 aria-label={`Assign reviewer to ${item.projectCode}`}
                                 onClick={(event) => {
@@ -272,10 +273,9 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                                 }}
                               >
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <circle cx="9" cy="8" r="4" />
-                                  <path d="M3 21c0-3.5 2.7-6 6-6 1.2 0 2.3.3 3.2.9" />
-                                  <path d="M17 11v6" />
-                                  <path d="M14 14h6" />
+                                  <path d="M8 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                                  <rect x="8" y="3" width="8" height="4" rx="1" />
+                                  <path d="M9 13l2 2 4-4" />
                                 </svg>
                               </button>
                             ) : !canAssignAssistants ? (

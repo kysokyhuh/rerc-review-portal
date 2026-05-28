@@ -1,8 +1,8 @@
 # RERC Review Portal — Project Context Pack
 
-**Generated:** March 1, 2026  
+**Generated:** May 28, 2026<br>
 **Repository:** `rerc-review-portal`  
-**Version:** 0.2.1
+**Version:** 0.3.0
 
 ---
 
@@ -10,7 +10,7 @@
 
 ### System Purpose
 
-The **RERC Review Portal** is a web-based Research Ethics Review Committee (RERC) management system built for De La Salle University Manila. It streamlines the workflow for managing research ethics protocol submissions—from initial receipt through classification, review, and final decision—while providing mail-merge letter generation, SLA tracking, holiday management, reporting, and protocol profile capabilities.
+The **RERC Review Portal** is a web-based Research Ethics Review Committee (RERC) management system built for De La Salle University Manila. It streamlines the workflow for managing research ethics protocol submissions—from initial receipt through classification, review, and final decision—while providing mail-merge letter generation, SLA tracking, holiday management, reporting, account governance, panel management, assigned-only Research Assistant access, and protocol profile capabilities.
 
 ### Tech Stack
 
@@ -24,9 +24,9 @@ The **RERC Review Portal** is a web-based Research Ethics Review Committee (RERC
 
 ### Highest-Risk Areas / Bottlenecks
 
-- **Authentication is stub-only**: Header-based auth (`X-User-*` headers) is for development only—no production-ready JWT/session implementation exists.
-- **Hardcoded user IDs**: Several endpoints use `createdById: 1` or `changedById: 1` instead of actual authenticated user.
-- **No rate limiting**: API has no protection against abuse or DoS.
+- **Authentication has improved but still needs production review**: The app now has auth/session middleware, cookies, CSRF protection, forced-password-change handling, and account approval, but the deployment should still be reviewed before treating it as final enterprise auth.
+- **Role checks must stay backend-enforced**: Sidebar visibility and route guards are useful UX, but direct URL/API access must continue to be blocked by backend middleware.
+- **Assignment semantics are easy to confuse**: `Assign assistant` and `Assign reviewer` are separate features with different database paths and permissions.
 - **CSV/file import security**: Seed script parses external CSV without comprehensive sanitization.
 - **No automated tests running in CI**: Tests exist but no CI/CD pipeline.
 - **Large monolithic route files**: Some route files exceed 800 lines.
@@ -35,9 +35,21 @@ The **RERC Review Portal** is a web-based Research Ethics Review Committee (RERC
 
 1. `backend/src/server.ts` — Express app entry point, middleware setup, route mounting
 2. `backend/prisma/schema.prisma` — Complete data model (781 lines) with all enums and relationships
-3. `backend/src/routes/dashboardRoutes.ts` — Dashboard queues, activity, and filter endpoints (595 lines)
-4. `frontend/src/pages/DashboardPageNew.tsx` — Main dashboard UI with route-driven queues (1,515 lines)
-5. `docs/SECURITY.md` — RBAC design and audit logging approach
+3. `backend/src/middleware/reviewerScope.ts` — Assigned-only and protocol-operator access guards
+4. `frontend/src/pages/DashboardPageNew.tsx` — Main dashboard UI with route-driven queues
+5. `docs/user-manual.md` — User-facing handoff manual for real workflows and RBAC behavior
+
+### May 28, 2026 RBAC Handoff Update
+
+This context pack now reflects the current role-based behavior used in the deployed portal:
+
+- **Panel Management** is Chair-only in the sidebar and protected route layer.
+- **Account Management** is available to Chair/Admin, with Chair-only approval actions.
+- **Assign assistant** gives a Research Assistant protocol-operator access through `Submission.staffInChargeId`.
+- **Assign reviewer** creates review tasks through `Review.reviewerId`; it does not grant protocol-operator access.
+- **Research Assistants are assigned-only users**. They can see a protocol if assigned as staff-in-charge or reviewer, but operational protocol controls require staff-in-charge assignment.
+- **Direct URL access is guarded** by backend submission/project access middleware, not only by hidden UI buttons.
+- **The handoff manual exists in both Markdown and PDF** at `docs/user-manual.md` and `docs/user-manual.pdf`.
 
 ---
 
@@ -96,7 +108,7 @@ rerc-review-portal/
 │       │   ├── slaUtils.ts            # Working days calculator
 │       │   └── workingDays.ts         # Business day calculations (58 lines)
 │       ├── middleware/
-│       │   └── auth.ts                # Auth middleware (stub)
+│       │   └── auth.ts                # Auth/session and role middleware
 │       └── generated/prisma/          # Generated Prisma client
 │
 ├── frontend/                          # React SPA
@@ -147,8 +159,9 @@ rerc-review-portal/
 │       │   ├── ArchivesPage.tsx       # Archived projects with filters (321 lines)
 │       │   ├── ProjectDetailPage.tsx  # Project detail & letters (528 lines)
 │       │   ├── SubmissionDetailPage.tsx # Submission detail & editing (1,042 lines)
-│       │   ├── LoginPage.tsx          # Login page (stub) (395 lines)
-│       │   └── ForgotPasswordPage.tsx # Password reset (stub) (131 lines)
+│       │   ├── LoginPage.tsx          # Login page
+│       │   ├── SignupPage.tsx         # Account request page
+│       │   └── ChangePasswordPage.tsx # Password change page
 │       ├── services/
 │       │   └── api.ts                 # API client (437 lines, 28+ functions)
 │       ├── styles/
@@ -182,10 +195,14 @@ rerc-review-portal/
 │
 └── docs/
     ├── SECURITY.md                    # Security & RBAC documentation
+    ├── user-manual.md                 # Operator handoff manual source
+    ├── user-manual.pdf                # Operator handoff manual PDF
     ├── fixes.md                       # Integration notes
     ├── reports-date-mapping.md        # Reports date field mapping
     ├── reports-discovery-notes.md     # Reports discovery notes
     └── context-pack/                  # This document
+        ├── Project-Context-Pack.md    # Editable project context pack
+        └── Project-Context-Pack.pdf   # PDF project context pack
 ```
 
 ---
@@ -332,26 +349,31 @@ npm run dev
 9. React state updates, component re-renders
 ```
 
-### Auth Lifecycle (Development Mode)
-
-**Current Implementation (Stub):**
+### Auth Lifecycle
 
 ```
-┌─────────────┐     ┌───────────────────────────────────────────┐
-│   Client    │────▶│  Include headers in each request:          │
-│             │     │  X-User-ID, X-User-Email, X-User-Roles     │
-└─────────────┘     └───────────────────────────────────────────┘
+┌─────────────┐     ┌──────────────────────────────────────────┐
+│   Client    │────▶│  Login/session cookie + CSRF-aware API    │
+│             │     │  calls through Axios                      │
+└─────────────┘     └──────────────────────────────────────────┘
         │
         ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  authenticateUser middleware (planned but not fully wired)      │
-│  - Extracts user info from headers                              │
-│  - Attaches req.user object                                     │
-│  - Role-based authorization on specific endpoints               │
+│  authenticateUser middleware                                    │
+│  - Attaches req.user from authenticated session/token context    │
+│  - Supports explicit dev-header adapter only when enabled        │
+│  - Role guards and assignment guards authorize protected routes  │
+└─────────────────────────────────────────────────────────────────┘
+        │
+        ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  csrfProtection + enforceForcedPasswordChange                   │
+│  - Mutating requests require CSRF protection where applicable    │
+│  - Forced-password users can only use allowed auth/session paths │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Production Recommendation:** Replace with JWT tokens or session cookies with proper login flow.
+**Production Recommendation:** Review cookie settings, token/session expiry, CSRF behavior, and dev-header configuration before production rollout. Do not rely on frontend-only route guards for any sensitive permission.
 
 ---
 
@@ -487,6 +509,22 @@ npm run dev
 
 **AcademicTerm** — Academic year/term definitions (`academicYear`, `term`, `startDate`, `endDate`). Unique on `(academicYear, term)`. Used by report endpoints for period-based aggregation.
 
+### Current RBAC and Assignment Data Paths
+
+| Feature | Storage Path | Who Can Assign/Manage | Resulting Access |
+| ------- | ------------ | --------------------- | ---------------- |
+| Panel Management | `Panel` + `PanelMember` | Chair only | Chair can view/add/edit/delete panel members |
+| Account approval | `User.status`, `User.roles`, approval metadata | Chair; Admin has limited account view/reset support | Approved users can sign in with assigned roles |
+| Protocol assistant assignment | `Submission.staffInChargeId` | Chair, Research Associate | Assigned Research Assistant can see and operate that protocol |
+| Reviewer assignment | `Review.reviewerId` | Chair, Research Associate | Assigned reviewer can access and submit review work |
+
+Important distinction:
+
+- `Submission.staffInChargeId` is the **protocol assistant/operator** assignment.
+- `Review.reviewerId` is the **review task** assignment.
+- Research Assistants may see protocols through either path, but full protocol workflow controls are only granted when they are assigned through `Submission.staffInChargeId`.
+- Backend enforcement lives primarily in `backend/src/middleware/reviewerScope.ts`.
+
 ### Seed Script Notes
 
 The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `[Intern Copy] RERC Protocol Database 2024 - 2024 Submission.csv` at the repo root and creates:
@@ -520,46 +558,66 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 #### Dashboard
 | Method | Endpoint                 | Behavior                           | Auth |
 | ------ | ------------------------ | ---------------------------------- | ---- |
-| GET    | `/dashboard/queues`      | Submission queues by status        | None |
-| GET    | `/dashboard/activity`    | Recent status change activity      | None |
-| GET    | `/dashboard/overdue`     | Overdue reviews and endorsements   | None |
-| GET    | `/dashboard/upcoming-due`| Submissions with upcoming deadlines| None |
-| GET    | `/dashboard/colleges`    | Distinct piAffiliation values for filter dropdown | None |
-| GET    | `/ra/dashboard`          | RA-specific dashboard data         | None |
-| GET    | `/ra/submissions/:id`    | RA submission detail view          | None |
+| GET    | `/dashboard/queues`      | Submission queues by status and role scope | Authenticated; Research Assistant scoped |
+| GET    | `/dashboard/activity`    | Recent status change activity      | Authenticated |
+| GET    | `/dashboard/overdue`     | Overdue reviews and endorsements   | Authenticated |
+| GET    | `/dashboard/upcoming-due`| Submissions with upcoming deadlines| Authenticated |
+| GET    | `/dashboard/colleges`    | Distinct piAffiliation values for filter dropdown | Authenticated |
+| GET    | `/ra/dashboard`          | Legacy/RA-specific dashboard data  | Authenticated/scoped |
+| GET    | `/ra/submissions/:id`    | Legacy/RA submission detail view   | Authenticated/scoped |
+
+#### Admin, Account, and Panel Management
+| Method | Endpoint                         | Behavior                         | Auth Required |
+| ------ | -------------------------------- | -------------------------------- | ------------- |
+| GET    | `/admin/users`                   | List accounts for governance     | CHAIR, ADMIN  |
+| GET    | `/admin/users/pending`           | List pending signup requests     | CHAIR         |
+| POST   | `/admin/users/:id/approve`       | Approve signup and assign role   | CHAIR         |
+| POST   | `/admin/users/:id/reject`        | Reject signup request            | CHAIR         |
+| POST   | `/admin/users/:id/disable`       | Disable managed account          | CHAIR         |
+| POST   | `/admin/users/:id/enable`        | Re-enable managed account        | CHAIR         |
+| POST   | `/admin/users/:id/reset-password`| Reset managed account password   | CHAIR, ADMIN  |
+| GET    | `/admin/panel-management`        | SPA route for panel management   | CHAIR         |
+| GET    | `/committees/:code/panels`       | Load committee panels            | Authenticated |
+| GET    | `/panels/:id/members`            | Load panel members               | Authenticated |
 
 #### Project Management
 | Method | Endpoint                           | Behavior                        | Auth Required         |
 | ------ | ---------------------------------- | ------------------------------- | --------------------- |
-| POST   | `/projects`                        | Create new project              | CHAIR, RA, ADMIN      |
-| GET    | `/projects`                        | List all projects               | None                  |
-| GET    | `/projects/search`                 | Search projects                 | None                  |
-| GET    | `/projects/:id`                    | Get project by ID               | None                  |
-| GET    | `/projects/:id/full`               | Get project with all relations  | None                  |
-| GET    | `/projects/:id/profile`            | Get protocol profile            | None                  |
-| PUT    | `/projects/:id/profile`            | Update protocol profile         | CHAIR, RA, ADMIN      |
-| POST   | `/projects/:id/profile/milestones` | Create protocol milestone       | CHAIR, RA, ADMIN      |
-| PATCH  | `/projects/:id/profile/milestones/:mid` | Update milestone           | CHAIR, RA, ADMIN      |
-| DELETE | `/projects/:id/profile/milestones/:mid` | Delete milestone           | CHAIR, RA, ADMIN      |
-| POST   | `/projects/:projectId/submissions` | Create submission for project   | CHAIR, RA, RA_ASST    |
+| POST   | `/projects`                        | Create new project              | CHAIR, RESEARCH_ASSOCIATE, ADMIN |
+| GET    | `/projects`                        | List all projects               | Authenticated/scoped  |
+| GET    | `/projects/search`                 | Search projects                 | Authenticated/scoped  |
+| GET    | `/projects/:id`                    | Get project by ID               | Authenticated/scoped  |
+| GET    | `/projects/:id/full`               | Get project with all relations  | Authenticated/scoped  |
+| GET    | `/projects/:id/profile`            | Get protocol profile            | Authenticated/scoped  |
+| PUT    | `/projects/:id/profile`            | Update protocol profile         | Protocol operator access |
+| POST   | `/projects/:id/profile/milestones` | Create protocol milestone       | Protocol operator access |
+| PATCH  | `/projects/:id/profile/milestones/:mid` | Update milestone           | Protocol operator access |
+| DELETE | `/projects/:id/profile/milestones/:mid` | Delete milestone           | Protocol operator access |
+| POST   | `/projects/:projectId/submissions` | Create submission for project   | CHAIR, RESEARCH_ASSOCIATE |
 
 #### Archives & Archived Projects
 | Method | Endpoint                           | Behavior                                    | Auth Required         |
 | ------ | ---------------------------------- | ------------------------------------------- | --------------------- |
-| GET    | `/projects/archived`               | Fetch archived projects (CLOSED/WITHDRAWN). Filters: `status`, `reviewType`, `college`, `search`, `page`, `pageSize` | None |
-| POST   | `/projects/with-submission`        | Create project with initial submission      | CHAIR, RA, ADMIN      |
+| GET    | `/projects/archived`               | Fetch archived projects (CLOSED/WITHDRAWN). Filters: `status`, `reviewType`, `college`, `search`, `page`, `pageSize` | CHAIR, RESEARCH_ASSOCIATE, ADMIN |
+| POST   | `/projects/with-submission`        | Create project with initial submission      | CHAIR, RESEARCH_ASSOCIATE |
 
 #### Submission & Review
 | Method | Endpoint                                   | Behavior                        | Auth Required     |
 | ------ | ------------------------------------------ | ------------------------------- | ----------------- |
-| GET    | `/submissions/:id`                         | Get submission with relations   | None              |
-| PATCH  | `/submissions/:id/status`                  | Update submission status        | CHAIR, RA, ADMIN  |
-| PATCH  | `/submissions/:id/overview`                | Update submission overview      | CHAIR, RA, ADMIN  |
-| POST   | `/submissions/:submissionId/classifications` | Add/update classification     | CHAIR, ADMIN      |
-| POST   | `/submissions/:submissionId/reviews`       | Add reviewer assignment         | CHAIR, RA, ADMIN  |
-| GET    | `/submissions/:id/sla-summary`             | Get SLA deadline summary        | None              |
-| POST   | `/reviews/:reviewId/decision`              | Submit review decision          | REVIEWER, CHAIR   |
-| POST   | `/submissions/:id/final-decision`          | Record final committee decision | CHAIR, RA, ADMIN  |
+| GET    | `/submissions/:id`                         | Get submission with relations   | Authenticated; assigned-only for Research Assistant/Reviewer |
+| PATCH  | `/submissions/:id/status`                  | Update submission status        | Protocol operator access |
+| PATCH  | `/submissions/:id/overview`                | Update submission overview      | Protocol operator access |
+| POST   | `/submissions/:submissionId/classifications` | Add/update classification     | CHAIR             |
+| GET    | `/submissions/reviewer-candidates`         | List reviewer candidates        | CHAIR, RESEARCH_ASSOCIATE |
+| GET    | `/submissions/assistant-candidates`        | List Research Assistant candidates | CHAIR, RESEARCH_ASSOCIATE |
+| POST   | `/submissions/:submissionId/assistant-assignment` | Assign one protocol assistant | CHAIR, RESEARCH_ASSOCIATE |
+| POST   | `/submissions/bulk/assign-assistant`       | Assign one assistant to many protocols | CHAIR, RESEARCH_ASSOCIATE |
+| POST   | `/submissions/:submissionId/reviews`       | Add reviewer assignment         | CHAIR, RESEARCH_ASSOCIATE |
+| POST   | `/submissions/bulk/assign-reviewer`        | Assign reviewer to many protocols | CHAIR, RESEARCH_ASSOCIATE |
+| POST   | `/submissions/bulk/status-action`          | Bulk workflow action; classification actions Chair-only | CHAIR, RESEARCH_ASSOCIATE |
+| GET    | `/submissions/:id/sla-summary`             | Get SLA deadline summary        | Authenticated/scoped |
+| POST   | `/reviews/:reviewId/decision`              | Submit review decision          | Assigned reviewer / allowed operator |
+| POST   | `/submissions/:id/final-decision`          | Record final committee decision | Protocol operator access |
 
 #### Mail Merge & Letter Generation
 | Method | Endpoint                                      | Behavior                      | Auth |
@@ -576,29 +634,23 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 #### Project Import
 | Method | Endpoint                           | Behavior                                    | Auth Required         |
 | ------ | ---------------------------------- | ------------------------------------------- | --------------------- |
-| POST   | `/api/imports/projects/preview`    | Preview CSV import mapping & validation     | ADMIN, CHAIR, RA      |
-| POST   | `/api/imports/projects`            | Import projects from CSV file               | ADMIN, CHAIR, RA      |
-| GET    | `/api/imports/projects/template`   | Download CSV template for import            | ADMIN, CHAIR, RA      |
+| POST   | `/api/imports/projects/preview`    | Preview CSV import mapping & validation     | CHAIR, RESEARCH_ASSOCIATE |
+| POST   | `/api/imports/projects`            | Import projects from CSV file               | CHAIR, RESEARCH_ASSOCIATE |
+| GET    | `/api/imports/projects/template`   | Download CSV template for import            | CHAIR, RESEARCH_ASSOCIATE |
 
 #### Holiday Management
 | Method | Endpoint              | Behavior                                   | Auth Required              |
 | ------ | --------------------- | ------------------------------------------ | -------------------------- |
-| GET    | `/holidays`           | List holidays. Filters: `year`, `from`, `to` | ADMIN, CHAIR, RA         |
-| POST   | `/holidays`           | Create holiday (409 if date exists)         | ADMIN, CHAIR, RA          |
-| PATCH  | `/holidays/:id`       | Update holiday (409 if duplicate date)      | ADMIN, CHAIR, RA          |
-| DELETE | `/holidays/:id`       | Delete holiday                              | ADMIN, CHAIR, RA          |
+| GET    | `/holidays`           | List holidays. Filters: `year`, `from`, `to` | ADMIN, CHAIR, RESEARCH_ASSOCIATE |
+| POST   | `/holidays`           | Create holiday (409 if date exists)         | ADMIN, CHAIR, RESEARCH_ASSOCIATE |
+| PATCH  | `/holidays/:id`       | Update holiday (409 if duplicate date)      | ADMIN, CHAIR, RESEARCH_ASSOCIATE |
+| DELETE | `/holidays/:id`       | Delete holiday                              | ADMIN, CHAIR, RESEARCH_ASSOCIATE |
 
 #### Reports
 | Method | Endpoint                          | Behavior                                    | Auth Required |
 | ------ | --------------------------------- | ------------------------------------------- | ------------- |
 | GET    | `/reports/academic-years`         | List available academic year/term options   | None          |
 | GET    | `/reports/academic-year-summary`  | Aggregated metrics for selected term(s)     | None          |
-
-#### Archives & Archived Projects
-| Method | Endpoint                           | Behavior                                    | Auth Required         |
-| ------ | ---------------------------------- | ------------------------------------------- | --------------------- |
-| GET    | `/projects/archived`               | Fetch archived projects (CLOSED/WITHDRAWN). Filters: `status`, `reviewType`, `college`, `search`, `page`, `pageSize` | None                  |
-| POST   | `/projects/with-submission`        | Create project with initial submission      | CHAIR, RA, ADMIN      |
 
 ### Background Jobs / Cron / Queues
 
@@ -618,19 +670,27 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 <Routes>
   <Route path="/" element={<Navigate to="/login" />} />
   <Route path="/login" element={<LoginPage />} />
-  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+  <Route path="/signup" element={<SignupPage />} />
+  <Route path="/change-password" element={<ProtectedRoute allowForcedPasswordChange><ChangePasswordPage /></ProtectedRoute>} />
+  <Route path="/not-authorized" element={<NotAuthorizedPage />} />
   {/* DashboardShell provides sidebar + layout wrapper */}
-  <Route element={<DashboardShell />}>
+  <Route element={<ProtectedRoute><DashboardShell /></ProtectedRoute>}>
     <Route path="/dashboard" element={<DashboardPageNew />} />
+    <Route path="/admin/account-management" element={<ProtectedRoute allowedRoles={["CHAIR", "ADMIN"]}><AdminAccountManagementPage /></ProtectedRoute>} />
+    <Route path="/admin/panel-management" element={<ProtectedRoute allowedRoles={["CHAIR"]}><PanelManagementPage /></ProtectedRoute>} />
     <Route path="/queues/:queueKey" element={<QueuePage />} />
-    <Route path="/holidays" element={<HolidaysPage />} />
+    <Route path="/queues/exempted" element={<ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}><ExemptedPage /></ProtectedRoute>} />
+    <Route path="/calendar" element={<ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE", "ADMIN"]}><CalendarPage /></ProtectedRoute>} />
+    <Route path="/account/profile" element={<MyProfilePage />} />
   </Route>
-  <Route path="/projects/new" element={<NewProtocolPage />} />
-  <Route path="/imports/projects" element={<ImportProjectsPage />} />
-  <Route path="/reports" element={<ReportsPage />} />
-  <Route path="/archives" element={<ArchivesPage />} />
-  <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
-  <Route path="/submissions/:submissionId" element={<SubmissionDetailPage />} />
+  <Route path="/projects/new" element={<ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}><NewProtocolPage /></ProtectedRoute>} />
+  <Route path="/projects/new-classic" element={<ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}><NewProtocolClassicPage /></ProtectedRoute>} />
+  <Route path="/imports/projects" element={<ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}><ImportProjectsPage /></ProtectedRoute>} />
+  <Route path="/reports" element={<ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}><ReportsPage /></ProtectedRoute>} />
+  <Route path="/archives" element={<ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE", "ADMIN"]}><ArchivesPage /></ProtectedRoute>} />
+  <Route path="/recently-deleted" element={<ProtectedRoute allowedRoles={["CHAIR", "ADMIN"]}><RecentlyDeletedPage /></ProtectedRoute>} />
+  <Route path="/projects/:projectId" element={<ProtectedRoute><ProjectDetailPage /></ProtectedRoute>} />
+  <Route path="/submissions/:submissionId" element={<ProtectedRoute><SubmissionDetailPage /></ProtectedRoute>} />
 </Routes>
 ```
 
@@ -638,17 +698,22 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 
 | Page                    | Purpose                              | API Endpoints Used                              |
 | ----------------------- | ------------------------------------ | ----------------------------------------------- |
-| `LoginPage`             | User authentication (stub)           | None (TODO: add auth endpoint)                  |
-| `ForgotPasswordPage`    | Password reset (stub)                | None (TODO: add reset endpoint)                 |
+| `LoginPage`             | User authentication                  | Auth/session endpoints                          |
+| `SignupPage`            | Account request creation             | Auth/signup endpoint                            |
+| `ChangePasswordPage`    | Forced or user-initiated password change | Auth/password endpoint                      |
+| `AdminAccountManagementPage` | Chair/Admin account governance  | `/admin/users`, approval/reject/disable/enable/reset endpoints |
+| `PanelManagementPage`   | Chair-only panel member management   | `/committees/:code/panels`, `/panels/:id/members`, panel member mutation endpoints |
 | `NewProtocolPage`       | Create new project with submission (24 fields, 2-step flow) | `POST /projects/with-submission`, `GET /committees` |
 | `ImportProjectsPage`    | Bulk CSV project/submission import   | `POST /api/imports/projects/preview`, `POST /api/imports/projects`, `GET /api/imports/projects/template` |
 | `ArchivesPage`          | View archived/completed projects (3 filters: Status, Review Type, College) | `GET /projects/archived`, `GET /dashboard/colleges` |
-| `DashboardPageNew`      | Main RA dashboard with route-driven queues | `/dashboard/queues`, `/dashboard/activity`, `/dashboard/overdue`, `/dashboard/colleges`, `/projects/search` |
-| `QueuePage`             | Individual queue view                | `/dashboard/queues` (filtered by queue key) |
-| `HolidaysPage`          | Calendar-based holiday management    | `GET/POST/PATCH/DELETE /holidays` |
+| `RecentlyDeletedPage`   | Soft-delete recovery and permanent deletion area | Project soft-delete endpoints |
+| `DashboardPageNew`      | Main dashboard with route-driven queues, bulk actions, quick view, assistant/reviewer assignment | `/dashboard/queues`, `/dashboard/activity`, `/dashboard/overdue`, `/dashboard/colleges`, `/projects/search`, assignment endpoints |
+| `QueuePage`             | Individual queue view; Research Assistant sees assigned records only | `/dashboard/queues` (filtered by queue key and role scope) |
+| `ExemptedPage`          | Exempted protocol queue              | Exempted queue endpoints                         |
+| `CalendarPage`          | Calendar-based holiday/deadline management | `GET/POST/PATCH/DELETE /holidays`, deadline data |
 | `ReportsPage`           | Academic year summary reports        | `/reports/academic-years`, `/reports/academic-year-summary` |
 | `ProjectDetailPage`     | Project details, protocol profile & letter export | `/projects/:id/full`, `/projects/:id/profile`, `/mail-merge/*`, `/letters/*` |
-| `SubmissionDetailPage`  | Submission details, editing, timeline| `/submissions/:id`, `/submissions/:id/sla-summary`, `/committees`, `PATCH /submissions/:id/overview` |
+| `SubmissionDetailPage`  | Submission details, editing, timeline, assistant assignment, reviewer assignment, review decision area | `/submissions/:id`, `/submissions/:id/sla-summary`, `/committees`, `PATCH /submissions/:id/overview`, assignment/review endpoints |
 
 ### State Management Approach
 
@@ -672,17 +737,24 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 
 | Aspect               | Current State                                            | Risk Level |
 | -------------------- | -------------------------------------------------------- | ---------- |
-| Auth mechanism       | **Header-based stub** (`X-User-*` headers)               | HIGH       |
-| Session management   | Not implemented                                          | HIGH       |
-| Password storage     | `passwordHash` field exists, unused                      | MEDIUM     |
-| Token refresh        | Not implemented                                          | HIGH       |
+| Auth mechanism       | Auth routes with authenticated request middleware; dev-header adapter only when enabled | MEDIUM |
+| Session management   | Session/cookie middleware and forced-password-change gate exist | MEDIUM |
+| Password storage     | `passwordHash` field and managed password reset flow exist | MEDIUM |
+| CSRF                 | `csrfProtection` middleware is mounted after auth        | MEDIUM     |
+| Rate limiting        | `globalLimiter` is mounted                              | MEDIUM     |
 
 ### RBAC/Authorization Approach
 
-- **Middleware exists** (`authenticateUser`) but not consistently applied
-- **Role definitions**: 6 roles defined in enum (CHAIR, MEMBER, RA, RA_ASST, REVIEWER, ADMIN)
-- **Endpoint protection**: Designed but partially implemented (see SECURITY.md)
-- **Field-level access**: Utility functions exist but not fully wired
+- **Authentication middleware**: `authenticateUser` is mounted globally before protected route modules.
+- **Role definitions**: `CHAIR`, `MEMBER`, `RESEARCH_ASSOCIATE`, `RESEARCH_ASSISTANT`, `REVIEWER`, `ADMIN`.
+- **Frontend route guards**: `ProtectedRoute` controls visible page access and redirects unauthorized users to `/not-authorized`.
+- **Sidebar guards**: `DashboardSidebar` hides role-inappropriate navigation such as Chair-only Panel Management.
+- **Backend role guards**: `requireRole` and `requireAnyRole` protect role-specific mutations.
+- **Backend assignment guards**: `requireSubmissionAccess`, `requireProjectAccess`, `requireSubmissionOperatorAccess`, and `requireProjectOperatorAccess` enforce assigned-only Research Assistant behavior.
+- **Panel Management**: Chair-only page and navigation. Panel member mutations must remain Chair-only.
+- **Protocol assistant assignment**: Chair/Research Associate only. Stored as `Submission.staffInChargeId`.
+- **Reviewer assignment**: Chair/Research Associate only. Stored as `Review.reviewerId`.
+- **Research Assistant access**: Can view assigned protocols; protocol workflow operation requires staff-in-charge assignment.
 
 ### Input Validation & Sanitization
 
@@ -704,10 +776,11 @@ The seed script (`backend/src/config/seed.ts`, 1423 lines) reads CSV data from `
 
 ### Logging/Auditing Approach
 
-- **Audit log model designed** in SECURITY.md but **not fully implemented**
-- **Console logging**: `console.error` on all catch blocks
-- **No centralized logging** (no Winston, Pino, or log aggregation)
-- **No request logging middleware**
+- **AuditLog model exists** in Prisma schema.
+- **Structured request logging**: `pino-http` is mounted with request IDs.
+- **Request IDs**: `requestId` middleware attaches IDs for traceability.
+- **Error handling**: centralized `errorHandler` is mounted last.
+- **Remaining gap**: operational audit events should be reviewed for complete coverage of sensitive account, assignment, and protocol workflow changes.
 
 ### Obvious Secret Exposure Risks
 
@@ -1096,6 +1169,29 @@ cd backend && npm test
 
 ---
 
+### May 28, 2026
+
+#### RBAC and Handoff Documentation Update
+- **User manual added:** `docs/user-manual.md` and `docs/user-manual.pdf` now document the real operator workflow for Chairs, Research Associates, Research Assistants, reviewers, and admins.
+- **Project context pack refreshed:** this document and `Project-Context-Pack.pdf` were updated for the current RBAC and assignment behavior.
+- **Panel Management documented:** Chair-only sidebar item and route at `/admin/panel-management`.
+- **Account Management documented:** account approval, role assignment, rejection, disable/enable, and reset-password workflows.
+- **Assistant assignment documented:** Chair/Research Associate can assign a Research Assistant as protocol assistant. This stores `Submission.staffInChargeId` and grants protocol-operator access for that assigned protocol.
+- **Reviewer assignment separation documented:** `Assign reviewer` continues to create review work through `Review.reviewerId` and does not grant protocol-operator access.
+- **Research Assistant assigned-only rule documented:** Research Assistants only see assigned protocols and cannot directly access unassigned protocols through URL/API access.
+
+#### Files Changed/Added
+| File | Change |
+|------|--------|
+| `docs/user-manual.md` | Full editable user manual source |
+| `docs/user-manual.pdf` | PDF handoff manual |
+| `docs/context-pack/Project-Context-Pack.md` | Updated source project context pack |
+| `docs/context-pack/Project-Context-Pack.pdf` | Regenerated PDF context pack |
+| `FILE_EXPLANATIONS.txt` | Updated RBAC handoff and file map |
+| `README.md` | Added user manual links |
+
+---
+
 ## Appendix D: Security Checklist Confirmation
 
 - [x] **No real secrets/tokens in this document**
@@ -1105,4 +1201,4 @@ cd backend && npm test
 
 ---
 
-*Document updated March 1, 2026 by analyzing repository structure, source files, git history, and documentation. Some details are inferred where explicit documentation was incomplete.*
+*Document updated May 28, 2026 by analyzing repository structure, source files, RBAC implementation, user manual handoff materials, and documentation. Some details are inferred where explicit documentation was incomplete.*

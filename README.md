@@ -20,6 +20,7 @@ The portal centralizes protocol submissions, review classification, reviewer ass
 ## Contents
 
 - [Project Status](#project-status)
+- [User Manual](#user-manual)
 - [Features](#features)
 - [Architecture](#architecture)
 - [Prerequisites](#prerequisites)
@@ -43,6 +44,13 @@ The portal centralizes protocol submissions, review classification, reviewer ass
 - Mail merge and letter generation support
 - Reports, archives, Recently Deleted, restore, and soft-delete recovery workflows
 - Render free-tier cold-start handling through dedicated liveness and readiness endpoints
+
+## User Manual
+
+Operational instructions for Chair, Admin, Research Associate, Research Assistant, and Reviewer users are available in:
+
+- [docs/user-manual.md](docs/user-manual.md)
+- [docs/user-manual.pdf](docs/user-manual.pdf)
 
 ## Architecture
 
