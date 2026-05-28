@@ -38,6 +38,10 @@ Official Neon references:
 
 In the Neon dashboard screenshot:
 
+![Neon Console project dashboard showing compute, storage, and network transfer usage](assets/neon-quota-dashboard-reference.png)
+
+The image above is a screenshot-style reference based on the May 28, 2026 Neon Console screenshot. Use the live Neon Console as the source of truth because usage values change over time.
+
 | Metric | Screenshot Value | Status |
 | --- | --- | --- |
 | Compute | `0.96 / 100 CU-hrs` | Very low usage. No immediate risk. |
