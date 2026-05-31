@@ -95,7 +95,7 @@ export const DashboardPage: React.FC = () => {
   const fromLogin = Boolean((location.state as { fromLogin?: boolean } | null)?.fromLogin);
 
   // ── Effects ────────────────────────────────────────────
-  useEffect(() => { document.title = "URERB Portal — Dashboard Overview"; }, []);
+  useEffect(() => { document.title = `${BRAND.name} Portal — Dashboard Overview`; }, []);
   useEffect(() => { if (queueFilter !== "overdue" && queueFilter !== "due-soon") setOverdueOwnerFilter("all"); }, [queueFilter]);
   useEffect(() => { setCurrentPage(1); }, [queueFilter, searchTerm, overdueOwnerFilter]);
   useEffect(() => {
@@ -317,6 +317,7 @@ export const DashboardPage: React.FC = () => {
         <DashboardTopBar
           greeting={greeting}
           lastUpdated={lastUpdated}
+          connectionState={error ? "issue" : lastUpdated ? "online" : "syncing"}
           searchTerm={searchTerm}
           onSearchTermChange={setSearchTerm}
           searchResults={searchResults}
@@ -342,29 +343,12 @@ export const DashboardPage: React.FC = () => {
 
       {error ? (
         <section className="portal-support">
-          <div
-            className="panel"
-            role="alert"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 16,
-              padding: "16px 18px",
-              borderColor: "rgba(175, 48, 41, 0.18)",
-              background: "linear-gradient(135deg, rgba(255, 243, 240, 0.96), rgba(255, 255, 255, 0.98))",
-            }}
-          >
-            <div style={{ display: "grid", gap: 4 }}>
-              <strong style={{ color: "#8A2E24" }}>Dashboard data is temporarily unavailable</strong>
-              <span style={{ color: "#5A5F6B" }}>{error}</span>
+          <div className="dashboard-error" role="alert">
+            <div className="dashboard-error__text">
+              <strong className="dashboard-error__title">Dashboard data is temporarily unavailable</strong>
+              <span className="dashboard-error__detail">{error}</span>
             </div>
-            <button
-              type="button"
-              className="topbar-btn"
-              onClick={handleRefresh}
-              style={{ whiteSpace: "nowrap" }}
-            >
+            <button type="button" className="topbar-btn" onClick={handleRefresh}>
               Retry
             </button>
           </div>

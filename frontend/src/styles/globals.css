@@ -130,6 +130,16 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Form controls don't inherit font-family by default; without this they fall
+   back to the UA default (Arial/Helvetica) instead of DM Sans. */
+button,
+input,
+select,
+textarea,
+optgroup {
+  font-family: inherit;
+}
+
 .app-container {
   min-height: 100vh;
 }

@@ -218,7 +218,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #6c7972;
+  color: #4f5953; /* darkened from #6c7972 to meet WCAG AA on the tinted sidebar */
   padding: 0 10px;
   margin-bottom: 6px;
 }
@@ -363,7 +363,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #718078;
+  color: #4f5953; /* darkened from #718078 to meet WCAG AA */
   margin-bottom: 7px;
 }
 
@@ -397,7 +397,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #77837c;
+  color: #4f5953; /* darkened from #77837c to meet WCAG AA */
   margin-bottom: 4px;
 }
 
@@ -414,7 +414,7 @@
   margin-top: 2px;
   font-size: 11px;
   line-height: 1.4;
-  color: #6f7b74;
+  color: #4d574f; /* darkened from #6f7b74 to meet WCAG AA (email/meta text) */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2017,6 +2017,51 @@
   border: 1px solid var(--border-strong);
 }
 
+/* Connection state is also carried by the label text, never by color alone. */
+.system-status--syncing .system-dot {
+  background: var(--warning);
+}
+
+.system-status--issue {
+  color: var(--error-ink);
+  border-color: rgba(176, 42, 28, 0.28);
+}
+
+.system-status--issue .system-dot {
+  background: var(--danger);
+}
+
+/* Dashboard data-unavailable alert — tokenized; replaces inline hardcoded hex.
+   Text sits on the danger-tinted surface in the danger hue (not gray) for contrast. */
+.dashboard-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid rgba(176, 42, 28, 0.28);
+  border-radius: var(--radius-lg);
+  background: var(--danger-soft);
+}
+
+.dashboard-error__text {
+  display: grid;
+  gap: 4px;
+}
+
+.dashboard-error__title {
+  font-weight: 600;
+  color: var(--error-ink);
+}
+
+.dashboard-error__detail {
+  color: rgba(166, 46, 31, 0.88);
+}
+
+.dashboard-error .topbar-btn {
+  white-space: nowrap;
+}
+
 .topbar-search {
   position: relative;
 }
@@ -2297,6 +2342,20 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   transition: border-color var(--motion-base) ease, background-color var(--motion-base) ease, box-shadow var(--motion-base) ease, transform var(--motion-base) ease;
   cursor: pointer;
+  /* Rendered as a <button> for keyboard access; reset native button styling. */
+  display: block;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.stat-card:focus-visible {
+  outline: none;
+  border-color: var(--primary-hover);
+  box-shadow: var(--ring);
 }
 
 .stat-card:hover {
