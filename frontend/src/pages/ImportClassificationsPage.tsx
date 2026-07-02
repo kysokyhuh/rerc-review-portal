@@ -375,6 +375,9 @@ export default function ImportClassificationsPage() {
                           <th scope="col">Title</th>
                           <th scope="col">Proponent</th>
                           <th scope="col">Recommended review</th>
+                          <th scope="col">Category</th>
+                          <th scope="col">Reviewer suggestions</th>
+                          <th scope="col">Link</th>
                           <th scope="col">Match</th>
                           <th scope="col">Portal status</th>
                           <th scope="col">Action</th>
@@ -387,6 +390,34 @@ export default function ImportClassificationsPage() {
                             <td>{row.title}</td>
                             <td>{row.proponent || "—"}</td>
                             <td>{row.recommendedTypeRaw || "—"}</td>
+                            <td>{row.reviewCategory || "—"}</td>
+                            <td>
+                              {row.suggestedScientificReviewer || row.suggestedNonScientificReviewer ? (
+                                <span>
+                                  {row.suggestedScientificReviewer
+                                    ? `S: ${row.suggestedScientificReviewer}`
+                                    : ""}
+                                  {row.suggestedScientificReviewer &&
+                                  row.suggestedNonScientificReviewer
+                                    ? "; "
+                                    : ""}
+                                  {row.suggestedNonScientificReviewer
+                                    ? `NS: ${row.suggestedNonScientificReviewer}`
+                                    : ""}
+                                </span>
+                              ) : (
+                                "—"
+                              )}
+                            </td>
+                            <td>
+                              {row.sourceLink ? (
+                                <a href={row.sourceLink} target="_blank" rel="noreferrer">
+                                  Open
+                                </a>
+                              ) : (
+                                "—"
+                              )}
+                            </td>
                             <td>
                               <span className={statusClassName(row.matchStatus)}>
                                 {row.matchStatus.replace(/_/g, " ")}
@@ -467,6 +498,7 @@ export default function ImportClassificationsPage() {
                 <li>The file must have a header row.</li>
                 <li><code>Title</code> is used to find the existing protocol.</li>
                 <li><code>Recommended Type of Review</code> maps to Exempt, Expedited, or Full Board.</li>
+                <li><code>Link</code> is saved as the classification source link.</li>
                 <li>Remarks and research notes are appended to classification notes.</li>
                 <li>Unmatched and duplicate title matches are skipped and reported.</li>
               </ul>

@@ -690,6 +690,15 @@ model Classification {
   classificationDate   DateTime
   panel                Panel?     @relation("PanelClassifications", fields: [panelId], references: [id])
   panelId              Int?
+  sourceLink           String?
+  reviewCategory       String?
+  suggestedScientificReviewer String?
+  suggestedNonScientificReviewer String?
+  importedRemarksJustification String?
+  importedResearchSummary String?
+  importedConsentFormRemarks String?
+  importedInstrumentRemarks String?
+  importedAdditionalNotes String?
   rationale            String? // notes / reason for classification
   missingDocuments     String[]   @default([])
   clarificationsNeeded String[]   @default([])

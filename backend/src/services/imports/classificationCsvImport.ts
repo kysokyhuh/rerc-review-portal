@@ -28,6 +28,14 @@ export type ClassificationImportRow = {
   sourceLink: string | null;
   recommendedTypeRaw: string | null;
   reviewType: ReviewType | null;
+  reviewCategory: string | null;
+  suggestedScientificReviewer: string | null;
+  suggestedNonScientificReviewer: string | null;
+  remarksJustification: string | null;
+  researchSummary: string | null;
+  consentFormRemarks: string | null;
+  instrumentRemarks: string | null;
+  additionalNotes: string | null;
   rationale: string;
   raw: Record<string, string>;
   warnings: ClassificationCsvWarning[];
@@ -67,6 +75,34 @@ export const parseClassificationReviewType = (value: string): ReviewType | null 
   if (normalized.includes("expedited")) return ReviewType.EXPEDITED;
   if (normalized.includes("full")) return ReviewType.FULL_BOARD;
   return null;
+};
+
+const trimOrNull = (value: string) => normalizeValue(value) || null;
+
+export const parseRecommendedReviewDetails = (value: string) => {
+  const raw = normalizeValue(value);
+  const parenthetical = raw.match(/\(([^)]*)\)\s*$/)?.[1] ?? "";
+  const withoutParenthetical = raw.replace(/\s*\([^)]*\)\s*$/, "").trim();
+  const category = withoutParenthetical.match(/[-–—]\s*(.+)$/)?.[1]?.trim() ?? "";
+
+  let suggestedScientificReviewer: string | null = null;
+  let suggestedNonScientificReviewer: string | null = null;
+  for (const part of parenthetical.split(";")) {
+    const match = part.trim().match(/^(S|NS)\s*:\s*(.+)$/i);
+    if (!match) continue;
+    const reviewerName = trimOrNull(match[2]);
+    if (match[1].toUpperCase() === "S") {
+      suggestedScientificReviewer = reviewerName;
+    } else {
+      suggestedNonScientificReviewer = reviewerName;
+    }
+  }
+
+  return {
+    reviewCategory: trimOrNull(category),
+    suggestedScientificReviewer,
+    suggestedNonScientificReviewer,
+  };
 };
 
 const appendNoteLine = (lines: string[], label: string, value: string | null) => {
@@ -146,6 +182,12 @@ export const parseClassificationCsv = (
 
     const recommendedTypeRaw = getByHeader(raw, ["Recommended Type of Review"]) || null;
     const reviewType = parseClassificationReviewType(recommendedTypeRaw ?? "");
+    const recommendedDetails = parseRecommendedReviewDetails(recommendedTypeRaw ?? "");
+    const remarksJustification = getByHeader(raw, ["Remarks/Justification"]) || null;
+    const researchSummary = getByHeader(raw, ["Notes/Summary of Research"]) || null;
+    const consentFormRemarks = getByHeader(raw, ["Remarks on Informed Consent Form/s"]) || null;
+    const instrumentRemarks = getByHeader(raw, ["Remarks on Instruments"]) || null;
+    const additionalNotes = getByHeader(raw, ["Notes", "column_16"]) || null;
     const warnings: ClassificationCsvWarning[] = [];
     if (recommendedTypeRaw && !reviewType) {
       warnings.push({
@@ -165,6 +207,14 @@ export const parseClassificationCsv = (
       sourceLink: getByHeader(raw, ["Link"]) || null,
       recommendedTypeRaw,
       reviewType,
+      reviewCategory: recommendedDetails.reviewCategory,
+      suggestedScientificReviewer: recommendedDetails.suggestedScientificReviewer,
+      suggestedNonScientificReviewer: recommendedDetails.suggestedNonScientificReviewer,
+      remarksJustification,
+      researchSummary,
+      consentFormRemarks,
+      instrumentRemarks,
+      additionalNotes,
       rationale: buildRationale(raw, recommendedTypeRaw),
       raw,
       warnings,
@@ -196,6 +246,9 @@ export type ClassificationImportPreviewRow = {
   projectCode: string | null;
   recommendedTypeRaw: string | null;
   reviewType: ReviewType | null;
+  reviewCategory: string | null;
+  suggestedScientificReviewer: string | null;
+  suggestedNonScientificReviewer: string | null;
   matchStatus: ClassificationMatchStatus;
   matchedProjectId: number | null;
   matchedSubmissionId: number | null;

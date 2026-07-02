@@ -29,6 +29,7 @@ import {
   buildClassificationPreviewRows,
   CLASSIFICATION_PREVIEW_ROWS,
   ClassificationCsvImportError,
+  type ClassificationImportRow,
   type ClassificationImportPreviewRow,
   type ClassificationProjectMatch,
   mergeImportedRationale,
@@ -210,6 +211,7 @@ const loadClassificationProjectMatches = async () => {
             select: {
               reviewType: true,
               rationale: true,
+              sourceLink: true,
             },
           },
         },
@@ -247,6 +249,30 @@ const buildClassificationPreviewResponse = async (fileBuffer: Buffer) => {
     },
   };
 };
+
+const buildClassificationImportData = (row: ClassificationImportRow) => ({
+  sourceLink: row.sourceLink ?? undefined,
+  reviewCategory: row.reviewCategory ?? undefined,
+  suggestedScientificReviewer: row.suggestedScientificReviewer ?? undefined,
+  suggestedNonScientificReviewer: row.suggestedNonScientificReviewer ?? undefined,
+  importedRemarksJustification: row.remarksJustification ?? undefined,
+  importedResearchSummary: row.researchSummary ?? undefined,
+  importedConsentFormRemarks: row.consentFormRemarks ?? undefined,
+  importedInstrumentRemarks: row.instrumentRemarks ?? undefined,
+  importedAdditionalNotes: row.additionalNotes ?? undefined,
+});
+
+const buildClassificationCreateData = (row: ClassificationImportRow) => ({
+  sourceLink: row.sourceLink,
+  reviewCategory: row.reviewCategory,
+  suggestedScientificReviewer: row.suggestedScientificReviewer,
+  suggestedNonScientificReviewer: row.suggestedNonScientificReviewer,
+  importedRemarksJustification: row.remarksJustification,
+  importedResearchSummary: row.researchSummary,
+  importedConsentFormRemarks: row.consentFormRemarks,
+  importedInstrumentRemarks: row.instrumentRemarks,
+  importedAdditionalNotes: row.additionalNotes,
+});
 
 const buildConfiguredDefaultCommittee = async () => {
   const explicitDefaultCommitteeCode = String(
@@ -643,6 +669,7 @@ router.post(
           await prisma.classification.update({
             where: { submissionId: previewRow.matchedSubmissionId },
             data: {
+              ...buildClassificationImportData(parsedRow),
               rationale: mergeImportedRationale(
                 submission.classification.rationale,
                 parsedRow.rationale
@@ -684,6 +711,7 @@ router.post(
             update: {
               reviewType: parsedRow.reviewType as ReviewType,
               classificationDate: new Date(),
+              ...buildClassificationImportData(parsedRow),
               rationale: mergeImportedRationale(
                 submission.classification?.rationale,
                 parsedRow.rationale
@@ -694,6 +722,7 @@ router.post(
               submissionId: submission.id,
               reviewType: parsedRow.reviewType as ReviewType,
               classificationDate: new Date(),
+              ...buildClassificationCreateData(parsedRow),
               rationale: parsedRow.rationale,
               classifiedById: req.user!.id,
             },

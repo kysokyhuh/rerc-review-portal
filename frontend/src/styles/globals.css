@@ -1311,6 +1311,87 @@ optgroup {
   max-width: 340px;
 }
 
+.classification-source-row {
+  margin-top: 8px;
+  max-width: 340px;
+}
+
+.classification-source-link {
+  color: var(--primary-green);
+  text-decoration: none;
+}
+
+.classification-source-link:hover {
+  color: var(--primary-green-hover);
+  text-decoration: underline;
+}
+
+.classification-import-details {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.classification-import-details-head h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.classification-reviewer-suggestions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.classification-suggestion {
+  display: grid;
+  gap: 4px;
+  min-height: 82px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: var(--surface-muted);
+}
+
+.classification-suggestion span,
+.classification-import-detail-list dt {
+  color: var(--neutral-600);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.classification-suggestion strong {
+  color: var(--neutral-900);
+  font-size: 14px;
+}
+
+.classification-suggestion em {
+  color: var(--primary-green);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.classification-import-detail-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.classification-import-detail-list div {
+  display: grid;
+  gap: 4px;
+}
+
+.classification-import-detail-list dd {
+  margin: 0;
+  color: var(--neutral-800);
+  line-height: 1.5;
+}
+
 .assigned-review-card .section-title {
   align-items: flex-start;
 }

@@ -46,6 +46,15 @@ export type ClassificationMinAggregateOutputType = {
   reviewType: $Enums.ReviewType | null
   classificationDate: Date | null
   panelId: number | null
+  sourceLink: string | null
+  reviewCategory: string | null
+  suggestedScientificReviewer: string | null
+  suggestedNonScientificReviewer: string | null
+  importedRemarksJustification: string | null
+  importedResearchSummary: string | null
+  importedConsentFormRemarks: string | null
+  importedInstrumentRemarks: string | null
+  importedAdditionalNotes: string | null
   rationale: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -58,6 +67,15 @@ export type ClassificationMaxAggregateOutputType = {
   reviewType: $Enums.ReviewType | null
   classificationDate: Date | null
   panelId: number | null
+  sourceLink: string | null
+  reviewCategory: string | null
+  suggestedScientificReviewer: string | null
+  suggestedNonScientificReviewer: string | null
+  importedRemarksJustification: string | null
+  importedResearchSummary: string | null
+  importedConsentFormRemarks: string | null
+  importedInstrumentRemarks: string | null
+  importedAdditionalNotes: string | null
   rationale: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -70,6 +88,15 @@ export type ClassificationCountAggregateOutputType = {
   reviewType: number
   classificationDate: number
   panelId: number
+  sourceLink: number
+  reviewCategory: number
+  suggestedScientificReviewer: number
+  suggestedNonScientificReviewer: number
+  importedRemarksJustification: number
+  importedResearchSummary: number
+  importedConsentFormRemarks: number
+  importedInstrumentRemarks: number
+  importedAdditionalNotes: number
   rationale: number
   missingDocuments: number
   clarificationsNeeded: number
@@ -100,6 +127,15 @@ export type ClassificationMinAggregateInputType = {
   reviewType?: true
   classificationDate?: true
   panelId?: true
+  sourceLink?: true
+  reviewCategory?: true
+  suggestedScientificReviewer?: true
+  suggestedNonScientificReviewer?: true
+  importedRemarksJustification?: true
+  importedResearchSummary?: true
+  importedConsentFormRemarks?: true
+  importedInstrumentRemarks?: true
+  importedAdditionalNotes?: true
   rationale?: true
   createdAt?: true
   updatedAt?: true
@@ -112,6 +148,15 @@ export type ClassificationMaxAggregateInputType = {
   reviewType?: true
   classificationDate?: true
   panelId?: true
+  sourceLink?: true
+  reviewCategory?: true
+  suggestedScientificReviewer?: true
+  suggestedNonScientificReviewer?: true
+  importedRemarksJustification?: true
+  importedResearchSummary?: true
+  importedConsentFormRemarks?: true
+  importedInstrumentRemarks?: true
+  importedAdditionalNotes?: true
   rationale?: true
   createdAt?: true
   updatedAt?: true
@@ -124,6 +169,15 @@ export type ClassificationCountAggregateInputType = {
   reviewType?: true
   classificationDate?: true
   panelId?: true
+  sourceLink?: true
+  reviewCategory?: true
+  suggestedScientificReviewer?: true
+  suggestedNonScientificReviewer?: true
+  importedRemarksJustification?: true
+  importedResearchSummary?: true
+  importedConsentFormRemarks?: true
+  importedInstrumentRemarks?: true
+  importedAdditionalNotes?: true
   rationale?: true
   missingDocuments?: true
   clarificationsNeeded?: true
@@ -225,6 +279,15 @@ export type ClassificationGroupByOutputType = {
   reviewType: $Enums.ReviewType
   classificationDate: Date
   panelId: number | null
+  sourceLink: string | null
+  reviewCategory: string | null
+  suggestedScientificReviewer: string | null
+  suggestedNonScientificReviewer: string | null
+  importedRemarksJustification: string | null
+  importedResearchSummary: string | null
+  importedConsentFormRemarks: string | null
+  importedInstrumentRemarks: string | null
+  importedAdditionalNotes: string | null
   rationale: string | null
   missingDocuments: string[]
   clarificationsNeeded: string[]
@@ -262,6 +325,15 @@ export type ClassificationWhereInput = {
   reviewType?: Prisma.EnumReviewTypeFilter<"Classification"> | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFilter<"Classification"> | Date | string
   panelId?: Prisma.IntNullableFilter<"Classification"> | number | null
+  sourceLink?: Prisma.StringNullableFilter<"Classification"> | string | null
+  reviewCategory?: Prisma.StringNullableFilter<"Classification"> | string | null
+  suggestedScientificReviewer?: Prisma.StringNullableFilter<"Classification"> | string | null
+  suggestedNonScientificReviewer?: Prisma.StringNullableFilter<"Classification"> | string | null
+  importedRemarksJustification?: Prisma.StringNullableFilter<"Classification"> | string | null
+  importedResearchSummary?: Prisma.StringNullableFilter<"Classification"> | string | null
+  importedConsentFormRemarks?: Prisma.StringNullableFilter<"Classification"> | string | null
+  importedInstrumentRemarks?: Prisma.StringNullableFilter<"Classification"> | string | null
+  importedAdditionalNotes?: Prisma.StringNullableFilter<"Classification"> | string | null
   rationale?: Prisma.StringNullableFilter<"Classification"> | string | null
   missingDocuments?: Prisma.StringNullableListFilter<"Classification">
   clarificationsNeeded?: Prisma.StringNullableListFilter<"Classification">
@@ -279,6 +351,15 @@ export type ClassificationOrderByWithRelationInput = {
   reviewType?: Prisma.SortOrder
   classificationDate?: Prisma.SortOrder
   panelId?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceLink?: Prisma.SortOrderInput | Prisma.SortOrder
+  reviewCategory?: Prisma.SortOrderInput | Prisma.SortOrder
+  suggestedScientificReviewer?: Prisma.SortOrderInput | Prisma.SortOrder
+  suggestedNonScientificReviewer?: Prisma.SortOrderInput | Prisma.SortOrder
+  importedRemarksJustification?: Prisma.SortOrderInput | Prisma.SortOrder
+  importedResearchSummary?: Prisma.SortOrderInput | Prisma.SortOrder
+  importedConsentFormRemarks?: Prisma.SortOrderInput | Prisma.SortOrder
+  importedInstrumentRemarks?: Prisma.SortOrderInput | Prisma.SortOrder
+  importedAdditionalNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   rationale?: Prisma.SortOrderInput | Prisma.SortOrder
   missingDocuments?: Prisma.SortOrder
   clarificationsNeeded?: Prisma.SortOrder
@@ -299,6 +380,15 @@ export type ClassificationWhereUniqueInput = Prisma.AtLeast<{
   reviewType?: Prisma.EnumReviewTypeFilter<"Classification"> | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFilter<"Classification"> | Date | string
   panelId?: Prisma.IntNullableFilter<"Classification"> | number | null
+  sourceLink?: Prisma.StringNullableFilter<"Classification"> | string | null
+  reviewCategory?: Prisma.StringNullableFilter<"Classification"> | string | null
+  suggestedScientificReviewer?: Prisma.StringNullableFilter<"Classification"> | string | null
+  suggestedNonScientificReviewer?: Prisma.StringNullableFilter<"Classification"> | string | null
+  importedRemarksJustification?: Prisma.StringNullableFilter<"Classification"> | string | null
+  importedResearchSummary?: Prisma.StringNullableFilter<"Classification"> | string | null
+  importedConsentFormRemarks?: Prisma.StringNullableFilter<"Classification"> | string | null
+  importedInstrumentRemarks?: Prisma.StringNullableFilter<"Classification"> | string | null
+  importedAdditionalNotes?: Prisma.StringNullableFilter<"Classification"> | string | null
   rationale?: Prisma.StringNullableFilter<"Classification"> | string | null
   missingDocuments?: Prisma.StringNullableListFilter<"Classification">
   clarificationsNeeded?: Prisma.StringNullableListFilter<"Classification">
@@ -316,6 +406,15 @@ export type ClassificationOrderByWithAggregationInput = {
   reviewType?: Prisma.SortOrder
   classificationDate?: Prisma.SortOrder
   panelId?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceLink?: Prisma.SortOrderInput | Prisma.SortOrder
+  reviewCategory?: Prisma.SortOrderInput | Prisma.SortOrder
+  suggestedScientificReviewer?: Prisma.SortOrderInput | Prisma.SortOrder
+  suggestedNonScientificReviewer?: Prisma.SortOrderInput | Prisma.SortOrder
+  importedRemarksJustification?: Prisma.SortOrderInput | Prisma.SortOrder
+  importedResearchSummary?: Prisma.SortOrderInput | Prisma.SortOrder
+  importedConsentFormRemarks?: Prisma.SortOrderInput | Prisma.SortOrder
+  importedInstrumentRemarks?: Prisma.SortOrderInput | Prisma.SortOrder
+  importedAdditionalNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   rationale?: Prisma.SortOrderInput | Prisma.SortOrder
   missingDocuments?: Prisma.SortOrder
   clarificationsNeeded?: Prisma.SortOrder
@@ -338,6 +437,15 @@ export type ClassificationScalarWhereWithAggregatesInput = {
   reviewType?: Prisma.EnumReviewTypeWithAggregatesFilter<"Classification"> | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeWithAggregatesFilter<"Classification"> | Date | string
   panelId?: Prisma.IntNullableWithAggregatesFilter<"Classification"> | number | null
+  sourceLink?: Prisma.StringNullableWithAggregatesFilter<"Classification"> | string | null
+  reviewCategory?: Prisma.StringNullableWithAggregatesFilter<"Classification"> | string | null
+  suggestedScientificReviewer?: Prisma.StringNullableWithAggregatesFilter<"Classification"> | string | null
+  suggestedNonScientificReviewer?: Prisma.StringNullableWithAggregatesFilter<"Classification"> | string | null
+  importedRemarksJustification?: Prisma.StringNullableWithAggregatesFilter<"Classification"> | string | null
+  importedResearchSummary?: Prisma.StringNullableWithAggregatesFilter<"Classification"> | string | null
+  importedConsentFormRemarks?: Prisma.StringNullableWithAggregatesFilter<"Classification"> | string | null
+  importedInstrumentRemarks?: Prisma.StringNullableWithAggregatesFilter<"Classification"> | string | null
+  importedAdditionalNotes?: Prisma.StringNullableWithAggregatesFilter<"Classification"> | string | null
   rationale?: Prisma.StringNullableWithAggregatesFilter<"Classification"> | string | null
   missingDocuments?: Prisma.StringNullableListFilter<"Classification">
   clarificationsNeeded?: Prisma.StringNullableListFilter<"Classification">
@@ -349,6 +457,15 @@ export type ClassificationScalarWhereWithAggregatesInput = {
 export type ClassificationCreateInput = {
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
+  sourceLink?: string | null
+  reviewCategory?: string | null
+  suggestedScientificReviewer?: string | null
+  suggestedNonScientificReviewer?: string | null
+  importedRemarksJustification?: string | null
+  importedResearchSummary?: string | null
+  importedConsentFormRemarks?: string | null
+  importedInstrumentRemarks?: string | null
+  importedAdditionalNotes?: string | null
   rationale?: string | null
   missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
@@ -365,6 +482,15 @@ export type ClassificationUncheckedCreateInput = {
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
   panelId?: number | null
+  sourceLink?: string | null
+  reviewCategory?: string | null
+  suggestedScientificReviewer?: string | null
+  suggestedNonScientificReviewer?: string | null
+  importedRemarksJustification?: string | null
+  importedResearchSummary?: string | null
+  importedConsentFormRemarks?: string | null
+  importedInstrumentRemarks?: string | null
+  importedAdditionalNotes?: string | null
   rationale?: string | null
   missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
@@ -376,6 +502,15 @@ export type ClassificationUncheckedCreateInput = {
 export type ClassificationUpdateInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedNonScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedRemarksJustification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedResearchSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedConsentFormRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedInstrumentRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedAdditionalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
@@ -392,6 +527,15 @@ export type ClassificationUncheckedUpdateInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   panelId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  sourceLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedNonScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedRemarksJustification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedResearchSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedConsentFormRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedInstrumentRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedAdditionalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
@@ -406,6 +550,15 @@ export type ClassificationCreateManyInput = {
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
   panelId?: number | null
+  sourceLink?: string | null
+  reviewCategory?: string | null
+  suggestedScientificReviewer?: string | null
+  suggestedNonScientificReviewer?: string | null
+  importedRemarksJustification?: string | null
+  importedResearchSummary?: string | null
+  importedConsentFormRemarks?: string | null
+  importedInstrumentRemarks?: string | null
+  importedAdditionalNotes?: string | null
   rationale?: string | null
   missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
@@ -417,6 +570,15 @@ export type ClassificationCreateManyInput = {
 export type ClassificationUpdateManyMutationInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedNonScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedRemarksJustification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedResearchSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedConsentFormRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedInstrumentRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedAdditionalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
@@ -430,6 +592,15 @@ export type ClassificationUncheckedUpdateManyInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   panelId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  sourceLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedNonScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedRemarksJustification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedResearchSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedConsentFormRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedInstrumentRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedAdditionalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
@@ -459,6 +630,15 @@ export type ClassificationCountOrderByAggregateInput = {
   reviewType?: Prisma.SortOrder
   classificationDate?: Prisma.SortOrder
   panelId?: Prisma.SortOrder
+  sourceLink?: Prisma.SortOrder
+  reviewCategory?: Prisma.SortOrder
+  suggestedScientificReviewer?: Prisma.SortOrder
+  suggestedNonScientificReviewer?: Prisma.SortOrder
+  importedRemarksJustification?: Prisma.SortOrder
+  importedResearchSummary?: Prisma.SortOrder
+  importedConsentFormRemarks?: Prisma.SortOrder
+  importedInstrumentRemarks?: Prisma.SortOrder
+  importedAdditionalNotes?: Prisma.SortOrder
   rationale?: Prisma.SortOrder
   missingDocuments?: Prisma.SortOrder
   clarificationsNeeded?: Prisma.SortOrder
@@ -480,6 +660,15 @@ export type ClassificationMaxOrderByAggregateInput = {
   reviewType?: Prisma.SortOrder
   classificationDate?: Prisma.SortOrder
   panelId?: Prisma.SortOrder
+  sourceLink?: Prisma.SortOrder
+  reviewCategory?: Prisma.SortOrder
+  suggestedScientificReviewer?: Prisma.SortOrder
+  suggestedNonScientificReviewer?: Prisma.SortOrder
+  importedRemarksJustification?: Prisma.SortOrder
+  importedResearchSummary?: Prisma.SortOrder
+  importedConsentFormRemarks?: Prisma.SortOrder
+  importedInstrumentRemarks?: Prisma.SortOrder
+  importedAdditionalNotes?: Prisma.SortOrder
   rationale?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -492,6 +681,15 @@ export type ClassificationMinOrderByAggregateInput = {
   reviewType?: Prisma.SortOrder
   classificationDate?: Prisma.SortOrder
   panelId?: Prisma.SortOrder
+  sourceLink?: Prisma.SortOrder
+  reviewCategory?: Prisma.SortOrder
+  suggestedScientificReviewer?: Prisma.SortOrder
+  suggestedNonScientificReviewer?: Prisma.SortOrder
+  importedRemarksJustification?: Prisma.SortOrder
+  importedResearchSummary?: Prisma.SortOrder
+  importedConsentFormRemarks?: Prisma.SortOrder
+  importedInstrumentRemarks?: Prisma.SortOrder
+  importedAdditionalNotes?: Prisma.SortOrder
   rationale?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -646,6 +844,15 @@ export type ClassificationUpdateclarificationsNeededInput = {
 export type ClassificationCreateWithoutClassifiedByInput = {
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
+  sourceLink?: string | null
+  reviewCategory?: string | null
+  suggestedScientificReviewer?: string | null
+  suggestedNonScientificReviewer?: string | null
+  importedRemarksJustification?: string | null
+  importedResearchSummary?: string | null
+  importedConsentFormRemarks?: string | null
+  importedInstrumentRemarks?: string | null
+  importedAdditionalNotes?: string | null
   rationale?: string | null
   missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
@@ -661,6 +868,15 @@ export type ClassificationUncheckedCreateWithoutClassifiedByInput = {
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
   panelId?: number | null
+  sourceLink?: string | null
+  reviewCategory?: string | null
+  suggestedScientificReviewer?: string | null
+  suggestedNonScientificReviewer?: string | null
+  importedRemarksJustification?: string | null
+  importedResearchSummary?: string | null
+  importedConsentFormRemarks?: string | null
+  importedInstrumentRemarks?: string | null
+  importedAdditionalNotes?: string | null
   rationale?: string | null
   missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
@@ -703,6 +919,15 @@ export type ClassificationScalarWhereInput = {
   reviewType?: Prisma.EnumReviewTypeFilter<"Classification"> | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFilter<"Classification"> | Date | string
   panelId?: Prisma.IntNullableFilter<"Classification"> | number | null
+  sourceLink?: Prisma.StringNullableFilter<"Classification"> | string | null
+  reviewCategory?: Prisma.StringNullableFilter<"Classification"> | string | null
+  suggestedScientificReviewer?: Prisma.StringNullableFilter<"Classification"> | string | null
+  suggestedNonScientificReviewer?: Prisma.StringNullableFilter<"Classification"> | string | null
+  importedRemarksJustification?: Prisma.StringNullableFilter<"Classification"> | string | null
+  importedResearchSummary?: Prisma.StringNullableFilter<"Classification"> | string | null
+  importedConsentFormRemarks?: Prisma.StringNullableFilter<"Classification"> | string | null
+  importedInstrumentRemarks?: Prisma.StringNullableFilter<"Classification"> | string | null
+  importedAdditionalNotes?: Prisma.StringNullableFilter<"Classification"> | string | null
   rationale?: Prisma.StringNullableFilter<"Classification"> | string | null
   missingDocuments?: Prisma.StringNullableListFilter<"Classification">
   clarificationsNeeded?: Prisma.StringNullableListFilter<"Classification">
@@ -714,6 +939,15 @@ export type ClassificationScalarWhereInput = {
 export type ClassificationCreateWithoutPanelInput = {
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
+  sourceLink?: string | null
+  reviewCategory?: string | null
+  suggestedScientificReviewer?: string | null
+  suggestedNonScientificReviewer?: string | null
+  importedRemarksJustification?: string | null
+  importedResearchSummary?: string | null
+  importedConsentFormRemarks?: string | null
+  importedInstrumentRemarks?: string | null
+  importedAdditionalNotes?: string | null
   rationale?: string | null
   missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
@@ -728,6 +962,15 @@ export type ClassificationUncheckedCreateWithoutPanelInput = {
   submissionId: number
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
+  sourceLink?: string | null
+  reviewCategory?: string | null
+  suggestedScientificReviewer?: string | null
+  suggestedNonScientificReviewer?: string | null
+  importedRemarksJustification?: string | null
+  importedResearchSummary?: string | null
+  importedConsentFormRemarks?: string | null
+  importedInstrumentRemarks?: string | null
+  importedAdditionalNotes?: string | null
   rationale?: string | null
   missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
@@ -765,6 +1008,15 @@ export type ClassificationUpdateManyWithWhereWithoutPanelInput = {
 export type ClassificationCreateWithoutSubmissionInput = {
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
+  sourceLink?: string | null
+  reviewCategory?: string | null
+  suggestedScientificReviewer?: string | null
+  suggestedNonScientificReviewer?: string | null
+  importedRemarksJustification?: string | null
+  importedResearchSummary?: string | null
+  importedConsentFormRemarks?: string | null
+  importedInstrumentRemarks?: string | null
+  importedAdditionalNotes?: string | null
   rationale?: string | null
   missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
@@ -779,6 +1031,15 @@ export type ClassificationUncheckedCreateWithoutSubmissionInput = {
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
   panelId?: number | null
+  sourceLink?: string | null
+  reviewCategory?: string | null
+  suggestedScientificReviewer?: string | null
+  suggestedNonScientificReviewer?: string | null
+  importedRemarksJustification?: string | null
+  importedResearchSummary?: string | null
+  importedConsentFormRemarks?: string | null
+  importedInstrumentRemarks?: string | null
+  importedAdditionalNotes?: string | null
   rationale?: string | null
   missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
@@ -806,6 +1067,15 @@ export type ClassificationUpdateToOneWithWhereWithoutSubmissionInput = {
 export type ClassificationUpdateWithoutSubmissionInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedNonScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedRemarksJustification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedResearchSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedConsentFormRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedInstrumentRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedAdditionalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
@@ -820,6 +1090,15 @@ export type ClassificationUncheckedUpdateWithoutSubmissionInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   panelId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  sourceLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedNonScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedRemarksJustification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedResearchSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedConsentFormRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedInstrumentRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedAdditionalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
@@ -834,6 +1113,15 @@ export type ClassificationCreateManyClassifiedByInput = {
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
   panelId?: number | null
+  sourceLink?: string | null
+  reviewCategory?: string | null
+  suggestedScientificReviewer?: string | null
+  suggestedNonScientificReviewer?: string | null
+  importedRemarksJustification?: string | null
+  importedResearchSummary?: string | null
+  importedConsentFormRemarks?: string | null
+  importedInstrumentRemarks?: string | null
+  importedAdditionalNotes?: string | null
   rationale?: string | null
   missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
@@ -844,6 +1132,15 @@ export type ClassificationCreateManyClassifiedByInput = {
 export type ClassificationUpdateWithoutClassifiedByInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedNonScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedRemarksJustification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedResearchSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedConsentFormRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedInstrumentRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedAdditionalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
@@ -859,6 +1156,15 @@ export type ClassificationUncheckedUpdateWithoutClassifiedByInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   panelId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  sourceLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedNonScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedRemarksJustification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedResearchSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedConsentFormRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedInstrumentRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedAdditionalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
@@ -872,6 +1178,15 @@ export type ClassificationUncheckedUpdateManyWithoutClassifiedByInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   panelId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  sourceLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedNonScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedRemarksJustification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedResearchSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedConsentFormRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedInstrumentRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedAdditionalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
@@ -884,6 +1199,15 @@ export type ClassificationCreateManyPanelInput = {
   submissionId: number
   reviewType: $Enums.ReviewType
   classificationDate: Date | string
+  sourceLink?: string | null
+  reviewCategory?: string | null
+  suggestedScientificReviewer?: string | null
+  suggestedNonScientificReviewer?: string | null
+  importedRemarksJustification?: string | null
+  importedResearchSummary?: string | null
+  importedConsentFormRemarks?: string | null
+  importedInstrumentRemarks?: string | null
+  importedAdditionalNotes?: string | null
   rationale?: string | null
   missingDocuments?: Prisma.ClassificationCreatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationCreateclarificationsNeededInput | string[]
@@ -895,6 +1219,15 @@ export type ClassificationCreateManyPanelInput = {
 export type ClassificationUpdateWithoutPanelInput = {
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedNonScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedRemarksJustification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedResearchSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedConsentFormRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedInstrumentRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedAdditionalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
@@ -909,6 +1242,15 @@ export type ClassificationUncheckedUpdateWithoutPanelInput = {
   submissionId?: Prisma.IntFieldUpdateOperationsInput | number
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedNonScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedRemarksJustification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedResearchSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedConsentFormRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedInstrumentRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedAdditionalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
@@ -922,6 +1264,15 @@ export type ClassificationUncheckedUpdateManyWithoutPanelInput = {
   submissionId?: Prisma.IntFieldUpdateOperationsInput | number
   reviewType?: Prisma.EnumReviewTypeFieldUpdateOperationsInput | $Enums.ReviewType
   classificationDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sourceLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suggestedNonScientificReviewer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedRemarksJustification?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedResearchSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedConsentFormRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedInstrumentRemarks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  importedAdditionalNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rationale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   missingDocuments?: Prisma.ClassificationUpdatemissingDocumentsInput | string[]
   clarificationsNeeded?: Prisma.ClassificationUpdateclarificationsNeededInput | string[]
@@ -938,6 +1289,15 @@ export type ClassificationSelect<ExtArgs extends runtime.Types.Extensions.Intern
   reviewType?: boolean
   classificationDate?: boolean
   panelId?: boolean
+  sourceLink?: boolean
+  reviewCategory?: boolean
+  suggestedScientificReviewer?: boolean
+  suggestedNonScientificReviewer?: boolean
+  importedRemarksJustification?: boolean
+  importedResearchSummary?: boolean
+  importedConsentFormRemarks?: boolean
+  importedInstrumentRemarks?: boolean
+  importedAdditionalNotes?: boolean
   rationale?: boolean
   missingDocuments?: boolean
   clarificationsNeeded?: boolean
@@ -955,6 +1315,15 @@ export type ClassificationSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   reviewType?: boolean
   classificationDate?: boolean
   panelId?: boolean
+  sourceLink?: boolean
+  reviewCategory?: boolean
+  suggestedScientificReviewer?: boolean
+  suggestedNonScientificReviewer?: boolean
+  importedRemarksJustification?: boolean
+  importedResearchSummary?: boolean
+  importedConsentFormRemarks?: boolean
+  importedInstrumentRemarks?: boolean
+  importedAdditionalNotes?: boolean
   rationale?: boolean
   missingDocuments?: boolean
   clarificationsNeeded?: boolean
@@ -972,6 +1341,15 @@ export type ClassificationSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   reviewType?: boolean
   classificationDate?: boolean
   panelId?: boolean
+  sourceLink?: boolean
+  reviewCategory?: boolean
+  suggestedScientificReviewer?: boolean
+  suggestedNonScientificReviewer?: boolean
+  importedRemarksJustification?: boolean
+  importedResearchSummary?: boolean
+  importedConsentFormRemarks?: boolean
+  importedInstrumentRemarks?: boolean
+  importedAdditionalNotes?: boolean
   rationale?: boolean
   missingDocuments?: boolean
   clarificationsNeeded?: boolean
@@ -989,6 +1367,15 @@ export type ClassificationSelectScalar = {
   reviewType?: boolean
   classificationDate?: boolean
   panelId?: boolean
+  sourceLink?: boolean
+  reviewCategory?: boolean
+  suggestedScientificReviewer?: boolean
+  suggestedNonScientificReviewer?: boolean
+  importedRemarksJustification?: boolean
+  importedResearchSummary?: boolean
+  importedConsentFormRemarks?: boolean
+  importedInstrumentRemarks?: boolean
+  importedAdditionalNotes?: boolean
   rationale?: boolean
   missingDocuments?: boolean
   clarificationsNeeded?: boolean
@@ -997,7 +1384,7 @@ export type ClassificationSelectScalar = {
   classifiedById?: boolean
 }
 
-export type ClassificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "submissionId" | "reviewType" | "classificationDate" | "panelId" | "rationale" | "missingDocuments" | "clarificationsNeeded" | "createdAt" | "updatedAt" | "classifiedById", ExtArgs["result"]["classification"]>
+export type ClassificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "submissionId" | "reviewType" | "classificationDate" | "panelId" | "sourceLink" | "reviewCategory" | "suggestedScientificReviewer" | "suggestedNonScientificReviewer" | "importedRemarksJustification" | "importedResearchSummary" | "importedConsentFormRemarks" | "importedInstrumentRemarks" | "importedAdditionalNotes" | "rationale" | "missingDocuments" | "clarificationsNeeded" | "createdAt" | "updatedAt" | "classifiedById", ExtArgs["result"]["classification"]>
 export type ClassificationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   submission?: boolean | Prisma.SubmissionDefaultArgs<ExtArgs>
   panel?: boolean | Prisma.Classification$panelArgs<ExtArgs>
@@ -1027,6 +1414,15 @@ export type $ClassificationPayload<ExtArgs extends runtime.Types.Extensions.Inte
     reviewType: $Enums.ReviewType
     classificationDate: Date
     panelId: number | null
+    sourceLink: string | null
+    reviewCategory: string | null
+    suggestedScientificReviewer: string | null
+    suggestedNonScientificReviewer: string | null
+    importedRemarksJustification: string | null
+    importedResearchSummary: string | null
+    importedConsentFormRemarks: string | null
+    importedInstrumentRemarks: string | null
+    importedAdditionalNotes: string | null
     rationale: string | null
     missingDocuments: string[]
     clarificationsNeeded: string[]
@@ -1464,6 +1860,15 @@ export interface ClassificationFieldRefs {
   readonly reviewType: Prisma.FieldRef<"Classification", 'ReviewType'>
   readonly classificationDate: Prisma.FieldRef<"Classification", 'DateTime'>
   readonly panelId: Prisma.FieldRef<"Classification", 'Int'>
+  readonly sourceLink: Prisma.FieldRef<"Classification", 'String'>
+  readonly reviewCategory: Prisma.FieldRef<"Classification", 'String'>
+  readonly suggestedScientificReviewer: Prisma.FieldRef<"Classification", 'String'>
+  readonly suggestedNonScientificReviewer: Prisma.FieldRef<"Classification", 'String'>
+  readonly importedRemarksJustification: Prisma.FieldRef<"Classification", 'String'>
+  readonly importedResearchSummary: Prisma.FieldRef<"Classification", 'String'>
+  readonly importedConsentFormRemarks: Prisma.FieldRef<"Classification", 'String'>
+  readonly importedInstrumentRemarks: Prisma.FieldRef<"Classification", 'String'>
+  readonly importedAdditionalNotes: Prisma.FieldRef<"Classification", 'String'>
   readonly rationale: Prisma.FieldRef<"Classification", 'String'>
   readonly missingDocuments: Prisma.FieldRef<"Classification", 'String[]'>
   readonly clarificationsNeeded: Prisma.FieldRef<"Classification", 'String[]'>

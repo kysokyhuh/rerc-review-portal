@@ -63,6 +63,33 @@ const REVIEW_DECISION_OPTIONS: Array<{ value: ReviewDecision; label: string }> =
   { value: "INFO_ONLY", label: "Information only" },
 ];
 
+const hasImportedClassificationDetails = (
+  classification: SubmissionDetail["classification"]
+) =>
+  Boolean(
+    classification?.reviewCategory ||
+      classification?.suggestedScientificReviewer ||
+      classification?.suggestedNonScientificReviewer ||
+      classification?.importedRemarksJustification ||
+      classification?.importedResearchSummary ||
+      classification?.importedConsentFormRemarks ||
+      classification?.importedInstrumentRemarks ||
+      classification?.importedAdditionalNotes ||
+      classification?.sourceLink
+  );
+
+const importedDetailRows = (classification: SubmissionDetail["classification"]) => {
+  if (!classification) return [];
+  return [
+    ["Review category", classification.reviewCategory],
+    ["Remarks/Justification", classification.importedRemarksJustification],
+    ["Notes/Summary of Research", classification.importedResearchSummary],
+    ["Remarks on Informed Consent Form/s", classification.importedConsentFormRemarks],
+    ["Remarks on Instruments", classification.importedInstrumentRemarks],
+    ["Additional notes", classification.importedAdditionalNotes],
+  ].filter((row): row is [string, string] => Boolean(row[1]));
+};
+
 const normalizeClassificationStatus = (
   value: string
 ): ClassificationStatusStage => {
@@ -863,6 +890,57 @@ export const SubmissionDetailPage: React.FC = () => {
             </div>
           </div>
         )}
+        {submission.classification?.sourceLink ? (
+          <div className="classification-source-row">
+            <div className="field">
+              <label>Source link</label>
+              <a
+                className="field-input classification-readonly classification-source-link"
+                href={submission.classification.sourceLink}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open classification file
+              </a>
+            </div>
+          </div>
+        ) : null}
+        {hasImportedClassificationDetails(submission.classification) ? (
+          <div className="classification-import-details">
+            <div className="classification-import-details-head">
+              <h3>Imported classification details</h3>
+            </div>
+            {submission.classification?.suggestedScientificReviewer ||
+            submission.classification?.suggestedNonScientificReviewer ? (
+              <div className="classification-reviewer-suggestions">
+                {submission.classification.suggestedScientificReviewer ? (
+                  <div className="classification-suggestion">
+                    <span>Scientific reviewer suggestion</span>
+                    <strong>{submission.classification.suggestedScientificReviewer}</strong>
+                    <em>Pending Chair confirmation</em>
+                  </div>
+                ) : null}
+                {submission.classification.suggestedNonScientificReviewer ? (
+                  <div className="classification-suggestion">
+                    <span>Non-scientific reviewer suggestion</span>
+                    <strong>{submission.classification.suggestedNonScientificReviewer}</strong>
+                    <em>Pending Chair confirmation</em>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+            {importedDetailRows(submission.classification).length > 0 ? (
+              <dl className="classification-import-detail-list">
+                {importedDetailRows(submission.classification).map(([label, value]) => (
+                  <div key={label}>
+                    <dt>{label}</dt>
+                    <dd>{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+          </div>
+        ) : null}
         {classificationMessage ? <p className="field-success">{classificationMessage}</p> : null}
         {classificationError ? <p className="error-text">{classificationError}</p> : null}
       </section>

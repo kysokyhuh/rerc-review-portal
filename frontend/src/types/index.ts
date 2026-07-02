@@ -504,8 +504,12 @@ export interface ClassificationImportPreviewRow {
   title: string;
   proponent: string | null;
   projectCode: string | null;
+  sourceLink: string | null;
   recommendedTypeRaw: string | null;
   reviewType: string | null;
+  reviewCategory: string | null;
+  suggestedScientificReviewer: string | null;
+  suggestedNonScientificReviewer: string | null;
   matchStatus: "MATCHED" | "UNMATCHED" | "AMBIGUOUS" | "NO_REVIEW_TYPE";
   matchedProjectId: number | null;
   matchedSubmissionId: number | null;
@@ -587,6 +591,15 @@ export interface SubmissionDetail {
   classification?: {
     reviewType: string | null;
     classificationDate: string | null;
+    sourceLink?: string | null;
+    reviewCategory?: string | null;
+    suggestedScientificReviewer?: string | null;
+    suggestedNonScientificReviewer?: string | null;
+    importedRemarksJustification?: string | null;
+    importedResearchSummary?: string | null;
+    importedConsentFormRemarks?: string | null;
+    importedInstrumentRemarks?: string | null;
+    importedAdditionalNotes?: string | null;
     rationale?: string | null;
     panelId?: number | null;
     panel?: { id: number; name: string; code: string | null } | null;
