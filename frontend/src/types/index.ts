@@ -482,7 +482,7 @@ export interface ImportResult {
 }
 
 export interface ProjectImportPreview {
-  detectedFormat: "headered" | "legacy_headered" | "legacy_headerless";
+  detectedFormat: "headered" | "legacy_headered";
   detectedHeaders: string[];
   previewRowNumbers: number[];
   previewRows: Record<string, string>[];
@@ -497,6 +497,37 @@ export interface ProjectImportPreview {
 export interface ProjectImportRowEdit {
   rowNumber: number;
   values: Record<string, string>;
+}
+
+export interface ClassificationImportPreviewRow {
+  rowNumber: number;
+  title: string;
+  proponent: string | null;
+  projectCode: string | null;
+  recommendedTypeRaw: string | null;
+  reviewType: string | null;
+  matchStatus: "MATCHED" | "UNMATCHED" | "AMBIGUOUS" | "NO_REVIEW_TYPE";
+  matchedProjectId: number | null;
+  matchedSubmissionId: number | null;
+  portalStatus: string | null;
+  action: string;
+  warnings: ImportWarning[];
+}
+
+export interface ClassificationImportPreview {
+  detectedHeaders: string[];
+  receivedRows: number;
+  skippedBlankRows: number;
+  previewRows: ClassificationImportPreviewRow[];
+  summary: {
+    matchedRows: number;
+    notesOnlyRows: number;
+    unmatchedRows: number;
+    ambiguousRows: number;
+    warningRows: number;
+  };
+  warnings: string[];
+  warningItems?: ImportWarning[];
 }
 
 export interface CreateProjectPayload {

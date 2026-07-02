@@ -10,6 +10,7 @@ const txPanelFindFirst = jest.fn();
 const txUserFindFirst = jest.fn();
 const txSubmissionCreate = jest.fn();
 const txSubmissionFindFirst = jest.fn();
+const txSubmissionFindUnique = jest.fn();
 const txSubmissionUpdate = jest.fn();
 const txProtocolProfileCreate = jest.fn();
 const txProtocolMilestoneFindMany = jest.fn();
@@ -41,6 +42,10 @@ jest.mock("../../src/config/prismaClient", () => {
       },
       submission: {
         create: jest.fn(),
+        findUnique: jest.fn(),
+      },
+      classification: {
+        update: jest.fn(),
       },
       protocolProfile: {
         create: jest.fn(),
@@ -57,6 +62,7 @@ jest.mock("../../src/config/prismaClient", () => {
           submission: {
             create: txSubmissionCreate,
             findFirst: txSubmissionFindFirst,
+            findUnique: txSubmissionFindUnique,
             update: txSubmissionUpdate,
           },
           protocolProfile: { create: txProtocolProfileCreate },
@@ -81,7 +87,8 @@ const prisma = prismaClient as unknown as {
   configSLA: { findMany: jest.Mock };
   holiday: { findMany: jest.Mock };
   project: { findMany: jest.Mock; findFirst: jest.Mock; create: jest.Mock };
-  submission: { create: jest.Mock };
+  submission: { create: jest.Mock; findUnique: jest.Mock };
+  classification: { update: jest.Mock };
   protocolProfile: { create: jest.Mock };
   importBatch: { create: jest.Mock; update: jest.Mock };
   $transaction: jest.Mock;
@@ -164,6 +171,11 @@ describe("project import routes", () => {
     txPanelFindFirst.mockResolvedValue(null);
     txUserFindFirst.mockResolvedValue(null);
     txSubmissionCreate.mockResolvedValue({ id: 10 });
+    txSubmissionFindUnique.mockResolvedValue({
+      id: 10,
+      status: "AWAITING_CLASSIFICATION",
+      classification: null,
+    });
     txSubmissionFindFirst.mockResolvedValue({
       id: 10,
       sequenceNumber: 1,
@@ -266,7 +278,7 @@ describe("project import routes", () => {
       expect(response.body.detectedHeaders[7]).toBe("typeOfReview");
     });
 
-    it("detects legacy headerless CSVs and returns a warning", async () => {
+    it("rejects legacy headerless CSVs", async () => {
       const csv = buildLegacyCsv(
         [
           buildLegacyRow({
@@ -289,11 +301,9 @@ describe("project import routes", () => {
         .set("X-User-Roles", "RESEARCH_ASSOCIATE")
         .attach("file", Buffer.from(csv), "legacy-headerless.csv");
 
-      expect(response.status).toBe(200);
-      expect(response.body.detectedFormat).toBe("legacy_headerless");
-      expect(response.body.missingRequiredFields).toEqual([]);
-      expect(response.body.warnings).toContain(
-        "No header row was found. We will read this file using the known RERC spreadsheet column order."
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe(
+        "CSV header row is required. Please add the database column headers before uploading."
       );
     });
 
@@ -597,7 +607,7 @@ describe("project import routes", () => {
       expect(txProjectCreate).not.toHaveBeenCalled();
     });
 
-    it("commits legacy headered and headerless CSVs with the same normalized payload", async () => {
+    it("commits legacy headered CSVs with normalized payload", async () => {
       const legacyRow = buildLegacyRow({
         0: "2026-301A",
         1: "Legacy Commit Title",
@@ -648,22 +658,19 @@ describe("project import routes", () => {
         84: "Ms. Final Lay",
       });
 
-      const performCommit = async (includeHeader: boolean) =>
-        request(app)
-          .post("/imports/projects/commit")
-          .set(csrfHeaders)
-          .set("X-User-ID", "1")
-          .set("X-User-Email", "ra@example.com")
-          .set("X-User-Name", "RA")
-          .set("X-User-Roles", "RESEARCH_ASSOCIATE")
-          .field("mode", "LEGACY_MIGRATION")
-          .attach(
-            "file",
-            Buffer.from(buildLegacyCsv([legacyRow], includeHeader)),
-            includeHeader ? "legacy-headered.csv" : "legacy-headerless.csv"
-          );
-
-      const headeredResponse = await performCommit(true);
+      const headeredResponse = await request(app)
+        .post("/imports/projects/commit")
+        .set(csrfHeaders)
+        .set("X-User-ID", "1")
+        .set("X-User-Email", "ra@example.com")
+        .set("X-User-Name", "RA")
+        .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+        .field("mode", "LEGACY_MIGRATION")
+        .attach(
+          "file",
+          Buffer.from(buildLegacyCsv([legacyRow], true)),
+          "legacy-headered.csv"
+        );
       expect(headeredResponse.status).toBe(200);
       expect(headeredResponse.body.insertedRows).toBe(1);
       expect(headeredResponse.body.failedRows).toBe(0);
@@ -671,31 +678,32 @@ describe("project import routes", () => {
       const headeredProjectArgs = txProjectCreate.mock.calls[0][0];
       const headeredSubmissionArgs = txSubmissionCreate.mock.calls[0][0];
       const headeredProfileArgs = txProtocolProfileCreate.mock.calls[0][0];
-      txProjectCreate.mockClear();
-      txSubmissionCreate.mockClear();
-      txProtocolProfileCreate.mockClear();
-      txProtocolMilestoneCreate.mockClear();
 
-      const headerlessResponse = await performCommit(false);
-      expect(headerlessResponse.status).toBe(200);
-      expect(headerlessResponse.body.insertedRows).toBe(1);
-      expect(headerlessResponse.body.failedRows).toBe(0);
-
-      const headerlessProjectArgs = txProjectCreate.mock.calls[0][0];
-      const headerlessSubmissionArgs = txSubmissionCreate.mock.calls[0][0];
-      const headerlessProfileArgs = txProtocolProfileCreate.mock.calls[0][0];
-
-      expect(headerlessProjectArgs).toEqual(
+      expect(headeredProjectArgs).toEqual(
         expect.objectContaining({
-          ...headeredProjectArgs,
           data: expect.objectContaining({
-            ...headeredProjectArgs.data,
-            importSourceRowNumber: 1,
+            projectCode: "2026-301A",
+            title: "Legacy Commit Title",
+            origin: "LEGACY_IMPORT",
+            importSourceRowNumber: 2,
           }),
         })
       );
-      expect(headerlessSubmissionArgs).toEqual(headeredSubmissionArgs);
-      expect(headerlessProfileArgs).toEqual(headeredProfileArgs);
+      expect(headeredSubmissionArgs).toEqual(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            remarks: "Legacy remarks",
+          }),
+        })
+      );
+      expect(headeredProfileArgs).toEqual(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            title: "Legacy Commit Title",
+            projectLeader: "Dr. Commit",
+          }),
+        })
+      );
       expect(txProtocolMilestoneCreate).toHaveBeenCalled();
     });
 
@@ -803,9 +811,9 @@ describe("project import routes", () => {
       );
     });
 
-    it("auto-detects legacy headerless CSVs and imports them into the live workflow", async () => {
+    it("rejects legacy headerless CSVs on commit", async () => {
       const legacyRow = buildLegacyRow({ 0: "2026-403", 1: "Blocked Title", 5: "2026-03-01" });
-      const csv = [legacyRow.join(",")].join("\n"); // no header row → legacy_headerless
+      const csv = [legacyRow.join(",")].join("\n");
 
       const response = await request(app)
         .post("/imports/projects/commit")
@@ -816,16 +824,11 @@ describe("project import routes", () => {
         .set("X-User-Roles", "RESEARCH_ASSOCIATE")
         .attach("file", Buffer.from(csv), "legacy-headerless.csv");
 
-      expect(response.status).toBe(200);
-      expect(response.body.insertedRows).toBe(1);
-      expect(txSubmissionCreate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            status: "AWAITING_CLASSIFICATION",
-          }),
-        })
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe(
+        "CSV header row is required. Please add the database column headers before uploading."
       );
-      expect(txProtocolMilestoneCreate).toHaveBeenCalledTimes(0);
+      expect(txSubmissionCreate).not.toHaveBeenCalled();
     });
 
     it("returns warnings and batch metadata without exposing a user-selected import mode", async () => {
@@ -854,6 +857,102 @@ describe("project import routes", () => {
       expect(Array.isArray(response.body.warnings)).toBe(true);
       expect(response.body.warningRows).toBeGreaterThanOrEqual(1);
       expect(response.body.importBatch).toBeDefined();
+    });
+  });
+
+  describe("classification import routes", () => {
+    const classificationCsv = [
+      "Title,Proponent,Recommended Type of Review,Remarks/Justification,Notes/Summary of Research",
+      "Matched Classification Title,Dr. Classifier,Expedited - 3,Low risk,Survey only",
+    ].join("\n");
+
+    beforeEach(() => {
+      prisma.project.findMany.mockResolvedValue([
+        {
+          id: 44,
+          title: "Matched Classification Title",
+          projectCode: "RERC-2026-001",
+          submissions: [
+            {
+              id: 55,
+              status: "AWAITING_CLASSIFICATION",
+              sequenceNumber: 1,
+              classification: null,
+            },
+          ],
+        },
+      ]);
+      txSubmissionFindUnique.mockResolvedValue({
+        id: 55,
+        status: "AWAITING_CLASSIFICATION",
+        classification: null,
+      });
+      txClassificationUpsert.mockResolvedValue({ id: 77, reviewType: "EXPEDITED" });
+    });
+
+    it("previews classification CSVs by matching rows to existing protocol titles", async () => {
+      const response = await request(app)
+        .post("/imports/classifications/preview")
+        .set(csrfHeaders)
+        .set("X-User-ID", "1")
+        .set("X-User-Email", "ra@example.com")
+        .set("X-User-Name", "RA")
+        .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+        .attach("file", Buffer.from(classificationCsv), "classification.csv");
+
+      expect(response.status).toBe(200);
+      expect(response.body.summary.matchedRows).toBe(1);
+      expect(response.body.previewRows[0]).toEqual(
+        expect.objectContaining({
+          title: "Matched Classification Title",
+          matchStatus: "MATCHED",
+          matchedSubmissionId: 55,
+          reviewType: "EXPEDITED",
+        })
+      );
+    });
+
+    it("commits matched classification rows to the latest submission", async () => {
+      const response = await request(app)
+        .post("/imports/classifications/commit")
+        .set(csrfHeaders)
+        .set("X-User-ID", "1")
+        .set("X-User-Email", "ra@example.com")
+        .set("X-User-Name", "RA")
+        .set("X-User-Roles", "RESEARCH_ASSOCIATE")
+        .attach("file", Buffer.from(classificationCsv), "classification.csv");
+
+      expect(response.status).toBe(200);
+      expect(response.body.entity).toBe("classification");
+      expect(response.body.insertedRows).toBe(1);
+      expect(response.body.failedRows).toBe(0);
+      expect(txClassificationUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { submissionId: 55 },
+          update: expect.objectContaining({
+            reviewType: "EXPEDITED",
+            rationale: expect.stringContaining("Remarks/Justification: Low risk"),
+          }),
+          create: expect.objectContaining({
+            submissionId: 55,
+            reviewType: "EXPEDITED",
+            rationale: expect.stringContaining("Notes/Summary of Research: Survey only"),
+          }),
+        })
+      );
+      expect(txSubmissionUpdate).toHaveBeenCalledWith({
+        where: { id: 55 },
+        data: { status: "CLASSIFIED" },
+      });
+      expect(txSubmissionStatusHistoryCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            submissionId: 55,
+            oldStatus: "AWAITING_CLASSIFICATION",
+            newStatus: "CLASSIFIED",
+          }),
+        })
+      );
     });
   });
 });

@@ -35,6 +35,7 @@ export type {
   ImportModeFit,
   ImportWarning,
   ImportBatchSummary,
+  ClassificationImportPreview,
   ProjectImportPreview,
   ProjectImportRowEdit,
   CreateProjectPayload,
@@ -86,6 +87,7 @@ import type {
   ProjectSearchResult,
   CommitteeSummary,
   ImportResult,
+  ClassificationImportPreview,
   ProjectImportPreview,
   CreateProjectPayload,
   CreateProjectResponse,
@@ -1270,6 +1272,44 @@ export async function commitProjectsCsvImport(
     formData.append("rowEdits", JSON.stringify(rowEdits));
   }
   const response = await api.post("/imports/projects/commit", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    onUploadProgress: options?.onUploadProgress
+      ? (event) => options.onUploadProgress?.(normalizeUploadProgress(event))
+      : undefined,
+  });
+  return response.data as ImportResult;
+}
+
+export async function previewClassificationsCsv(
+  file: File,
+  options?: {
+    onUploadProgress?: (progress: CsvUploadProgress) => void;
+  }
+) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await api.post("/imports/classifications/preview", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    onUploadProgress: options?.onUploadProgress
+      ? (event) => options.onUploadProgress?.(normalizeUploadProgress(event))
+      : undefined,
+  });
+  return response.data as ClassificationImportPreview;
+}
+
+export async function commitClassificationsCsvImport(
+  file: File,
+  options?: {
+    onUploadProgress?: (progress: CsvUploadProgress) => void;
+  }
+) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await api.post("/imports/classifications/commit", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },

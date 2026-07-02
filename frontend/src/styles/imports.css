@@ -496,6 +496,11 @@
   color: #805213;
 }
 
+.import-pill-danger {
+  background: #fbeaea;
+  color: #a3382a;
+}
+
 .import-summary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

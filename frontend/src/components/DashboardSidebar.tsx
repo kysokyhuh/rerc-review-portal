@@ -224,13 +224,28 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
             {capabilities.canImportProjects ? (
               <NavLink to="/imports/projects" className={navClassName}>
                 <SidebarItemContent
-                  label="Import CSV"
+                  label="Import Database"
                   icon={
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 3v12" />
                       <path d="M7 8l5-5 5 5" />
                       <path d="M5 21h14a2 2 0 002-2v-5" />
                       <path d="M3 14v5a2 2 0 002 2" />
+                    </svg>
+                  }
+                />
+              </NavLink>
+            ) : null}
+            {capabilities.canImportProjects ? (
+              <NavLink to="/imports/classifications" className={navClassName}>
+                <SidebarItemContent
+                  label="Import Classification"
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M4 6h16" />
+                      <path d="M4 12h10" />
+                      <path d="M4 18h7" />
+                      <path d="M17 14l2 2 3-4" />
                     </svg>
                   }
                 />

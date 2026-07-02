@@ -166,8 +166,6 @@ export default function ImportProjectsPage() {
       setEditablePreviewRows(previewResponse.previewRows.map((row) => ({ ...row })));
       if (previewResponse.missingRequiredFields.length > 0) {
         setStatusMessage("We can't read required headers from this file.");
-      } else if (previewResponse.detectedFormat === "legacy_headerless") {
-        setStatusMessage("No header row found. Preview ready using the known RERC spreadsheet column order.");
       } else {
         setStatusMessage("Preview ready. You can edit blank cells in the preview before import.");
       }
@@ -354,7 +352,7 @@ export default function ImportProjectsPage() {
         </button>
         <h1>Import Projects</h1>
         <p>
-          Upload a CSV file. Blank <code>committeeCode</code> values can use the configured default intake committee, and the Chair can assign Panel 1-4 later. If the file came from an older spreadsheet, we will move the usable data into the live workflow and keep historical dates as milestones.
+          Upload a database CSV with column headers. Blank <code>committeeCode</code> values can use the configured default intake committee, and the Chair can assign Panel 1-4 later. If the file came from an older spreadsheet, keep the database headers so we can move usable workflow dates and milestones into the portal.
         </p>
       </header>
 
@@ -514,7 +512,7 @@ export default function ImportProjectsPage() {
                     </table>
                   </div>
 
-                  {(preview.detectedFormat === "legacy_headered" || preview.detectedFormat === "legacy_headerless") && (() => {
+                  {preview.detectedFormat === "legacy_headered" && (() => {
                     const visibleSteps = MILESTONE_STEPS.filter((step) =>
                       previewRows.some((row) => {
                         const date = step.dateKey ? (row[step.dateKey] ?? "").trim() : "";
@@ -684,11 +682,11 @@ export default function ImportProjectsPage() {
               <h3>Required headers</h3>
               <ul>
                 <li>Header-based CSV intake files are supported.</li>
-                <li>The older RERC spreadsheet export with no header row is also supported.</li>
+                <li>Database CSV files must include the header row before upload.</li>
                 <li>If formula results were not included in the CSV, some fields may stay blank after import.</li>
               </ul>
               <p>
-                Files with no header row still use the fixed RERC spreadsheet column order, while normal intake files rely on recognizable headers.
+                Headerless CSV files are rejected to avoid incorrect column mapping.
               </p>
             </div>
             <div className="import-card import-guide-card">

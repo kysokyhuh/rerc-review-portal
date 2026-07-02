@@ -5,7 +5,9 @@ import prisma from "../config/prismaClient";
 import {
   ImportMode,
   ProjectOrigin,
+  ReviewType,
   RoleType,
+  SubmissionStatus,
 } from "../generated/prisma/client";
 import { requireRoles } from "../middleware/auth";
 import {
@@ -23,6 +25,17 @@ import {
   suggestColumnMapping,
   validateMappedProjectRows,
 } from "../services/imports/projectCsvImport";
+import {
+  buildClassificationPreviewRows,
+  CLASSIFICATION_PREVIEW_ROWS,
+  ClassificationCsvImportError,
+  type ClassificationImportPreviewRow,
+  type ClassificationProjectMatch,
+  mergeImportedRationale,
+  normalizeClassificationTitle,
+  parseClassificationCsv,
+  summarizeClassificationPreview,
+} from "../services/imports/classificationCsvImport";
 import {
   createProjectWithInitialSubmission,
   DuplicateProjectCodeError,
@@ -101,7 +114,7 @@ const uploadSingleFile = (req: any, res: any, next: any) => {
   });
 };
 
-const getUploadFileOrThrow = (req: any) => {
+const getUploadFileOrThrow = (req: any, importLabel = "Project import") => {
   const file = req.file as Express.Multer.File | undefined;
   if (!file) {
     throw new CsvImportError("A file is required.", 400);
@@ -112,7 +125,7 @@ const getUploadFileOrThrow = (req: any) => {
   const lowerName = String(file.originalname ?? "").toLowerCase();
   if (lowerName.endsWith(".xlsx")) {
     throw new CsvImportError(
-      "Project import now accepts CSV files only. Export the workbook to CSV and upload that file instead.",
+      `${importLabel} now accepts CSV files only. Export the workbook to CSV and upload that file instead.`,
       415
     );
   }
@@ -153,6 +166,87 @@ const fileNeedsDefaultCommittee = (parsed: ParsedCsvData, mapping: ColumnMapping
     const committeeCode = committeeHeader ? row.raw[committeeHeader] ?? "" : "";
     return committeeCode.trim().length === 0;
   });
+
+const CLASSIFICATION_ADVANCE_STATUSES = new Set<SubmissionStatus>([
+    SubmissionStatus.RECEIVED,
+    SubmissionStatus.UNDER_COMPLETENESS_CHECK,
+    SubmissionStatus.RETURNED_FOR_COMPLETION,
+    SubmissionStatus.AWAITING_CLASSIFICATION,
+    SubmissionStatus.UNDER_CLASSIFICATION,
+]);
+
+const classificationStatusCanAdvance = (status: SubmissionStatus) =>
+  CLASSIFICATION_ADVANCE_STATUSES.has(status);
+
+const uniqueClassificationWarnings = (rows: ClassificationImportPreviewRow[]) => {
+  const seen = new Set<string>();
+  const warnings = [];
+  for (const row of rows) {
+    for (const warning of row.warnings) {
+      const key = `${warning.code}:${warning.row ?? ""}:${warning.field ?? ""}:${warning.message}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      warnings.push(warning);
+    }
+  }
+  return warnings;
+};
+
+const loadClassificationProjectMatches = async () => {
+  const projects = await prisma.project.findMany({
+    where: { title: { not: null } },
+    select: {
+      id: true,
+      title: true,
+      projectCode: true,
+      submissions: {
+        orderBy: { sequenceNumber: "desc" },
+        take: 1,
+        select: {
+          id: true,
+          status: true,
+          sequenceNumber: true,
+          classification: {
+            select: {
+              reviewType: true,
+              rationale: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const projectsByTitle = new Map<string, ClassificationProjectMatch[]>();
+  for (const project of projects) {
+    const normalizedTitle = normalizeClassificationTitle(project.title ?? "");
+    if (!normalizedTitle) continue;
+    const existing = projectsByTitle.get(normalizedTitle) ?? [];
+    existing.push(project);
+    projectsByTitle.set(normalizedTitle, existing);
+  }
+  return projectsByTitle;
+};
+
+const buildClassificationPreviewResponse = async (fileBuffer: Buffer) => {
+  const parsed = parseClassificationCsv(fileBuffer);
+  const projectsByTitle = await loadClassificationProjectMatches();
+  const previewRows = buildClassificationPreviewRows(parsed.rows, projectsByTitle);
+  const warningItems = uniqueClassificationWarnings(previewRows);
+  return {
+    parsed,
+    previewRows,
+    response: {
+      detectedHeaders: parsed.detectedHeaders,
+      receivedRows: parsed.receivedRows,
+      skippedBlankRows: parsed.skippedBlankRows,
+      previewRows: previewRows.slice(0, CLASSIFICATION_PREVIEW_ROWS),
+      summary: summarizeClassificationPreview(previewRows),
+      warnings: Array.from(new Set(warningItems.map((warning) => warning.message))),
+      warningItems,
+    },
+  };
+};
 
 const buildConfiguredDefaultCommittee = async () => {
   const explicitDefaultCommitteeCode = String(
@@ -471,6 +565,189 @@ router.post(
       }
       console.error("Import commit failed:", error);
       return res.status(500).json({ message: "Import failed." });
+    }
+  }
+);
+
+router.post(
+  "/imports/classifications/preview",
+  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  uploadSingleFile,
+  async (req, res) => {
+    try {
+      const { file } = getUploadFileOrThrow(req, "Classification import");
+      const { response } = await buildClassificationPreviewResponse(file.buffer);
+      return res.json(response);
+    } catch (error) {
+      if (error instanceof ClassificationCsvImportError || error instanceof CsvImportError) {
+        return res.status(error.status).json({
+          message: error.message,
+          details: error.details,
+        });
+      }
+      console.error("Classification preview failed:", error);
+      return res.status(500).json({ message: "Classification preview failed." });
+    }
+  }
+);
+
+router.post(
+  "/imports/classifications/commit",
+  requireRoles([RoleType.ADMIN, RoleType.CHAIR, RoleType.RESEARCH_ASSOCIATE]),
+  uploadSingleFile,
+  async (req, res) => {
+    try {
+      const { file } = getUploadFileOrThrow(req, "Classification import");
+      const { parsed, previewRows } = await buildClassificationPreviewResponse(file.buffer);
+      const rowsByNumber = new Map(parsed.rows.map((row) => [row.rowNumber, row]));
+      const allErrors: Array<{ row: number; field: string; message: string }> = [];
+      let insertedRows = 0;
+
+      for (const previewRow of previewRows) {
+        const parsedRow = rowsByNumber.get(previewRow.rowNumber);
+        if (!parsedRow) continue;
+
+        if (
+          previewRow.matchStatus === "UNMATCHED" ||
+          previewRow.matchStatus === "AMBIGUOUS" ||
+          !previewRow.matchedSubmissionId
+        ) {
+          allErrors.push({
+            row: previewRow.rowNumber,
+            field: "Title",
+            message: previewRow.action,
+          });
+          continue;
+        }
+
+        if (previewRow.matchStatus === "NO_REVIEW_TYPE") {
+          const submission = await prisma.submission.findUnique({
+            where: { id: previewRow.matchedSubmissionId },
+            select: {
+              classification: {
+                select: {
+                  rationale: true,
+                },
+              },
+            },
+          });
+          if (!submission?.classification) {
+            allErrors.push({
+              row: previewRow.rowNumber,
+              field: "Recommended Type of Review",
+              message: "Review type could not be mapped and no existing classification exists for notes-only update.",
+            });
+            continue;
+          }
+
+          await prisma.classification.update({
+            where: { submissionId: previewRow.matchedSubmissionId },
+            data: {
+              rationale: mergeImportedRationale(
+                submission.classification.rationale,
+                parsedRow.rationale
+              ),
+            },
+          });
+          insertedRows += 1;
+          continue;
+        }
+
+        if (!parsedRow.reviewType) {
+          allErrors.push({
+            row: previewRow.rowNumber,
+            field: "Recommended Type of Review",
+            message: "Review type could not be mapped.",
+          });
+          continue;
+        }
+
+        await prisma.$transaction(async (tx) => {
+          const submission = await tx.submission.findUnique({
+            where: { id: previewRow.matchedSubmissionId! },
+            select: {
+              id: true,
+              status: true,
+              classification: {
+                select: {
+                  rationale: true,
+                },
+              },
+            },
+          });
+          if (!submission) {
+            throw new ClassificationCsvImportError("Matched submission no longer exists.");
+          }
+
+          await tx.classification.upsert({
+            where: { submissionId: submission.id },
+            update: {
+              reviewType: parsedRow.reviewType as ReviewType,
+              classificationDate: new Date(),
+              rationale: mergeImportedRationale(
+                submission.classification?.rationale,
+                parsedRow.rationale
+              ),
+              classifiedById: req.user!.id,
+            },
+            create: {
+              submissionId: submission.id,
+              reviewType: parsedRow.reviewType as ReviewType,
+              classificationDate: new Date(),
+              rationale: parsedRow.rationale,
+              classifiedById: req.user!.id,
+            },
+          });
+
+          if (classificationStatusCanAdvance(submission.status)) {
+            await tx.submission.update({
+              where: { id: submission.id },
+              data: { status: SubmissionStatus.CLASSIFIED },
+            });
+            await tx.submissionStatusHistory.create({
+              data: {
+                submissionId: submission.id,
+                oldStatus: submission.status,
+                newStatus: SubmissionStatus.CLASSIFIED,
+                effectiveDate: new Date(),
+                reason: "Classification imported from CSV.",
+                changedById: req.user!.id,
+              },
+            });
+          }
+        });
+        insertedRows += 1;
+      }
+
+      const warningItems = uniqueClassificationWarnings(previewRows);
+      const warningRows = new Set(warningItems.map((warning) => warning.row).filter(Boolean)).size;
+      const failedRows = new Set(allErrors.map((error) => error.row)).size;
+
+      console.info(
+        `[imports] classifications-commit user=${req.user?.id ?? "unknown"} received=${parsed.receivedRows} updated=${insertedRows} failed=${failedRows} at=${new Date().toISOString()}`
+      );
+
+      return res.json({
+        entity: "classification",
+        receivedRows: parsed.receivedRows,
+        insertedRows,
+        failedRows,
+        warningRows,
+        warnings: warningItems,
+        errors: allErrors.sort((a, b) => {
+          if (a.row !== b.row) return a.row - b.row;
+          return a.field.localeCompare(b.field);
+        }),
+      });
+    } catch (error) {
+      if (error instanceof ClassificationCsvImportError || error instanceof CsvImportError) {
+        return res.status(error.status).json({
+          message: error.message,
+          details: error.details,
+        });
+      }
+      console.error("Classification import failed:", error);
+      return res.status(500).json({ message: "Classification import failed." });
     }
   }
 );

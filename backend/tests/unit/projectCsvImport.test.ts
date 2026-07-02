@@ -116,7 +116,7 @@ describe("project CSV import mapping", () => {
     );
   });
 
-  it("parses headerless legacy CSVs and keeps CSV row numbers", () => {
+  it("rejects headerless legacy CSVs", () => {
     const dataRow = buildLegacyRow({
       0: "2026-102B",
       1: "Headerless Legacy Title",
@@ -129,24 +129,8 @@ describe("project CSV import mapping", () => {
     });
     const csv = [dataRow.join(",")].join("\n");
 
-    const parsed = parseProjectCsvUnknownFormat(csv);
-    const preview = buildPreviewPayload(parsed);
-
-    expect(parsed.detectedFormat).toBe("legacy_headerless");
-    expect(parsed.detectedHeaders).toEqual(LEGACY_WIDE_COLUMNS);
-    expect(parsed.rows[0].rowNumber).toBe(1);
-    expect(parsed.rows[0].raw).toEqual(
-      expect.objectContaining({
-        projectCode: "2026-102B",
-        title: "Headerless Legacy Title",
-        progressReportApprovalDate: "2026-07-01",
-        progressReportStatus: "Approved",
-        progressReportDays: "12",
-      })
-    );
-    expect(preview.detectedFormat).toBe("legacy_headerless");
-    expect(preview.warnings).toContain(
-      "No header row was found. We will read this file using the known RERC spreadsheet column order."
+    expect(() => parseProjectCsvUnknownFormat(csv)).toThrow(
+      "CSV header row is required. Please add the database column headers before uploading."
     );
   });
 
@@ -154,7 +138,7 @@ describe("project CSV import mapping", () => {
     const csv = [["2026-001", "Title Only", "Dr. A"].join(",")].join("\n");
 
     expect(() => parseProjectCsvUnknownFormat(csv)).toThrow(
-      "Headerless CSV is only supported for the known RERC spreadsheet export layout."
+      "CSV header row is required. Please add the database column headers before uploading."
     );
   });
 
@@ -187,13 +171,11 @@ describe("assessImportMode", () => {
     expect(result.recommendedMode).toBe(ImportMode.INTAKE_IMPORT);
   });
 
-  it("blocks INTAKE_IMPORT when the CSV is legacy_headerless", () => {
+  it("rejects headerless CSVs before import-mode assessment", () => {
     const csv = [buildLegacyRow({ 0: "2026-001" }).join(",")].join("\n");
-    const parsed = parseProjectCsvUnknownFormat(csv);
-    const result = assessImportMode(parsed, ImportMode.INTAKE_IMPORT);
-    expect(result.modeFit).toBe("blocked");
-    expect(result.recommendedMode).toBe(ImportMode.LEGACY_MIGRATION);
-    expect(result.warningItems.some((w) => w.code === "MODE_MISMATCH_BLOCKED")).toBe(true);
+    expect(() => parseProjectCsvUnknownFormat(csv)).toThrow(
+      "CSV header row is required. Please add the database column headers before uploading."
+    );
   });
 
   it("blocks INTAKE_IMPORT when a legacy_headered CSV has populated legacy workflow columns", () => {
@@ -224,13 +206,6 @@ describe("assessImportMode", () => {
     const result = assessImportMode(parsed, ImportMode.LEGACY_MIGRATION);
     expect(result.modeFit).toBe("match");
     expect(result.recommendedMode).toBe(ImportMode.LEGACY_MIGRATION);
-  });
-
-  it("returns match for LEGACY_MIGRATION with a legacy_headerless CSV", () => {
-    const csv = [buildLegacyRow({ 0: "2026-001" }).join(",")].join("\n");
-    const parsed = parseProjectCsvUnknownFormat(csv);
-    const result = assessImportMode(parsed, ImportMode.LEGACY_MIGRATION);
-    expect(result.modeFit).toBe("match");
   });
 
   it("warns for LEGACY_MIGRATION with a native narrow intake CSV", () => {

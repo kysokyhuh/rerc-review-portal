@@ -41,7 +41,7 @@ export type MappableProjectField = (typeof MAPPABLE_PROJECT_FIELDS)[number];
 export type RequiredProjectField = (typeof REQUIRED_PROJECT_FIELDS)[number];
 export type ProjectField = (typeof PROJECT_IMPORT_HEADERS)[number];
 export type ColumnMapping = Record<MappableProjectField, string | null>;
-export type ParsedCsvFormat = "headered" | "legacy_headered" | "legacy_headerless";
+export type ParsedCsvFormat = "headered" | "legacy_headered";
 export type ImportModeFit = "match" | "warn" | "blocked";
 
 export interface ImportWarning {
@@ -705,10 +705,9 @@ export const parseProjectCsvUnknownFormat = (
       firstLegacyDataIndex > 0 ? records.slice(firstLegacyDataIndex) : records.slice(1);
     firstDataRowNumber = firstLegacyDataIndex > 0 ? firstLegacyDataIndex + 1 : 2;
   } else if (looksLikeLegacyHeaderlessRow(firstRow)) {
-    detectedFormat = "legacy_headerless";
-    detectedHeaders = [...LEGACY_WIDE_COLUMNS];
-    dataRows = records;
-    firstDataRowNumber = 1;
+    throw new CsvImportError(
+      "CSV header row is required. Please add the database column headers before uploading."
+    );
   } else {
     const normalizedHeaders = firstRow.map(normalizeHeader);
     if (!normalizedHeaders.length || normalizedHeaders.every((header) => !header)) {
@@ -716,7 +715,7 @@ export const parseProjectCsvUnknownFormat = (
     }
     if (looksLikeUnsupportedHeaderlessRow(firstRow)) {
       throw new CsvImportError(
-        "Headerless CSV is only supported for the known RERC spreadsheet export layout."
+        "CSV header row is required. Please add the database column headers before uploading."
       );
     }
 
@@ -855,7 +854,7 @@ export const assessImportMode = (
 
   let modeFit: ImportModeFit = "match";
   if (selectedMode === ImportMode.INTAKE_IMPORT) {
-    if (parsed.detectedFormat === "legacy_headerless" || hasLegacyWorkflowValues) {
+    if (hasLegacyWorkflowValues) {
       modeFit = "blocked";
       warningItems.push(
         createWarning(
@@ -956,15 +955,6 @@ export const buildPreviewPayload = (
       )
     );
   }
-  if (parsed.detectedFormat === "legacy_headerless") {
-    warnings.push(
-      createWarning(
-        "LEGACY_HEADERLESS",
-        "No header row was found. We will read this file using the known RERC spreadsheet column order."
-      )
-    );
-  }
-
   warnings.push(...collectRowPreviewWarnings(parsed, selectedMode, config.previewRows));
 
   return {
