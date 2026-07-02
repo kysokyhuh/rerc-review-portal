@@ -7,6 +7,7 @@ import {
   parseProjectCsvUnknownFormat,
   parseReceivedDate,
   suggestColumnMapping,
+  validateMappedProjectRows,
 } from "../../src/services/imports/projectCsvImport";
 import { ImportMode } from "../../src/generated/prisma/enums";
 
@@ -114,6 +115,38 @@ describe("project CSV import mapping", () => {
     expect(preview.warnings).toContain(
       "Some core fields are missing in this file and will be imported as blank live values."
     );
+  });
+
+  it("maps current RERC database funding, research, and proponent labels", () => {
+    const dataRow = buildLegacyRow({
+      0: "2024-101C",
+      1: "Current Database Label Test",
+      2: "Dr. Current",
+      5: "2024-11-06",
+      8: "ASF",
+      9: "DOST PCIEERD",
+      10: "Social/Behavioral Research",
+    });
+    const csv = buildCsv(buildLegacyHeaderRow(), [dataRow]);
+    const parsed = parseProjectCsvUnknownFormat(csv);
+    const result = validateMappedProjectRows({
+      parsed,
+      mapping: suggestColumnMapping(parsed.detectedHeaders),
+      committeeCodeMap: new Map([["RERC-HUMAN", 1]]),
+      defaultCommitteeId: 1,
+      existingProjectCodes: new Set(),
+      mode: ImportMode.LEGACY_MIGRATION,
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.validRows[0]).toEqual(
+      expect.objectContaining({
+        fundingType: "EXTERNAL",
+        researchTypePHREB: "SOCIAL_BEHAVIORAL",
+        proponentCategory: "OTHER",
+      })
+    );
+    expect(result.warnings.some((warning) => warning.code.includes("UNRECOGNIZED"))).toBe(false);
   });
 
   it("rejects headerless legacy CSVs", () => {

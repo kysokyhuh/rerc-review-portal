@@ -399,6 +399,10 @@ const normalizeValue = (value: unknown) => {
   const str = String(value ?? "").trim();
   return EXCEL_ERROR_RE.test(str) ? "" : str;
 };
+const isBlankishValue = (value: string) => {
+  const normalized = value.trim().toUpperCase();
+  return !normalized || normalized === "N/A" || normalized === "NA";
+};
 
 export const normalizeHeaderKey = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -588,7 +592,7 @@ const parseNullableBooleanField = (rawValue: string) => {
 
 const parseFundingType = (value: string): FundingType | null => {
   const normalized = value.trim().toUpperCase();
-  if (!normalized || normalized === "N/A") return null;
+  if (!normalized || normalized === "N/A" || normalized === "NA") return null;
   if (normalized in FundingType) {
     return FundingType[normalized as keyof typeof FundingType];
   }
@@ -596,8 +600,31 @@ const parseFundingType = (value: string): FundingType | null => {
   if (compact.includes("SELF")) return FundingType.SELF_FUNDED;
   if (compact.includes("NOFUND") || compact === "NONE") return FundingType.NO_FUNDING;
   if (compact.includes("INTERNAL") || compact.includes("RGMO")) return FundingType.INTERNAL;
+  if (
+    compact.includes("INSTITUTION") ||
+    compact.includes("COSCA") ||
+    compact.includes("FACULTYDEVELOPMENT")
+  ) {
+    return FundingType.INTERNAL;
+  }
   if (compact.includes("EXTERNAL")) return FundingType.EXTERNAL;
   if (compact.includes("GOVERNMENT") || compact.includes("GRANT")) return FundingType.EXTERNAL;
+  if (
+    compact.includes("DOST") ||
+    compact.includes("PCIEERD") ||
+    compact.includes("ASTHRDP") ||
+    compact.includes("SCHOLARSHIP") ||
+    compact.includes("PHARMACEUTICAL") ||
+    compact.includes("FOUNDATION") ||
+    compact.includes("CHARITY") ||
+    compact.includes("TRUST") ||
+    compact.includes("SOCIETY") ||
+    compact.includes("UNIVERSITY") ||
+    compact.includes("SUMITOMO") ||
+    compact.includes("ADVISER")
+  ) {
+    return FundingType.EXTERNAL;
+  }
   if (compact === "OTHERS" || compact === "OTHER") return FundingType.EXTERNAL;
   return null;
 };
@@ -612,11 +639,29 @@ const parseSubmissionType = (value: string): SubmissionType | null => {
 };
 
 const parseResearchType = (value: string): ResearchTypePHREB | null => {
-  const normalized = value.trim().toUpperCase().replace(/\s+/g, "_");
+  const raw = value.trim();
+  const normalized = raw.toUpperCase().replace(/\s+/g, "_");
   if (!normalized) return null;
   if (normalized in ResearchTypePHREB) {
     return ResearchTypePHREB[normalized as keyof typeof ResearchTypePHREB];
   }
+  const compact = raw.toLowerCase().replace(/[^a-z]/g, "");
+  if (!compact) return null;
+  if (compact === "others" || compact === "other") return ResearchTypePHREB.OTHER;
+  if (compact.includes("biomedical") || compact.includes("genetic")) {
+    return ResearchTypePHREB.BIOMEDICAL;
+  }
+  if (compact.includes("social") || compact.includes("behavioral")) {
+    return ResearchTypePHREB.SOCIAL_BEHAVIORAL;
+  }
+  if (
+    compact.includes("publichealth") ||
+    compact.includes("epidemiolog") ||
+    compact.includes("healthoperations")
+  ) {
+    return ResearchTypePHREB.PUBLIC_HEALTH;
+  }
+  if (compact.includes("clinical")) return ResearchTypePHREB.CLINICAL_TRIAL;
   return null;
 };
 
@@ -631,7 +676,14 @@ const parseProponentCategory = (value: string): ProponentCategory | null => {
   if (compact.includes("UNDERGRAD")) return ProponentCategory.UNDERGRAD;
   if (compact === "GRAD" || compact.includes("GRADUATE")) return ProponentCategory.GRAD;
   if (compact.includes("FACULTY")) return ProponentCategory.FACULTY;
-  if (compact.includes("NONTEACH") || compact.includes("STAFF") || compact.includes("OTHER")) {
+  if (
+    compact.includes("NONTEACH") ||
+    compact.includes("STAFF") ||
+    compact.includes("OTHER") ||
+    compact.includes("ALUMNI") ||
+    compact === "ASF" ||
+    compact === "APSP"
+  ) {
     return ProponentCategory.OTHER;
   }
   return null;
@@ -1328,7 +1380,7 @@ export const validateMappedProjectRows = ({
     }
 
     const fundingType = parseFundingType(fundingRaw);
-    if (fundingRaw && !fundingType) {
+    if (fundingRaw && !fundingType && !isBlankishValue(fundingRaw)) {
       if (mode === ImportMode.LEGACY_MIGRATION) {
         rowWarnings.push({ code: "LEGACY_UNRECOGNIZED_FUNDING_TYPE", field: "fundingType", row: row.rowNumber, message: `Unrecognized fundingType "${fundingRaw}" on row ${row.rowNumber} — stored as blank.` });
       } else {
