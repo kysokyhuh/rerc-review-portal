@@ -324,6 +324,16 @@ export default function ImportClassificationsPage() {
                       }
                     />
                   </div>
+                  <div className="import-progress-meta">
+                    <span>
+                      {previewProgress.phase === "processing"
+                        ? "Processing on server"
+                        : `${previewProgress.percent ?? 0}%`}
+                    </span>
+                    {previewTransferMeta && previewProgress.phase !== "processing" && (
+                      <span>{previewTransferMeta}</span>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -472,6 +482,16 @@ export default function ImportClassificationsPage() {
                           : { width: `${importProgress.percent ?? 0}%` }
                       }
                     />
+                  </div>
+                  <div className="import-progress-meta">
+                    <span>
+                      {importProgress.phase === "processing"
+                        ? "Processing on server"
+                        : `${importProgress.percent ?? 0}%`}
+                    </span>
+                    {importTransferMeta && importProgress.phase !== "processing" && (
+                      <span>{importTransferMeta}</span>
+                    )}
                   </div>
                 </div>
               )}
