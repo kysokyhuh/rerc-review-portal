@@ -3,7 +3,6 @@ import { NavLink, useNavigate } from "react-router-dom";
 import type { QueueCounts } from "@/types";
 import { BRAND } from "@/config/branding";
 import { useAuth } from "@/contexts/AuthContext";
-import { BrandLogo } from "@/components/BrandLogo";
 import api from "@/services/api";
 import { getPrimaryRoleLabel, getRoleCapabilities } from "@/utils/roleUtils";
 
@@ -88,7 +87,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
       <div className="sidebar-header">
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">
-            <BrandLogo className="sidebar-logo-image" />
+            <span>R</span>
           </div>
           <div className="sidebar-brand-text">
             <h1>{BRAND.name}</h1>

@@ -2,7 +2,6 @@ import { FormEvent, useMemo, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { BRAND } from "@/config/branding";
 import { useAuth } from "@/contexts/AuthContext";
-import { BrandLogo } from "@/components/BrandLogo";
 import {
   getPasswordStrength,
   MIN_PASSWORD_LENGTH,
@@ -78,7 +77,7 @@ export default function ChangePasswordPage() {
         <aside className="login-card forgot-card" role="region" aria-label="Change password">
           <div className="login-cardHeader forgot-card-header">
             <p className="login-kicker forgot-kicker">
-              <BrandLogo className="login-brand-logo" />
+              <span className="login-dot" aria-hidden="true"></span>
               {BRAND.name}
             </p>
             <h2>Change your password</h2>
