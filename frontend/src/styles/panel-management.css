@@ -69,6 +69,11 @@
   white-space: nowrap;
 }
 
+.panel-delete-btn {
+  min-height: 38px;
+  white-space: nowrap;
+}
+
 .panel-members-table th:nth-child(1),
 .panel-members-table td:nth-child(1) {
   width: 24%;

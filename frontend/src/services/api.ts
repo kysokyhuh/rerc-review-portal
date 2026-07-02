@@ -1091,6 +1091,11 @@ export async function createPanel(payload: {
   return response.data as { panel: PanelManagementPanel };
 }
 
+export async function deletePanel(panelId: number) {
+  const response = await api.delete(`/admin/panels/${panelId}`);
+  return response.data as { message: string; deletedMemberCount: number };
+}
+
 export async function addPanelMember(
   panelId: number,
   payload: { email?: string; userId?: number; role: PanelMemberRole }

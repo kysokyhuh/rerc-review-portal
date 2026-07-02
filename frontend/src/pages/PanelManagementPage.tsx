@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import {
   addPanelMember,
   createPanel,
+  deletePanel,
   deletePanelMember,
   fetchPanelAssignableUsers,
   fetchPanelManagementPanels,
@@ -72,10 +73,20 @@ export default function PanelManagementPage() {
       ]);
       setPanels(panelData.panels);
       setUserOptions(userData.users);
-      setSelectedPanelId((current) => current ?? panelData.panels[0]?.id ?? null);
+      const fallbackPanelId = panelData.panels[0]?.id ?? null;
+      setSelectedPanelId((current) =>
+        current && panelData.panels.some((panel) => panel.id === current)
+          ? current
+          : fallbackPanelId
+      );
       setDraft((current) => ({
         ...current,
-        panelId: current.panelId || String(panelData.panels[0]?.id ?? ""),
+        panelId:
+          current.panelId &&
+          panelData.panels.some((panel) => String(panel.id) === current.panelId)
+            ? current.panelId
+            : String(fallbackPanelId ?? ""),
+        userId: "",
       }));
     } catch (err) {
       setError(getErrorMessage(err, "Failed to load panel members."));
@@ -141,6 +152,39 @@ export default function PanelManagementPage() {
       }));
     } catch (err) {
       setError(getErrorMessage(err, "Failed to add panel."));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeletePanel = async () => {
+    if (!selectedPanel) {
+      setError("Select a panel to delete.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete ${selectedPanel.name}? This removes its panel membership records. Panels assigned to protocol classifications cannot be deleted.`
+    );
+    if (!confirmed) return;
+
+    setSaving(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await deletePanel(selectedPanel.id);
+      const remainingPanels = panels.filter((panel) => panel.id !== selectedPanel.id);
+      const nextPanelId = remainingPanels[0]?.id ?? null;
+      setSelectedPanelId(nextPanelId);
+      setDraft((current) => ({
+        ...current,
+        panelId: String(nextPanelId ?? ""),
+        userId: "",
+      }));
+      setNotice(`${selectedPanel.name} deleted.`);
+      await loadManagementData();
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to delete panel."));
     } finally {
       setSaving(false);
     }
@@ -368,6 +412,14 @@ export default function PanelManagementPage() {
               disabled={saving || loading || panels.length === 0}
             >
               Add additional panel
+            </button>
+            <button
+              className="admin-btn danger panel-delete-btn"
+              type="button"
+              onClick={() => void handleDeletePanel()}
+              disabled={saving || loading || !selectedPanel || panels.length <= 1}
+            >
+              Delete panel
             </button>
           </div>
         </div>

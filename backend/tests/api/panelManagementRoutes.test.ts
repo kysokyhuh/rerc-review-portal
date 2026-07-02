@@ -12,19 +12,24 @@ jest.mock("../../src/config/prismaClient", () => ({
     panel: {
       findMany: jest.fn(),
       findFirst: jest.fn(),
+      findUnique: jest.fn(),
       create: jest.fn(),
+      count: jest.fn(),
+      delete: jest.fn(),
     },
     panelMember: {
       findUnique: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      deleteMany: jest.fn(),
     },
     user: {
       findMany: jest.fn(),
       findUnique: jest.fn(),
       findFirst: jest.fn(),
     },
+    $transaction: jest.fn(),
   },
 }));
 
@@ -38,11 +43,18 @@ const prisma = prismaClient as unknown as {
   panel: {
     findMany: jest.Mock;
     findFirst: jest.Mock;
+    findUnique: jest.Mock;
     create: jest.Mock;
+    count: jest.Mock;
+    delete: jest.Mock;
+  };
+  panelMember: {
+    deleteMany: jest.Mock;
   };
   user: {
     findMany: jest.Mock;
   };
+  $transaction: jest.Mock;
 };
 
 describe("panel management routes", () => {
@@ -142,5 +154,68 @@ describe("panel management routes", () => {
         },
       })
     );
+  });
+
+  it("DELETE /admin/panels/:panelId removes an unassigned panel and its members", async () => {
+    prisma.panel.findUnique.mockResolvedValue({
+      id: 55,
+      name: "Panel 5",
+      committeeId: 7,
+      _count: {
+        classifications: 0,
+        members: 2,
+      },
+    });
+    prisma.panel.count.mockResolvedValue(5);
+    prisma.panelMember.deleteMany.mockReturnValue({ kind: "delete-members" });
+    prisma.panel.delete.mockReturnValue({ kind: "delete-panel" });
+    prisma.$transaction.mockResolvedValue([
+      { count: 2 },
+      { id: 55, name: "Panel 5" },
+    ]);
+
+    const response = await request(app)
+      .delete("/admin/panels/55")
+      .set(chairHeaders)
+      .set(csrfHeaders);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      message: "Panel 5 deleted.",
+      deletedMemberCount: 2,
+    });
+    expect(prisma.panelMember.deleteMany).toHaveBeenCalledWith({
+      where: { panelId: 55 },
+    });
+    expect(prisma.panel.delete).toHaveBeenCalledWith({
+      where: { id: 55 },
+    });
+    expect(prisma.$transaction).toHaveBeenCalledWith([
+      { kind: "delete-members" },
+      { kind: "delete-panel" },
+    ]);
+  });
+
+  it("DELETE /admin/panels/:panelId blocks panels used by classifications", async () => {
+    prisma.panel.findUnique.mockResolvedValue({
+      id: 1,
+      name: "Panel 1",
+      committeeId: 7,
+      _count: {
+        classifications: 3,
+        members: 4,
+      },
+    });
+
+    const response = await request(app)
+      .delete("/admin/panels/1")
+      .set(chairHeaders)
+      .set(csrfHeaders);
+
+    expect(response.status).toBe(409);
+    expect(response.body.message).toBe(
+      "This panel is assigned to existing protocol classifications and cannot be deleted."
+    );
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });

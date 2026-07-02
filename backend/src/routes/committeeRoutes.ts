@@ -226,6 +226,66 @@ router.post(
   }
 );
 
+router.delete(
+  "/admin/panels/:panelId",
+  requireRole(RoleType.CHAIR),
+  async (req, res, next) => {
+    try {
+      const panelId = Number(req.params.panelId);
+      if (Number.isNaN(panelId)) {
+        return res.status(400).json({ message: "Invalid panel id" });
+      }
+
+      const panel = await prisma.panel.findUnique({
+        where: { id: panelId },
+        select: {
+          id: true,
+          name: true,
+          committeeId: true,
+          _count: {
+            select: {
+              classifications: true,
+              members: true,
+            },
+          },
+        },
+      });
+      if (!panel) {
+        return res.status(404).json({ message: "Panel not found" });
+      }
+
+      if (panel._count.classifications > 0) {
+        return res.status(409).json({
+          message:
+            "This panel is assigned to existing protocol classifications and cannot be deleted.",
+        });
+      }
+
+      const activePanelCount = await prisma.panel.count({
+        where: {
+          committeeId: panel.committeeId,
+          isActive: true,
+        },
+      });
+      if (activePanelCount <= 1) {
+        return res.status(400).json({ message: "At least one active panel must remain." });
+      }
+
+      await prisma.$transaction([
+        prisma.panelMember.deleteMany({ where: { panelId } }),
+        prisma.panel.delete({ where: { id: panelId } }),
+      ]);
+
+      return res.json({
+        message: `${panel.name} deleted.`,
+        deletedMemberCount: panel._count.members,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
 router.post(
   "/admin/panels/:panelId/members",
   requireRole(RoleType.CHAIR),
