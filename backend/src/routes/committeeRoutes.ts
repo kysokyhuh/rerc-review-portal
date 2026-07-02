@@ -7,6 +7,7 @@ import prisma from "../config/prismaClient";
 import { PanelMemberRole, RoleType, UserStatus } from "../generated/prisma/client";
 import { validate } from "../middleware/validate";
 import {
+  createPanelSchema,
   createPanelMemberSchema,
   updatePanelMemberSchema,
 } from "../schemas/panelManagement";
@@ -69,6 +70,47 @@ const serializePanelMember = (member: {
   },
 });
 
+const parsePanelNumber = (value?: string | null) => {
+  const match = String(value ?? "").match(/^P(?:anel)?\s*(\d+)$/i);
+  return match ? Number(match[1]) : null;
+};
+
+const comparePanels = <
+  T extends { committeeId: number; name: string; code: string | null }
+>(
+  a: T,
+  b: T
+) => {
+  if (a.committeeId !== b.committeeId) return a.committeeId - b.committeeId;
+
+  const aNumber = parsePanelNumber(a.name) ?? parsePanelNumber(a.code);
+  const bNumber = parsePanelNumber(b.name) ?? parsePanelNumber(b.code);
+  if (aNumber !== null && bNumber !== null && aNumber !== bNumber) {
+    return aNumber - bNumber;
+  }
+
+  return a.name.localeCompare(b.name, undefined, {
+    numeric: true,
+    sensitivity: "base",
+  });
+};
+
+const serializePanel = (panel: {
+  id: number;
+  name: string;
+  code: string | null;
+  isActive: boolean;
+  committee: { id: number; code: string; name: string };
+  members: Array<Parameters<typeof serializePanelMember>[0]>;
+}) => ({
+  id: panel.id,
+  name: panel.name,
+  code: panel.code,
+  isActive: panel.isActive,
+  committee: panel.committee,
+  members: panel.members.map(serializePanelMember),
+});
+
 router.get("/admin/panels", requireRole(RoleType.CHAIR), async (_req, res, next) => {
   try {
     const panels = await prisma.panel.findMany({
@@ -83,19 +125,106 @@ router.get("/admin/panels", requireRole(RoleType.CHAIR), async (_req, res, next)
     });
 
     res.json({
-      panels: panels.map((panel) => ({
-        id: panel.id,
-        name: panel.name,
-        code: panel.code,
-        isActive: panel.isActive,
-        committee: panel.committee,
-        members: panel.members.map(serializePanelMember),
-      })),
+      panels: [...panels].sort(comparePanels).map(serializePanel),
     });
   } catch (error) {
     next(error);
   }
 });
+
+router.get(
+  "/admin/panel-user-options",
+  requireRole(RoleType.CHAIR),
+  async (_req, res, next) => {
+    try {
+      const users = await prisma.user.findMany({
+        where: {
+          status: UserStatus.APPROVED,
+          isActive: true,
+        },
+        orderBy: [{ fullName: "asc" }, { email: "asc" }],
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          roles: true,
+        },
+      });
+
+      return res.json({ users });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+router.post(
+  "/admin/panels",
+  requireRole(RoleType.CHAIR),
+  validate(createPanelSchema),
+  async (req, res, next) => {
+    try {
+      const committee = req.body.committeeId
+        ? await prisma.committee.findUnique({
+            where: { id: req.body.committeeId },
+          })
+        : await prisma.committee.findUnique({
+            where: { code: req.body.committeeCode },
+          });
+
+      if (!committee) {
+        return res.status(404).json({ message: "Committee not found" });
+      }
+      if (!committee.isActive) {
+        return res.status(400).json({ message: "Committee is inactive." });
+      }
+
+      const existingPanels = await prisma.panel.findMany({
+        where: { committeeId: committee.id },
+        select: { name: true, code: true },
+      });
+      const highestPanelNumber = existingPanels.reduce((highest, panel) => {
+        const panelNumber = parsePanelNumber(panel.name) ?? parsePanelNumber(panel.code) ?? 0;
+        return Math.max(highest, panelNumber);
+      }, 0);
+      const nextPanelNumber = highestPanelNumber + 1;
+      const name = req.body.name || `Panel ${nextPanelNumber}`;
+      const code = req.body.code || `P${nextPanelNumber}`;
+
+      const duplicate = await prisma.panel.findFirst({
+        where: {
+          committeeId: committee.id,
+          OR: [
+            { name: { equals: name, mode: "insensitive" } },
+            { code: { equals: code, mode: "insensitive" } },
+          ],
+        },
+      });
+      if (duplicate) {
+        return res.status(409).json({ message: "A panel with this name or code already exists." });
+      }
+
+      const panel = await prisma.panel.create({
+        data: {
+          committeeId: committee.id,
+          name,
+          code,
+        },
+        include: {
+          committee: { select: { id: true, code: true, name: true } },
+          members: {
+            select: panelMemberSelect,
+            orderBy: [{ isActive: "desc" }, { createdAt: "desc" }],
+          },
+        },
+      });
+
+      return res.status(201).json({ panel: serializePanel(panel) });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
 
 router.post(
   "/admin/panels/:panelId/members",

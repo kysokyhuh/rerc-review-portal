@@ -81,6 +81,13 @@ export interface PanelManagementPanel {
   members: PanelManagementMember[];
 }
 
+export interface PanelAssignableUser {
+  id: number;
+  fullName: string;
+  email: string;
+  roles: string[];
+}
+
 // Dashboard metrics
 export interface QueueCounts {
   forClassification: number;

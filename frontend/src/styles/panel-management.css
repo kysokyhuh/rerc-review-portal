@@ -32,6 +32,14 @@
   white-space: nowrap;
 }
 
+.panel-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .panel-management-tabs {
   display: flex;
   gap: 8px;
@@ -54,6 +62,11 @@
   border-color: rgba(138, 46, 36, 0.28);
   background: rgba(138, 46, 36, 0.08);
   color: #8a2e24;
+}
+
+.panel-create-btn {
+  min-height: 38px;
+  white-space: nowrap;
 }
 
 .panel-members-table th:nth-child(1),
@@ -96,6 +109,10 @@
   }
 
   .panel-management-tabs {
+    justify-content: flex-start;
+  }
+
+  .panel-header-actions {
     justify-content: flex-start;
   }
 }

@@ -62,6 +62,7 @@ export type {
   CreateProtocolMilestonePayload,
   UpdateProtocolMilestonePayload,
   PanelManagementPanel,
+  PanelAssignableUser,
   PanelMemberRole,
 } from "@/types";
 
@@ -108,6 +109,7 @@ import type {
   CreateProtocolMilestonePayload,
   UpdateProtocolMilestonePayload,
   PanelManagementPanel,
+  PanelAssignableUser,
   PanelMemberRole,
 } from "@/types";
 
@@ -1074,6 +1076,19 @@ export async function fetchCommitteePanels(committeeCode: string) {
 export async function fetchPanelManagementPanels() {
   const response = await api.get("/admin/panels");
   return response.data as { panels: PanelManagementPanel[] };
+}
+
+export async function fetchPanelAssignableUsers() {
+  const response = await api.get("/admin/panel-user-options");
+  return response.data as { users: PanelAssignableUser[] };
+}
+
+export async function createPanel(payload: {
+  committeeId?: number;
+  committeeCode?: string;
+}) {
+  const response = await api.post("/admin/panels", payload);
+  return response.data as { panel: PanelManagementPanel };
 }
 
 export async function addPanelMember(

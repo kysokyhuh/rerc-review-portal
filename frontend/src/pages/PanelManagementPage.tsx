@@ -2,11 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import {
   addPanelMember,
+  createPanel,
   deletePanelMember,
+  fetchPanelAssignableUsers,
   fetchPanelManagementPanels,
   updatePanelMember,
 } from "@/services/api";
 import type {
+  PanelAssignableUser,
   PanelManagementMember,
   PanelManagementPanel,
   PanelMemberRole,
@@ -17,7 +20,7 @@ import "@/styles/panel-management.css";
 
 type PanelMemberDraft = {
   panelId: string;
-  email: string;
+  userId: string;
   role: PanelMemberRole;
 };
 
@@ -29,7 +32,7 @@ const PANEL_MEMBER_ROLES: Array<{ value: PanelMemberRole; label: string }> = [
 
 const initialDraft: PanelMemberDraft = {
   panelId: "",
-  email: "",
+  userId: "",
   role: "MEMBER",
 };
 
@@ -49,6 +52,7 @@ const formatDate = (value: string | null | undefined) => {
 
 export default function PanelManagementPage() {
   const [panels, setPanels] = useState<PanelManagementPanel[]>([]);
+  const [userOptions, setUserOptions] = useState<PanelAssignableUser[]>([]);
   const [selectedPanelId, setSelectedPanelId] = useState<number | null>(null);
   const [draft, setDraft] = useState<PanelMemberDraft>(initialDraft);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -58,16 +62,20 @@ export default function PanelManagementPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const loadPanels = useCallback(async () => {
+  const loadManagementData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchPanelManagementPanels();
-      setPanels(data.panels);
-      setSelectedPanelId((current) => current ?? data.panels[0]?.id ?? null);
+      const [panelData, userData] = await Promise.all([
+        fetchPanelManagementPanels(),
+        fetchPanelAssignableUsers(),
+      ]);
+      setPanels(panelData.panels);
+      setUserOptions(userData.users);
+      setSelectedPanelId((current) => current ?? panelData.panels[0]?.id ?? null);
       setDraft((current) => ({
         ...current,
-        panelId: current.panelId || String(data.panels[0]?.id ?? ""),
+        panelId: current.panelId || String(panelData.panels[0]?.id ?? ""),
       }));
     } catch (err) {
       setError(getErrorMessage(err, "Failed to load panel members."));
@@ -78,8 +86,8 @@ export default function PanelManagementPage() {
 
   useEffect(() => {
     document.title = "Panel Management";
-    void loadPanels();
-  }, [loadPanels]);
+    void loadManagementData();
+  }, [loadManagementData]);
 
   const selectedPanel = useMemo(
     () => panels.find((panel) => panel.id === selectedPanelId) ?? panels[0] ?? null,
@@ -101,12 +109,20 @@ export default function PanelManagementPage() {
     [panels]
   );
 
-  const handleAddMember = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const panelId = Number(draft.panelId || selectedPanel?.id);
-    const email = draft.email.trim().toLowerCase();
-    if (!panelId || !email) {
-      setError("Select a panel and enter a member email.");
+  const assignedUserIds = useMemo(
+    () => new Set(selectedPanel?.members.map((member) => member.user.id) ?? []),
+    [selectedPanel]
+  );
+
+  const assignableUsers = useMemo(
+    () => userOptions.filter((user) => !assignedUserIds.has(user.id)),
+    [assignedUserIds, userOptions]
+  );
+
+  const handleCreatePanel = async () => {
+    const committeeId = selectedPanel?.committee.id ?? panels[0]?.committee.id;
+    if (!committeeId) {
+      setError("Load a committee before adding another panel.");
       return;
     }
 
@@ -114,10 +130,39 @@ export default function PanelManagementPage() {
     setError(null);
     setNotice(null);
     try {
-      await addPanelMember(panelId, { email, role: draft.role });
+      const result = await createPanel({ committeeId });
+      setNotice(`${result.panel.name} added.`);
+      await loadManagementData();
+      setSelectedPanelId(result.panel.id);
+      setDraft((current) => ({
+        ...current,
+        panelId: String(result.panel.id),
+        userId: "",
+      }));
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to add panel."));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAddMember = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const panelId = Number(draft.panelId || selectedPanel?.id);
+    const userId = Number(draft.userId);
+    if (!panelId || !userId) {
+      setError("Select a panel and approved user.");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await addPanelMember(panelId, { userId, role: draft.role });
       setNotice("Panel member added.");
-      setDraft({ panelId: String(panelId), email: "", role: "MEMBER" });
-      await loadPanels();
+      setDraft({ panelId: String(panelId), userId: "", role: "MEMBER" });
+      await loadManagementData();
     } catch (err) {
       setError(getErrorMessage(err, "Failed to add panel member."));
     } finally {
@@ -140,7 +185,7 @@ export default function PanelManagementPage() {
       await updatePanelMember(memberId, { role: editingRole });
       setNotice("Panel member updated.");
       setEditingId(null);
-      await loadPanels();
+      await loadManagementData();
     } catch (err) {
       setError(getErrorMessage(err, "Failed to update panel member."));
     } finally {
@@ -155,7 +200,7 @@ export default function PanelManagementPage() {
     try {
       await updatePanelMember(member.id, { isActive: !member.isActive });
       setNotice(member.isActive ? "Panel member deactivated." : "Panel member reactivated.");
-      await loadPanels();
+      await loadManagementData();
     } catch (err) {
       setError(getErrorMessage(err, "Failed to update member status."));
     } finally {
@@ -175,7 +220,7 @@ export default function PanelManagementPage() {
     try {
       await deletePanelMember(member.id);
       setNotice("Panel member deleted.");
-      await loadPanels();
+      await loadManagementData();
     } catch (err) {
       setError(getErrorMessage(err, "Failed to delete panel member."));
     } finally {
@@ -218,7 +263,11 @@ export default function PanelManagementPage() {
               className="admin-select clean"
               value={draft.panelId || String(selectedPanel?.id ?? "")}
               onChange={(event) => {
-                setDraft((current) => ({ ...current, panelId: event.target.value }));
+                setDraft((current) => ({
+                  ...current,
+                  panelId: event.target.value,
+                  userId: "",
+                }));
                 setSelectedPanelId(Number(event.target.value));
               }}
               disabled={saving || loading}
@@ -231,17 +280,26 @@ export default function PanelManagementPage() {
             </select>
           </label>
           <label className="panel-form-field">
-            <span>Approved user email</span>
-            <input
-              className="admin-inline-input"
-              type="email"
-              value={draft.email}
+            <span>Approved user</span>
+            <select
+              className="admin-select clean"
+              value={draft.userId}
               onChange={(event) =>
-                setDraft((current) => ({ ...current, email: event.target.value }))
+                setDraft((current) => ({ ...current, userId: event.target.value }))
               }
-              placeholder="member@university.edu"
               disabled={saving || loading}
-            />
+            >
+              <option value="">
+                {assignableUsers.length > 0
+                  ? "Select an approved account"
+                  : "No approved accounts available"}
+              </option>
+              {assignableUsers.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.fullName} · {user.email}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="panel-form-field">
             <span>Position</span>
@@ -263,7 +321,11 @@ export default function PanelManagementPage() {
               ))}
             </select>
           </label>
-          <button className="admin-btn primary panel-add-btn" type="submit" disabled={saving || loading}>
+          <button
+            className="admin-btn primary panel-add-btn"
+            type="submit"
+            disabled={saving || loading || assignableUsers.length === 0}
+          >
             Add member
           </button>
         </form>
@@ -279,20 +341,34 @@ export default function PanelManagementPage() {
                 : "No panel selected"}
             </p>
           </div>
-          <div className="panel-tabs panel-management-tabs" role="tablist" aria-label="Panels">
-            {panels.map((panel) => (
-              <button
-                key={panel.id}
-                type="button"
-                className={`panel-tab ${panel.id === selectedPanel?.id ? "active" : ""}`}
-                onClick={() => {
-                  setSelectedPanelId(panel.id);
-                  setDraft((current) => ({ ...current, panelId: String(panel.id) }));
-                }}
-              >
-                {panel.name}
-              </button>
-            ))}
+          <div className="panel-header-actions">
+            <div className="panel-tabs panel-management-tabs" role="tablist" aria-label="Panels">
+              {panels.map((panel) => (
+                <button
+                  key={panel.id}
+                  type="button"
+                  className={`panel-tab ${panel.id === selectedPanel?.id ? "active" : ""}`}
+                  onClick={() => {
+                    setSelectedPanelId(panel.id);
+                    setDraft((current) => ({
+                      ...current,
+                      panelId: String(panel.id),
+                      userId: "",
+                    }));
+                  }}
+                >
+                  {panel.name}
+                </button>
+              ))}
+            </div>
+            <button
+              className="admin-btn secondary panel-create-btn"
+              type="button"
+              onClick={() => void handleCreatePanel()}
+              disabled={saving || loading || panels.length === 0}
+            >
+              Add additional panel
+            </button>
           </div>
         </div>
 

@@ -1,6 +1,19 @@
 import { z } from "zod";
 import { PanelMemberRole } from "../generated/prisma/client";
 
+export const createPanelSchema = z
+  .object({
+    committeeId: z.number().int().positive().optional(),
+    committeeCode: z.string().trim().min(1).max(64).optional(),
+    name: z.string().trim().min(1).max(120).optional(),
+    code: z.string().trim().min(1).max(32).optional(),
+  })
+  .refine((value) => value.committeeId || value.committeeCode, {
+    message: "Provide a committeeId or committeeCode.",
+    path: ["committeeId"],
+  })
+  .strict();
+
 export const createPanelMemberSchema = z
   .object({
     userId: z.number().int().positive().optional(),
