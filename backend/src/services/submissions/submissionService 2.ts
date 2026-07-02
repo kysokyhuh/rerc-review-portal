@@ -91,8 +91,8 @@ export async function updateSubmissionOverview(
   } = body;
 
   const allowedSubmissionTypes = [
-    "INITIAL", "AMENDMENT", "CONTINUING_REVIEW", "FINAL_REPORT",
-    "WITHDRAWAL", "SAFETY_REPORT", "PROTOCOL_DEVIATION",
+    "INITIAL", "RESUBMISSION", "AMENDMENT", "CONTINUING_REVIEW", "FINAL_REPORT",
+    "WITHDRAWAL", "SAFETY_REPORT", "PROTOCOL_DEVIATION", "EARLY_TERMINATION",
   ];
   if (submissionType && !allowedSubmissionTypes.includes(String(submissionType))) {
     throw new AppError(400, "INVALID_SUBMISSION_TYPE",

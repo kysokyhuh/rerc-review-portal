@@ -8,6 +8,12 @@ import {
 } from "@/services/api";
 import { Breadcrumbs } from "@/components";
 import { BRAND } from "@/config/branding";
+import {
+  COLLEGE_OPTIONS,
+  SUBMISSION_TYPE_OPTIONS,
+  getDepartmentOptionsForCollege,
+  getSubmissionTypeLabel,
+} from "@/constants/protocolOptions";
 import { getErrorData, getErrorMessage, getErrorStatus } from "@/utils";
 import "../styles/new-protocol.css";
 
@@ -17,7 +23,9 @@ type FormState = {
   projectLeader: string;
   committeeCode: string;
   collegeOrUnit: string;
+  collegeOrUnitOther: string;
   department: string;
+  departmentOther: string;
   submissionType: string;
   dateOfSubmission: string;
   proponent: string;
@@ -36,7 +44,9 @@ const INITIAL_FORM: FormState = {
   projectLeader: "",
   committeeCode: "",
   collegeOrUnit: "",
+  collegeOrUnitOther: "",
   department: "",
+  departmentOther: "",
   submissionType: "",
   dateOfSubmission: "",
   proponent: "",
@@ -46,17 +56,6 @@ const INITIAL_FORM: FormState = {
   researchTypePHREBOther: "",
   remarks: "",
 };
-
-const SUBMISSION_TYPES = [
-  "INITIAL",
-  "RESUBMISSION",
-  "AMENDMENT",
-  "CONTINUING_REVIEW",
-  "FINAL_REPORT",
-  "WITHDRAWAL",
-  "SAFETY_REPORT",
-  "PROTOCOL_DEVIATION",
-] as const;
 
 const FUNDING_TYPES = ["INTERNAL", "EXTERNAL", "SELF_FUNDED", "NO_FUNDING"] as const;
 const PROPONENT_CATEGORIES = ["UNDERGRAD", "GRAD", "FACULTY", "OTHER"] as const;
@@ -106,6 +105,16 @@ export default function NewProtocolPage() {
   const [committees, setCommittees] = useState<CommitteeSummary[]>([]);
   const [committeeLoading, setCommitteeLoading] = useState(true);
   const [collegeOptions, setCollegeOptions] = useState<string[]>([]);
+  const departmentOptions = useMemo(
+    () => getDepartmentOptionsForCollege(form.collegeOrUnit),
+    [form.collegeOrUnit]
+  );
+  const resolvedCollegeOrUnit =
+    form.collegeOrUnit === "OTHERS"
+      ? form.collegeOrUnitOther.trim()
+      : form.collegeOrUnit.trim();
+  const resolvedDepartment =
+    form.department === "OTHER" ? form.departmentOther.trim() : form.department.trim();
 
   const monthOfSubmission = useMemo(
     () => monthLabelFromDate(form.dateOfSubmission),
@@ -186,8 +195,8 @@ export default function NewProtocolPage() {
         title: form.title.trim(),
         piName: form.projectLeader.trim(),
         committeeCode: form.committeeCode || undefined,
-        collegeOrUnit: form.collegeOrUnit || undefined,
-        department: form.department || undefined,
+        collegeOrUnit: resolvedCollegeOrUnit || undefined,
+        department: resolvedDepartment || undefined,
         submissionType: form.submissionType || undefined,
         receivedDate: form.dateOfSubmission || undefined,
         proponent: form.proponent || undefined,
@@ -241,6 +250,14 @@ export default function NewProtocolPage() {
     setErrors({});
     setSubmitError(null);
   };
+
+  const mergedCollegeOptions = useMemo(() => {
+    const options = new Set<string>(COLLEGE_OPTIONS);
+    for (const option of collegeOptions) {
+      if (option) options.add(option);
+    }
+    return Array.from(options);
+  }, [collegeOptions]);
 
   return (
     <div className="new-protocol-page detail-v2">
@@ -314,7 +331,7 @@ export default function NewProtocolPage() {
               </label>
 
               <label>
-                Status
+                Workflow status
                 <input type="text" value={systemStatus} readOnly />
               </label>
             </div>
@@ -328,13 +345,22 @@ export default function NewProtocolPage() {
                   <h3>Institution</h3>
                   <div className="new-protocol-grid">
                     <label>
-                      College
+                      College / Service Unit
                       <select
                         value={form.collegeOrUnit}
-                        onChange={(e) => setField("collegeOrUnit", e.target.value)}
+                        onChange={(e) => {
+                          const next = e.target.value;
+                          setForm((prev) => ({
+                            ...prev,
+                            collegeOrUnit: next,
+                            collegeOrUnitOther: "",
+                            department: "",
+                            departmentOther: "",
+                          }));
+                        }}
                       >
                         <option value="">Select...</option>
-                        {collegeOptions.map((option) => (
+                        {mergedCollegeOptions.map((option) => (
                           <option key={option} value={option}>
                             {option}
                           </option>
@@ -342,15 +368,52 @@ export default function NewProtocolPage() {
                       </select>
                     </label>
 
+                    {form.collegeOrUnit === "OTHERS" ? (
+                      <label>
+                        Other college / research center
+                        <input
+                          type="text"
+                          value={form.collegeOrUnitOther}
+                          onChange={(e) => setField("collegeOrUnitOther", e.target.value)}
+                          placeholder="e.g. CPS, ODEL"
+                        />
+                      </label>
+                    ) : null}
+
                     <label>
                       Department
-                      <input
-                        type="text"
+                      <select
                         value={form.department}
-                        onChange={(e) => setField("department", e.target.value)}
-                        placeholder="e.g. Psychology"
-                      />
+                        onChange={(e) => {
+                          const next = e.target.value;
+                          setForm((prev) => ({
+                            ...prev,
+                            department: next,
+                            departmentOther: "",
+                          }));
+                        }}
+                        disabled={!form.collegeOrUnit && departmentOptions.length === 0}
+                      >
+                        <option value="">Select...</option>
+                        {departmentOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                        <option value="OTHER">Other / manual entry</option>
+                      </select>
                     </label>
+                    {form.department === "OTHER" ? (
+                      <label>
+                        Other department
+                        <input
+                          type="text"
+                          value={form.departmentOther}
+                          onChange={(e) => setField("departmentOther", e.target.value)}
+                          placeholder="Type department name"
+                        />
+                      </label>
+                    ) : null}
                   </div>
                 </div>
 
@@ -364,9 +427,9 @@ export default function NewProtocolPage() {
                         onChange={(e) => setField("submissionType", e.target.value)}
                       >
                         <option value="">Select...</option>
-                        {SUBMISSION_TYPES.map((option) => (
+                        {SUBMISSION_TYPE_OPTIONS.map((option) => (
                           <option key={option} value={option}>
-                            {formatLabel(option)}
+                            {getSubmissionTypeLabel(option)}
                           </option>
                         ))}
                       </select>
@@ -388,7 +451,7 @@ export default function NewProtocolPage() {
                     </label>
 
                     <label>
-                      Date of Submission
+                      Date Received
                       <input
                         type="date"
                         value={form.dateOfSubmission}
@@ -400,7 +463,7 @@ export default function NewProtocolPage() {
                     </label>
 
                     <label>
-                      Month of Submission
+                      Month Received
                       <input
                         type="text"
                         value={monthOfSubmission}

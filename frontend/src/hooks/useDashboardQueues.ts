@@ -80,13 +80,13 @@ export function useDashboardQueues(
         lastAction: item.status,
         nextAction:
           queue === "classification"
-            ? "Classify"
+            ? "Complete intake/classification"
             : queue === "review"
               ? "Assign reviewers"
-              : "Follow up for revisions",
+              : "Follow up for resubmission/amendment",
         notes:
           queue === "revision"
-            ? "Remind PI of revision deadline"
+            ? "Remind PI of resubmission/amendment deadline"
             : "Ensure letter fields are complete",
       };
     };

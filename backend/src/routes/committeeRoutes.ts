@@ -102,12 +102,14 @@ const serializePanel = (panel: {
   isActive: boolean;
   committee: { id: number; code: string; name: string };
   members: Array<Parameters<typeof serializePanelMember>[0]>;
+  _count?: { classifications?: number };
 }) => ({
   id: panel.id,
   name: panel.name,
   code: panel.code,
   isActive: panel.isActive,
   committee: panel.committee,
+  assignedProtocolCount: panel._count?.classifications ?? 0,
   members: panel.members.map(serializePanelMember),
 });
 
@@ -116,6 +118,7 @@ router.get("/admin/panels", requireRole(RoleType.CHAIR), async (_req, res, next)
     const panels = await prisma.panel.findMany({
       include: {
         committee: { select: { id: true, code: true, name: true } },
+        _count: { select: { classifications: true } },
         members: {
           select: panelMemberSelect,
           orderBy: [{ isActive: "desc" }, { createdAt: "desc" }],
@@ -212,6 +215,7 @@ router.post(
         },
         include: {
           committee: { select: { id: true, code: true, name: true } },
+          _count: { select: { classifications: true } },
           members: {
             select: panelMemberSelect,
             orderBy: [{ isActive: "desc" }, { createdAt: "desc" }],

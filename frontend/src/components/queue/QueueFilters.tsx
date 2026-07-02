@@ -67,7 +67,7 @@ export const QueueFilters: React.FC<QueueFiltersProps> = ({
             <option value="on-track">On Track</option>
             <option value="due-soon">Due Soon</option>
             <option value="overdue">Overdue</option>
-            <option value="blocked">Blocked</option>
+            <option value="blocked">Needs Info</option>
           </select>
         </div>
       </label>

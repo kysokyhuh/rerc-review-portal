@@ -73,6 +73,7 @@ export interface PanelManagementPanel {
   name: string;
   code: string | null;
   isActive: boolean;
+  assignedProtocolCount: number;
   committee: {
     id: number;
     code: string;

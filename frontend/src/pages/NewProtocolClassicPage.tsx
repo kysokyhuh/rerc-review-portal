@@ -6,6 +6,12 @@ import {
   type CommitteeSummary,
 } from "@/services/api";
 import { Breadcrumbs } from "@/components";
+import {
+  COLLEGE_OPTIONS,
+  SUBMISSION_TYPE_OPTIONS,
+  getDepartmentOptionsForCollege,
+  getSubmissionTypeLabel,
+} from "@/constants/protocolOptions";
 import { getErrorData, getErrorMessage, getErrorStatus } from "@/utils";
 import "../styles/new-protocol.css";
 
@@ -21,7 +27,9 @@ type FormState = {
   receivedDate: string;
   // Details
   collegeOrUnit: string;
+  collegeOrUnitOther: string;
   department: string;
+  departmentOther: string;
   proponent: string;
   proponentCategory: string;
   fundingType: string;
@@ -53,7 +61,9 @@ const INITIAL_FORM: FormState = {
   submissionType: "",
   receivedDate: "",
   collegeOrUnit: "",
+  collegeOrUnitOther: "",
   department: "",
+  departmentOther: "",
   proponent: "",
   proponentCategory: "",
   fundingType: "",
@@ -73,17 +83,6 @@ const INITIAL_FORM: FormState = {
 };
 
 /* ── Option lists ─────────────────────────────────────────────────── */
-
-const SUBMISSION_TYPES = [
-  "INITIAL",
-  "RESUBMISSION",
-  "AMENDMENT",
-  "CONTINUING_REVIEW",
-  "FINAL_REPORT",
-  "WITHDRAWAL",
-  "SAFETY_REPORT",
-  "PROTOCOL_DEVIATION",
-];
 
 const FUNDING_TYPES = ["INTERNAL", "EXTERNAL", "SELF_FUNDED", "NO_FUNDING"];
 const PROPONENT_CATEGORIES = ["UNDERGRAD", "GRAD", "FACULTY", "OTHER"];
@@ -194,6 +193,16 @@ export default function NewProtocolPage() {
   const [committeeError, setCommitteeError] = useState<string | null>(null);
   const [created, setCreated] = useState<{ projectId: number; submissionId: number } | null>(null);
   const [step, setStep] = useState<Step>("form");
+  const departmentOptions = useMemo(
+    () => getDepartmentOptionsForCollege(form.collegeOrUnit),
+    [form.collegeOrUnit]
+  );
+  const resolvedCollegeOrUnit =
+    form.collegeOrUnit === "OTHERS"
+      ? form.collegeOrUnitOther.trim()
+      : form.collegeOrUnit.trim();
+  const resolvedDepartment =
+    form.department === "OTHER" ? form.departmentOther.trim() : form.department.trim();
 
   useEffect(() => {
     const loadCommittees = async () => {
@@ -256,8 +265,8 @@ export default function NewProtocolPage() {
         submissionType: form.submissionType || undefined,
         receivedDate: form.receivedDate || undefined,
         fundingType: form.fundingType || undefined,
-        collegeOrUnit: form.collegeOrUnit || undefined,
-        department: form.department || undefined,
+        collegeOrUnit: resolvedCollegeOrUnit || undefined,
+        department: resolvedDepartment || undefined,
         proponent: form.proponent || undefined,
         researchTypePHREB: form.researchTypePHREB || undefined,
         researchTypePHREBOther: form.researchTypePHREBOther || undefined,
@@ -322,14 +331,15 @@ export default function NewProtocolPage() {
     field: keyof FormState,
     label: string,
     options: string[],
-    placeholder = "Select…"
+    placeholder = "Select…",
+    labeler: (value: string) => string = formatLabel
   ) => (
     <label>
       {label}
       <select value={form[field]} onChange={(e) => setField(field, e.target.value)}>
         <option value="">{placeholder}</option>
         {options.map((opt) => (
-          <option key={opt} value={opt}>{formatLabel(opt)}</option>
+          <option key={opt} value={opt}>{labeler(opt)}</option>
         ))}
       </select>
       {errors[field] && <small className="field-error">{errors[field]}</small>}
@@ -509,8 +519,8 @@ export default function NewProtocolPage() {
                   {errors.committeeCode && <small className="field-error">{errors.committeeCode}</small>}
                 </label>
 
-                {renderSelect("submissionType", "Submission Type", SUBMISSION_TYPES)}
-                {renderInput("receivedDate", "Date of Submission", "", "date")}
+                {renderSelect("submissionType", "Submission Type", [...SUBMISSION_TYPE_OPTIONS], "Select…", getSubmissionTypeLabel)}
+                {renderInput("receivedDate", "Date Received", "", "date")}
               </div>
             </section>
 
@@ -518,8 +528,72 @@ export default function NewProtocolPage() {
             <section className="np-section">
               <h2>Institution & Proponent</h2>
               <div className="new-protocol-grid">
-                {renderInput("collegeOrUnit", "College / Service Unit", "e.g. College of Science")}
-                {renderInput("department", "Department", "e.g. Psychology")}
+                <label>
+                  College / Service Unit
+                  <select
+                    value={form.collegeOrUnit}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setForm((prev) => ({
+                        ...prev,
+                        collegeOrUnit: next,
+                        collegeOrUnitOther: "",
+                        department: "",
+                        departmentOther: "",
+                      }));
+                    }}
+                  >
+                    <option value="">Select...</option>
+                    {COLLEGE_OPTIONS.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                  {errors.collegeOrUnit && <small className="field-error">{errors.collegeOrUnit}</small>}
+                </label>
+                {form.collegeOrUnit === "OTHERS" ? (
+                  <label>
+                    Other college / research center
+                    <input
+                      type="text"
+                      value={form.collegeOrUnitOther}
+                      onChange={(e) => setField("collegeOrUnitOther", e.target.value)}
+                      placeholder="e.g. CPS, ODEL"
+                    />
+                  </label>
+                ) : null}
+                <label>
+                  Department
+                  <select
+                    value={form.department}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setForm((prev) => ({
+                        ...prev,
+                        department: next,
+                        departmentOther: "",
+                      }));
+                    }}
+                    disabled={!form.collegeOrUnit && departmentOptions.length === 0}
+                  >
+                    <option value="">Select...</option>
+                    {departmentOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                    <option value="OTHER">Other / manual entry</option>
+                  </select>
+                  {errors.department && <small className="field-error">{errors.department}</small>}
+                </label>
+                {form.department === "OTHER" ? (
+                  <label>
+                    Other department
+                    <input
+                      type="text"
+                      value={form.departmentOther}
+                      onChange={(e) => setField("departmentOther", e.target.value)}
+                      placeholder="Type department name"
+                    />
+                  </label>
+                ) : null}
                 {renderInput("proponent", "Proponent", "Name of proponent")}
                 {renderSelect("proponentCategory", "Proponent Category", PROPONENT_CATEGORIES)}
                 {renderSelect("fundingType", "Funding Type", FUNDING_TYPES)}

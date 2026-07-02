@@ -1,5 +1,9 @@
 import React, { useMemo, useState } from "react";
 import type { ProtocolProfile, UpdateProtocolProfilePayload } from "@/types";
+import {
+  COLLEGE_OPTIONS,
+  getDepartmentOptionsForCollege,
+} from "@/constants/protocolOptions";
 import { formatDateDisplay } from "@/utils/dateUtils";
 import "../styles/protocol-profile.css";
 
@@ -20,18 +24,8 @@ type ProfileGroup = {
   hasWithdrawn?: boolean;
 };
 
-const COLLEGE_OPTIONS = ["BAGCED", "CCS", "CLA", "COS", "GCOE", "RVRCOB", "OTHERS"];
 const TYPE_OF_REVIEW_OPTIONS = ["EXEMPT", "EXPEDITED", "FULL_BOARD"];
 const PROPONENT_OPTIONS = ["UNDERGRADUATE", "GRADUATE", "FACULTY", "NON-TEACHING/STAFF"];
-const DEPARTMENT_OPTIONS = [
-  "AdRIC",
-  "CENSER",
-  "CLT-SOE",
-  "CPS",
-  "IBEHT",
-  "School of Innovation and Sustainability",
-  "SOE",
-];
 
 /** Fields that represent true reference/identity data for the protocol. */
 const CORE_GROUPS: ProfileGroup[] = [
@@ -42,8 +36,8 @@ const CORE_GROUPS: ProfileGroup[] = [
     fields: [
       { key: "title", label: "Title", type: "text" },
       { key: "projectLeader", label: "Project Leader", type: "text" },
-      { key: "college", label: "College", type: "select", options: COLLEGE_OPTIONS },
-      { key: "department", label: "Department", type: "select", options: DEPARTMENT_OPTIONS },
+      { key: "college", label: "College / Service Unit", type: "select", options: [...COLLEGE_OPTIONS] },
+      { key: "department", label: "Department", type: "select" },
       { key: "dateOfSubmission", label: "Date of Submission", type: "date" },
       { key: "monthOfSubmission", label: "Month of Submission", type: "text" },
       { key: "typeOfReview", label: "Type of Review", type: "select", options: TYPE_OF_REVIEW_OPTIONS },
@@ -188,6 +182,17 @@ export function profileToFormState(profile?: ProtocolProfile | null): Record<str
     }
   }
   state.withdrawn = profile?.withdrawn === true ? "true" : "false";
+  const college = state.college ?? "";
+  if (college && !COLLEGE_OPTIONS.includes(college as (typeof COLLEGE_OPTIONS)[number])) {
+    state.college = "OTHERS";
+    state.collegeOther = college;
+  }
+  const department = state.department ?? "";
+  const departmentOptions = getDepartmentOptionsForCollege(state.college ?? "");
+  if (department && !departmentOptions.includes(department)) {
+    state.department = "OTHER";
+    state.departmentOther = department;
+  }
   return state;
 }
 
@@ -199,6 +204,14 @@ export function formStateToPayload(formState: Record<string, string>): UpdatePro
       const raw = (formState[field.key] ?? "").trim();
       if (!raw) {
         (payload as Record<string, unknown>)[field.key] = null;
+        continue;
+      }
+      if (field.key === "college" && raw === "OTHERS") {
+        payload.college = (formState.collegeOther ?? "").trim() || null;
+        continue;
+      }
+      if (field.key === "department" && raw === "OTHER") {
+        payload.department = (formState.departmentOther ?? "").trim() || null;
         continue;
       }
       if (field.type === "number") {
@@ -313,6 +326,8 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
   };
 
   const allOpen = CORE_GROUPS.every((g) => openGroups[g.name]);
+  const selectedCollege = profileForm.college ?? "";
+  const departmentOptions = getDepartmentOptionsForCollege(selectedCollege);
 
   const handleLegacySectionSelect = (name: string) => {
     if (!name) return;
@@ -395,22 +410,64 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
                       field.type === "select" ? (
                         (() => {
                           const currentValue = profileForm[field.key] ?? "";
-                          const options = field.options ?? [];
+                          const options =
+                            field.key === "department"
+                              ? departmentOptions
+                              : field.options ?? [];
                           const hasCurrent = currentValue !== "" && options.includes(currentValue);
                           return (
-                            <select
-                              className="pp-field-input"
-                              value={currentValue}
-                              onChange={(e) =>
-                                setProfileForm((prev) => ({ ...prev, [field.key]: e.target.value }))
-                              }
-                            >
-                              <option value="">Select...</option>
-                              {!hasCurrent ? <option value={currentValue}>{currentValue}</option> : null}
-                              {field.options?.map((opt) => (
-                                <option key={opt} value={opt}>{opt}</option>
-                              ))}
-                            </select>
+                            <>
+                              <select
+                                className="pp-field-input"
+                                value={currentValue}
+                                onChange={(e) => {
+                                  const next = e.target.value;
+                                  setProfileForm((prev) => {
+                                    const updated = { ...prev, [field.key]: next };
+                                    if (field.key === "college") {
+                                      updated.collegeOther = "";
+                                      updated.department = "";
+                                      updated.departmentOther = "";
+                                    }
+                                    if (field.key === "department") {
+                                      updated.departmentOther = "";
+                                    }
+                                    return updated;
+                                  });
+                                }}
+                              >
+                                <option value="">Select...</option>
+                                {!hasCurrent ? <option value={currentValue}>{currentValue}</option> : null}
+                                {options.map((opt) => (
+                                  <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                                {field.key === "department" ? (
+                                  <option value="OTHER">Other / manual entry</option>
+                                ) : null}
+                              </select>
+                              {field.key === "college" && currentValue === "OTHERS" ? (
+                                <input
+                                  className="pp-field-input"
+                                  type="text"
+                                  value={profileForm.collegeOther ?? ""}
+                                  onChange={(e) =>
+                                    setProfileForm((prev) => ({ ...prev, collegeOther: e.target.value }))
+                                  }
+                                  placeholder="e.g. CPS, ODEL"
+                                />
+                              ) : null}
+                              {field.key === "department" && currentValue === "OTHER" ? (
+                                <input
+                                  className="pp-field-input"
+                                  type="text"
+                                  value={profileForm.departmentOther ?? ""}
+                                  onChange={(e) =>
+                                    setProfileForm((prev) => ({ ...prev, departmentOther: e.target.value }))
+                                  }
+                                  placeholder="Type department name"
+                                />
+                              ) : null}
+                            </>
                           );
                         })()
                       ) : (

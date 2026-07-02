@@ -2,6 +2,7 @@ import React from "react";
 import { formatDateDisplay } from "@/utils/dateUtils";
 import type { CommitteeSummary, SubmissionDetail } from "@/types";
 import { SUBMISSION_TYPE_OPTIONS, STATUS_OPTIONS, FINAL_DECISION_OPTIONS } from "./submissionUtils";
+import { getSubmissionTypeLabel } from "@/constants/protocolOptions";
 
 interface OverviewFormState {
   piName: string;
@@ -86,10 +87,10 @@ export function SubmissionOverviewCard({
           {isEditing ? (
             <select className="field-input" value={formState.submissionType}
               onChange={(e) => updateField("submissionType", e.target.value)}>
-              {SUBMISSION_TYPE_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+              {SUBMISSION_TYPE_OPTIONS.map((o) => <option key={o} value={o}>{getSubmissionTypeLabel(o)}</option>)}
             </select>
           ) : (
-            <p>{submission.submissionType}</p>
+            <p>{submission.submissionType ? getSubmissionTypeLabel(submission.submissionType) : "\u2014"}</p>
           )}
         </div>
         <div className="field">

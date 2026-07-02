@@ -209,8 +209,8 @@ export const DashboardPage: React.FC = () => {
     const chips: Array<{ id: string; label: string; onClear: () => void }> = [];
     if (queueFilter !== "all") {
       const m: Record<string, string> = {
-        classification: "Awaiting classification", review: "Under review", revision: "Awaiting revisions",
-        "due-soon": "Due ≤3 days", overdue: "Overdue", blocked: "Blocked", unassigned: "Unassigned",
+        classification: "Intake/classification", review: "Under review", revision: "Resubmission/amendment",
+        "due-soon": "Due ≤3 days", overdue: "Overdue", blocked: "Needs info", unassigned: "Unassigned",
       };
       chips.push({ id: "queue", label: m[queueFilter] ?? queueFilter, onClear: () => setQueueFilter("all") });
     }

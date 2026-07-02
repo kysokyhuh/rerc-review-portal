@@ -33,9 +33,9 @@ export const QueueKpiCards: React.FC<QueueKpiCardsProps> = ({
       tone: "warning",
     },
     {
-      label: "Blocked",
+      label: "Needs Info",
       value: blocked,
-      helper: "Missing data or dependencies.",
+      helper: "Missing required fields or workflow follow-through.",
       tone: "info",
     },
   ] as const;

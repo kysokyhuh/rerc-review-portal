@@ -422,8 +422,8 @@ export async function createSubmissionForProject(
   userId?: number
 ) {
   const allowedSubmissionTypes = [
-    "INITIAL", "AMENDMENT", "CONTINUING_REVIEW", "FINAL_REPORT",
-    "WITHDRAWAL", "SAFETY_REPORT", "PROTOCOL_DEVIATION",
+    "INITIAL", "RESUBMISSION", "AMENDMENT", "CONTINUING_REVIEW", "FINAL_REPORT",
+    "WITHDRAWAL", "SAFETY_REPORT", "PROTOCOL_DEVIATION", "EARLY_TERMINATION",
   ];
   if (!body.submissionType || !body.receivedDate) {
     throw new AppError(400, "VALIDATION_ERROR", "submissionType and receivedDate are required");

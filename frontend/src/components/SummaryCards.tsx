@@ -23,9 +23,9 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
   const tiles = [
     {
       key: "classification" as const,
-      label: "For classification",
+      label: "Intake & classification",
       value: counts.forClassification,
-      subtext: "Awaiting RA classification",
+      subtext: "Completeness check through classification",
     },
     {
       key: "review" as const,
@@ -35,9 +35,9 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     },
     {
       key: "revision" as const,
-      label: "Awaiting revisions",
+      label: "Awaiting resubmission",
       value: counts.awaitingRevisions,
-      subtext: "Sent back to PI for updates",
+      subtext: "Before clearance: proponent resubmission",
     },
     {
       key: "dueSoon" as const,

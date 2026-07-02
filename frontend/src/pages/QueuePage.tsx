@@ -44,10 +44,10 @@ const QUEUE_META: Record<
       "Try adjusting the search terms or SLA filter, or return later when new exempted records are routed here.",
   },
   revisions: {
-    title: "Revisions Queue",
+    title: "Resubmission Queue",
     description:
-      "Protocols awaiting revisions from proponents. Monitor stalled submissions and follow up on overdue responses.",
-    emptyTitle: "No protocols are awaiting revisions.",
+      "Protocols awaiting resubmission or amendment from proponents. Monitor stalled submissions and follow up on overdue responses.",
+    emptyTitle: "No protocols are awaiting resubmission or amendment.",
     emptyHint:
       "This queue is currently clear. Try another state filter if you expected submissions to appear here.",
   },

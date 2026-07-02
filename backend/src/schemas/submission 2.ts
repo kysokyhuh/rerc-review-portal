@@ -16,6 +16,7 @@ const submissionTypeEnum = z.enum([
   "WITHDRAWAL",
   "SAFETY_REPORT",
   "PROTOCOL_DEVIATION",
+  "EARLY_TERMINATION",
 ]);
 
 const submissionStatusEnum = z.enum([

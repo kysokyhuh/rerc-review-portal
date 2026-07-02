@@ -132,7 +132,7 @@ export function StatsGrid({ counts, attention, onFilterChange, tableRef, assigne
           </div>
         </div>
         <div className="stat-value">{counts?.forClassification ?? 0}</div>
-        <div className="stat-label">Awaiting classification</div>
+        <div className="stat-label">Intake/classification</div>
       </button>
 
       <button

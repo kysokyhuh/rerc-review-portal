@@ -38,16 +38,16 @@ const RESEARCHER_STATUSES = new Set([
 ]);
 
 const REASON_MAP: Record<string, string> = {
-  RECEIVED: "Submission awaiting initial review by the committee",
-  UNDER_COMPLETENESS_CHECK: "Panel is checking submission completeness",
+  RECEIVED: "Submission awaiting intake by committee staff",
+  UNDER_COMPLETENESS_CHECK: "Committee staff is checking submission completeness",
   RETURNED_FOR_COMPLETION: "Researcher must complete and resubmit the intake package",
   NOT_ACCEPTED: "Submission was not accepted or is beyond committee jurisdiction",
-  AWAITING_CLASSIFICATION: "Awaiting classification by reviewer",
-  UNDER_CLASSIFICATION: "Classification in progress by panel",
+  AWAITING_CLASSIFICATION: "Awaiting intake/classification by committee staff",
+  UNDER_CLASSIFICATION: "Classification in progress by committee staff",
   CLASSIFIED: "Classified but pending review assignment",
   UNDER_REVIEW: "Under active review by panel reviewers",
-  AWAITING_REVISIONS: "Researcher has not yet submitted required revisions",
-  REVISION_SUBMITTED: "Researcher submitted revisions — pending panel re-review",
+  AWAITING_REVISIONS: "Researcher has not yet submitted the required resubmission/amendment",
+  REVISION_SUBMITTED: "Researcher submitted resubmission/amendment; pending committee review",
   CLOSED: "Submission closed",
   WITHDRAWN: "Submission withdrawn",
 };

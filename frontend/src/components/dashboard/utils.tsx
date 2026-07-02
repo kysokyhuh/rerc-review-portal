@@ -108,8 +108,8 @@ export function blockReasonFor(item: DecoratedQueueItem): string {
   if (!item.missingFields || item.missingFields.length === 0) return "—";
   const preview = item.missingFields.slice(0, 2).join(", ");
   return item.missingFields.length > 2
-    ? `Missing: ${preview} +${item.missingFields.length - 2}`
-    : `Missing: ${preview}`;
+    ? `Needs info: ${preview} +${item.missingFields.length - 2}`
+    : `Needs info: ${preview}`;
 }
 
 export function slaChipText(item: DecoratedQueueItem, threshold: number): string {

@@ -49,7 +49,8 @@ export const SubmissionType = {
   FINAL_REPORT: 'FINAL_REPORT',
   WITHDRAWAL: 'WITHDRAWAL',
   SAFETY_REPORT: 'SAFETY_REPORT',
-  PROTOCOL_DEVIATION: 'PROTOCOL_DEVIATION'
+  PROTOCOL_DEVIATION: 'PROTOCOL_DEVIATION',
+  EARLY_TERMINATION: 'EARLY_TERMINATION'
 } as const
 
 export type SubmissionType = (typeof SubmissionType)[keyof typeof SubmissionType]

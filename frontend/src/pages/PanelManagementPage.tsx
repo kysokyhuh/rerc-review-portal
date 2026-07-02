@@ -105,8 +105,8 @@ export default function PanelManagementPage() {
     [panels, selectedPanelId]
   );
 
-  const totalMembers = useMemo(
-    () => panels.reduce((sum, panel) => sum + panel.members.length, 0),
+  const totalAssignedProtocols = useMemo(
+    () => panels.reduce((sum, panel) => sum + panel.assignedProtocolCount, 0),
     [panels]
   );
 
@@ -290,8 +290,8 @@ export default function PanelManagementPage() {
             <strong>{activeMembers}</strong>
           </div>
           <div className="admin-metric-card">
-            <span className="admin-metric-label">Total records</span>
-            <strong>{totalMembers}</strong>
+            <span className="admin-metric-label">Assigned protocols</span>
+            <strong>{totalAssignedProtocols}</strong>
           </div>
         </div>
       </header>
@@ -381,7 +381,7 @@ export default function PanelManagementPage() {
             <h2 className="panel-title">Current panel members</h2>
             <p className="panel-subtitle">
               {selectedPanel
-                ? `${selectedPanel.name} · ${selectedPanel.committee.name}`
+                ? `${selectedPanel.name} · ${selectedPanel.committee.name} · ${selectedPanel.members.length} member records · ${selectedPanel.assignedProtocolCount} assigned protocols`
                 : "No panel selected"}
             </p>
           </div>
@@ -400,6 +400,7 @@ export default function PanelManagementPage() {
                       userId: "",
                     }));
                   }}
+                  title={`${panel.assignedProtocolCount} assigned protocols`}
                 >
                   {panel.name}
                 </button>

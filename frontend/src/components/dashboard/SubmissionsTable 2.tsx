@@ -170,10 +170,10 @@ export function SubmissionsTable({
                     { key: "all", label: "All", count: allItems.length },
                     { key: "due-soon", label: "Due \u22643 days", count: dueSoonSubmissions.length },
                     { key: "overdue", label: "Overdue", count: overdueSubmissions.length },
-                    { key: "blocked", label: "Blocked", count: allItems.filter(isBlocked).length },
-                    { key: "classification", label: "Awaiting classification", count: classificationQueue.length },
+                    { key: "blocked", label: "Needs info", count: allItems.filter(isBlocked).length },
+                    { key: "classification", label: "Intake/classification", count: classificationQueue.length },
                     { key: "review", label: "Under review", count: reviewQueue.length },
-                    { key: "revision", label: "Revisions", count: revisionQueue.length },
+                    { key: "revision", label: "Resubmission", count: revisionQueue.length },
                     { key: "unassigned", label: "Unassigned", count: allItems.filter((i: any) => !i.staffInChargeName).length },
                   ].map((tab) => (
                     <button
@@ -321,7 +321,7 @@ export function SubmissionsTable({
                         <div className="table-title">
                           {item.projectCode}
                           {isBlocked(item) && (
-                            <span className="blocked-indicator" title={blockReasonFor(item)} aria-label="Blocked">\u26a0</span>
+                            <span className="blocked-indicator" title={blockReasonFor(item)} aria-label="Needs info">\u26a0</span>
                           )}
                         </div>
                         <div className="table-subtitle" title={item.projectTitle}>{item.projectTitle}</div>

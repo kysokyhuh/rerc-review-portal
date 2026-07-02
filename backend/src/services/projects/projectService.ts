@@ -1166,11 +1166,11 @@ export async function createSubmissionForProject(
   const allowedSubmissionTypes = options.allowInitial
     ? [
         "INITIAL", "RESUBMISSION", "AMENDMENT", "CONTINUING_REVIEW", "FINAL_REPORT",
-        "WITHDRAWAL", "SAFETY_REPORT", "PROTOCOL_DEVIATION",
+        "WITHDRAWAL", "SAFETY_REPORT", "PROTOCOL_DEVIATION", "EARLY_TERMINATION",
       ]
     : [
         "RESUBMISSION", "AMENDMENT", "CONTINUING_REVIEW", "FINAL_REPORT",
-        "WITHDRAWAL", "SAFETY_REPORT", "PROTOCOL_DEVIATION",
+        "WITHDRAWAL", "SAFETY_REPORT", "PROTOCOL_DEVIATION", "EARLY_TERMINATION",
       ];
   if (!body.submissionType) {
     throw new AppError(400, "VALIDATION_ERROR", "submissionType is required");

@@ -1,5 +1,6 @@
 import { formatDateDisplay } from "@/utils/dateUtils";
 import type { CommitteeSummary } from "@/types";
+export { SUBMISSION_TYPE_OPTIONS } from "@/constants/protocolOptions";
 
 export const STANDARD_MILESTONES: { label: string; ownerRole: string }[] = [
   { label: "Classification of Proposal (RERC)", ownerRole: "RERC Staff" },
@@ -12,11 +13,6 @@ export const STANDARD_MILESTONES: { label: string; ownerRole: string }[] = [
   { label: "1st Review of Resubmission", ownerRole: "Primary Reviewers" },
   { label: "1st Finalization of Review Results - Resubmission", ownerRole: "RERP Chair Designate" },
   { label: "Issuance of Ethics Clearance", ownerRole: "RERC and RERC Chair" },
-];
-
-export const SUBMISSION_TYPE_OPTIONS = [
-  "INITIAL", "AMENDMENT", "CONTINUING_REVIEW", "FINAL_REPORT",
-  "WITHDRAWAL", "SAFETY_REPORT", "PROTOCOL_DEVIATION",
 ];
 
 export const STATUS_OPTIONS = [

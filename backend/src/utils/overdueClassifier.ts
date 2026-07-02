@@ -3,7 +3,7 @@
  *
  * Determines whether a delay is the responsibility of the PANEL (committee
  * reviewers, classification officers, etc.) or the RESEARCHER (PI needs to
- * submit revisions).
+ * submit a resubmission/amendment).
  *
  * Rule-of-thumb:
  *   - AWAITING_REVISIONS / REVISION_SUBMITTED → RESEARCHER
@@ -43,14 +43,14 @@ const RESEARCHER_STATUSES = new Set([
 ]);
 
 const REASON_MAP: Record<string, string> = {
-  RECEIVED: "Submission awaiting initial review by the committee",
-  UNDER_COMPLETENESS_CHECK: "Panel is checking submission completeness",
-  AWAITING_CLASSIFICATION: "Awaiting classification by reviewer",
-  UNDER_CLASSIFICATION: "Classification in progress by panel",
+  RECEIVED: "Submission awaiting intake by committee staff",
+  UNDER_COMPLETENESS_CHECK: "Committee staff is checking submission completeness",
+  AWAITING_CLASSIFICATION: "Awaiting intake/classification by committee staff",
+  UNDER_CLASSIFICATION: "Classification in progress by committee staff",
   CLASSIFIED: "Classified but pending review assignment",
   UNDER_REVIEW: "Under active review by panel reviewers",
-  AWAITING_REVISIONS: "Researcher has not yet submitted required revisions",
-  REVISION_SUBMITTED: "Researcher submitted revisions — pending panel re-review",
+  AWAITING_REVISIONS: "Researcher has not yet submitted the required resubmission/amendment",
+  REVISION_SUBMITTED: "Researcher submitted resubmission/amendment; pending committee review",
   CLOSED: "Submission closed",
   WITHDRAWN: "Submission withdrawn",
 };
