@@ -4,6 +4,7 @@ import { BRAND } from "@/config/branding";
 import { useAuth } from "@/contexts/AuthContext";
 import { ensureCsrfCookie, getSafeNextPath } from "@/services/api";
 import { getErrorData } from "@/utils";
+import { BrandLogo } from "@/components/BrandLogo";
 import "../styles/login.css";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -173,7 +174,7 @@ export default function LoginPage() {
       <div className="login-shell">
         <section className="login-intro">
           <p className="login-kicker">
-            <span className="login-dot" aria-hidden="true"></span>
+            <BrandLogo className="login-brand-logo" />
             {BRAND.name}
           </p>
           <h1>{BRAND.tagline}</h1>

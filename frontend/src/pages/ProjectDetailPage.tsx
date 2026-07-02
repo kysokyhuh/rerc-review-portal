@@ -22,7 +22,7 @@ import {
   profileToFormState,
   formStateToPayload,
 } from "@/components/ProtocolProfileSection";
-import type { ProtocolMilestone } from "@/types";
+import type { ProtocolMilestone, SubmissionDetail } from "@/types";
 import { getErrorMessage } from "@/utils";
 
 const STANDARD_MILESTONES: { label: string; ownerRole: string }[] = [
@@ -43,6 +43,33 @@ type ArchiveDialogState =
   | { kind: "restore" }
   | { kind: "delete" }
   | null;
+
+const hasImportedClassificationDetails = (
+  classification: SubmissionDetail["classification"] | undefined
+) =>
+  Boolean(
+    classification?.reviewCategory ||
+      classification?.suggestedScientificReviewer ||
+      classification?.suggestedNonScientificReviewer ||
+      classification?.importedRemarksJustification ||
+      classification?.importedResearchSummary ||
+      classification?.importedConsentFormRemarks ||
+      classification?.importedInstrumentRemarks ||
+      classification?.importedAdditionalNotes ||
+      classification?.sourceLink
+  );
+
+const importedDetailRows = (classification: SubmissionDetail["classification"] | undefined) => {
+  if (!classification) return [];
+  return [
+    ["Review category", classification.reviewCategory],
+    ["Remarks/Justification", classification.importedRemarksJustification],
+    ["Notes/Summary of Research", classification.importedResearchSummary],
+    ["Remarks on Informed Consent Form/s", classification.importedConsentFormRemarks],
+    ["Remarks on Instruments", classification.importedInstrumentRemarks],
+    ["Additional notes", classification.importedAdditionalNotes],
+  ].filter((row): row is [string, string] => Boolean(row[1]));
+};
 
 export const ProjectDetailPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -108,6 +135,7 @@ export const ProjectDetailPage: React.FC = () => {
     project.submissions && project.submissions.length > 0
       ? project.submissions[project.submissions.length - 1]
       : null;
+  const latestClassification = latestSubmission?.classification ?? null;
   const canManageArchive = Boolean(
     user?.roles.some((role) => role === "CHAIR" || role === "ADMIN")
   );
@@ -570,6 +598,58 @@ export const ProjectDetailPage: React.FC = () => {
             </table>
           </div>
       </ProtocolProfileSection>
+
+      {hasImportedClassificationDetails(latestClassification) ? (
+        <section className="card detail-card">
+          <div className="section-title">
+            <h2>Imported classification details</h2>
+          </div>
+          {latestClassification?.sourceLink ? (
+            <div className="classification-source-row">
+              <div className="field">
+                <label>Source link</label>
+                <a
+                  className="field-input classification-readonly classification-source-link"
+                  href={latestClassification.sourceLink}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open classification file
+                </a>
+              </div>
+            </div>
+          ) : null}
+          {latestClassification?.suggestedScientificReviewer ||
+          latestClassification?.suggestedNonScientificReviewer ? (
+            <div className="classification-reviewer-suggestions">
+              {latestClassification.suggestedScientificReviewer ? (
+                <div className="classification-suggestion">
+                  <span>Scientific reviewer suggestion</span>
+                  <strong>{latestClassification.suggestedScientificReviewer}</strong>
+                  <em>Pending Chair confirmation</em>
+                </div>
+              ) : null}
+              {latestClassification.suggestedNonScientificReviewer ? (
+                <div className="classification-suggestion">
+                  <span>Non-scientific reviewer suggestion</span>
+                  <strong>{latestClassification.suggestedNonScientificReviewer}</strong>
+                  <em>Pending Chair confirmation</em>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+          {importedDetailRows(latestClassification).length > 0 ? (
+            <dl className="classification-import-detail-list">
+              {importedDetailRows(latestClassification).map(([label, value]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+        </section>
+      ) : null}
 
       {/* Latest Submission */}
       {latestSubmission && (

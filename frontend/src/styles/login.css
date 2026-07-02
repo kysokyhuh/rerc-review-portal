@@ -251,6 +251,17 @@
   box-shadow: 0 0 0 6px rgba(246,238,217,.12);
 }
 
+.login-brand-logo {
+  width: 34px;
+  height: 34px;
+  display: inline-block;
+  object-fit: cover;
+  border-radius: 50%;
+  background: #fffaf0;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  flex: 0 0 auto;
+}
+
 .login-intro h1 {
   margin: 14px 0 10px;
   font-size: 44px;

@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { authApi, ensureCsrfCookie } from "@/services/api";
 import { BRAND } from "@/config/branding";
+import { BrandLogo } from "@/components/BrandLogo";
 import {
   getPasswordStrength,
   MIN_PASSWORD_LENGTH,
@@ -135,7 +136,7 @@ export default function SignupPage() {
       <div className="login-shell signup-shell">
         <section className="login-intro signup-intro">
           <p className="login-kicker">
-            <span className="login-dot" aria-hidden="true"></span>
+            <BrandLogo className="login-brand-logo" />
             {BRAND.name}
           </p>
           <h1>{BRAND.tagline}</h1>
