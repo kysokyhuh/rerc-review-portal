@@ -385,6 +385,33 @@ export default function AdminAccountManagementPage() {
     }
   };
 
+  const handleRemoveDisabled = async (entry: UserRow) => {
+    if (entry.status !== "DISABLED") {
+      setError("Only disabled accounts can be removed.");
+      return;
+    }
+    if (
+      !window.confirm(
+        `Remove ${entry.email}? This permanently removes the disabled account from Account Management.`
+      )
+    ) {
+      return;
+    }
+
+    setSavingId(entry.id);
+    clearMessages();
+    try {
+      await api.delete(`/admin/users/${entry.id}`);
+      setOpenActionMenuId(null);
+      setNotice("Disabled account removed.");
+      await load();
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to remove disabled account."));
+    } finally {
+      setSavingId(null);
+    }
+  };
+
   const handleResetPassword = async (entry: UserRow) => {
     const temporaryPassword = window.prompt(
       `Enter a temporary password for ${entry.email}`
@@ -870,13 +897,22 @@ export default function AdminAccountManagementPage() {
                             ) : null}
 
                             {activeTab === "DISABLED" && isChair ? (
-                              <button
-                                className="admin-btn primary"
-                                onClick={() => void handleEnable(entry)}
-                                disabled={busy}
-                              >
-                                {busy ? "Saving..." : "Enable"}
-                              </button>
+                              <div className="admin-disabled-actions">
+                                <button
+                                  className="admin-btn primary"
+                                  onClick={() => void handleEnable(entry)}
+                                  disabled={busy}
+                                >
+                                  {busy ? "Saving..." : "Enable"}
+                                </button>
+                                <button
+                                  className="admin-btn danger"
+                                  onClick={() => void handleRemoveDisabled(entry)}
+                                  disabled={busy}
+                                >
+                                  Remove
+                                </button>
+                              </div>
                             ) : null}
 
                             {(activeTab === "REJECTED" || (activeTab === "DISABLED" && !isChair)) ? (

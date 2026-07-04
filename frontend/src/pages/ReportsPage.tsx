@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Breadcrumbs } from "@/components";
 import {
   AnalyticsCharts,
@@ -1111,12 +1111,6 @@ export default function ReportsPage() {
         <header className="reports-header portal-section">
           <div className="reports-header-content portal-context-inline">
             <div className="portal-context-copy">
-              <Link to="/dashboard" className="back-link">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                Back to Dashboard
-              </Link>
               <h1>Annual Reports</h1>
               <p>Review annual metrics and exports.</p>
               <div className="reports-scope-copy">

@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPrimaryRoleDescription, getPrimaryRoleLabel, getRoleLabel } from "@/utils/roleUtils";
 
@@ -25,9 +25,6 @@ export default function NotAuthorizedPage() {
           Required role: {requiredRoles.map(getRoleLabel).join(", ")}
         </p>
       ) : null}
-      <p>
-        <Link to="/dashboard">Back to dashboard</Link>
-      </p>
     </div>
   );
 }

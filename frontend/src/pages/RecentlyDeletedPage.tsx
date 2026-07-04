@@ -587,7 +587,6 @@ export default function RecentlyDeletedPage() {
         <button className="pagination-btn" onClick={() => navigate("/archives")}>
           View Archives
         </button>
-        <button className="pagination-btn" onClick={() => navigate("/dashboard")}>Back to Dashboard</button>
       </div>
     </div>
   );

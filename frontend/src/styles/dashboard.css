@@ -4106,9 +4106,162 @@ button.quick-action:disabled {
   min-width: 280px;
 }
 
-/* Workflow / Target column --- two badges stacked */
+/* Workflow status column */
 .data-table td:nth-child(3) {
   vertical-align: middle;
+}
+
+.workflow-cell {
+  min-width: 260px;
+}
+
+.workflow-summary {
+  --workflow-accent: var(--color-accent);
+  display: grid;
+  gap: 8px;
+  width: min(100%, 340px);
+  padding: 10px 12px 10px 14px;
+  border-left: 3px solid var(--workflow-accent);
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(0, 112, 60, 0.055), rgba(255, 255, 255, 0.72));
+  box-shadow: inset 0 0 0 1px rgba(0, 112, 60, 0.08);
+}
+
+.workflow-summary--overdue {
+  --workflow-accent: var(--danger);
+  background: linear-gradient(90deg, rgba(198, 56, 39, 0.08), rgba(255, 255, 255, 0.78));
+  box-shadow: inset 0 0 0 1px rgba(198, 56, 39, 0.1);
+}
+
+.workflow-summary--due-soon {
+  --workflow-accent: var(--warning);
+  background: linear-gradient(90deg, rgba(181, 139, 0, 0.09), rgba(255, 255, 255, 0.78));
+  box-shadow: inset 0 0 0 1px rgba(181, 139, 0, 0.1);
+}
+
+.workflow-summary--paused {
+  --workflow-accent: var(--text-muted);
+  background: linear-gradient(90deg, rgba(100, 116, 139, 0.08), rgba(255, 255, 255, 0.78));
+  box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.1);
+}
+
+.workflow-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.workflow-stage {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+.workflow-stage--pending {
+  color: var(--color-accent-strong);
+}
+
+.workflow-stage--active {
+  color: var(--ink);
+}
+
+.workflow-target {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.workflow-target--overdue {
+  color: var(--danger);
+}
+
+.workflow-target--due-soon {
+  color: var(--warning);
+}
+
+.workflow-target--on-track {
+  color: var(--color-accent);
+}
+
+.workflow-target--paused {
+  color: var(--text-muted);
+}
+
+.workflow-meter {
+  display: block;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(15, 35, 24, 0.08);
+}
+
+.workflow-meter-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--workflow-accent);
+  opacity: 0.72;
+}
+
+.workflow-meter-fill--overdue {
+  width: 100%;
+}
+
+.workflow-meter-fill--due-soon {
+  width: 68%;
+}
+
+.workflow-meter-fill--on-track {
+  width: 42%;
+}
+
+.workflow-meter-fill--paused {
+  width: 24%;
+}
+
+.workflow-owner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.workflow-owner span {
+  color: var(--text-muted);
+}
+
+.workflow-owner strong {
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.workflow-owner.role-staff strong,
+.workflow-owner.role-chairperson strong {
+  color: var(--color-accent-strong);
+}
+
+.workflow-owner.role-researcher strong {
+  color: var(--danger);
+}
+
+.workflow-owner.role-reviewer strong {
+  color: var(--info);
+}
+
+.workflow-owner.role-unassigned strong {
+  color: var(--warning);
 }
 
 /* Reduce actions column width with fewer buttons */
@@ -5716,9 +5869,9 @@ button.quick-action:disabled {
   }
 }
 
-/* -•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•
+/* ------------------------------------------------------------------------------------------------------------------------------------------------------
    Calendar Page  (cal-*)
-   -•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-• */
+   ------------------------------------------------------------------------------------------------------------------------------------------------------ */
 
 .cal-page {
   gap: 12px;

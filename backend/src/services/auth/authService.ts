@@ -1144,6 +1144,107 @@ export async function enableManagedUser(
   return updated;
 }
 
+export async function removeDisabledManagedUser(userId: number, actorId: number) {
+  if (userId === actorId) {
+    throw new AuthError(
+      400,
+      "VALIDATION_ERROR",
+      "You cannot remove your own account."
+    );
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      fullName: true,
+      status: true,
+      _count: {
+        select: {
+          reviewsAssigned: true,
+          reviewAssignments: true,
+        },
+      },
+    },
+  });
+
+  if (!user) {
+    throw new AuthError(404, "NOT_FOUND", "User not found.");
+  }
+  if (user.status !== UserStatus.DISABLED) {
+    throw new AuthError(
+      400,
+      "VALIDATION_ERROR",
+      "Only disabled accounts can be removed."
+    );
+  }
+  const classificationVoteCount = await prisma.classificationVote.count({
+    where: {
+      committeeMember: {
+        userId,
+      },
+    },
+  });
+
+  if (
+    user._count.reviewsAssigned > 0 ||
+    user._count.reviewAssignments > 0 ||
+    classificationVoteCount > 0
+  ) {
+    throw new AuthError(
+      400,
+      "VALIDATION_ERROR",
+      "This account has review or classification history and cannot be removed. Keep it disabled instead."
+    );
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.authSession.deleteMany({ where: { userId } });
+    await tx.committeeMember.deleteMany({ where: { userId } });
+    await tx.panelMember.deleteMany({ where: { userId } });
+
+    await tx.user.updateMany({ where: { approvedById: userId }, data: { approvedById: null } });
+    await tx.user.updateMany({ where: { rejectedById: userId }, data: { rejectedById: null } });
+    await tx.auditLog.updateMany({ where: { actorId: userId }, data: { actorId: null } });
+    await tx.importBatch.updateMany({ where: { uploadedById: userId }, data: { uploadedById: null } });
+    await tx.project.updateMany({ where: { createdById: userId }, data: { createdById: null } });
+    await tx.project.updateMany({ where: { deletedById: userId }, data: { deletedById: null } });
+    await tx.projectChangeLog.updateMany({ where: { changedById: userId }, data: { changedById: null } });
+    await tx.projectSnapshot.updateMany({ where: { changedById: userId }, data: { changedById: null } });
+    await tx.submission.updateMany({ where: { createdById: userId }, data: { createdById: null } });
+    await tx.submission.updateMany({ where: { staffInChargeId: userId }, data: { staffInChargeId: null } });
+    await tx.submissionChangeLog.updateMany({ where: { changedById: userId }, data: { changedById: null } });
+    await tx.classification.updateMany({ where: { classifiedById: userId }, data: { classifiedById: null } });
+    await tx.classificationDecision.updateMany({ where: { recordedById: userId }, data: { recordedById: null } });
+    await tx.submissionStatusHistory.updateMany({ where: { changedById: userId }, data: { changedById: null } });
+    await tx.submissionReminderLog.updateMany({ where: { actorId: userId }, data: { actorId: null } });
+    await tx.projectStatusHistory.updateMany({ where: { changedById: userId }, data: { changedById: null } });
+    await tx.letterDraft.updateMany({ where: { generatedById: userId }, data: { generatedById: null } });
+    await tx.letterDraft.updateMany({ where: { approvedById: userId }, data: { approvedById: null } });
+
+    await tx.user.delete({ where: { id: userId } });
+  });
+
+  await logAuditEvent({
+    actorId,
+    action: "USER_REMOVED",
+    entityType: "User",
+    entityId: userId,
+    metadata: {
+      email: user.email,
+      fullName: user.fullName,
+      status: user.status,
+    },
+  });
+
+  return {
+    id: user.id,
+    email: user.email,
+    fullName: user.fullName,
+  };
+}
+
 export async function resetManagedUserPassword(
   userId: number,
   temporaryPassword: string,

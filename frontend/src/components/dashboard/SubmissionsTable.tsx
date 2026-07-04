@@ -13,7 +13,7 @@ import {
   isPaused,
   blockReasonFor,
   slaChipText,
-  renderOverdueOwnerBadge,
+  resolveOwnerRoleKey,
 } from "./utils";
 
 type QueueFilter =
@@ -98,6 +98,27 @@ interface SubmissionsTableProps {
 }
 
 const SKELETON_ROWS = Array.from({ length: 6 }, (_, i) => i);
+
+const getWorkflowTone = (item: DecoratedQueueItem, dueSoonThreshold: number) => {
+  if (isPaused(item)) return "paused";
+  if (isOverdue(item)) return "overdue";
+  if (isDueSoon(item, dueSoonThreshold)) return "due-soon";
+  return "on-track";
+};
+
+const getStageTone = (status: string) =>
+  status.includes("REVISION") || status.includes("REVIEW") ? "active" : "pending";
+
+const getWorkflowOwner = (item: DecoratedQueueItem) => {
+  const ownerRole = resolveOwnerRoleKey(item);
+  const meta = OWNER_BADGE_META[ownerRole] ?? OWNER_BADGE_META.RESEARCH_ASSOCIATE_PROCESSING_STAFF;
+
+  return {
+    label: item.overdueOwnerLabel ?? meta.label,
+    cssClass: meta.cssClass,
+    title: item.overdueOwnerReason ?? item.overdueReason ?? meta.reason,
+  };
+};
 
 export function SubmissionsTable({
   loading,
@@ -316,7 +337,7 @@ export function SubmissionsTable({
                       <th className="table-select" scope="col"><span className="skeleton-box"></span></th>
                     ) : null}
                     <th scope="col">Submission</th>
-                    <th scope="col">Workflow / Target</th>
+                    <th scope="col">Status</th>
                     <th scope="col" className="table-actions-header">Actions</th>
                   </tr>
                 </thead>
@@ -359,13 +380,17 @@ export function SubmissionsTable({
                       </th>
                     ) : null}
                     <th scope="col">Submission</th>
-                    <th scope="col">Workflow / Target</th>
+                    <th scope="col">Status</th>
                     <th scope="col" className="table-actions-header">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredItems.map((item) => {
                     const itemStatus = item.status ?? "UNKNOWN";
+                    const workflowTone = getWorkflowTone(item, dueSoonThreshold);
+                    const stageTone = getStageTone(itemStatus);
+                    const owner = getWorkflowOwner(item);
+                    const showOwner = workflowTone === "overdue" || workflowTone === "due-soon";
 
                     return (
                       <tr
@@ -395,23 +420,26 @@ export function SubmissionsTable({
                           <div className="table-subtitle" title={item.projectTitle}>{item.projectTitle}</div>
                           <div className="table-meta">{item.piName}</div>
                         </td>
-                        <td>
-                          <span className={`status-badge ${
-                            itemStatus.includes("REVISION") ? "pending" :
-                            itemStatus.includes("REVIEW") ? "on-track" : "pending"
-                          }`}>
-                            <span className="status-dot"></span>
-                            {formatStatusLabel(itemStatus)}
-                          </span>
-                          <span className={`status-badge sla-inline ${
-                            isPaused(item) ? "pending" :
-                            isOverdue(item) ? "overdue" :
-                            isDueSoon(item, dueSoonThreshold) ? "due-soon" : "on-track"
-                          }`}>
-                            {slaChipText(item, dueSoonThreshold)}
-                          </span>
-                          {(isOverdue(item) || isDueSoon(item, dueSoonThreshold)) &&
-                            renderOverdueOwnerBadge(item, isOverdue(item) ? "overdue" : "pending")}
+                        <td className="workflow-cell">
+                          <div className={`workflow-summary workflow-summary--${workflowTone}`}>
+                            <div className="workflow-line">
+                              <span className={`workflow-stage workflow-stage--${stageTone}`}>
+                                {formatStatusLabel(itemStatus)}
+                              </span>
+                              <span className={`workflow-target workflow-target--${workflowTone}`}>
+                                {slaChipText(item, dueSoonThreshold)}
+                              </span>
+                            </div>
+                            <span className="workflow-meter" aria-hidden="true">
+                              <span className={`workflow-meter-fill workflow-meter-fill--${workflowTone}`} />
+                            </span>
+                            {showOwner ? (
+                              <div className={`workflow-owner role-${owner.cssClass}`} title={owner.title}>
+                                <span>Waiting on</span>
+                                <strong>{owner.label}</strong>
+                              </div>
+                            ) : null}
+                          </div>
                         </td>
                         <td className="table-actions">
                           <div className="row-actions">

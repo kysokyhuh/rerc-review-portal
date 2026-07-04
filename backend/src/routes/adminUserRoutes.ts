@@ -16,6 +16,7 @@ import {
   AuthError,
   disableManagedUser,
   enableManagedUser,
+  removeDisabledManagedUser,
   rejectAccessRequest,
   resetManagedUserPassword,
   updateManagedUser,
@@ -181,6 +182,30 @@ router.post(
         req.user!.id
       );
       return res.json({ ok: true, user });
+    } catch (error) {
+      if (error instanceof AuthError) {
+        return sendAuthError(res, error);
+      }
+      return next(error);
+    }
+  }
+);
+
+router.delete(
+  "/admin/users/:id",
+  requireRole(RoleType.CHAIR),
+  async (req, res, next) => {
+    try {
+      const userId = Number(req.params.id);
+      if (!Number.isFinite(userId)) {
+        return res.status(400).json({
+          code: "VALIDATION_ERROR",
+          message: "Invalid user id",
+        });
+      }
+
+      const removed = await removeDisabledManagedUser(userId, req.user!.id);
+      return res.json({ ok: true, removed });
     } catch (error) {
       if (error instanceof AuthError) {
         return sendAuthError(res, error);

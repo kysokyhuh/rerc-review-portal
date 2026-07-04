@@ -25,3 +25,6 @@ ai/**/*-private.*
 
 # OS / build artefacts
 .DS_Store
+.agents/
+.codex/
+skills-lock.json

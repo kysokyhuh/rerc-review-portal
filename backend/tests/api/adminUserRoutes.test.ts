@@ -29,6 +29,7 @@ jest.mock("../../src/services/auth/authService", () => ({
   rejectAccessRequest: jest.fn(),
   disableManagedUser: jest.fn(),
   enableManagedUser: jest.fn(),
+  removeDisabledManagedUser: jest.fn(),
   resetManagedUserPassword: jest.fn(),
   updateManagedUser: jest.fn(),
 }));
@@ -48,6 +49,7 @@ const authService = jest.requireMock("../../src/services/auth/authService") as {
   rejectAccessRequest: jest.Mock;
   disableManagedUser: jest.Mock;
   enableManagedUser: jest.Mock;
+  removeDisabledManagedUser: jest.Mock;
   resetManagedUserPassword: jest.Mock;
   updateManagedUser: jest.Mock;
 };
@@ -208,5 +210,41 @@ describe("admin user routes", () => {
       code: "VALIDATION_ERROR",
       message: "Only disabled accounts can be enabled.",
     });
+  });
+
+  it("DELETE /admin/users/:id removes a disabled account for chair", async () => {
+    authService.removeDisabledManagedUser.mockResolvedValue({
+      id: 303,
+      fullName: "Disabled User",
+      email: "disabled@urerb.com",
+    });
+
+    const response = await request(app)
+      .delete("/admin/users/303")
+      .set("X-User-ID", "1")
+      .set("X-User-Roles", "CHAIR")
+      .set(csrfHeaders);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      ok: true,
+      removed: {
+        id: 303,
+        fullName: "Disabled User",
+        email: "disabled@urerb.com",
+      },
+    });
+    expect(authService.removeDisabledManagedUser).toHaveBeenCalledWith(303, 1);
+  });
+
+  it("DELETE /admin/users/:id forbids non-chair", async () => {
+    const response = await request(app)
+      .delete("/admin/users/303")
+      .set("X-User-ID", "2")
+      .set("X-User-Roles", "ADMIN")
+      .set(csrfHeaders);
+
+    expect(response.status).toBe(403);
+    expect(authService.removeDisabledManagedUser).not.toHaveBeenCalled();
   });
 });
