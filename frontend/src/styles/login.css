@@ -4,15 +4,15 @@
 
 /* Core palette */
 .login-bg {
-  --green-deep: #065d32;
-  --green-primary: #0d8549;
-  --green-accent: #19a960;
-  --green-muted: #4f9b68;
-  --green-surface: #cfe6d5;
+  --green-deep: #004b2b;
+  --green-primary: #00703c;
+  --green-accent: #008a48;
+  --green-muted: #4f8567;
+  --green-surface: #d8eee1;
 
-  --cream-50:  #FFF5E1;
-  --cream-100: #F5EED9;
-  --cream-200: #EFE3C6;
+  --cream-50:  #ffffff;
+  --cream-100: #f7fbf8;
+  --cream-200: #e7f1eb;
 
   --ink:   #0B2A1C;
   --muted: #355A48;
@@ -23,7 +23,7 @@
 
   --shadow-lg: 0 24px 64px rgba(0,0,0,.24);
   --shadow-md: 0 12px 30px rgba(0,0,0,.18);
-  --ring: 0 0 0 4px rgba(13,133,73,.18);
+  --ring: 0 0 0 4px rgba(0,112,60,.18);
 }
 
 /* Background */

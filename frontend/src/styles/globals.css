@@ -1,11 +1,11 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 :root {
-  --primary-green: #247a54;
-  --primary-green-hover: #185d3f;
-  --primary-green-soft: #dff3e8;
-  --accent-gold: #c98212;
-  --accent-gold-soft: #fff0d2;
+  --primary-green: #00703c;
+  --primary-green-hover: #005c31;
+  --primary-green-soft: #e3f3ea;
+  --accent-gold: #b58b00;
+  --accent-gold-soft: #fff6d8;
   --danger-red: #c63827;
   --danger-soft: #fde8e4;
   --neutral-900: #111418;
@@ -17,10 +17,10 @@
   --neutral-300: #c3c9cf;
   --neutral-200: #d7dce1;
   --neutral-100: #f2f4f6;
-  --surface: #fffefa;
-  --surface-muted: #eef4f1;
-  --surface-subtle: #e3eee8;
-  --surface-emphasis: #f8fbf7;
+  --surface: #ffffff;
+  --surface-muted: #f2f7f4;
+  --surface-subtle: #e5efe9;
+  --surface-emphasis: #fbfdfb;
   --shadow-xs: 0 1px 2px rgba(20, 42, 31, 0.05);
   --shadow-sm: 0 8px 18px rgba(20, 42, 31, 0.06);
   --shadow-md: 0 14px 34px rgba(20, 42, 31, 0.08);
@@ -82,8 +82,8 @@
 
   --background: var(--surface-muted);
   --surface-elevated: var(--surface);
-  --surface-hover: #f1f7f3;
-  --surface-strong: #eaf3ee;
+  --surface-hover: #edf7f1;
+  --surface-strong: #e5f2eb;
 
   --primary: var(--primary-green);
   --primary-hover: var(--primary-green-hover);
@@ -102,7 +102,7 @@
 
   --skeleton-base: var(--neutral-200);
   --skeleton-highlight: rgba(255, 255, 255, 0.72);
-  --ring: 0 0 0 4px rgba(36, 122, 84, 0.16);
+  --ring: 0 0 0 4px rgba(0, 112, 60, 0.16);
 }
 
 *,
