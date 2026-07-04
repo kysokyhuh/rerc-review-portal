@@ -58,7 +58,7 @@
   --info: var(--color-info);
   --info-soft: var(--color-info-soft);
   --skeleton-base: #e2e6ea;
-  --skeleton-highlight: #e2e6ea;
+  --skeleton-highlight: rgba(255, 255, 255, 0.82);
 
   --green-deep: var(--primary-hover);
   --green-primary: var(--primary);
@@ -465,12 +465,12 @@
 
 /* Main Content Area */
 .dashboard-main {
-  padding: 24px 32px;
+  padding: 28px 34px;
   max-width: 1400px;
   overflow-y: auto;
 }
 
-/* Page content wrapper â€” fills entire main area */
+/* Page content wrapper --- fills entire main area */
 .dashboard-content {
   display: contents;
 }
@@ -534,7 +534,7 @@
   display: none;
 }
 
-/* â”€â”€ Holiday Page â”€â”€ */
+/* ------ Holiday Page ------ */
 .hol-page {
   gap: 12px;
 }
@@ -2043,7 +2043,7 @@
   background: var(--danger);
 }
 
-/* Dashboard data-unavailable alert â€” tokenized; replaces inline hardcoded hex.
+/* Dashboard data-unavailable alert --- tokenized; replaces inline hardcoded hex.
    Text sits on the danger-tinted surface in the danger hue (not gray) for contrast. */
 .dashboard-error {
   display: flex;
@@ -2183,7 +2183,7 @@
 .topbar-btn {
   width: 40px;
   height: 40px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control, 10px);
   border: 1px solid var(--border);
   background: var(--surface);
   display: flex;
@@ -2197,7 +2197,8 @@
 .topbar-btn:hover {
   border-color: var(--border-strong);
   color: var(--text-primary);
-  background: var(--surface-elevated);
+  background: var(--surface);
+  box-shadow: var(--shadow-xs);
 }
 
 .topbar-btn:active {
@@ -2342,15 +2343,15 @@
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 14px;
+  margin-bottom: 22px;
 }
 
 .stat-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px;
+  border-radius: var(--radius-panel, 16px);
+  padding: 18px;
   box-shadow: var(--shadow-sm);
   transition:
     border-color var(--motion-slow) var(--ease-standard),
@@ -2376,7 +2377,7 @@
 
 .stat-card:hover {
   border-color: var(--border-strong);
-  background: var(--surface-elevated);
+  background: var(--surface);
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
@@ -2412,7 +2413,7 @@
 .stat-icon {
   width: 40px;
   height: 40px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control, 10px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2478,7 +2479,7 @@
 .content-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 24px;
+  gap: 20px;
 }
 
 .content-grid.rail-collapsed {
@@ -2612,7 +2613,7 @@
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-panel, 16px);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
   transition:
@@ -2623,8 +2624,7 @@
 
 .panel:hover {
   border-color: var(--border-strong);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(20, 42, 31, 0.055);
 }
 
 .panel-body.collapsible {
@@ -2646,7 +2646,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 18px 20px;
   border-bottom: 1px solid var(--border);
   gap: 12px;
   flex-wrap: wrap;
@@ -2676,7 +2676,7 @@
   color: var(--muted);
   font-size: 12px;
   padding: 6px 10px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control, 10px);
   cursor: pointer;
   transition: border-color var(--motion-base) ease, color var(--motion-base) ease, background-color var(--motion-base) ease, transform var(--motion-fast) ease;
 }
@@ -2712,7 +2712,7 @@
   font-size: 12px;
   font-weight: 600;
   padding: 6px 10px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control, 10px);
   cursor: pointer;
   transition: border-color var(--motion-base) ease, color var(--motion-base) ease, background-color var(--motion-base) ease, transform var(--motion-fast) ease;
 }
@@ -2756,6 +2756,9 @@
   color: var(--muted);
   background: var(--surface-elevated);
   border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .panel-subtitle {
@@ -2766,7 +2769,7 @@
 }
 
 .data-table td {
-  padding: 10px 12px;
+  padding: 12px;
   font-size: 13px;
   color: var(--ink);
   border-bottom: 1px solid var(--border);
@@ -3322,7 +3325,7 @@
   color: var(--muted);
   font-size: 12px;
   padding: 6px 10px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control, 10px);
   cursor: pointer;
   transition: background-color var(--motion-base) ease, color var(--motion-base) ease, border-color var(--motion-base) ease;
 }
@@ -3330,7 +3333,8 @@
 .ghost-btn:hover {
   border-color: var(--border-strong);
   color: var(--text-primary);
-  background: var(--surface-elevated);
+  background: var(--surface);
+  box-shadow: var(--shadow-xs);
 }
 
 .ghost-btn:disabled {
@@ -3528,7 +3532,7 @@ button.quick-action:disabled {
   cursor: not-allowed;
 }
 
-/* â”€â”€ Dashboard Filters (collapsible advanced filter bar) â”€â”€ */
+/* ------ Dashboard Filters (collapsible advanced filter bar) ------ */
 .dashboard-filters {
   border-bottom: 1px solid var(--border);
   background: var(--surface-elevated);
@@ -3648,7 +3652,7 @@ button.quick-action:disabled {
 
 /* Filter Tabs */
 .filter-bar {
-  padding: 12px 20px 16px;
+  padding: 14px 20px 16px;
   border-bottom: 1px solid var(--border);
   background: var(--surface-elevated);
   position: sticky;
@@ -3699,7 +3703,7 @@ button.quick-action:disabled {
 
 .filter-tab {
   padding: 8px 14px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control, 10px);
   font-size: 13px;
   font-weight: 600;
   color: var(--muted);
@@ -3867,7 +3871,7 @@ button.quick-action:disabled {
   opacity: 0.6;
 }
 
-/* â”€â”€ Simplified table v2 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ------ Simplified table v2 --------------------------------------------------------------------- */
 
 /* Blocked indicator inline with project code */
 .blocked-indicator {
@@ -4019,9 +4023,9 @@ button.quick-action:disabled {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
+  padding: 14px 20px;
   border-top: 1px solid var(--border);
-  background: var(--surface-elevated);
+  background: var(--surface);
 }
 
 .pagination-info {
@@ -4042,7 +4046,7 @@ button.quick-action:disabled {
   gap: 4px;
   padding: 6px 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control, 10px);
   background: var(--surface);
   color: var(--text-secondary);
   font-size: 12px;
@@ -4089,7 +4093,7 @@ button.quick-action:disabled {
   min-height: 780px;
 }
 
-/* Reset filter row â€” right-aligned */
+/* Reset filter row --- right-aligned */
 .filter-row-reset {
   justify-content: flex-end;
   margin-bottom: 0;
@@ -4102,7 +4106,7 @@ button.quick-action:disabled {
   min-width: 280px;
 }
 
-/* Workflow / Target column â€” two badges stacked */
+/* Workflow / Target column --- two badges stacked */
 .data-table td:nth-child(3) {
   vertical-align: middle;
 }
@@ -5208,7 +5212,7 @@ button.quick-action:disabled {
   border-color: var(--border);
 }
 
-/* Key details â€” horizontal cards */
+/* Key details --- horizontal cards */
 .quick-view-details {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -5712,15 +5716,15 @@ button.quick-action:disabled {
   }
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* -•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•
    Calendar Page  (cal-*)
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   -•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-• */
 
 .cal-page {
   gap: 12px;
 }
 
-/* â”€â”€ Page Header â”€â”€ */
+/* ------ Page Header ------ */
 .cal-page-header {
   display: flex;
   align-items: flex-start;
@@ -5795,7 +5799,7 @@ button.quick-action:disabled {
   border-radius: var(--radius-sm);
 }
 
-/* â”€â”€ Summary Bar â”€â”€ */
+/* ------ Summary Bar ------ */
 .cal-summary-bar {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -5840,7 +5844,7 @@ button.quick-action:disabled {
   line-height: 1.45;
 }
 
-/* â”€â”€ Main Grid â”€â”€ */
+/* ------ Main Grid ------ */
 .cal-main-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
@@ -5854,7 +5858,7 @@ button.quick-action:disabled {
   }
 }
 
-/* â”€â”€ Calendar Panel â”€â”€ */
+/* ------ Calendar Panel ------ */
 .cal-calendar-panel .panel-header {
   display: flex;
   align-items: flex-start;
@@ -5875,7 +5879,7 @@ button.quick-action:disabled {
   padding: 14px 18px 18px;
 }
 
-/* Calendar grid â€” larger cells than the old hol-cal-grid */
+/* Calendar grid --- larger cells than the old hol-cal-grid */
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -5945,7 +5949,7 @@ button.quick-action:disabled {
   border-color: var(--primary) !important;
 }
 
-/* Term start â€” left accent border */
+/* Term start --- left accent border */
 .cal-day-term-start {
   border-left: 3px solid #2563eb;
   background: rgba(219,234,254,0.35);
@@ -5957,7 +5961,7 @@ button.quick-action:disabled {
   border-left-color: #2563eb !important;
 }
 
-/* Term end â€” right accent border */
+/* Term end --- right accent border */
 .cal-day-term-end {
   border-right: 3px solid #7c3aed;
   background: rgba(237,233,254,0.35);
@@ -5990,7 +5994,7 @@ button.quick-action:disabled {
 .cal-dot-term-start { background: #2563eb; left: 30%; transform: none; }
 .cal-dot-term-end { background: #7c3aed; left: 62%; transform: none; }
 
-/* â”€â”€ Legend â”€â”€ */
+/* ------ Legend ------ */
 .cal-legend {
   display: flex;
   gap: 16px;
@@ -6045,7 +6049,7 @@ button.quick-action:disabled {
   border-right-color: #7c3aed;
 }
 
-/* â”€â”€ Entry Panel â”€â”€ */
+/* ------ Entry Panel ------ */
 .cal-entry-panel {
   position: sticky;
   top: 24px;
@@ -6127,7 +6131,7 @@ button.quick-action:disabled {
   color: var(--text-primary);
 }
 
-/* â”€â”€ Form Tabs â”€â”€ */
+/* ------ Form Tabs ------ */
 .cal-form-tabs {
   display: flex;
   border: 1px solid var(--border);
@@ -6161,7 +6165,7 @@ button.quick-action:disabled {
   color: var(--text-primary);
 }
 
-/* â”€â”€ Form elements â”€â”€ */
+/* ------ Form elements ------ */
 .cal-form {
   display: flex;
   flex-direction: column;
@@ -6214,7 +6218,7 @@ button.quick-action:disabled {
   border: 1px solid rgba(45, 106, 79, 0.14);
 }
 
-/* â”€â”€ Calendar Entries Table â”€â”€ */
+/* ------ Calendar Entries Table ------ */
 .cal-entries-panel {
   margin-top: 2px;
 }
@@ -6322,11 +6326,11 @@ button.quick-action:disabled {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #7c3aed;
+  background: var(--warning);
   flex-shrink: 0;
 }
 
-/* â”€â”€ Empty state â”€â”€ */
+/* ------ Empty state ------ */
 .cal-empty-state {
   display: flex;
   flex-direction: column;
@@ -6357,7 +6361,7 @@ button.quick-action:disabled {
   margin-top: 6px;
 }
 
-/* â”€â”€ Responsive â”€â”€ */
+/* ------ Responsive ------ */
 @media (max-width: 1200px) {
   .cal-summary-bar {
     grid-template-columns: repeat(2, 1fr);

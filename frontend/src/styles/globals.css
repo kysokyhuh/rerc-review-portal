@@ -28,6 +28,9 @@
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
+  --radius-card: 14px;
+  --radius-panel: 16px;
+  --radius-control: 10px;
   --motion-fast: 150ms;
   --motion-base: 190ms;
   --motion-slow: 280ms;
@@ -70,7 +73,7 @@
   --control-height-md: 40px;
   --control-height-lg: 44px;
 
-  /* Semantic aliases — exposed globally so components outside .dashboard-page
+  /* Semantic aliases --- exposed globally so components outside .dashboard-page
      and .login-bg scopes (modals, portal pages, etc.) render with the design
      system instead of falling back to browser defaults. */
   --ink: var(--neutral-900);
@@ -107,6 +110,7 @@
   --skeleton-base: var(--neutral-200);
   --skeleton-highlight: rgba(255, 255, 255, 0.72);
   --ring: 0 0 0 4px rgba(0, 112, 60, 0.16);
+  --ring-strong: 0 0 0 3px rgba(0, 112, 60, 0.22);
 }
 
 *,
@@ -196,6 +200,28 @@ button {
     transform var(--motion-fast) var(--ease-emphasized);
 }
 
+button:active:not(:disabled),
+a:active,
+[role="button"]:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-strong);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--neutral-500);
+  opacity: 0.82;
+}
+
 .app-container {
   min-height: 100vh;
 }
@@ -225,7 +251,7 @@ button {
 }
 
 .app-main {
-  padding: 24px;
+  padding: 28px;
   max-width: 1400px;
   margin: 0 auto 48px;
   animation: portalSoftEnter var(--motion-page) var(--ease-emphasized) both;
@@ -240,7 +266,7 @@ button {
 .portal-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
 }
 
 .portal-page--dense {
@@ -265,8 +291,8 @@ button {
 .portal-section {
   background: linear-gradient(180deg, var(--surface) 0%, var(--surface-emphasis) 100%);
   border: 1px solid rgba(95, 111, 101, 0.16);
-  border-radius: 16px;
-  padding: 20px 22px;
+  border-radius: var(--radius-panel);
+  padding: 22px 24px;
   box-shadow: var(--shadow-sm);
   transition:
     border-color var(--motion-slow) var(--ease-standard),
@@ -276,9 +302,8 @@ button {
 }
 
 .portal-section:hover {
-  border-color: rgba(0, 112, 60, 0.18);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+  border-color: rgba(0, 112, 60, 0.2);
+  box-shadow: 0 12px 28px rgba(20, 42, 31, 0.07);
 }
 
 .portal-section.compact {
@@ -301,7 +326,7 @@ button {
   color: rgba(36, 84, 63, 0.92);
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -310,7 +335,7 @@ button {
   color: var(--neutral-900);
   font-size: clamp(1.6rem, 1.2rem + 1vw, 2rem);
   line-height: 1.06;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .portal-subtitle {
@@ -412,7 +437,7 @@ button {
   gap: 8px;
   min-height: var(--control-height-md);
   padding: 0 12px;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--neutral-200);
   background: var(--surface);
 }
@@ -444,7 +469,7 @@ button {
 .portal-search:focus-within,
 .portal-select-shell:focus-within {
   border-color: var(--primary-green);
-  box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.1);
+  box-shadow: var(--ring);
 }
 
 .portal-results-line {
@@ -521,7 +546,7 @@ button {
 .route-skeleton-sidebar,
 .route-skeleton-main {
   border: 1px solid rgba(95, 111, 101, 0.14);
-  border-radius: 18px;
+  border-radius: var(--radius-panel);
   background: linear-gradient(180deg, var(--surface) 0%, var(--surface-emphasis) 100%);
   box-shadow: var(--shadow-sm);
 }
@@ -592,7 +617,7 @@ button {
   gap: 8px;
   padding: 28px 24px;
   background: linear-gradient(180deg, var(--surface) 0%, var(--surface-emphasis) 100%);
-  border-radius: 16px;
+  border-radius: var(--radius-panel);
   border: 1px solid var(--neutral-200);
   box-shadow: var(--shadow-xs);
 }
@@ -689,12 +714,17 @@ button {
   gap: 6px;
   min-height: var(--control-height-md);
   padding: 0 14px;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   font-size: 14px;
   font-weight: 600;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background-color var(--motion-base) ease, border-color var(--motion-base) ease, color var(--motion-base) ease;
+  transition:
+    background-color var(--motion-base) ease,
+    border-color var(--motion-base) ease,
+    color var(--motion-base) ease,
+    box-shadow var(--motion-base) ease,
+    transform var(--motion-fast) var(--ease-emphasized);
   text-decoration: none;
   background: var(--surface);
   color: var(--neutral-800);
@@ -725,6 +755,7 @@ button {
 .btn-secondary:hover:not(:disabled) {
   border-color: var(--neutral-300);
   background: var(--surface-muted);
+  box-shadow: var(--shadow-xs);
 }
 
 .btn-ghost {
@@ -2483,7 +2514,7 @@ button {
 
 /* Timeline V2 */
 .timeline-v2 {
-  /* no extra border — lives inside .card */
+  /* no extra border --- lives inside .card */
 }
 
 .timeline-v2-events {
@@ -2995,4 +3026,77 @@ button {
     bottom: 12px;
     max-width: none;
   }
+}
+
+/* Preserve-mode UI polish shared across secondary screens. */
+:where(
+  .import-panel,
+  .import-card,
+  .import-choice-card,
+  .import-summary-card,
+  .admin-soft-header,
+  .admin-soft-panel,
+  .admin-metric-card,
+  .new-protocol-card,
+  .profile-settings-panel,
+  .profile-identity-card,
+  .profile-security-card,
+  .archive-summary-card,
+  .report-section,
+  .report-summary-card
+) {
+  border-radius: var(--radius-panel);
+  border-color: rgba(95, 111, 101, 0.15);
+  box-shadow: 0 10px 24px rgba(20, 42, 31, 0.055);
+}
+
+:where(
+  .import-panel,
+  .import-card,
+  .import-choice-card,
+  .admin-soft-panel,
+  .new-protocol-card,
+  .profile-settings-panel,
+  .archive-summary-card
+):hover {
+  box-shadow: 0 14px 30px rgba(20, 42, 31, 0.07);
+}
+
+:where(
+  .import-card input,
+  .import-card select,
+  .import-card textarea,
+  .admin-search-shell,
+  .new-protocol-grid input,
+  .new-protocol-grid select,
+  .new-protocol-grid textarea,
+  .profile-input,
+  .profile-password-shell,
+  .archive-dialog-textarea
+) {
+  border-radius: var(--radius-control);
+}
+
+:where(
+  .import-choice-action,
+  .profile-primary-button,
+  .profile-secondary-button,
+  .admin-segment,
+  .admin-toolbar-clear,
+  .new-protocol-actions .btn,
+  .archive-dialog-footer button
+) {
+  border-radius: var(--radius-control);
+}
+
+:where(
+  .import-choice-action,
+  .profile-primary-button,
+  .profile-secondary-button,
+  .admin-segment,
+  .admin-toolbar-clear,
+  .new-protocol-actions .btn,
+  .archive-dialog-footer button
+):active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
 }
