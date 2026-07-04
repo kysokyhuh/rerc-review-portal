@@ -554,24 +554,28 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
 
       {/* Imported reference fields — not live workflow truth */}
       <div className="pp-legacy-section">
-        <div className="pp-legacy-header">
-          <span className="pp-legacy-label">Imported reference fields</span>
-          <span className="pp-legacy-note">
-            Saved from spreadsheet imports for reference only. Live status, reviewers, and classifications are tracked separately.
-          </span>
-        </div>
-        <div className="pp-legacy-controls">
+        <div className="pp-legacy-toolbar">
+          <div className="pp-legacy-header">
+            <span className="pp-legacy-label">Imported reference fields</span>
+            <span className="pp-legacy-note">
+              Saved from spreadsheet imports for reference only. Live status, reviewers, and classifications are tracked separately.
+            </span>
+          </div>
           {canEdit ? (
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => setLegacyPickerOpen((prev) => !prev)}
-              disabled={availableLegacyGroups.length === 0}
-            >
-              Add Section
-            </button>
+            <div className="pp-legacy-actions">
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => setLegacyPickerOpen((prev) => !prev)}
+                disabled={availableLegacyGroups.length === 0}
+              >
+                Add Section
+              </button>
+            </div>
           ) : null}
-          {legacyPickerOpen ? (
+        </div>
+        {legacyPickerOpen ? (
+          <div className="pp-legacy-controls">
             <select
               className="pp-field-input pp-legacy-picker"
               value={legacyPickerValue}
@@ -588,8 +592,8 @@ export const ProtocolProfileSection: React.FC<ProtocolProfileSectionProps> = ({
                 </option>
               ))}
             </select>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
         <div className="pp-groups">
           {ALWAYS_VISIBLE_LEGACY_GROUPS.map((group) => renderGroup(group))}
           {visibleAddableLegacyGroups.map((group) =>

@@ -211,12 +211,26 @@
   padding-top: 1rem;
 }
 
+.pp-legacy-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
 .pp-legacy-header {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 8px;
-  margin-bottom: 0.5rem;
+  min-width: 0;
+}
+
+.pp-legacy-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .pp-legacy-label {
@@ -237,7 +251,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin: 0 0 10px;
 }
 
 .pp-legacy-picker {
@@ -256,6 +270,16 @@
 
   .pp-header-actions {
     flex-wrap: wrap;
+  }
+
+  .pp-legacy-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .pp-legacy-actions {
+    justify-content: flex-start;
   }
 
   .pp-legacy-controls {
