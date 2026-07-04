@@ -28,9 +28,13 @@
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
-  --motion-fast: 140ms;
-  --motion-base: 160ms;
-  --motion-slow: 200ms;
+  --motion-fast: 150ms;
+  --motion-base: 190ms;
+  --motion-slow: 280ms;
+  --motion-page: 360ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-quick: cubic-bezier(0.4, 0, 0.2, 1);
   --font-family: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont,
     "Helvetica Neue", Arial, sans-serif;
 
@@ -113,6 +117,7 @@
 
 html {
   font-size: 16px;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -123,10 +128,21 @@ body {
   text-rendering: geometricPrecision;
 }
 
+@keyframes portalSoftEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.996);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 a {
   color: var(--primary-green);
   text-decoration: none;
-  transition: color var(--motion-base) ease, opacity var(--motion-base) ease;
+  transition: color var(--motion-base) var(--ease-standard), opacity var(--motion-base) var(--ease-standard);
 }
 
 a:hover {
@@ -158,6 +174,11 @@ input,
 select,
 textarea {
   scrollbar-width: thin;
+  transition:
+    border-color var(--motion-base) var(--ease-standard),
+    box-shadow var(--motion-base) var(--ease-standard),
+    background-color var(--motion-base) var(--ease-standard),
+    color var(--motion-base) var(--ease-standard);
 }
 
 textarea {
@@ -168,11 +189,11 @@ textarea {
 
 button {
   transition:
-    background-color var(--motion-base) ease,
-    border-color var(--motion-base) ease,
-    color var(--motion-base) ease,
-    box-shadow var(--motion-base) ease,
-    transform var(--motion-fast) ease;
+    background-color var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base) var(--ease-standard),
+    color var(--motion-base) var(--ease-standard),
+    box-shadow var(--motion-base) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-emphasized);
 }
 
 .app-container {
@@ -207,6 +228,7 @@ button {
   padding: 24px;
   max-width: 1400px;
   margin: 0 auto 48px;
+  animation: portalSoftEnter var(--motion-page) var(--ease-emphasized) both;
 }
 
 .dashboard-page {
@@ -246,6 +268,17 @@ button {
   border-radius: 16px;
   padding: 20px 22px;
   box-shadow: var(--shadow-sm);
+  transition:
+    border-color var(--motion-slow) var(--ease-standard),
+    box-shadow var(--motion-slow) var(--ease-standard),
+    transform var(--motion-slow) var(--ease-emphasized),
+    background-color var(--motion-slow) var(--ease-standard);
+}
+
+.portal-section:hover {
+  border-color: rgba(0, 112, 60, 0.18);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .portal-section.compact {

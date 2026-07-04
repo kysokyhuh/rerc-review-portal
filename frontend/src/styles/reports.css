@@ -6,8 +6,8 @@
   --report-surface-muted: #f1f6f3;
   --report-ink: #16211b;
   --report-muted: #607066;
-  --report-accent: #2f7a54;
-  --report-accent-soft: #eaf3ed;
+  --report-accent: #00703c;
+  --report-accent-soft: #e3f3ea;
   --report-warm: #c98634;
   --report-cool: #526987;
   max-width: 1360px;
@@ -229,6 +229,20 @@
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
+  transition:
+    background-color var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base) var(--ease-standard),
+    color var(--motion-base) var(--ease-standard),
+    box-shadow var(--motion-base) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-emphasized);
+}
+
+.report-btn-primary:not(:disabled):hover,
+.report-btn-secondary:not(:disabled):hover,
+.report-btn-toggle:not(:disabled):hover,
+.report-btn-tertiary:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(20, 42, 31, 0.08);
 }
 
 .report-btn-primary {
@@ -461,6 +475,17 @@
   border: 1px solid var(--report-border);
   border-radius: 22px;
   background: var(--report-surface);
+  transition:
+    border-color var(--motion-slow) var(--ease-standard),
+    box-shadow var(--motion-slow) var(--ease-standard),
+    transform var(--motion-slow) var(--ease-emphasized);
+}
+
+.report-summary-primary-card:hover,
+.report-summary-card:hover {
+  border-color: rgba(0, 112, 60, 0.18);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .report-summary-primary-card {
@@ -601,6 +626,16 @@
   border-radius: 20px;
   background: var(--report-surface);
   overflow: hidden;
+  transition:
+    border-color var(--motion-slow) var(--ease-standard),
+    box-shadow var(--motion-slow) var(--ease-standard),
+    transform var(--motion-slow) var(--ease-emphasized);
+}
+
+.report-section:hover {
+  border-color: rgba(0, 112, 60, 0.16);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
 }
 
 .report-section-header,
@@ -662,8 +697,8 @@
   --report-surface-muted: #f1f6f3;
   --report-ink: #16211b;
   --report-muted: #607066;
-  --report-accent: #2f7a54;
-  --report-accent-soft: #eaf3ed;
+  --report-accent: #00703c;
+  --report-accent-soft: #e3f3ea;
   display: grid;
   align-content: start;
   gap: 18px;
@@ -944,7 +979,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: #2f7a54;
+  background: #00703c;
 }
 
 .report-export-stacked-row {
@@ -1324,7 +1359,7 @@
 .v-bar-fill {
   width: 100%;
   border-radius: 12px 12px 4px 4px;
-  background: linear-gradient(180deg, #67ab7c 0%, #2f7a54 100%);
+  background: linear-gradient(180deg, #35a66a 0%, #00703c 100%);
 }
 
 .stacked-v-fill {
@@ -1448,7 +1483,7 @@
 }
 
 .tone-exempt {
-  background: #2f7a54;
+  background: #00703c;
 }
 
 .tone-expedited {
@@ -1468,7 +1503,7 @@
 }
 
 .tone-within {
-  background: #2f7a54;
+  background: #00703c;
 }
 
 .tone-overdue {
@@ -1506,7 +1541,7 @@
 .h-bar-fill {
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #3f8e66 0%, #2f7a54 100%);
+  background: linear-gradient(90deg, #008a48 0%, #00703c 100%);
 }
 
 .chart-action {
