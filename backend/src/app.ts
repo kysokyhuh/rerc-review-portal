@@ -60,6 +60,7 @@ const SPA_ROUTE_PATTERNS = [
   /^\/projects\/new$/,
   /^\/projects\/new-classic$/,
   /^\/projects\/[^/]+$/,
+  /^\/imports$/,
   /^\/imports\/projects$/,
   /^\/imports\/classifications$/,
   /^\/reports$/,

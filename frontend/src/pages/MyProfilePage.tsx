@@ -274,19 +274,25 @@ export default function MyProfilePage() {
             </p>
           </div>
 
-          <div className="profile-identity-card" aria-label="Current account summary">
-            <div className="profile-identity-avatar">{getInitials(activeProfile.fullName)}</div>
-            <div className="profile-identity-copy">
-              <strong>{activeProfile.fullName}</strong>
-              <span>{activeProfile.email}</span>
-              <div className="profile-identity-meta">
-                <span className={`profile-status-pill is-${(activeProfile.status || "APPROVED").toLowerCase()}`}>
-                  {formatStatusLabel(activeProfile.status)}
-                </span>
-                <span className="profile-role-summary">
-                  {(activeProfile.roles || []).map(getRoleLabel).join(", ") || "Portal user"}
-                </span>
+          <div className="profile-hero-panel" aria-label="Current account summary">
+            <div className="profile-identity-card">
+              <div className="profile-identity-avatar">{getInitials(activeProfile.fullName)}</div>
+              <div className="profile-identity-copy">
+                <strong>{activeProfile.fullName}</strong>
+                <span>{activeProfile.email}</span>
+                <div className="profile-identity-meta">
+                  <span className={`profile-status-pill is-${(activeProfile.status || "APPROVED").toLowerCase()}`}>
+                    {formatStatusLabel(activeProfile.status)}
+                  </span>
+                  <span className="profile-role-summary">
+                    {(activeProfile.roles || []).map(getRoleLabel).join(", ") || "Portal user"}
+                  </span>
+                </div>
               </div>
+            </div>
+            <div className="profile-hero-stat">
+              <span>Last sign-in</span>
+              <strong>{formatDateTime(activeProfile.lastLoginAt)}</strong>
             </div>
           </div>
         </div>
@@ -441,14 +447,14 @@ export default function MyProfilePage() {
 
             <div className="profile-security-summary">
               <div className="profile-security-card">
-                <span>Last sign-in</span>
-                <strong>{formatDateTime(activeProfile.lastLoginAt)}</strong>
-                <small>{activeProfile.lastLoginIp ? `IP ${activeProfile.lastLoginIp}` : "IP address unavailable"}</small>
-              </div>
-              <div className="profile-security-card">
                 <span>Session protection</span>
                 <strong>Current password required</strong>
                 <small>Password changes revoke other active sessions.</small>
+              </div>
+              <div className="profile-security-card">
+                <span>Sign-in source</span>
+                <strong>{activeProfile.lastLoginIp ? `IP ${activeProfile.lastLoginIp}` : "Unavailable"}</strong>
+                <small>Shown from the most recent recorded login.</small>
               </div>
             </div>
 

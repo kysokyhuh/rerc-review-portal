@@ -23,6 +23,7 @@ const SubmissionDetailPage = lazy(() =>
     default: module.SubmissionDetailPage,
   }))
 );
+const ImportCsvPage = lazy(() => import("@/pages/ImportCsvPage"));
 const ImportProjectsPage = lazy(() => import("@/pages/ImportProjectsPage"));
 const ImportClassificationsPage = lazy(() => import("@/pages/ImportClassificationsPage"));
 const NewProtocolPage = lazy(() => import("@/pages/NewProtocolPage"));
@@ -172,6 +173,14 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}>
                       <NewProtocolClassicPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/imports"
+                  element={
+                    <ProtectedRoute allowedRoles={["CHAIR", "RESEARCH_ASSOCIATE"]}>
+                      <ImportCsvPage />
                     </ProtectedRoute>
                   }
                 />
