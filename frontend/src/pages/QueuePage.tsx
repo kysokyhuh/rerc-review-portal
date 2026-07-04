@@ -22,34 +22,34 @@ const QUEUE_META: Record<
   classification: {
     title: "Classification Queue",
     description:
-      "Protocols waiting for initial ethics classification. Prioritize overdue entries and assign next action.",
+      "Classify new protocols and assign next action.",
     emptyTitle: "No protocols are awaiting classification.",
     emptyHint:
-      "New submissions will appear here after intake. Try widening the queue filters or switch to another classification state.",
+      "New submissions will appear here after intake.",
   },
   "under-review": {
     title: "Under Review Queue",
     description:
-      "Protocols currently under ethics review. Track due dates and resolve blockers to keep reviews moving.",
+      "Track active reviews and due dates.",
     emptyTitle: "No protocols are currently under review.",
     emptyHint:
-      "This lane is clear for now. Check another review state or widen the filters to review more records.",
+      "This lane is clear for now.",
   },
   exempted: {
     title: "Exempted Queue",
     description:
-      "Protocols classified as exempt. Track final closure actions and documentation.",
+      "Track exempt protocols and closure actions.",
     emptyTitle: "No exempted protocols were found.",
     emptyHint:
-      "Try adjusting the search terms or SLA filter, or return later when new exempted records are routed here.",
+      "Adjust filters or check again later.",
   },
   revisions: {
     title: "Resubmission Queue",
     description:
-      "Protocols awaiting resubmission or amendment from proponents. Monitor stalled submissions and follow up on overdue responses.",
+      "Monitor resubmissions and amendments.",
     emptyTitle: "No protocols are awaiting resubmission or amendment.",
     emptyHint:
-      "This queue is currently clear. Try another state filter if you expected submissions to appear here.",
+      "This queue is clear for now.",
   },
 };
 
@@ -87,10 +87,10 @@ export default function QueuePage() {
     ? {
         title: "My Assignments",
         description:
-          "Protocols assigned to you as protocol assistant or reviewer. Only assigned records are shown.",
+          "Protocols assigned to you.",
         emptyTitle: "No assigned protocols are waiting for you.",
         emptyHint:
-          "Assigned protocols will appear here when the Chair or Research Associate routes one to you.",
+          "Assigned protocols will appear here.",
       }
     : QUEUE_META[queueKey];
   const search = searchParams.get("search") ?? "";
@@ -192,21 +192,21 @@ export default function QueuePage() {
     if (kpis.blocked > 0) {
       return {
         title: "Clear blockers next",
-        description: `${kpis.blocked} submission${kpis.blocked === 1 ? "" : "s"} need missing information or follow-through before the queue can move.`,
+        description: `${kpis.blocked} submission${kpis.blocked === 1 ? "" : "s"} need follow-up.`,
       };
     }
 
     if (kpis.dueSoon > 0) {
       return {
         title: "Watch due-soon work",
-        description: `${kpis.dueSoon} record${kpis.dueSoon === 1 ? "" : "s"} are approaching SLA threshold and should stay visible to staff.`,
+        description: `${kpis.dueSoon} record${kpis.dueSoon === 1 ? "" : "s"} are nearing SLA.`,
       };
     }
 
     if (kpis.total === 0) {
       return {
         title: "Queue is currently clear",
-        description: "No protocols are waiting in this lane right now. New records will appear here as work arrives.",
+        description: "New records will appear here.",
       };
     }
 
@@ -418,14 +418,14 @@ export default function QueuePage() {
         title="Queue results"
         subtitle={
           assignedOnly
-            ? "Open an assigned protocol to update workflow details or submit review decisions when you are assigned as reviewer."
-            : "Review active protocols in this lane, monitor SLA pressure, and open any row for the full submission record."
+            ? "Open a protocol to update or review it."
+            : "Open any row for the full record."
         }
         items={filteredItems}
         emptyMessage={meta.emptyTitle}
         emptyHint={
           activeFilters.length > 0
-            ? "No protocols match the active search or SLA filters. Clear the filters to widen the queue."
+            ? "No protocols match these filters."
             : meta.emptyHint
         }
         loading={loading}

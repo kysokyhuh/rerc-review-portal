@@ -236,7 +236,7 @@ export default function AdminAccountManagementPage() {
     if (search.trim()) {
       return {
         title: `No ${activeTabConfig.label.toLowerCase()} accounts match this search.`,
-        body: "Try a different name or email, or clear the search to return to the full result set.",
+        body: "Try another name or email.",
         canResetSearch: true,
       };
     }
@@ -244,7 +244,7 @@ export default function AdminAccountManagementPage() {
     if (activeTab === "PENDING") {
       return {
         title: "No pending approvals right now.",
-        body: "New signups will appear here for chair review, role assignment, and final access approval.",
+        body: "New signups will appear here.",
         canResetSearch: false,
       };
     }
@@ -252,7 +252,7 @@ export default function AdminAccountManagementPage() {
     if (activeTab === "APPROVED") {
       return {
         title: "No approved accounts are visible.",
-        body: "Approved users will appear here for password resets, role updates, and access control changes.",
+        body: "Approved users will appear here.",
         canResetSearch: false,
       };
     }
@@ -260,14 +260,14 @@ export default function AdminAccountManagementPage() {
     if (activeTab === "REJECTED") {
       return {
         title: "No rejected accounts are on file.",
-        body: "Declined requests stay visible here for audit context when they exist.",
+        body: "Declined requests will appear here.",
         canResetSearch: false,
       };
     }
 
     return {
       title: "No disabled accounts right now.",
-      body: "Disabled records will appear here whenever access has been suspended and can later be restored.",
+      body: "Suspended accounts will appear here.",
       canResetSearch: false,
     };
   }, [activeTab, activeTabConfig.label, search]);
@@ -477,8 +477,8 @@ export default function AdminAccountManagementPage() {
           <h1>Account Management</h1>
           <p>
             {isChair
-              ? "Review signups, assign final roles, reset passwords, and control access from one operational workspace."
-              : "Reset temporary passwords for approved accounts and keep access controls visible in one queue."}
+              ? "Review signups, roles, passwords, and access."
+              : "Reset passwords and review approved accounts."}
           </p>
         </div>
 

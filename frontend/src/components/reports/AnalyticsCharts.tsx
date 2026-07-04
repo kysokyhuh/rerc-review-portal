@@ -662,7 +662,7 @@ export default function AnalyticsCharts({
       : "Received proposals by month";
   const monthlyMessage =
     monthlyVolumeFocus === "withdrawn"
-      ? "Monthly withdrawal trends are shown only when one academic or calendar year is selected."
+      ? "Select one year to view withdrawals."
       : "Select a single academic or calendar year to view monthly received proposals.";
   const monthlyColor =
     monthlyVolumeFocus === "withdrawn" ? MONTHLY_WITHDRAWN_COLOR : MONTHLY_RECEIVED_COLOR;
@@ -855,7 +855,7 @@ export default function AnalyticsCharts({
         <div>
           <span className="section-kicker">Graph style</span>
           <h4>Choose one chart style for the analytics view.</h4>
-          <p>Bar is the default. Sections that do not support line or donut fall back automatically.</p>
+          <p>Unsupported sections use bar charts.</p>
         </div>
         {showGraphSelector && onGraphTypeChange ? (
           <SegmentControl
@@ -875,7 +875,7 @@ export default function AnalyticsCharts({
         <div className="analytics-section-header">
           <div>
             <h4>Volume &amp; Composition</h4>
-            <p>Lead with the mix first, then switch to institutions only when you need a breakdown.</p>
+            <p>Compare mix or institutions.</p>
           </div>
           <SegmentControl
             ariaLabel="Volume and composition focus"
@@ -917,7 +917,7 @@ export default function AnalyticsCharts({
               <section className="chart-card">
                 <ChartHeading
                   title="Review path distribution"
-                  description="Use this to see which pathway dominates before opening deeper comparisons."
+                  description="See the dominant review paths."
                   requestedGraph={graphType}
                   effectiveGraph={reviewGraph}
                 />
@@ -932,8 +932,8 @@ export default function AnalyticsCharts({
             <>
               <section className="chart-card chart-card-wide">
                 <ChartHeading
-                  title="Outcome mix across top institutions"
-                  description="Showing the top 5 units by filtered volume to keep the comparison readable."
+                 title="Outcome mix across top institutions"
+                  description="Top 5 units by filtered volume."
                   requestedGraph={graphType}
                   effectiveGraph={institutionOutcomeGraph}
                 />
@@ -962,7 +962,7 @@ export default function AnalyticsCharts({
         <div className="analytics-section-header">
           <div>
             <h4>Trend &amp; Comparison</h4>
-            <p>Monthly charts stay grouped together, while broader comparisons live in a separate view.</p>
+            <p>View monthly trends or comparisons.</p>
           </div>
           <SegmentControl
             ariaLabel="Trend and comparison focus"
@@ -1088,7 +1088,7 @@ export default function AnalyticsCharts({
               ) : (
                 <ChartEmpty
                   title="Committee distribution"
-                  message="Committee comparison becomes available when the report scope includes more than one committee."
+                  message="Select more than one committee."
                 />
               )}
             </>
@@ -1100,7 +1100,7 @@ export default function AnalyticsCharts({
         <div className="analytics-section-header">
           <div>
             <h4>Performance</h4>
-            <p>Keep turnaround metrics visible, then switch the operational detail underneath.</p>
+            <p>Review turnaround and SLA detail.</p>
           </div>
           <SegmentControl
             ariaLabel="Performance detail focus"
@@ -1133,12 +1133,12 @@ export default function AnalyticsCharts({
             <section className="chart-card chart-card-wide">
               <ChartHeading
                 title="Service Level Agreement (SLA) compliance by stage"
-                description="Counts only completed stages measured against the configured committee SLA. Active stages still in flight are tracked on the Queue page."
+                description="Completed stages measured against committee SLA."
                 requestedGraph={graphType}
                 effectiveGraph={slaGraph}
               />
               <div className="chart-context-note">
-                Green shows records still within target. Orange shows records that exceeded the target days. Empty rows mean no qualifying records were counted for that stage in the current report scope.
+                Green is within target. Orange exceeded target days.
               </div>
               <StackedRowsChart
                 items={slaRows}

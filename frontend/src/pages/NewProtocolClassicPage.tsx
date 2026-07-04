@@ -380,7 +380,7 @@ export default function NewProtocolPage() {
           </div>
           <div>
             <h2>Review before creating</h2>
-            <p className="np-preview-sub">Please verify the information below. Empty fields will be saved as blank and can be filled later.</p>
+            <p className="np-preview-sub">Review details before saving.</p>
           </div>
         </div>
 
@@ -459,7 +459,7 @@ export default function NewProtocolPage() {
             <h1 className="detail-title">Create Protocol</h1>
             <span className="detail-subtitle">
               {step === "form"
-                ? "Fill in the fields below. Only Project Code and Committee are required — everything else is optional."
+                ? "Only Project Code and Committee are required."
                 : "Review the details before creating the protocol."}
             </span>
           </div>

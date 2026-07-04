@@ -164,7 +164,7 @@ export default function PanelManagementPage() {
     }
 
     const confirmed = window.confirm(
-      `Delete ${selectedPanel.name}? This removes its panel membership records. Panels assigned to protocol classifications cannot be deleted.`
+      `Delete ${selectedPanel.name}? Assigned panels cannot be deleted.`
     );
     if (!confirmed) return;
 

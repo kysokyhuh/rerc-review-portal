@@ -279,10 +279,7 @@ export default function MyProfilePage() {
           <div className="portal-context-copy">
             <span className="portal-kicker">My Profile</span>
             <h1 className="portal-title">Profile settings</h1>
-            <p className="portal-subtitle">
-              Keep your personal account details current and maintain the password used for
-              portal access.
-            </p>
+            <p className="portal-subtitle">Manage your account details and password.</p>
           </div>
 
           <div className="profile-hero-panel" aria-label="Current account summary">
@@ -319,7 +316,7 @@ export default function MyProfilePage() {
               <span className="section-kicker">Profile</span>
               <div>
                 <h2>Personal details</h2>
-                <p>Update the name and email shown across your current portal session.</p>
+                <p>Update your name and email.</p>
               </div>
             </div>
 
@@ -367,10 +364,7 @@ export default function MyProfilePage() {
               <div className="profile-inline-callout">
                 <div>
                   <strong>Email changes require your current password.</strong>
-                  <p>
-                    Your name can be updated on its own. Changing the email used for sign-in
-                    requires one quick confirmation step.
-                  </p>
+                  <p>Name changes can be saved without confirmation.</p>
                 </div>
                 <button
                   className="profile-secondary-button"
@@ -452,7 +446,7 @@ export default function MyProfilePage() {
               <span className="section-kicker">Security</span>
               <div>
                 <h2>Password and sign-in</h2>
-                <p>Use your current password to set a new one for this account.</p>
+                <p>Update your password.</p>
               </div>
             </div>
 
@@ -460,12 +454,12 @@ export default function MyProfilePage() {
               <div className="profile-security-card">
                 <span>Session protection</span>
                 <strong>Current password required</strong>
-                <small>Password changes revoke other active sessions.</small>
+                <small>Other sessions are signed out.</small>
               </div>
               <div className="profile-security-card">
                 <span>Sign-in source</span>
                 <strong>{activeProfile.lastLoginIp ? `IP ${activeProfile.lastLoginIp}` : "Unavailable"}</strong>
-                <small>Shown from the most recent recorded login.</small>
+                <small>Most recent login.</small>
               </div>
             </div>
 

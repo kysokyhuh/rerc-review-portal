@@ -846,7 +846,7 @@ export default function CalendarPage() {
                     <rect x="3" y="4" width="18" height="18" rx="2" />
                     <path d="M16 2v4M8 2v4M3 10h18" />
                   </svg>
-                  <p>Select dates on the calendar to add a holiday entry, or use the buttons below.</p>
+                  <p>Select dates or use the buttons below.</p>
                   <div className="cal-idle-actions">
                     <button type="button" className="primary-btn cal-idle-btn" onClick={openNewHolidayPanel}>
                       Add holiday
@@ -1171,7 +1171,7 @@ export default function CalendarPage() {
               <path d="M16 2v4M8 2v4M3 10h18" />
             </svg>
             <p>No calendar entries yet.</p>
-            <span>Add holidays or academic term dates to begin configuring the academic calendar.</span>
+            <span>Add holidays or term dates.</span>
             <div className="cal-empty-actions">
               <button type="button" className="primary-btn cal-idle-btn" onClick={openNewHolidayPanel}>
                 Add holiday

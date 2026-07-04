@@ -201,7 +201,7 @@ export default function ImportClassificationsPage() {
       });
       setResult(response);
       setStatusMessage(
-        `Classification import finished: ${response.insertedRows} updated, ${response.failedRows} skipped.`
+        `Import finished: ${response.insertedRows} updated, ${response.failedRows} skipped.`
       );
     } catch (err: unknown) {
       setStatusMessage(null);

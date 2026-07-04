@@ -127,7 +127,7 @@ export const DashboardPage: React.FC = () => {
   // ── Announcements ──────────────────────────────────────
   const announcements = [
     { id: "policy-jan", tone: "info", title: "Policy reminder",
-      message: "Contract coverage starts January 1. Submissions dated earlier will not count toward the reporting period." },
+      message: "Contract coverage starts January 1." },
   ];
   const visibleAnnouncements = announcements.filter((a) => !dismissedAnnouncements.includes(a.id));
 

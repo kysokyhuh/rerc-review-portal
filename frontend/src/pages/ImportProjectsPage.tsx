@@ -412,7 +412,7 @@ export default function ImportProjectsPage() {
                     </strong>
                     <span>
                       {previewProgress.phase === "processing"
-                        ? "The file is already on the server. The portal is checking headers and building the preview."
+                        ? "Checking headers and building the preview."
                         : previewTransferMeta || "Sending the file to the server."}
                     </span>
                   </div>
@@ -445,13 +445,10 @@ export default function ImportProjectsPage() {
                 <>
                   <div className="import-alert info">
                     <p className="import-alert-line">
-                      <strong>Import preview ready:</strong> The uploaded rows will be created as live workflow records after commit.
+                      <strong>Preview ready:</strong> Rows will become live records after import.
                     </p>
                     <p className="import-alert-line">
-                      Blank <code>committeeCode</code> values use the default intake committee when it is configured. Panel assignment still happens later in the Chair workflow.
-                    </p>
-                    <p className="import-alert-line">
-                      Historical spreadsheet-only columns, when present, will be preserved as live protocol milestones and timeline metadata when they can be recovered from the CSV.
+                      Blank <code>committeeCode</code> values use the default committee.
                     </p>
                   </div>
                   {(preview.sourceWarnings ?? []).length > 0 && (
@@ -643,7 +640,7 @@ export default function ImportProjectsPage() {
                     </strong>
                     <span>
                       {importProgress.phase === "processing"
-                        ? "The upload is finished. The server is still validating the file and creating records, so this can take a little longer on larger files."
+                        ? "Validating rows and creating records."
                         : importTransferMeta || "Sending the import file to the server."}
                     </span>
                   </div>
@@ -681,20 +678,17 @@ export default function ImportProjectsPage() {
             <div className="import-card import-guide-card">
               <h3>Required headers</h3>
               <ul>
-                <li>Header-based CSV intake files are supported.</li>
-                <li>Database CSV files must include the header row before upload.</li>
-                <li>If formula results were not included in the CSV, some fields may stay blank after import.</li>
+                <li>Database CSV files must include headers.</li>
+                <li>Headerless files are rejected.</li>
+                <li>Missing formula results may import as blank fields.</li>
               </ul>
-              <p>
-                Headerless CSV files are rejected to avoid incorrect column mapping.
-              </p>
             </div>
             <div className="import-card import-guide-card">
               <h3>Safety checks</h3>
               <ul>
                 <li>Maximum file size: 5MB.</li>
                 <li>Maximum rows: 5,000.</li>
-                <li>Server re-validates file and auto-detected fields on commit.</li>
+                <li>Files are rechecked before import.</li>
               </ul>
             </div>
           </aside>

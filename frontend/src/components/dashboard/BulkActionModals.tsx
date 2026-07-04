@@ -374,7 +374,7 @@ function getStatusActionAvailability(
     )
   ) {
     reasons.push(
-      "Some selected submissions do not have a review type yet, so they cannot be marked as classified."
+      "Some submissions still need a review type."
     );
   }
 
@@ -386,7 +386,7 @@ function getStatusActionAvailability(
     )
   ) {
     reasons.push(
-      "Some selected submissions do not have reviewer assignments yet, so they cannot start review."
+      "Some submissions still need reviewers."
     );
   }
 
@@ -411,7 +411,7 @@ function getStatusActionAvailability(
     )
   ) {
     reasons.push(
-      "Some intake submissions are missing a project code, so they cannot be accepted for classification in bulk."
+      "Some submissions are missing a project code."
     );
   }
 
@@ -559,8 +559,8 @@ export function AssignReviewersBulkModal({
           </strong>
           <span>
             {isSingleMode
-              ? "This reviewer setup will be applied to this submission only."
-              : "This reviewer setup will be applied to every eligible submission in the current batch."}
+              ? "Applies to this submission only."
+              : "Applies to every eligible submission."}
           </span>
         </div>
         <div className="bulk-selection-tags" aria-label="Selected submissions">
@@ -617,7 +617,7 @@ export function AssignReviewersBulkModal({
                   : REVIEWER_REQUIRED_MESSAGE
                 : isSingleMode
                   ? "Choose from active approved accounts."
-                  : "Choose from active approved accounts and apply one reviewer to every eligible submission."}
+                  : "Choose an approved account."}
             </small>
           </div>
 
@@ -836,7 +836,7 @@ export function AssignAssistantsModal({
         <div className="bulk-section-header">
           <span className="bulk-section-label">Protocol assistant</span>
           <h4>Choose the Research Assistant responsible for this protocol</h4>
-          <p>This is separate from reviewer assignment and controls assigned-protocol operator access.</p>
+          <p>Separate from reviewer assignment.</p>
         </div>
         <label className={`bulk-form-field${assistantFieldError ? " is-invalid" : ""}`}>
           <span>Research Assistant</span>

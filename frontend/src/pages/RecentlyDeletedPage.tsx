@@ -61,7 +61,7 @@ function withLoadTimeout<T>(promise: Promise<T>): Promise<T> {
       window.setTimeout(() => {
         reject(
           new Error(
-            "The server is taking longer than expected. The page is ready, but the list data may still be waking up."
+            "Server is still waking up. Try again shortly."
           )
         );
       }, RECENTLY_DELETED_LOAD_TIMEOUT_MS);

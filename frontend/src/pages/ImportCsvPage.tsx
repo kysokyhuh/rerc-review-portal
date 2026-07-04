@@ -6,7 +6,7 @@ const importOptions = [
   {
     title: "Import Database",
     description:
-      "Use this for the main protocol database CSV with headers, project records, reviewers, milestones, and report reference fields.",
+      "Upload the main protocol database CSV with headers.",
     href: "/imports/projects",
     icon: "database",
     details: ["Requires database headers", "Creates protocol records", "Keeps legacy workflow dates"],
@@ -14,7 +14,7 @@ const importOptions = [
   {
     title: "Import Classification",
     description:
-      "Use this for the classification CSV. Rows are matched by protocol title and saved as classification notes and reviewer suggestions.",
+      "Upload classification results matched by protocol title.",
     href: "/imports/classifications",
     icon: "classification",
     details: ["Matches by title", "Stores source links", "Adds Chair confirmation placeholders"],
@@ -54,10 +54,7 @@ export default function ImportCsvPage() {
 
       <header className="page-header portal-context import-choice-header">
         <h1>Import CSV</h1>
-        <p>
-          Choose the type of spreadsheet before uploading. This keeps database uploads and
-          classification uploads separate, so each file is checked with the right rules.
-        </p>
+        <p>Choose the file type before uploading.</p>
       </header>
 
       <section className="import-choice-grid" aria-label="CSV import options">

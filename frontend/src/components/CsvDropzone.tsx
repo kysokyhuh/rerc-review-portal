@@ -134,7 +134,7 @@ export function CsvDropzone({
           ? "XLSX required for legacy migration — preserves formula-computed fields."
           : accept === "csv"
             ? "Use the template or database sample headers before uploading."
-            : "Upload CSV for standard intake imports or the original XLSX workbook for the best legacy data recovery. The portal will auto-detect the path."}
+            : "Upload CSV or the original XLSX workbook."}
       </p>
 
       {fileDetails ? (

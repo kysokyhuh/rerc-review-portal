@@ -799,7 +799,7 @@ export const ProjectDetailPage: React.FC = () => {
                   {archiveDialog.kind === "restore"
                     ? "Restoring makes the protocol active again for future lifecycle work."
                     : archiveDialog.kind === "delete"
-                    ? "Deleting moves this protocol to Recently Deleted for 30 days. It becomes read-only until restored."
+                    ? "Moves this protocol to Recently Deleted for 30 days."
                     : archiveDialog.mode === "CLOSED"
                     ? "This marks the protocol itself as archived after its finished review cycle."
                     : "This archives the protocol after its withdrawal has already been recorded."}

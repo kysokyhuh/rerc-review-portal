@@ -190,7 +190,7 @@ export default function LoginPage() {
           <div className="login-cardHeader">
             <p className="login-greeting">{greeting}.</p>
             <h2>Sign in to {BRAND.name} Portal</h2>
-            <p>Enter the email and password for your approved URERB account.</p>
+            <p>Use your approved URERB account.</p>
           </div>
 
           <form id="login-form" onSubmit={handleSubmit} noValidate>
@@ -236,7 +236,7 @@ export default function LoginPage() {
                 ) : null}
               </div>
               <p id="email-help" className="login-help">
-                Use the email address associated with your approved URERB account.
+                Use your approved account email.
               </p>
               {showEmailError ? (
                 <p id="email-error" className="login-field-error" role="alert">
@@ -289,7 +289,7 @@ export default function LoginPage() {
                 </button>
               </div>
               <p id="password-help" className="login-help">
-                Enter the password for your approved URERB account. Passwords are case-sensitive.
+                Passwords are case-sensitive.
               </p>
               {capsLock ? (
                 <div id="password-caps" className="login-caps-warning">

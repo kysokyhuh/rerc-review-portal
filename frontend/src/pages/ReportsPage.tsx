@@ -364,7 +364,7 @@ export default function ReportsPage() {
         appliedFilters.endDate
       )} so imported records remain visible. Academic-year reporting becomes available once terms are seeded.`;
     }
-    return "Academic terms are not configured yet. Switch to Calendar year or Custom date range while term records are being seeded.";
+    return "Academic terms are not configured yet. Use Calendar year or Custom range.";
   }, [
     appliedFilters.periodMode,
     appliedFilters.endDate,
@@ -1118,7 +1118,7 @@ export default function ReportsPage() {
                 Back to Dashboard
               </Link>
               <h1>Annual Reports</h1>
-              <p>Move from overview to evidence without losing context or opening a crowded reporting sheet.</p>
+              <p>Review annual metrics and exports.</p>
               <div className="reports-scope-copy">
                 <span>{selectionSummary}</span>
                 {reportingWindow ? <span>{reportingWindow}</span> : null}
@@ -1133,7 +1133,7 @@ export default function ReportsPage() {
         <div className="reports-controls-head">
           <div>
             <span className="section-kicker">Workspace</span>
-            <h2 className="reports-controls-title">Choose the reporting layer you need.</h2>
+            <h2 className="reports-controls-title">Choose a report view.</h2>
           </div>
           <div className="reports-controls-actions">
             <button
@@ -1303,7 +1303,7 @@ export default function ReportsPage() {
         {appliedView === "analytics" && summary ? (
             <ReportSection
               title="Focused analytics"
-              subtitle="Each section shows only the charts needed for the current question, with toggles for deeper comparison."
+              subtitle="Switch charts as needed."
             >
             <AnalyticsCharts
               summary={summary}

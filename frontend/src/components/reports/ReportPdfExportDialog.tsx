@@ -35,13 +35,13 @@ export const REPORT_PDF_PRESETS: ReportPdfPresetConfig[] = [
     key: "executive",
     label: "Executive 1-page",
     badge: "Best for one-page sharing",
-    description: "A concise page with report scope, key totals, category totals, and the overview insight.",
+    description: "Scope, key totals, and overview insight.",
     sections: ["executive"],
   },
   {
     key: "summary",
     label: "Summary Pack",
-    description: "A readable report packet with executive overview, tables, comparative detail, and analytics.",
+    description: "Overview, tables, comparisons, and analytics.",
     sections: ["executive", "overview", "matrix", "comparative", "analytics"],
   },
   {
