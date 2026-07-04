@@ -330,6 +330,42 @@
   font-size: 0.9rem;
 }
 
+.report-loading {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  min-height: 116px;
+  overflow: hidden;
+  color: transparent;
+}
+
+.report-loading::before,
+.report-loading::after {
+  content: "";
+  display: block;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--skeleton-base, #d7dce1) 0%,
+      var(--skeleton-highlight, rgba(255, 255, 255, 0.72)) 44%,
+      var(--skeleton-base, #d7dce1) 88%
+    );
+  background-size: 240% 100%;
+  animation: skeletonShimmer 1.35s ease-in-out infinite;
+}
+
+.report-loading::before {
+  width: min(360px, 70%);
+  height: 14px;
+}
+
+.report-loading::after {
+  width: min(620px, 92%);
+  height: 64px;
+  border-radius: 14px;
+}
+
 .reports-overview-band {
   display: grid;
   grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);

@@ -44,10 +44,30 @@ const NotAuthorizedPage = lazy(() => import("@/pages/NotAuthorizedPage"));
 
 function RouteFallback() {
   return (
-    <div className="dashboard-page">
-      <div className="loading-state">
-        <h1>Loading...</h1>
-        <p>Preparing the page.</p>
+    <div className="route-skeleton" aria-busy="true" aria-label="Loading page">
+      <div className="route-skeleton-shell">
+        <aside className="route-skeleton-sidebar" aria-hidden="true">
+          <span className="skeleton-pill" />
+          <div style={{ display: "grid", gap: 12, marginTop: 28 }}>
+            <span className="skeleton-line" />
+            <span className="skeleton-line" style={{ width: "78%" }} />
+            <span className="skeleton-line" style={{ width: "86%" }} />
+            <span className="skeleton-line" style={{ width: "64%" }} />
+          </div>
+        </aside>
+        <main className="route-skeleton-main" aria-hidden="true">
+          <div className="route-skeleton-header">
+            <span className="skeleton-pill" />
+            <span className="skeleton-line" style={{ height: 22, width: "68%" }} />
+            <span className="skeleton-line" style={{ width: "44%" }} />
+          </div>
+          <div className="route-skeleton-grid">
+            <span className="skeleton-card" />
+            <span className="skeleton-card" />
+            <span className="skeleton-card" />
+          </div>
+          <span className="skeleton-card route-skeleton-table" />
+        </main>
       </div>
     </div>
   );

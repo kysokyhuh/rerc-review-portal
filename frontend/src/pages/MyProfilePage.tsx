@@ -234,11 +234,22 @@ export default function MyProfilePage() {
 
   if (!activeProfile && loading) {
     return (
-      <div className="dashboard-content profile-settings-page portal-page portal-page--dense portal-page--narrow">
-        <section className="portal-section profile-settings-loading">
-          <span className="portal-kicker">My Profile</span>
-          <h1 className="portal-title">Loading your account</h1>
-          <p className="portal-subtitle">Fetching the latest profile and security details.</p>
+      <div
+        className="dashboard-content profile-settings-page portal-page portal-page--dense portal-page--narrow"
+        aria-busy="true"
+      >
+        <section className="portal-section profile-settings-loading profile-settings-skeleton">
+          <div className="profile-skeleton-header" aria-hidden="true">
+            <span className="skeleton-pill" />
+            <span className="skeleton-line profile-skeleton-title" />
+            <span className="skeleton-line profile-skeleton-copy" />
+          </div>
+          <div className="profile-skeleton-grid" aria-hidden="true">
+            <span className="skeleton-card" />
+            <span className="skeleton-card" />
+            <span className="skeleton-card" />
+          </div>
+          <span className="sr-only">Loading your account details.</span>
         </section>
       </div>
     );

@@ -4,11 +4,11 @@
 
 /* Core palette */
 .login-bg {
-  --green-deep: #076C39;
-  --green-primary: #0F7744;
-  --green-accent: #14814C;
-  --green-muted: #5A926B;
-  --green-surface: #D8E5DA;
+  --green-deep: #065d32;
+  --green-primary: #0d8549;
+  --green-accent: #19a960;
+  --green-muted: #4f9b68;
+  --green-surface: #cfe6d5;
 
   --cream-50:  #FFF5E1;
   --cream-100: #F5EED9;
@@ -21,25 +21,26 @@
   --error-ink: #A62E1F;
   --border-subtle: rgba(11, 42, 28, 0.18);
 
-  --shadow-lg: 0 22px 60px rgba(0,0,0,.28);
-  --shadow-md: 0 10px 28px rgba(0,0,0,.20);
-  --ring: 0 0 0 4px rgba(15,119,68,.18);
+  --shadow-lg: 0 24px 64px rgba(0,0,0,.24);
+  --shadow-md: 0 12px 30px rgba(0,0,0,.18);
+  --ring: 0 0 0 4px rgba(13,133,73,.18);
 }
 
 /* Background */
 .login-bg {
   min-height: 100vh;
-  height: 100vh;
+  height: auto;
   position: relative;
   isolation: isolate;
   padding: 48px 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font-family: var(--font-family);
   color: var(--cream-50);
   background: var(--green-deep);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   box-sizing: border-box;
 }
 
@@ -1528,8 +1529,10 @@
 }
 
 .signup-page-bg {
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   align-items: flex-start;
   padding-top: 28px;
   padding-bottom: 20px;

@@ -221,7 +221,6 @@ export default function LoginPage() {
                   type="email"
                   autoComplete="username"
                   inputMode="email"
-                  placeholder="Enter your email"
                   required
                   spellCheck={false}
                   value={email}
@@ -257,7 +256,6 @@ export default function LoginPage() {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  placeholder="Enter your password"
                   required
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}

@@ -116,7 +116,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
             {capabilities.canAdministerAccounts ? (
               <NavLink to="/admin/account-management" className={navClassName}>
                 <SidebarItemContent
-                  label="Account Management"
+                  label="Accounts"
                   badge={capabilities.isChair ? pendingApprovalCount : undefined}
                   badgeTone="warning"
                   icon={
@@ -131,7 +131,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
             {capabilities.canManagePanels ? (
               <NavLink to="/admin/panel-management" className={navClassName}>
                 <SidebarItemContent
-                  label="Panel Management"
+                  label="Panels"
                   icon={
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M16 11a4 4 0 1 0-8 0" />

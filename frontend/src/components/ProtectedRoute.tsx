@@ -17,16 +17,15 @@ export default function ProtectedRoute({
 
   if (isLoading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100vh",
-          color: "var(--neutral-500)",
-        }}
-      >
-        Loading...
+      <div className="route-skeleton route-skeleton-auth" aria-busy="true" aria-label="Checking session">
+        <main className="route-skeleton-main" aria-hidden="true">
+          <div className="route-skeleton-header">
+            <span className="skeleton-pill" />
+            <span className="skeleton-line" />
+            <span className="skeleton-line" style={{ width: "62%" }} />
+          </div>
+          <span className="skeleton-card" />
+        </main>
       </div>
     );
   }
