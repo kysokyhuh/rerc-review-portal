@@ -39,7 +39,7 @@ const SidebarItemContent = ({
 
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [pendingApprovalCount, setPendingApprovalCount] = useState(0);
 
   const roles = user?.roles ?? [];
@@ -316,25 +316,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
               }
             />
           </NavLink>
-          <button
-            className="nav-item sidebar-logout"
-            type="button"
-            onClick={() => {
-              logout();
-              navigate("/login", { replace: true });
-            }}
-          >
-            <SidebarItemContent
-              label="Sign out"
-              icon={
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                  <polyline points="16 17 21 12 16 7" />
-                  <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-              }
-            />
-          </button>
         </div>
       </div>
     </aside>

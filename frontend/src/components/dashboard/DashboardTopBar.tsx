@@ -4,12 +4,9 @@ import type { ProjectSearchResult } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPrimaryRoleDescription, getPrimaryRoleLabel } from "@/utils/roleUtils";
 
-type ConnectionState = "online" | "syncing" | "issue";
-
 interface DashboardTopBarProps {
   greeting: string;
   lastUpdated: Date | null;
-  connectionState: ConnectionState;
   searchTerm: string;
   onSearchTermChange: (term: string) => void;
   searchResults: ProjectSearchResult[];
@@ -19,20 +16,12 @@ interface DashboardTopBarProps {
   searchInputRef: RefObject<HTMLInputElement>;
   onSearchFocus: () => void;
   onSearchBlur: () => void;
-  onRefresh: () => void;
   onNavigate: (path: string) => void;
 }
-
-const CONNECTION_LABEL: Record<ConnectionState, string> = {
-  online: "System online",
-  syncing: "Connecting…",
-  issue: "Connection issue",
-};
 
 export function DashboardTopBar({
   greeting,
   lastUpdated,
-  connectionState,
   searchTerm,
   onSearchTermChange,
   searchResults,
@@ -42,7 +31,6 @@ export function DashboardTopBar({
   searchInputRef,
   onSearchFocus,
   onSearchBlur,
-  onRefresh,
   onNavigate,
 }: DashboardTopBarProps) {
   const { user } = useAuth();
@@ -66,10 +54,6 @@ export function DashboardTopBar({
         </div>
       </div>
       <div className="topbar-right">
-        <div className={`system-status system-status--${connectionState}`} role="status" aria-live="polite">
-          <span className="system-dot" aria-hidden="true"></span>
-          {CONNECTION_LABEL[connectionState]}
-        </div>
         <div className="topbar-search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="8" />
@@ -112,17 +96,6 @@ export function DashboardTopBar({
             </div>
           )}
         </div>
-        <button className="topbar-btn" onClick={onRefresh} title="Refresh" aria-label="Refresh dashboard">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M23 4v6h-6M1 20v-6h6" />
-            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
-          </svg>
-        </button>
-        <button className="topbar-btn" title="Logout" aria-label="Log out" onClick={() => onNavigate("/login")}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
-          </svg>
-        </button>
       </div>
     </div>
   );

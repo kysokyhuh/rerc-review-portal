@@ -317,7 +317,6 @@ export const DashboardPage: React.FC = () => {
         <DashboardTopBar
           greeting={greeting}
           lastUpdated={lastUpdated}
-          connectionState={error ? "issue" : lastUpdated ? "online" : "syncing"}
           searchTerm={searchTerm}
           onSearchTermChange={setSearchTerm}
           searchResults={searchResults}
@@ -327,7 +326,6 @@ export const DashboardPage: React.FC = () => {
           searchInputRef={searchInputRef}
           onSearchFocus={() => { if (searchResults.length > 0) setSearchOpen(true); }}
           onSearchBlur={() => { setTimeout(() => setSearchOpen(false), 150); }}
-          onRefresh={handleRefresh}
           onNavigate={(p) => navigate(p)}
         />
       </section>
