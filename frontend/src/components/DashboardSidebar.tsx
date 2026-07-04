@@ -295,26 +295,19 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
 
       <div className="sidebar-footer">
         <div className="sidebar-footer-card">
-          <div className="sidebar-footer-kicker">Account</div>
-          <div className="sidebar-user">
+          <div className="sidebar-account-header">
+            <span>Account</span>
+            <span className="sidebar-user-role-badge">{roleLabel}</span>
+          </div>
+          <NavLink to="/account/profile" className="sidebar-account-link">
             <div className="sidebar-avatar">{user?.fullName?.[0]?.toUpperCase() ?? "U"}</div>
             <div className="sidebar-user-info">
-              <div className="sidebar-user-label">Signed in as</div>
               <div className="sidebar-user-name">{displayName}</div>
               <div className="sidebar-user-meta">{user?.email || "Portal session"}</div>
-              <div className="sidebar-user-role-badge">{roleLabel}</div>
             </div>
-          </div>
-          <NavLink to="/account/profile" className={navClassName}>
-            <SidebarItemContent
-              label="My Profile"
-              icon={
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8" />
-                </svg>
-              }
-            />
+            <svg className="sidebar-account-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
           </NavLink>
         </div>
       </div>
