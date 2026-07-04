@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
 import prisma from "../../config/prismaClient";
-import { RoleType, UserStatus } from "../../generated/prisma/client";
+import { LayoutDensity, RoleType, UserStatus } from "../../generated/prisma/client";
 import { logAuditEvent } from "../audit/auditService";
 import {
   compareOpaqueToken,
@@ -52,6 +52,12 @@ type AuthenticatedUser = {
   lastLoginAt?: Date | null;
   lastLoginIp?: string | null;
   approvedAt?: Date | null;
+  preferences?: UserPreferenceShape | null;
+};
+
+type UserPreferenceShape = {
+  layoutDensity: LayoutDensity;
+  defaultPageSize: number;
 };
 
 type AuthSessionTokens = {
@@ -92,6 +98,7 @@ function composeFullName(firstName: string, lastName: string) {
 }
 
 function buildAuthUserResponse(user: AuthenticatedUser) {
+  const preferences = normalizeUserPreferences(user.preferences);
   return {
     id: user.id,
     email: user.email,
@@ -103,6 +110,14 @@ function buildAuthUserResponse(user: AuthenticatedUser) {
     lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
     lastLoginIp: user.lastLoginIp ?? null,
     approvedAt: user.approvedAt?.toISOString() ?? null,
+    preferences,
+  };
+}
+
+function normalizeUserPreferences(preferences?: UserPreferenceShape | null) {
+  return {
+    layoutDensity: preferences?.layoutDensity ?? LayoutDensity.COMFORTABLE,
+    defaultPageSize: preferences?.defaultPageSize ?? 25,
   };
 }
 
@@ -227,6 +242,12 @@ async function getAuthEligibleUser(userId: number) {
       lastLoginAt: true,
       lastLoginIp: true,
       approvedAt: true,
+      preferences: {
+        select: {
+          layoutDensity: true,
+          defaultPageSize: true,
+        },
+      },
     },
   });
 
@@ -343,6 +364,12 @@ export async function login(
       roles: true,
       forcePasswordChange: true,
       approvedAt: true,
+      preferences: {
+        select: {
+          layoutDensity: true,
+          defaultPageSize: true,
+        },
+      },
     },
   });
 
@@ -458,6 +485,12 @@ export async function refreshSession(
           lastLoginAt: true,
           lastLoginIp: true,
           approvedAt: true,
+          preferences: {
+            select: {
+              layoutDensity: true,
+              defaultPageSize: true,
+            },
+          },
         },
       },
     },
@@ -588,6 +621,12 @@ export async function changePassword(
       lastLoginIp: true,
       approvedAt: true,
       passwordHash: true,
+      preferences: {
+        select: {
+          layoutDensity: true,
+          defaultPageSize: true,
+        },
+      },
     },
   });
 
@@ -643,6 +682,7 @@ export async function changePassword(
     lastLoginAt: user.lastLoginAt,
     lastLoginIp: user.lastLoginIp,
     approvedAt: user.approvedAt,
+    preferences: user.preferences,
   };
   const tokens = await createSession(refreshedUser, context);
 
@@ -720,6 +760,12 @@ export async function updateOwnProfile(
       lastLoginIp: true,
       approvedAt: true,
       passwordHash: true,
+      preferences: {
+        select: {
+          layoutDensity: true,
+          defaultPageSize: true,
+        },
+      },
     },
   });
 
@@ -790,6 +836,12 @@ export async function updateOwnProfile(
       lastLoginAt: true,
       lastLoginIp: true,
       approvedAt: true,
+      preferences: {
+        select: {
+          layoutDensity: true,
+          defaultPageSize: true,
+        },
+      },
     },
   });
 
@@ -825,6 +877,55 @@ export async function updateOwnProfile(
   }
 
   return buildAuthUserResponse(updated);
+}
+
+export async function updateOwnPreferences(
+  userId: number,
+  input: {
+    layoutDensity?: LayoutDensity;
+    defaultPageSize?: 10 | 25 | 50;
+  },
+  context: RequestContext = {}
+) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      status: true,
+      isActive: true,
+    },
+  });
+
+  if (!user || user.status !== UserStatus.APPROVED || !user.isActive) {
+    throw new AuthError(401, "UNAUTHORIZED", "Unauthorized");
+  }
+
+  await prisma.userPreference.upsert({
+    where: { userId },
+    create: {
+      userId,
+      ...(input.layoutDensity !== undefined ? { layoutDensity: input.layoutDensity } : {}),
+      ...(input.defaultPageSize !== undefined ? { defaultPageSize: input.defaultPageSize } : {}),
+    },
+    update: {
+      ...(input.layoutDensity !== undefined ? { layoutDensity: input.layoutDensity } : {}),
+      ...(input.defaultPageSize !== undefined ? { defaultPageSize: input.defaultPageSize } : {}),
+    },
+  });
+
+  await logAuditEvent({
+    actorId: userId,
+    action: "USER_PREFERENCES_UPDATED",
+    entityType: "UserPreference",
+    entityId: userId,
+    metadata: {
+      fields: Object.keys(input),
+      ipAddress: context.ipAddress ?? null,
+      userAgent: context.userAgent ?? null,
+    },
+  });
+
+  return getMeById(userId);
 }
 
 export function sanitizeAssignedRole(inputRole: RoleType) {

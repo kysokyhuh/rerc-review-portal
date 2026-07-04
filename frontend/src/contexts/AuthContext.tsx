@@ -16,11 +16,13 @@ import {
   refreshAccessSession,
   registerSessionExpiredHandler,
   updateMyProfile,
+  updateMyPreferences,
   warmBackendConnection,
 } from "@/services/api";
 import type {
   AuthProfile,
   ChangePasswordPayload,
+  UpdatePreferencesPayload,
   UpdateProfilePayload,
 } from "@/types";
 import { getErrorStatus } from "@/utils";
@@ -42,6 +44,7 @@ interface AuthState {
 interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<AuthLoginResult>;
   updateProfile: (payload: UpdateProfilePayload) => Promise<AuthUser>;
+  updatePreferences: (payload: UpdatePreferencesPayload) => Promise<AuthUser>;
   changePassword: (payload: ChangePasswordPayload) => Promise<AuthUser>;
   logout: () => void;
   refreshMe: () => Promise<void>;
@@ -149,6 +152,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [state.isAuthenticated]);
 
+  useEffect(() => {
+    const density = state.user?.preferences?.layoutDensity ?? "COMFORTABLE";
+    document.documentElement.dataset.layoutDensity = density.toLowerCase();
+  }, [state.user?.preferences?.layoutDensity]);
+
   const login = useCallback(async (email: string, password: string) => {
     await ensureCsrfCookie();
     const res = await authApi.post("/auth/login", { email, password });
@@ -163,6 +171,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateProfile = useCallback(
     async (payload: UpdateProfilePayload) => {
       const user = await updateMyProfile(payload);
+      setAuthenticatedUser(user);
+      return user;
+    },
+    [setAuthenticatedUser]
+  );
+
+  const updatePreferences = useCallback(
+    async (payload: UpdatePreferencesPayload) => {
+      const user = await updateMyPreferences(payload);
       setAuthenticatedUser(user);
       return user;
     },
@@ -185,7 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ ...state, login, updateProfile, changePassword, logout, refreshMe }}
+      value={{ ...state, login, updateProfile, updatePreferences, changePassword, logout, refreshMe }}
     >
       {children}
     </AuthContext.Provider>

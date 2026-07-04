@@ -29,6 +29,7 @@ jest.mock("../../src/services/auth/authService", () => ({
   refreshSession: jest.fn(),
   getMeById: jest.fn(),
   updateOwnProfile: jest.fn(),
+  updateOwnPreferences: jest.fn(),
   logoutSession: jest.fn(),
 }));
 
@@ -42,6 +43,7 @@ const authService = jest.requireMock("../../src/services/auth/authService") as {
   refreshSession: jest.Mock;
   getMeById: jest.Mock;
   updateOwnProfile: jest.Mock;
+  updateOwnPreferences: jest.Mock;
   logoutSession: jest.Mock;
 };
 
@@ -298,6 +300,49 @@ describe("auth routes", () => {
         fullName: "Updated Chair",
         email: "updated@urerb.com",
         currentPassword: "CurrentPassword12",
+      },
+      expect.objectContaining({ ipAddress: expect.any(String) })
+    );
+  });
+
+  it("PATCH /auth/preferences saves personal display preferences", async () => {
+    authService.updateOwnPreferences.mockResolvedValue({
+      id: 9,
+      email: "chair@urerb.com",
+      fullName: "URERB Chair",
+      roles: ["CHAIR"],
+      status: "APPROVED",
+      forcePasswordChange: false,
+      lastLoginAt: null,
+      lastLoginIp: null,
+      approvedAt: "2026-03-28T01:00:00.000Z",
+      preferences: {
+        layoutDensity: "COMPACT",
+        defaultPageSize: 50,
+      },
+    });
+
+    const response = await request(app)
+      .patch("/auth/preferences")
+      .set(csrfHeaders)
+      .set("X-User-ID", "9")
+      .set("X-User-Roles", "CHAIR")
+      .send({
+        layoutDensity: "COMPACT",
+        defaultPageSize: 50,
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.ok).toBe(true);
+    expect(response.body.user.preferences).toEqual({
+      layoutDensity: "COMPACT",
+      defaultPageSize: 50,
+    });
+    expect(authService.updateOwnPreferences).toHaveBeenCalledWith(
+      9,
+      {
+        layoutDensity: "COMPACT",
+        defaultPageSize: 50,
       },
       expect.objectContaining({ ipAddress: expect.any(String) })
     );

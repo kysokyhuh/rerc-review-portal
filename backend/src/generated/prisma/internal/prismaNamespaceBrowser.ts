@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  UserPreference: 'UserPreference',
   ImportBatch: 'ImportBatch',
   AuthSession: 'AuthSession',
   AuditLog: 'AuditLog',
@@ -126,6 +127,17 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const UserPreferenceScalarFieldEnum = {
+  userId: 'userId',
+  layoutDensity: 'layoutDensity',
+  defaultPageSize: 'defaultPageSize',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserPreferenceScalarFieldEnum = (typeof UserPreferenceScalarFieldEnum)[keyof typeof UserPreferenceScalarFieldEnum]
 
 
 export const ImportBatchScalarFieldEnum = {

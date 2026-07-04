@@ -15,6 +15,7 @@ import {
   changePasswordSchema,
   loginSchema,
   signupSchema,
+  updatePreferencesSchema,
   updateProfileSchema,
 } from "../schemas/auth";
 import {
@@ -25,6 +26,7 @@ import {
   logoutSession,
   refreshSession,
   signup,
+  updateOwnPreferences,
   updateOwnProfile,
 } from "../services/auth/authService";
 import {
@@ -228,6 +230,30 @@ router.patch(
   async (req, res, next) => {
     try {
       const user = await updateOwnProfile(
+        req.user!.id,
+        req.body,
+        getRequestContext(req)
+      );
+      return res.json({
+        ok: true,
+        user,
+      });
+    } catch (error) {
+      if (error instanceof AuthError) {
+        return sendAuthError(res, error);
+      }
+      return next(error);
+    }
+  }
+);
+
+router.patch(
+  "/auth/preferences",
+  requireAuth,
+  validate(updatePreferencesSchema),
+  async (req, res, next) => {
+    try {
+      const user = await updateOwnPreferences(
         req.user!.id,
         req.body,
         getRequestContext(req)

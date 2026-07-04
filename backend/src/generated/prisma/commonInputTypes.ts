@@ -219,6 +219,23 @@ export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedDateTimeFilter<$PrismaModel>
 }
 
+export type EnumLayoutDensityFilter<$PrismaModel = never> = {
+  equals?: $Enums.LayoutDensity | Prisma.EnumLayoutDensityFieldRefInput<$PrismaModel>
+  in?: $Enums.LayoutDensity[] | Prisma.ListEnumLayoutDensityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LayoutDensity[] | Prisma.ListEnumLayoutDensityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLayoutDensityFilter<$PrismaModel> | $Enums.LayoutDensity
+}
+
+export type EnumLayoutDensityWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LayoutDensity | Prisma.EnumLayoutDensityFieldRefInput<$PrismaModel>
+  in?: $Enums.LayoutDensity[] | Prisma.ListEnumLayoutDensityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LayoutDensity[] | Prisma.ListEnumLayoutDensityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLayoutDensityWithAggregatesFilter<$PrismaModel> | $Enums.LayoutDensity
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLayoutDensityFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLayoutDensityFilter<$PrismaModel>
+}
+
 export type EnumImportModeFilter<$PrismaModel = never> = {
   equals?: $Enums.ImportMode | Prisma.EnumImportModeFieldRefInput<$PrismaModel>
   in?: $Enums.ImportMode[] | Prisma.ListEnumImportModeFieldRefInput<$PrismaModel>
@@ -1026,6 +1043,23 @@ export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedDateTimeFilter<$PrismaModel>
   _max?: Prisma.NestedDateTimeFilter<$PrismaModel>
+}
+
+export type NestedEnumLayoutDensityFilter<$PrismaModel = never> = {
+  equals?: $Enums.LayoutDensity | Prisma.EnumLayoutDensityFieldRefInput<$PrismaModel>
+  in?: $Enums.LayoutDensity[] | Prisma.ListEnumLayoutDensityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LayoutDensity[] | Prisma.ListEnumLayoutDensityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLayoutDensityFilter<$PrismaModel> | $Enums.LayoutDensity
+}
+
+export type NestedEnumLayoutDensityWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LayoutDensity | Prisma.EnumLayoutDensityFieldRefInput<$PrismaModel>
+  in?: $Enums.LayoutDensity[] | Prisma.ListEnumLayoutDensityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LayoutDensity[] | Prisma.ListEnumLayoutDensityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLayoutDensityWithAggregatesFilter<$PrismaModel> | $Enums.LayoutDensity
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLayoutDensityFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLayoutDensityFilter<$PrismaModel>
 }
 
 export type NestedEnumImportModeFilter<$PrismaModel = never> = {

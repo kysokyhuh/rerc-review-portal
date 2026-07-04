@@ -33,3 +33,13 @@ export const updateProfileSchema = z.object({
     message: "Provide at least one field to update.",
   }
 );
+
+export const updatePreferencesSchema = z.object({
+  layoutDensity: z.enum(["COMFORTABLE", "COMPACT"]).optional(),
+  defaultPageSize: z.union([z.literal(10), z.literal(25), z.literal(50)]).optional(),
+}).strict().refine(
+  (value) => value.layoutDensity !== undefined || value.defaultPageSize !== undefined,
+  {
+    message: "Provide at least one preference to update.",
+  }
+);

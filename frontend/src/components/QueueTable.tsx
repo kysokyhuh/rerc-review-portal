@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { DecoratedQueueItem } from "@/services/api";
 import { formatDateDisplay } from "@/utils/dateUtils";
 import { SLAStatusChip } from "./SLAStatusChip";
 import { EmptyState } from "./EmptyState";
+import { useAuth } from "@/contexts/AuthContext";
 
 const EMPTY_SELECTED_IDS = new Set<number>();
 
@@ -54,9 +55,11 @@ export const QueueTable: React.FC<QueueTableProps> = ({
   showStatusFilter = false,
   statusOptions = [],
 }) => {
+  const { user } = useAuth();
+  const preferredPageSize = user?.preferences?.defaultPageSize ?? 10;
   const [sortKey, setSortKey] = useState<SortKey>("slaDueDate");
   const [direction, setDirection] = useState<"asc" | "desc">("asc");
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState<number>(preferredPageSize);
   const [pageState, setPageState] = useState<{ scope: string; value: number }>({
     scope: "",
     value: 1,
@@ -71,6 +74,10 @@ export const QueueTable: React.FC<QueueTableProps> = ({
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const location = useLocation();
+
+  useEffect(() => {
+    setPageSize(preferredPageSize);
+  }, [preferredPageSize]);
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const viewScope = useMemo(
@@ -306,7 +313,7 @@ export const QueueTable: React.FC<QueueTableProps> = ({
               onChange={(e) => setPageSize(Number(e.target.value))}
               style={{ marginLeft: 6 }}
             >
-              {[10, 20, 50].map((size) => (
+              {[10, 25, 50].map((size) => (
                 <option key={size} value={size}>
                   {size}
                 </option>

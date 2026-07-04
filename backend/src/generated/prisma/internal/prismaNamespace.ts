@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  UserPreference: 'UserPreference',
   ImportBatch: 'ImportBatch',
   AuthSession: 'AuthSession',
   AuditLog: 'AuditLog',
@@ -433,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "importBatch" | "authSession" | "auditLog" | "committee" | "panel" | "committeeMember" | "project" | "protocolProfile" | "protocolMilestone" | "academicTerm" | "proponent" | "projectProponent" | "projectMember" | "projectChangeLog" | "projectSnapshot" | "submission" | "submissionChangeLog" | "classification" | "classificationDecision" | "classificationVote" | "submissionStatusHistory" | "submissionReminderLog" | "projectStatusHistory" | "review" | "reviewAssignment" | "submissionDocument" | "submissionDecision" | "holiday" | "letterDraft" | "contractPeriod" | "panelMember" | "configSLA" | "workflowEvent"
+    modelProps: "user" | "userPreference" | "importBatch" | "authSession" | "auditLog" | "committee" | "panel" | "committeeMember" | "project" | "protocolProfile" | "protocolMilestone" | "academicTerm" | "proponent" | "projectProponent" | "projectMember" | "projectChangeLog" | "projectSnapshot" | "submission" | "submissionChangeLog" | "classification" | "classificationDecision" | "classificationVote" | "submissionStatusHistory" | "submissionReminderLog" | "projectStatusHistory" | "review" | "reviewAssignment" | "submissionDocument" | "submissionDecision" | "holiday" | "letterDraft" | "contractPeriod" | "panelMember" | "configSLA" | "workflowEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -508,6 +509,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    UserPreference: {
+      payload: Prisma.$UserPreferencePayload<ExtArgs>
+      fields: Prisma.UserPreferenceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UserPreferenceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UserPreferenceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>
+        }
+        findFirst: {
+          args: Prisma.UserPreferenceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UserPreferenceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>
+        }
+        findMany: {
+          args: Prisma.UserPreferenceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>[]
+        }
+        create: {
+          args: Prisma.UserPreferenceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>
+        }
+        createMany: {
+          args: Prisma.UserPreferenceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UserPreferenceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>[]
+        }
+        delete: {
+          args: Prisma.UserPreferenceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>
+        }
+        update: {
+          args: Prisma.UserPreferenceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>
+        }
+        deleteMany: {
+          args: Prisma.UserPreferenceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UserPreferenceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UserPreferenceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>[]
+        }
+        upsert: {
+          args: Prisma.UserPreferenceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPreferencePayload>
+        }
+        aggregate: {
+          args: Prisma.UserPreferenceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserPreference>
+        }
+        groupBy: {
+          args: Prisma.UserPreferenceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserPreferenceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UserPreferenceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserPreferenceCountAggregateOutputType> | number
         }
       }
     }
@@ -3017,6 +3092,17 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const UserPreferenceScalarFieldEnum = {
+  userId: 'userId',
+  layoutDensity: 'layoutDensity',
+  defaultPageSize: 'defaultPageSize',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserPreferenceScalarFieldEnum = (typeof UserPreferenceScalarFieldEnum)[keyof typeof UserPreferenceScalarFieldEnum]
+
+
 export const ImportBatchScalarFieldEnum = {
   id: 'id',
   mode: 'mode',
@@ -3722,6 +3808,20 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
+ * Reference to a field of type 'LayoutDensity'
+ */
+export type EnumLayoutDensityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LayoutDensity'>
+    
+
+
+/**
+ * Reference to a field of type 'LayoutDensity[]'
+ */
+export type ListEnumLayoutDensityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LayoutDensity[]'>
+    
+
+
+/**
  * Reference to a field of type 'ImportMode'
  */
 export type EnumImportModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ImportMode'>
@@ -4208,6 +4308,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  userPreference?: Prisma.UserPreferenceOmit
   importBatch?: Prisma.ImportBatchOmit
   authSession?: Prisma.AuthSessionOmit
   auditLog?: Prisma.AuditLogOmit

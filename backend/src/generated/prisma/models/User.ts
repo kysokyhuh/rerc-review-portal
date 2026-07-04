@@ -328,6 +328,7 @@ export type UserWhereInput = {
   isActive?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  preferences?: Prisma.XOR<Prisma.UserPreferenceNullableScalarRelationFilter, Prisma.UserPreferenceWhereInput> | null
   committeeMemberships?: Prisma.CommitteeMemberListRelationFilter
   projectsCreated?: Prisma.ProjectListRelationFilter
   projectsDeleted?: Prisma.ProjectListRelationFilter
@@ -375,6 +376,7 @@ export type UserOrderByWithRelationInput = {
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  preferences?: Prisma.UserPreferenceOrderByWithRelationInput
   committeeMemberships?: Prisma.CommitteeMemberOrderByRelationAggregateInput
   projectsCreated?: Prisma.ProjectOrderByRelationAggregateInput
   projectsDeleted?: Prisma.ProjectOrderByRelationAggregateInput
@@ -425,6 +427,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   isActive?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  preferences?: Prisma.XOR<Prisma.UserPreferenceNullableScalarRelationFilter, Prisma.UserPreferenceWhereInput> | null
   committeeMemberships?: Prisma.CommitteeMemberListRelationFilter
   projectsCreated?: Prisma.ProjectListRelationFilter
   projectsDeleted?: Prisma.ProjectListRelationFilter
@@ -521,6 +524,7 @@ export type UserCreateInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -568,6 +572,7 @@ export type UserUncheckedCreateInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -610,6 +615,7 @@ export type UserUpdateInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -657,6 +663,7 @@ export type UserUncheckedUpdateInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -1029,6 +1036,20 @@ export type UserUncheckedUpdateManyWithoutRejectedByNestedInput = {
   deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
 }
 
+export type UserCreateNestedOneWithoutPreferencesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPreferencesInput, Prisma.UserUncheckedCreateWithoutPreferencesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPreferencesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPreferencesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPreferencesInput, Prisma.UserUncheckedCreateWithoutPreferencesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPreferencesInput
+  upsert?: Prisma.UserUpsertWithoutPreferencesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPreferencesInput, Prisma.UserUpdateWithoutPreferencesInput>, Prisma.UserUncheckedUpdateWithoutPreferencesInput>
+}
+
 export type UserCreateNestedOneWithoutImportBatchesUploadedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutImportBatchesUploadedInput, Prisma.UserUncheckedCreateWithoutImportBatchesUploadedInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutImportBatchesUploadedInput
@@ -1372,6 +1393,7 @@ export type UserCreateWithoutApprovedUsersInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -1418,6 +1440,7 @@ export type UserUncheckedCreateWithoutApprovedUsersInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -1464,6 +1487,7 @@ export type UserCreateWithoutApprovedByInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -1509,6 +1533,7 @@ export type UserUncheckedCreateWithoutApprovedByInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -1561,6 +1586,7 @@ export type UserCreateWithoutRejectedUsersInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -1607,6 +1633,7 @@ export type UserUncheckedCreateWithoutRejectedUsersInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -1653,6 +1680,7 @@ export type UserCreateWithoutRejectedByInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -1698,6 +1726,7 @@ export type UserUncheckedCreateWithoutRejectedByInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -1761,6 +1790,7 @@ export type UserUpdateWithoutApprovedUsersInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -1807,6 +1837,7 @@ export type UserUncheckedUpdateWithoutApprovedUsersInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -1900,6 +1931,7 @@ export type UserUpdateWithoutRejectedUsersInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -1946,6 +1978,7 @@ export type UserUncheckedUpdateWithoutRejectedUsersInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -1986,6 +2019,200 @@ export type UserUpdateManyWithWhereWithoutRejectedByInput = {
   data: Prisma.XOR<Prisma.UserUpdateManyMutationInput, Prisma.UserUncheckedUpdateManyWithoutRejectedByInput>
 }
 
+export type UserCreateWithoutPreferencesInput = {
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  forcePasswordChange?: boolean
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
+  approvedAt?: Date | string | null
+  rejectedAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
+  projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
+  submissionsCreated?: Prisma.SubmissionCreateNestedManyWithoutCreatedByInput
+  importBatchesUploaded?: Prisma.ImportBatchCreateNestedManyWithoutUploadedByInput
+  classificationsMade?: Prisma.ClassificationCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftCreateNestedManyWithoutApprovedByInput
+  projectSnapshotsChanged?: Prisma.ProjectSnapshotCreateNestedManyWithoutChangedByInput
+  classificationDecisionsRecorded?: Prisma.ClassificationDecisionCreateNestedManyWithoutRecordedByInput
+  reviewAssignments?: Prisma.ReviewAssignmentCreateNestedManyWithoutReviewerInput
+  projectStatusHistories?: Prisma.ProjectStatusHistoryCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogCreateNestedManyWithoutActorInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
+  approvedBy?: Prisma.UserCreateNestedOneWithoutApprovedUsersInput
+  approvedUsers?: Prisma.UserCreateNestedManyWithoutApprovedByInput
+  rejectedBy?: Prisma.UserCreateNestedOneWithoutRejectedUsersInput
+  rejectedUsers?: Prisma.UserCreateNestedManyWithoutRejectedByInput
+}
+
+export type UserUncheckedCreateWithoutPreferencesInput = {
+  id?: number
+  email: string
+  fullName: string
+  passwordHash?: string | null
+  forcePasswordChange?: boolean
+  status?: $Enums.UserStatus
+  roles?: Prisma.UserCreaterolesInput | $Enums.RoleType[]
+  statusNote?: string | null
+  approvedById?: number | null
+  approvedAt?: Date | string | null
+  rejectedById?: number | null
+  rejectedAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  lastLoginIp?: string | null
+  isCommonReviewer?: boolean
+  reviewerExpertise?: Prisma.UserCreatereviewerExpertiseInput | string[]
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
+  projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
+  projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
+  submissionsCreated?: Prisma.SubmissionUncheckedCreateNestedManyWithoutCreatedByInput
+  importBatchesUploaded?: Prisma.ImportBatchUncheckedCreateNestedManyWithoutUploadedByInput
+  classificationsMade?: Prisma.ClassificationUncheckedCreateNestedManyWithoutClassifiedByInput
+  reviewsAssigned?: Prisma.ReviewUncheckedCreateNestedManyWithoutReviewerInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  panelMemberships?: Prisma.PanelMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedCreateNestedManyWithoutStaffInChargeInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedCreateNestedManyWithoutChangedByInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutGeneratedByInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedCreateNestedManyWithoutApprovedByInput
+  projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedCreateNestedManyWithoutChangedByInput
+  classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedCreateNestedManyWithoutRecordedByInput
+  reviewAssignments?: Prisma.ReviewAssignmentUncheckedCreateNestedManyWithoutReviewerInput
+  projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedCreateNestedManyWithoutChangedByInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedCreateNestedManyWithoutActorInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
+  approvedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutApprovedByInput
+  rejectedUsers?: Prisma.UserUncheckedCreateNestedManyWithoutRejectedByInput
+}
+
+export type UserCreateOrConnectWithoutPreferencesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPreferencesInput, Prisma.UserUncheckedCreateWithoutPreferencesInput>
+}
+
+export type UserUpsertWithoutPreferencesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPreferencesInput, Prisma.UserUncheckedUpdateWithoutPreferencesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPreferencesInput, Prisma.UserUncheckedCreateWithoutPreferencesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPreferencesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPreferencesInput, Prisma.UserUncheckedUpdateWithoutPreferencesInput>
+}
+
+export type UserUpdateWithoutPreferencesInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forcePasswordChange?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
+  projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUpdateManyWithoutCreatedByNestedInput
+  importBatchesUploaded?: Prisma.ImportBatchUpdateManyWithoutUploadedByNestedInput
+  classificationsMade?: Prisma.ClassificationUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUpdateManyWithoutChangedByNestedInput
+  panelMemberships?: Prisma.PanelMemberUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUpdateManyWithoutApprovedByNestedInput
+  projectSnapshotsChanged?: Prisma.ProjectSnapshotUpdateManyWithoutChangedByNestedInput
+  classificationDecisionsRecorded?: Prisma.ClassificationDecisionUpdateManyWithoutRecordedByNestedInput
+  reviewAssignments?: Prisma.ReviewAssignmentUpdateManyWithoutReviewerNestedInput
+  projectStatusHistories?: Prisma.ProjectStatusHistoryUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUpdateManyWithoutActorNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
+  approvedBy?: Prisma.UserUpdateOneWithoutApprovedUsersNestedInput
+  approvedUsers?: Prisma.UserUpdateManyWithoutApprovedByNestedInput
+  rejectedBy?: Prisma.UserUpdateOneWithoutRejectedUsersNestedInput
+  rejectedUsers?: Prisma.UserUpdateManyWithoutRejectedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPreferencesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forcePasswordChange?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  roles?: Prisma.UserUpdaterolesInput | $Enums.RoleType[]
+  statusNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  rejectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isCommonReviewer?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reviewerExpertise?: Prisma.UserUpdatereviewerExpertiseInput | string[]
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
+  projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
+  projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
+  submissionsCreated?: Prisma.SubmissionUncheckedUpdateManyWithoutCreatedByNestedInput
+  importBatchesUploaded?: Prisma.ImportBatchUncheckedUpdateManyWithoutUploadedByNestedInput
+  classificationsMade?: Prisma.ClassificationUncheckedUpdateManyWithoutClassifiedByNestedInput
+  reviewsAssigned?: Prisma.ReviewUncheckedUpdateManyWithoutReviewerNestedInput
+  statusChanges?: Prisma.SubmissionStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  panelMemberships?: Prisma.PanelMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedSubmissions?: Prisma.SubmissionUncheckedUpdateManyWithoutStaffInChargeNestedInput
+  projectChanges?: Prisma.ProjectChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionChanges?: Prisma.SubmissionChangeLogUncheckedUpdateManyWithoutChangedByNestedInput
+  letterDraftsGenerated?: Prisma.LetterDraftUncheckedUpdateManyWithoutGeneratedByNestedInput
+  letterDraftsApproved?: Prisma.LetterDraftUncheckedUpdateManyWithoutApprovedByNestedInput
+  projectSnapshotsChanged?: Prisma.ProjectSnapshotUncheckedUpdateManyWithoutChangedByNestedInput
+  classificationDecisionsRecorded?: Prisma.ClassificationDecisionUncheckedUpdateManyWithoutRecordedByNestedInput
+  reviewAssignments?: Prisma.ReviewAssignmentUncheckedUpdateManyWithoutReviewerNestedInput
+  projectStatusHistories?: Prisma.ProjectStatusHistoryUncheckedUpdateManyWithoutChangedByNestedInput
+  submissionReminderLogsCreated?: Prisma.SubmissionReminderLogUncheckedUpdateManyWithoutActorNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
+  approvedUsers?: Prisma.UserUncheckedUpdateManyWithoutApprovedByNestedInput
+  rejectedUsers?: Prisma.UserUncheckedUpdateManyWithoutRejectedByNestedInput
+}
+
 export type UserCreateWithoutImportBatchesUploadedInput = {
   email: string
   fullName: string
@@ -2003,6 +2230,7 @@ export type UserCreateWithoutImportBatchesUploadedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -2049,6 +2277,7 @@ export type UserUncheckedCreateWithoutImportBatchesUploadedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -2106,6 +2335,7 @@ export type UserUpdateWithoutImportBatchesUploadedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -2152,6 +2382,7 @@ export type UserUncheckedUpdateWithoutImportBatchesUploadedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -2193,6 +2424,7 @@ export type UserCreateWithoutAuthSessionsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -2239,6 +2471,7 @@ export type UserUncheckedCreateWithoutAuthSessionsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -2296,6 +2529,7 @@ export type UserUpdateWithoutAuthSessionsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -2342,6 +2576,7 @@ export type UserUncheckedUpdateWithoutAuthSessionsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -2383,6 +2618,7 @@ export type UserCreateWithoutAuditLogsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -2429,6 +2665,7 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -2486,6 +2723,7 @@ export type UserUpdateWithoutAuditLogsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -2532,6 +2770,7 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -2573,6 +2812,7 @@ export type UserCreateWithoutCommitteeMembershipsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
   submissionsCreated?: Prisma.SubmissionCreateNestedManyWithoutCreatedByInput
@@ -2619,6 +2859,7 @@ export type UserUncheckedCreateWithoutCommitteeMembershipsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
   submissionsCreated?: Prisma.SubmissionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2676,6 +2917,7 @@ export type UserUpdateWithoutCommitteeMembershipsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
   submissionsCreated?: Prisma.SubmissionUpdateManyWithoutCreatedByNestedInput
@@ -2722,6 +2964,7 @@ export type UserUncheckedUpdateWithoutCommitteeMembershipsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
   submissionsCreated?: Prisma.SubmissionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2763,6 +3006,7 @@ export type UserCreateWithoutProjectsDeletedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   submissionsCreated?: Prisma.SubmissionCreateNestedManyWithoutCreatedByInput
@@ -2809,6 +3053,7 @@ export type UserUncheckedCreateWithoutProjectsDeletedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   submissionsCreated?: Prisma.SubmissionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2855,6 +3100,7 @@ export type UserCreateWithoutProjectsCreatedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
   submissionsCreated?: Prisma.SubmissionCreateNestedManyWithoutCreatedByInput
@@ -2901,6 +3147,7 @@ export type UserUncheckedCreateWithoutProjectsCreatedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
   submissionsCreated?: Prisma.SubmissionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2958,6 +3205,7 @@ export type UserUpdateWithoutProjectsDeletedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   submissionsCreated?: Prisma.SubmissionUpdateManyWithoutCreatedByNestedInput
@@ -3004,6 +3252,7 @@ export type UserUncheckedUpdateWithoutProjectsDeletedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   submissionsCreated?: Prisma.SubmissionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3056,6 +3305,7 @@ export type UserUpdateWithoutProjectsCreatedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
   submissionsCreated?: Prisma.SubmissionUpdateManyWithoutCreatedByNestedInput
@@ -3102,6 +3352,7 @@ export type UserUncheckedUpdateWithoutProjectsCreatedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
   submissionsCreated?: Prisma.SubmissionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3143,6 +3394,7 @@ export type UserCreateWithoutProjectChangesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -3189,6 +3441,7 @@ export type UserUncheckedCreateWithoutProjectChangesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -3246,6 +3499,7 @@ export type UserUpdateWithoutProjectChangesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -3292,6 +3546,7 @@ export type UserUncheckedUpdateWithoutProjectChangesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -3333,6 +3588,7 @@ export type UserCreateWithoutProjectSnapshotsChangedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -3379,6 +3635,7 @@ export type UserUncheckedCreateWithoutProjectSnapshotsChangedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -3436,6 +3693,7 @@ export type UserUpdateWithoutProjectSnapshotsChangedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -3482,6 +3740,7 @@ export type UserUncheckedUpdateWithoutProjectSnapshotsChangedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -3523,6 +3782,7 @@ export type UserCreateWithoutSubmissionsCreatedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -3569,6 +3829,7 @@ export type UserUncheckedCreateWithoutSubmissionsCreatedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -3615,6 +3876,7 @@ export type UserCreateWithoutAssignedSubmissionsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -3661,6 +3923,7 @@ export type UserUncheckedCreateWithoutAssignedSubmissionsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -3718,6 +3981,7 @@ export type UserUpdateWithoutSubmissionsCreatedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -3764,6 +4028,7 @@ export type UserUncheckedUpdateWithoutSubmissionsCreatedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -3816,6 +4081,7 @@ export type UserUpdateWithoutAssignedSubmissionsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -3862,6 +4128,7 @@ export type UserUncheckedUpdateWithoutAssignedSubmissionsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -3903,6 +4170,7 @@ export type UserCreateWithoutSubmissionChangesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -3949,6 +4217,7 @@ export type UserUncheckedCreateWithoutSubmissionChangesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -4006,6 +4275,7 @@ export type UserUpdateWithoutSubmissionChangesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -4052,6 +4322,7 @@ export type UserUncheckedUpdateWithoutSubmissionChangesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -4093,6 +4364,7 @@ export type UserCreateWithoutClassificationsMadeInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -4139,6 +4411,7 @@ export type UserUncheckedCreateWithoutClassificationsMadeInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -4196,6 +4469,7 @@ export type UserUpdateWithoutClassificationsMadeInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -4242,6 +4516,7 @@ export type UserUncheckedUpdateWithoutClassificationsMadeInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -4283,6 +4558,7 @@ export type UserCreateWithoutClassificationDecisionsRecordedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -4329,6 +4605,7 @@ export type UserUncheckedCreateWithoutClassificationDecisionsRecordedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -4386,6 +4663,7 @@ export type UserUpdateWithoutClassificationDecisionsRecordedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -4432,6 +4710,7 @@ export type UserUncheckedUpdateWithoutClassificationDecisionsRecordedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -4473,6 +4752,7 @@ export type UserCreateWithoutStatusChangesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -4519,6 +4799,7 @@ export type UserUncheckedCreateWithoutStatusChangesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -4576,6 +4857,7 @@ export type UserUpdateWithoutStatusChangesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -4622,6 +4904,7 @@ export type UserUncheckedUpdateWithoutStatusChangesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -4663,6 +4946,7 @@ export type UserCreateWithoutSubmissionReminderLogsCreatedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -4709,6 +4993,7 @@ export type UserUncheckedCreateWithoutSubmissionReminderLogsCreatedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -4766,6 +5051,7 @@ export type UserUpdateWithoutSubmissionReminderLogsCreatedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -4812,6 +5098,7 @@ export type UserUncheckedUpdateWithoutSubmissionReminderLogsCreatedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -4853,6 +5140,7 @@ export type UserCreateWithoutProjectStatusHistoriesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -4899,6 +5187,7 @@ export type UserUncheckedCreateWithoutProjectStatusHistoriesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -4956,6 +5245,7 @@ export type UserUpdateWithoutProjectStatusHistoriesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -5002,6 +5292,7 @@ export type UserUncheckedUpdateWithoutProjectStatusHistoriesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -5043,6 +5334,7 @@ export type UserCreateWithoutReviewsAssignedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -5089,6 +5381,7 @@ export type UserUncheckedCreateWithoutReviewsAssignedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -5146,6 +5439,7 @@ export type UserUpdateWithoutReviewsAssignedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -5192,6 +5486,7 @@ export type UserUncheckedUpdateWithoutReviewsAssignedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -5233,6 +5528,7 @@ export type UserCreateWithoutReviewAssignmentsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -5279,6 +5575,7 @@ export type UserUncheckedCreateWithoutReviewAssignmentsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -5336,6 +5633,7 @@ export type UserUpdateWithoutReviewAssignmentsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -5382,6 +5680,7 @@ export type UserUncheckedUpdateWithoutReviewAssignmentsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -5423,6 +5722,7 @@ export type UserCreateWithoutLetterDraftsGeneratedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -5469,6 +5769,7 @@ export type UserUncheckedCreateWithoutLetterDraftsGeneratedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -5515,6 +5816,7 @@ export type UserCreateWithoutLetterDraftsApprovedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -5561,6 +5863,7 @@ export type UserUncheckedCreateWithoutLetterDraftsApprovedInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -5618,6 +5921,7 @@ export type UserUpdateWithoutLetterDraftsGeneratedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -5664,6 +5968,7 @@ export type UserUncheckedUpdateWithoutLetterDraftsGeneratedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -5716,6 +6021,7 @@ export type UserUpdateWithoutLetterDraftsApprovedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -5762,6 +6068,7 @@ export type UserUncheckedUpdateWithoutLetterDraftsApprovedInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -5803,6 +6110,7 @@ export type UserCreateWithoutPanelMembershipsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectCreateNestedManyWithoutDeletedByInput
@@ -5849,6 +6157,7 @@ export type UserUncheckedCreateWithoutPanelMembershipsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  preferences?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedCreateNestedManyWithoutUserInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatedByInput
   projectsDeleted?: Prisma.ProjectUncheckedCreateNestedManyWithoutDeletedByInput
@@ -5906,6 +6215,7 @@ export type UserUpdateWithoutPanelMembershipsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -5952,6 +6262,7 @@ export type UserUncheckedUpdateWithoutPanelMembershipsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -6035,6 +6346,7 @@ export type UserUpdateWithoutApprovedByInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -6080,6 +6392,7 @@ export type UserUncheckedUpdateWithoutApprovedByInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -6143,6 +6456,7 @@ export type UserUpdateWithoutRejectedByInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUpdateManyWithoutDeletedByNestedInput
@@ -6188,6 +6502,7 @@ export type UserUncheckedUpdateWithoutRejectedByInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferences?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
   committeeMemberships?: Prisma.CommitteeMemberUncheckedUpdateManyWithoutUserNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatedByNestedInput
   projectsDeleted?: Prisma.ProjectUncheckedUpdateManyWithoutDeletedByNestedInput
@@ -6483,6 +6798,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  preferences?: boolean | Prisma.User$preferencesArgs<ExtArgs>
   committeeMemberships?: boolean | Prisma.User$committeeMembershipsArgs<ExtArgs>
   projectsCreated?: boolean | Prisma.User$projectsCreatedArgs<ExtArgs>
   projectsDeleted?: boolean | Prisma.User$projectsDeletedArgs<ExtArgs>
@@ -6583,6 +6899,7 @@ export type UserSelectScalar = {
 
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "fullName" | "passwordHash" | "forcePasswordChange" | "status" | "roles" | "statusNote" | "approvedById" | "approvedAt" | "rejectedById" | "rejectedAt" | "lastLoginAt" | "lastLoginIp" | "isCommonReviewer" | "reviewerExpertise" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  preferences?: boolean | Prisma.User$preferencesArgs<ExtArgs>
   committeeMemberships?: boolean | Prisma.User$committeeMembershipsArgs<ExtArgs>
   projectsCreated?: boolean | Prisma.User$projectsCreatedArgs<ExtArgs>
   projectsDeleted?: boolean | Prisma.User$projectsDeletedArgs<ExtArgs>
@@ -6622,6 +6939,7 @@ export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
   objects: {
+    preferences: Prisma.$UserPreferencePayload<ExtArgs> | null
     committeeMemberships: Prisma.$CommitteeMemberPayload<ExtArgs>[]
     projectsCreated: Prisma.$ProjectPayload<ExtArgs>[]
     projectsDeleted: Prisma.$ProjectPayload<ExtArgs>[]
@@ -7062,6 +7380,7 @@ readonly fields: UserFieldRefs;
  */
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  preferences<T extends Prisma.User$preferencesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$preferencesArgs<ExtArgs>>): Prisma.Prisma__UserPreferenceClient<runtime.Types.Result.GetResult<Prisma.$UserPreferencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   committeeMemberships<T extends Prisma.User$committeeMembershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$committeeMembershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CommitteeMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projectsCreated<T extends Prisma.User$projectsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projectsDeleted<T extends Prisma.User$projectsDeletedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectsDeletedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -7528,6 +7847,25 @@ export type UserDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many Users to delete.
    */
   limit?: number
+}
+
+/**
+ * User.preferences
+ */
+export type User$preferencesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserPreference
+   */
+  select?: Prisma.UserPreferenceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserPreference
+   */
+  omit?: Prisma.UserPreferenceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserPreferenceInclude<ExtArgs> | null
+  where?: Prisma.UserPreferenceWhereInput
 }
 
 /**

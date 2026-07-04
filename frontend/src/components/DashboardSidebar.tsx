@@ -299,11 +299,11 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
             <span>Account</span>
             <span className="sidebar-user-role-badge">{roleLabel}</span>
           </div>
-          <NavLink to="/account/profile" className="sidebar-account-link">
+          <NavLink to="/settings/account" className="sidebar-account-link">
             <div className="sidebar-avatar">{user?.fullName?.[0]?.toUpperCase() ?? "U"}</div>
             <div className="sidebar-user-info">
               <div className="sidebar-user-name">{displayName}</div>
-              <div className="sidebar-user-meta">{user?.email || "Portal session"}</div>
+              <div className="sidebar-user-meta">Settings</div>
             </div>
             <svg className="sidebar-account-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <path d="M9 18l6-6-6-6" />

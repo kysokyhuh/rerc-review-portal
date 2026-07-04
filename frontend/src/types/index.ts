@@ -37,12 +37,25 @@ export interface AuthProfile {
   lastLoginAt?: string | null;
   lastLoginIp?: string | null;
   approvedAt?: string | null;
+  preferences?: UserPreferences;
 }
 
 export interface UpdateProfilePayload {
   fullName?: string;
   email?: string;
   currentPassword?: string;
+}
+
+export type LayoutDensity = "COMFORTABLE" | "COMPACT";
+
+export interface UserPreferences {
+  layoutDensity: LayoutDensity;
+  defaultPageSize: 10 | 25 | 50;
+}
+
+export interface UpdatePreferencesPayload {
+  layoutDensity?: LayoutDensity;
+  defaultPageSize?: 10 | 25 | 50;
 }
 
 export interface ChangePasswordPayload {

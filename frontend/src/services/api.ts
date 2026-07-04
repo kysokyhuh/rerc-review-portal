@@ -7,6 +7,7 @@ import axios, {
 export type {
   AuthProfile,
   UpdateProfilePayload,
+  UpdatePreferencesPayload,
   ChangePasswordPayload,
   QueueType,
   SLAStatus,
@@ -70,6 +71,7 @@ export type {
 import type {
   AuthProfile,
   UpdateProfilePayload,
+  UpdatePreferencesPayload,
   ChangePasswordPayload,
   QueueItem,
   QueueType,
@@ -417,6 +419,13 @@ export async function updateMyProfile(
   payload: UpdateProfilePayload
 ): Promise<AuthProfile> {
   const response = await api.patch("/auth/profile", payload);
+  return response.data.user as AuthProfile;
+}
+
+export async function updateMyPreferences(
+  payload: UpdatePreferencesPayload
+): Promise<AuthProfile> {
+  const response = await api.patch("/auth/preferences", payload);
   return response.data.user as AuthProfile;
 }
 

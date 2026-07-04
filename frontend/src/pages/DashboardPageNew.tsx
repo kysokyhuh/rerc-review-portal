@@ -61,6 +61,7 @@ export const DashboardPage: React.FC = () => {
     [user?.roles]
   );
   const assignedOnly = capabilities.hasAssignedOnlyAccess;
+  const preferredPageSize = user?.preferences?.defaultPageSize ?? PAGE_SIZE;
 
   // ── State ──────────────────────────────────────────────
   const [greeting] = useState(getGreeting());
@@ -97,7 +98,7 @@ export const DashboardPage: React.FC = () => {
   // ── Effects ────────────────────────────────────────────
   useEffect(() => { document.title = `${BRAND.name} Portal — Dashboard Overview`; }, []);
   useEffect(() => { if (queueFilter !== "overdue" && queueFilter !== "due-soon") setOverdueOwnerFilter("all"); }, [queueFilter]);
-  useEffect(() => { setCurrentPage(1); }, [queueFilter, searchTerm, overdueOwnerFilter]);
+  useEffect(() => { setCurrentPage(1); }, [queueFilter, searchTerm, overdueOwnerFilter, preferredPageSize]);
   useEffect(() => {
     if (
       assignedOnly &&
@@ -171,10 +172,10 @@ export const DashboardPage: React.FC = () => {
   );
 
   const totalFiltered = sortedItems.length;
-  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / preferredPageSize));
   const safePage = Math.min(currentPage, totalPages);
-  const startIdx = (safePage - 1) * PAGE_SIZE;
-  const endIdx = Math.min(startIdx + PAGE_SIZE, totalFiltered);
+  const startIdx = (safePage - 1) * preferredPageSize;
+  const endIdx = Math.min(startIdx + preferredPageSize, totalFiltered);
   const filteredItems = sortedItems.slice(startIdx, endIdx);
   const visibleItemIds = useMemo(() => filteredItems.map((i) => i.id), [filteredItems]);
   const allVisibleSelected = visibleItemIds.length > 0 && visibleItemIds.every((id) => selectedIds.has(id));

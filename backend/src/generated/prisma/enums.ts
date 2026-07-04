@@ -31,6 +31,14 @@ export const UserStatus = {
 export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
 
 
+export const LayoutDensity = {
+  COMFORTABLE: 'COMFORTABLE',
+  COMPACT: 'COMPACT'
+} as const
+
+export type LayoutDensity = (typeof LayoutDensity)[keyof typeof LayoutDensity]
+
+
 export const FundingType = {
   INTERNAL: 'INTERNAL',
   EXTERNAL: 'EXTERNAL',
