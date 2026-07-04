@@ -76,6 +76,84 @@ export const getReportSubmissionsHandler = async (req: Request, res: Response, n
   }
 };
 
+const csvHeaders = [
+  "submission_id",
+  "project_id",
+  "project_code",
+  "title",
+  "proponent",
+  "college",
+  "panel",
+  "department",
+  "proponent_category",
+  "review_type",
+  "status",
+  "received_date",
+] as const;
+
+const escapeCsvCell = (value: unknown) =>
+  `"${String(value ?? "").replace(/"/g, '""')}"`;
+
+const buildReportRecordsCsv = (
+  items: ReturnType<typeof buildSubmissionRecordsPayload>["items"]
+) =>
+  [
+    csvHeaders.join(","),
+    ...items.map((item) =>
+      [
+        item.submissionId,
+        item.projectId,
+        item.projectCode,
+        item.title,
+        item.proponent,
+        item.college,
+        item.panel,
+        item.department,
+        item.proponentCategory,
+        item.reviewType,
+        item.status,
+        item.receivedDate,
+      ]
+        .map(escapeCsvCell)
+        .join(",")
+    ),
+  ].join("\r\n");
+
+export const getReportSubmissionsCsvHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const filters = parseReportFilters(req.query as Record<string, unknown>);
+    const sort = String(req.query.sort ?? "receivedDate:desc");
+
+    const termWindows = await resolveReportWindows(filters);
+    const submissions = await fetchReportSubmissions(filters, termWindows);
+    const records = buildSubmissionRecordsPayload(
+      submissions,
+      1,
+      Math.max(submissions.length, 1),
+      sort
+    );
+    const csv = buildReportRecordsCsv(records.items);
+
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="annual_report_records_${new Date()
+        .toISOString()
+        .slice(0, 10)}.csv"`
+    );
+    return res.status(200).send(csv);
+  } catch (error: any) {
+    if (error instanceof Error) {
+      return res.status(400).json({ message: error.message });
+    }
+    next(error);
+  }
+};
+
 // Backward-compatible alias for existing tests/integrations
 export const getAcademicYearSummaryHandler = getAnnualSummaryHandler;
 
@@ -94,6 +172,10 @@ router.get(
 router.get(
   "/reports/submissions",
   getReportSubmissionsHandler
+);
+router.get(
+  "/reports/submissions.csv",
+  getReportSubmissionsCsvHandler
 );
 
 export default router;

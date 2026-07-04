@@ -19,6 +19,7 @@ import {
   type ReportsDraftFilters,
 } from "@/components/reports";
 import {
+  exportAnnualReportSubmissionsCsv,
   fetchAnnualReportSubmissions,
   fetchAnnualReportSummary,
   fetchCommitteePanels,
@@ -262,6 +263,7 @@ export default function ReportsPage() {
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportingCsv, setExportingCsv] = useState(false);
   const [selectedPdfPreset, setSelectedPdfPreset] = useState<ReportPdfPreset>("full");
   const [selectedPdfSections, setSelectedPdfSections] = useState<ReportPdfSection[]>(
     () => getReportPdfPresetConfig("full").sections
@@ -1036,6 +1038,43 @@ export default function ReportsPage() {
     }
   };
 
+  const onExportCsv = async () => {
+    if (!summary || exportingCsv) return;
+
+    try {
+      setExportingCsv(true);
+      const blob = await exportAnnualReportSubmissionsCsv({
+        periodMode: appliedFilters.periodMode,
+        ay: appliedFilters.ay,
+        term: appliedFilters.term as "ALL" | 1 | 2 | 3,
+        startDate: appliedFilters.startDate || undefined,
+        endDate: appliedFilters.endDate || undefined,
+        startYear: appliedFilters.startYear || undefined,
+        endYear: appliedFilters.endYear || undefined,
+        committee: appliedFilters.committee,
+        college: appliedFilters.college,
+        panel: appliedFilters.panel,
+        category: appliedFilters.category,
+        reviewType: appliedFilters.reviewType,
+        status: appliedFilters.status,
+        q: appliedFilters.q,
+        sort,
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `annual_report_records_${Date.now()}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, "Failed to export report CSV."));
+    } finally {
+      setExportingCsv(false);
+    }
+  };
+
   const onDrilldown = (filters: {
     college?: string;
     category?: "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
@@ -1097,6 +1136,14 @@ export default function ReportsPage() {
             <h2 className="reports-controls-title">Choose the reporting layer you need.</h2>
           </div>
           <div className="reports-controls-actions">
+            <button
+              type="button"
+              className="report-btn-secondary"
+              onClick={onExportCsv}
+              disabled={!summary || exportingCsv}
+            >
+              {exportingCsv ? "Exporting CSV..." : "Export CSV"}
+            </button>
             <button
               type="button"
               className="report-btn-primary"

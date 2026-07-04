@@ -1515,4 +1515,45 @@ export async function fetchAnnualReportSubmissions(params: {
   return response.data as AnnualReportSubmissionsResponse;
 }
 
+export async function exportAnnualReportSubmissionsCsv(params: {
+  periodMode?: "ACADEMIC" | "CUSTOM" | "CALENDAR";
+  ay: string;
+  term: "ALL" | 1 | 2 | 3;
+  startDate?: string;
+  endDate?: string;
+  startYear?: string;
+  endYear?: string;
+  committee: string;
+  college: string;
+  panel: string;
+  category: "ALL" | "UNDERGRAD" | "GRAD" | "FACULTY" | "NON_TEACHING";
+  reviewType?: "ALL" | "EXEMPT" | "EXPEDITED" | "FULL_BOARD" | "UNCLASSIFIED" | "WITHDRAWN";
+  status?: "ALL" | string;
+  q?: string;
+  sort: string;
+}) {
+  const search = new URLSearchParams({
+    periodMode: params.periodMode ?? "ACADEMIC",
+    ay: params.ay,
+    term: String(params.term),
+    committee: params.committee,
+    college: params.college,
+    panel: params.panel,
+    category: params.category,
+    sort: params.sort,
+  });
+  if (params.startDate) search.set("startDate", params.startDate);
+  if (params.endDate) search.set("endDate", params.endDate);
+  if (params.startYear) search.set("startYear", params.startYear);
+  if (params.endYear) search.set("endYear", params.endYear);
+  if (params.reviewType && params.reviewType !== "ALL") search.set("reviewType", params.reviewType);
+  if (params.status && params.status !== "ALL") search.set("status", params.status);
+  if (params.q) search.set("q", params.q);
+
+  const response = await api.get(`/reports/submissions.csv?${search.toString()}`, {
+    responseType: "blob",
+  });
+  return response.data as Blob;
+}
+
 export default api;
