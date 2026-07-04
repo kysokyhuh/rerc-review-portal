@@ -65,6 +65,7 @@ const SPA_ROUTE_PATTERNS = [
   /^\/imports\/classifications$/,
   /^\/reports$/,
   /^\/archives$/,
+  /^\/recently-deleted$/,
   /^\/submissions\/[^/]+$/,
 ];
 
