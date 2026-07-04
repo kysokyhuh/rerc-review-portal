@@ -179,9 +179,9 @@ const OWNER_ROLE_META: Record<
   { label: string; icon: string; reason: string }
 > = {
   PROJECT_LEADER_RESEARCHER_PROPONENT: {
-    label: "Researcher",
+    label: "Proponent",
     icon: "\u25CE",
-    reason: "Waiting on project leader/researcher/proponent action",
+    reason: "Waiting on the project leader or proponent",
   },
   REVIEWER_GROUP: {
     label: "Reviewer",
@@ -189,14 +189,14 @@ const OWNER_ROLE_META: Record<
     reason: "Waiting on reviewer or consultant action",
   },
   RESEARCH_ASSOCIATE_PROCESSING_STAFF: {
-    label: "Staff",
+    label: "RERC staff",
     icon: "\u25A3",
-    reason: "Waiting on staff processing/routing",
+    reason: "Waiting on intake, routing, or staff follow-up",
   },
   COMMITTEE_CHAIRPERSON_DESIGNATE: {
-    label: "Chairperson",
+    label: "Chair",
     icon: "\u2713",
-    reason: "Waiting on chairperson decision/finalization",
+    reason: "Waiting on Chair decision or finalization",
   },
   UNASSIGNED_PROCESS_GAP: {
     label: "Unassigned",

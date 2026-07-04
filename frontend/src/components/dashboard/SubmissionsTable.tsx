@@ -176,8 +176,13 @@ export function SubmissionsTable({
           <div className="panel-header">
             <div>
               <h3 className="panel-title">
-                {assignedOnly ? "My assigned protocols" : "Queue workspace"}
+                {assignedOnly ? "My assignments" : "Protocol queues"}
               </h3>
+              <p className="panel-subtitle">
+                {assignedOnly
+                  ? "Protocols assigned to you as assistant or reviewer."
+                  : "Track classification, reviewer work, and revision follow-up."}
+              </p>
             </div>
             <div className="panel-actions">
               <span className="panel-count">{filteredItems.length} submissions</span>
@@ -206,18 +211,18 @@ export function SubmissionsTable({
                     ? [
                         { key: "all", label: "All assigned", count: allItems.length },
                         { key: "review", label: "Needs review", count: reviewQueue.length },
-                        { key: "due-soon", label: "Due ≤3 days", count: dueSoonSubmissions.length },
+                        { key: "due-soon", label: "Due soon", count: dueSoonSubmissions.length },
                         { key: "overdue", label: "Overdue", count: overdueSubmissions.length },
                       ]
                     : [
                         { key: "all", label: "All", count: allItems.length },
-                        { key: "due-soon", label: "Due ≤3 days", count: dueSoonSubmissions.length },
+                        { key: "due-soon", label: "Due soon", count: dueSoonSubmissions.length },
                         { key: "overdue", label: "Overdue", count: overdueSubmissions.length },
                         { key: "blocked", label: "Needs info", count: allItems.filter(isBlocked).length },
-                        { key: "classification", label: "Intake/classification", count: classificationQueue.length },
-                        { key: "review", label: "Under review", count: reviewQueue.length },
-                        { key: "revision", label: "Resubmission", count: revisionQueue.length },
-                        { key: "unassigned", label: "Unassigned", count: allItems.filter((item) => !item.staffInChargeName).length },
+                        { key: "classification", label: "Classification", count: classificationQueue.length },
+                        { key: "review", label: "Reviewer work", count: reviewQueue.length },
+                        { key: "revision", label: "Revisions", count: revisionQueue.length },
+                        { key: "unassigned", label: "No assistant", count: allItems.filter((item) => !item.staffInChargeName).length },
                       ]).map((tab) => (
                     <button
                       key={tab.key}
@@ -255,7 +260,7 @@ export function SubmissionsTable({
 
             {!assignedOnly && (queueFilter === "overdue" || queueFilter === "due-soon") && (
               <div className="overdue-owner-filters" role="group" aria-label="Filter by responsible role">
-                <span className="owner-filter-label">Responsible role</span>
+                <span className="owner-filter-label">Waiting on</span>
                 <button
                   type="button"
                   className={`owner-filter-chip ${overdueOwnerFilter === "all" ? "active" : ""}`}
@@ -311,7 +316,7 @@ export function SubmissionsTable({
                       <th className="table-select" scope="col"><span className="skeleton-box"></span></th>
                     ) : null}
                     <th scope="col">Submission</th>
-                    <th scope="col">Stage / SLA</th>
+                    <th scope="col">Workflow / Target</th>
                     <th scope="col" className="table-actions-header">Actions</th>
                   </tr>
                 </thead>
@@ -338,7 +343,7 @@ export function SubmissionsTable({
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <h3>{assignedOnly ? "No assigned protocols match this view" : "No submissions match this view"}</h3>
+                <h3>{assignedOnly ? "No assigned protocols in this view" : "No protocols in this view"}</h3>
                 <p>{assignedOnly ? "Clear filters or switch to “All assigned” to see more." : "Clear filters or switch to “All” to see more."}</p>
                 <button className="ghost-btn" type="button" onClick={() => { onQueueFilterChange("all"); onSearchTermChange(""); }}>
                   Reset filters
@@ -354,7 +359,7 @@ export function SubmissionsTable({
                       </th>
                     ) : null}
                     <th scope="col">Submission</th>
-                    <th scope="col">Stage / SLA</th>
+                    <th scope="col">Workflow / Target</th>
                     <th scope="col" className="table-actions-header">Actions</th>
                   </tr>
                 </thead>

@@ -132,8 +132,8 @@ export function SubmissionsTable({
     <>
       <div className="content-grid-header">
         <div className="content-grid-title">
-          <h3>Queue workspace</h3>
-          <p>Filters, triage, and bulk actions in one place.</p>
+          <h3>Protocol queues</h3>
+          <p>Track classification, reviewer work, and revision follow-up.</p>
         </div>
       </div>
 
@@ -141,7 +141,7 @@ export function SubmissionsTable({
         <div className="panel" ref={tableRef}>
           <div className="panel-header">
             <div>
-              <h3 className="panel-title">Submissions Queue</h3>
+              <h3 className="panel-title">Protocol queues</h3>
             </div>
             <div className="panel-actions">
               <span className="panel-count">{filteredItems.length} submissions</span>
@@ -168,13 +168,13 @@ export function SubmissionsTable({
                 <div className="filter-tabs">
                   {[
                     { key: "all", label: "All", count: allItems.length },
-                    { key: "due-soon", label: "Due \u22643 days", count: dueSoonSubmissions.length },
+                    { key: "due-soon", label: "Due soon", count: dueSoonSubmissions.length },
                     { key: "overdue", label: "Overdue", count: overdueSubmissions.length },
                     { key: "blocked", label: "Needs info", count: allItems.filter(isBlocked).length },
-                    { key: "classification", label: "Intake/classification", count: classificationQueue.length },
-                    { key: "review", label: "Under review", count: reviewQueue.length },
-                    { key: "revision", label: "Resubmission", count: revisionQueue.length },
-                    { key: "unassigned", label: "Unassigned", count: allItems.filter((i: any) => !i.staffInChargeName).length },
+                    { key: "classification", label: "Classification", count: classificationQueue.length },
+                    { key: "review", label: "Reviewer work", count: reviewQueue.length },
+                    { key: "revision", label: "Revisions", count: revisionQueue.length },
+                    { key: "unassigned", label: "No assistant", count: allItems.filter((i: any) => !i.staffInChargeName).length },
                   ].map((tab) => (
                     <button
                       key={tab.key}
@@ -212,7 +212,7 @@ export function SubmissionsTable({
 
             {(queueFilter === "overdue" || queueFilter === "due-soon") && (
               <div className="overdue-owner-filters" role="group" aria-label="Filter by responsible role">
-                <span className="owner-filter-label">Responsible role</span>
+                <span className="owner-filter-label">Waiting on</span>
                 <button
                   type="button"
                   className={`owner-filter-chip ${overdueOwnerFilter === "all" ? "active" : ""}`}
@@ -255,7 +255,7 @@ export function SubmissionsTable({
                   <tr>
                     <th className="table-select" scope="col"><span className="skeleton-box"></span></th>
                     <th scope="col">Submission</th>
-                    <th scope="col">Stage / SLA</th>
+                    <th scope="col">Workflow / Target</th>
                     <th scope="col" className="table-actions-header">Actions</th>
                   </tr>
                 </thead>
@@ -282,7 +282,7 @@ export function SubmissionsTable({
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <h3>No submissions match this view</h3>
+                <h3>No protocols in this view</h3>
                 <p>Clear filters or switch to \u201cAll\u201d to see more.</p>
                 <button className="ghost-btn" type="button" onClick={() => { onQueueFilterChange("all"); onSearchTermChange(""); }}>
                   Reset filters
@@ -296,7 +296,7 @@ export function SubmissionsTable({
                       <input type="checkbox" aria-label="Select all visible submissions" checked={allVisibleSelected} onChange={onToggleSelectAll} />
                     </th>
                     <th scope="col">Submission</th>
-                    <th scope="col">Stage / SLA</th>
+                    <th scope="col">Workflow / Target</th>
                     <th scope="col" className="table-actions-header">Actions</th>
                   </tr>
                 </thead>

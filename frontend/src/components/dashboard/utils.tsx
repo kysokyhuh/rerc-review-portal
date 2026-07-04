@@ -47,10 +47,10 @@ export const OWNER_BADGE_META: Record<
   { label: string; icon: string; cssClass: string; reason: string }
 > = {
   PROJECT_LEADER_RESEARCHER_PROPONENT: {
-    label: "Researcher",
+    label: "Proponent",
     icon: "◎",
     cssClass: "researcher",
-    reason: "Waiting on project leader/researcher/proponent action",
+    reason: "Waiting on the project leader or proponent",
   },
   REVIEWER_GROUP: {
     label: "Reviewer",
@@ -59,16 +59,16 @@ export const OWNER_BADGE_META: Record<
     reason: "Waiting on reviewer or consultant action",
   },
   RESEARCH_ASSOCIATE_PROCESSING_STAFF: {
-    label: "Staff",
+    label: "RERC staff",
     icon: "▣",
     cssClass: "staff",
-    reason: "Waiting on staff processing/routing",
+    reason: "Waiting on intake, routing, or staff follow-up",
   },
   COMMITTEE_CHAIRPERSON_DESIGNATE: {
-    label: "Chairperson",
+    label: "Chair",
     icon: "✓",
     cssClass: "chairperson",
-    reason: "Waiting on chairperson decision/finalization",
+    reason: "Waiting on Chair decision or finalization",
   },
   UNASSIGNED_PROCESS_GAP: {
     label: "Unassigned",
@@ -116,7 +116,7 @@ export function slaChipText(item: DecoratedQueueItem, threshold: number): string
   if (isPaused(item)) return "SLA paused";
   const remaining = item.daysRemaining ?? item.workingDaysRemaining;
   const target = item.targetDays ?? item.targetWorkingDays;
-  if (target == null || !item.slaDueDate || remaining == null) return "SLA not set";
+  if (target == null || !item.slaDueDate || remaining == null) return "Target not set";
   const unit = slaUnitShort(item);
   if (isOverdue(item)) return `Overdue ${Math.abs(remaining)} ${unit}`;
   if (isDueSoon(item, threshold)) return `Due in ${remaining} ${unit}`;
@@ -171,7 +171,7 @@ export function renderOverdueOwnerBadge(
   return (
     <span className={`overdue-owner-badge role-${meta.cssClass}`} title={title}>
       <span className="overdue-owner-icon" aria-hidden="true">{icon}</span>
-      <span>{`${label} ${tone}`}</span>
+      <span>{tone === "overdue" ? `Waiting on ${label}` : `${label} next`}</span>
     </span>
   );
 }

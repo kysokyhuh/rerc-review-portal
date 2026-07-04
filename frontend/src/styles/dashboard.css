@@ -2758,6 +2758,13 @@
   border-bottom: 1px solid var(--border);
 }
 
+.panel-subtitle {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .data-table td {
   padding: 10px 12px;
   font-size: 13px;
@@ -4095,7 +4102,7 @@ button.quick-action:disabled {
   min-width: 280px;
 }
 
-/* Stage / SLA column — two badges stacked */
+/* Workflow / Target column — two badges stacked */
 .data-table td:nth-child(3) {
   vertical-align: middle;
 }

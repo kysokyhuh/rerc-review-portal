@@ -38,7 +38,7 @@ export function StatsGrid({ counts, attention, onFilterChange, tableRef, assigne
             </div>
           </div>
           <div className="stat-value">{totalAssigned}</div>
-          <div className="stat-label">My assigned reviews</div>
+          <div className="stat-label">My assigned work</div>
         </button>
 
         <button
@@ -56,7 +56,7 @@ export function StatsGrid({ counts, attention, onFilterChange, tableRef, assigne
             </div>
           </div>
           <div className="stat-value">{attention?.dueSoon ?? 0}</div>
-          <div className="stat-label">Due in ≤3 days</div>
+          <div className="stat-label">Due soon</div>
         </button>
 
         <button
@@ -97,7 +97,7 @@ export function StatsGrid({ counts, attention, onFilterChange, tableRef, assigne
           </div>
         </div>
         <div className="stat-value">{attention?.overdue ?? 0}</div>
-        <div className="stat-label">Overdue submissions</div>
+        <div className="stat-label">Overdue work</div>
       </button>
 
       <button
@@ -115,7 +115,7 @@ export function StatsGrid({ counts, attention, onFilterChange, tableRef, assigne
           </div>
         </div>
         <div className="stat-value">{attention?.dueSoon ?? 0}</div>
-        <div className="stat-label">Due in ≤3 days</div>
+        <div className="stat-label">Due soon</div>
       </button>
 
       <button
@@ -132,7 +132,7 @@ export function StatsGrid({ counts, attention, onFilterChange, tableRef, assigne
           </div>
         </div>
         <div className="stat-value">{counts?.forClassification ?? 0}</div>
-        <div className="stat-label">Intake/classification</div>
+        <div className="stat-label">Classification</div>
       </button>
 
       <button
@@ -149,7 +149,7 @@ export function StatsGrid({ counts, attention, onFilterChange, tableRef, assigne
           </div>
         </div>
         <div className="stat-value">{counts?.forReview ?? 0}</div>
-        <div className="stat-label">Under review</div>
+        <div className="stat-label">Reviewer work</div>
       </button>
     </div>
   );
