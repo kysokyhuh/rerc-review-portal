@@ -76,46 +76,216 @@ export const getReportSubmissionsHandler = async (req: Request, res: Response, n
   }
 };
 
-const csvHeaders = [
-  "submission_id",
-  "project_id",
-  "project_code",
-  "title",
-  "proponent",
-  "college",
-  "panel",
-  "department",
-  "proponent_category",
-  "review_type",
-  "status",
-  "received_date",
+type ReportSubmission = Awaited<ReturnType<typeof fetchReportSubmissions>>[number];
+
+const databaseCsvHeaders = [
+  "Project Code",
+  "Title",
+  "Project Leader",
+  "College",
+  "Department",
+  "Date of Submission",
+  "Month of Submission",
+  "Type of Review",
+  "Proponent",
+  "Funding",
+  "Type of Research PHREB",
+  "Type of Research PHREB (Specific for Others)",
+  "Status",
+  "Finish Date",
+  "Month of Clearance",
+  "Review Duration\n(Receipt to Finish date)",
+  "Remarks",
+  "Panel",
+  "Scientist Reviewer",
+  "Lay Reviewer",
+  "Independent Consultant (if applicable)",
+  "Honorarium Status\n(c/o Ms. Maja)",
+  "Classification of Proposal (RERC)",
+  "# days",
+  "Provision of Project Proposal Documents and Assessment Forms to Primary Reviewer (RERC Staff)",
+  "# days",
+  "Accomplishment of Assessment Forms (Primary Reviewers)",
+  "# days",
+  "Full Review Meeting (RERP) - for Full Review only",
+  "# days",
+  "Finalization of Review Results (RERP Chair Designate)",
+  "# days",
+  "Communication of Review Results to the Project Leader (RERC Chair/Staff)",
+  "# days",
+  "1 \nResubmission from Proponent (RERC Staff)",
+  "# days",
+  "1 \nReview of Resubmission (Primary Reviewers)",
+  "# days",
+  "1\nFinalization of Review Results (RERP Chair Designate) - Resubmission",
+  "# days",
+  "2\nResubmission from Proponent (RERC Staff)",
+  "# days",
+  "2\nReview of Resubmission (Primary Reviewers)",
+  "# days",
+  "2\nFinalization of Review Results (RERP Chair Designate) - Resubmission",
+  "# days",
+  "3\nResubmission from Proponent (RERC Staff)",
+  "# days",
+  "3\nReview of Resubmission (Primary Reviewers)",
+  "# days",
+  "3\nFinalization of Review Results (RERP Chair Designate) - Resubmission",
+  "# days",
+  "4\nResubmission from Proponent (RERC Staff)",
+  "# days",
+  "4\nReview of Resubmission (Primary Reviewers)",
+  "# days",
+  "4\nFinalization of Review Results (RERP Chair Designate) - Resubmission",
+  "# days",
+  "Issuance of Ethics Clearance (RERC and RERC Chair)",
+  "# days",
+  "Total days",
+  "# Submissions",
+  "Withdrawn",
+  "Project\nEnd Date (6A)",
+  "Clearance Expiration",
+  "Progress Report\n[Target Date]",
+  "Progress Report\n[Submission]",
+  "Progress Report\n[Approval Date]",
+  "Status",
+  "# of Days",
+  "Final Report\n[Target Date]",
+  "Final Report\n[Submission]",
+  "Final Report\n[Completion Date]",
+  "Status",
+  "# of Days",
+  "Amendment\n[Submission]",
+  "Status of Request",
+  "Approval Date",
+  "# of Days",
+  "Continuing\n[Submission]",
+  "Status of Request",
+  "Approval Date",
+  "# of Days",
+  "Primary Reviewer",
+  "Lay Reviewer",
+  "Holidays",
+  "",
 ] as const;
 
 const escapeCsvCell = (value: unknown) =>
   `"${String(value ?? "").replace(/"/g, '""')}"`;
 
-const buildReportRecordsCsv = (
-  items: ReturnType<typeof buildSubmissionRecordsPayload>["items"]
-) =>
+const formatSpreadsheetDate = (value: Date | string | null | undefined) => {
+  if (!value) return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${date.getUTCMonth() + 1}/${date.getUTCDate()}/${date.getUTCFullYear()}`;
+};
+
+const formatBoolean = (value: boolean | null | undefined) => {
+  if (value === true) return "Yes";
+  if (value === false) return "No";
+  return "";
+};
+
+const formatReviewType = (value: string | null | undefined) => {
+  if (value === "FULL_BOARD") return "Full Review";
+  if (value === "EXPEDITED") return "Expedited";
+  if (value === "EXEMPT") return "Exempted";
+  return value ?? "";
+};
+
+const getMilestone = (submission: ReportSubmission, label: string) =>
+  submission.project?.protocolMilestones?.find((milestone) => milestone.label === label) ?? null;
+
+const milestoneCells = (submission: ReportSubmission, label: string) => {
+  const milestone = getMilestone(submission, label);
+  return [formatSpreadsheetDate(milestone?.dateOccurred), milestone?.days ?? ""];
+};
+
+const databaseCsvRow = (submission: ReportSubmission) => {
+  const project = submission.project;
+  const profile = project?.protocolProfile;
+  const classificationDate =
+    profile?.classificationOfProposalRerc ||
+    formatSpreadsheetDate(getMilestone(submission, "Classification of Proposal (RERC)")?.dateOccurred);
+  const classificationDays =
+    getMilestone(submission, "Classification of Proposal (RERC)")?.days ?? "";
+
+  return [
+    project?.projectCode ?? "",
+    profile?.title ?? project?.title ?? "",
+    profile?.projectLeader ?? project?.piName ?? "",
+    profile?.college ?? project?.collegeOrUnit ?? project?.piAffiliation ?? "",
+    profile?.department ?? project?.department ?? "",
+    formatSpreadsheetDate(profile?.dateOfSubmission ?? submission.receivedDate),
+    profile?.monthOfSubmission ?? "",
+    profile?.typeOfReview ?? formatReviewType(submission.classification?.reviewType),
+    profile?.proponent ?? project?.proponent ?? "",
+    profile?.funding ?? "",
+    profile?.typeOfResearchPhreb ?? "",
+    profile?.typeOfResearchPhrebOther ?? "",
+    profile?.status ?? String(submission.status ?? ""),
+    formatSpreadsheetDate(profile?.finishDate),
+    profile?.monthOfClearance ?? "",
+    profile?.reviewDurationDays ?? "",
+    profile?.remarks ?? "",
+    profile?.panel ?? submission.classification?.panel?.name ?? "",
+    profile?.scientistReviewer ?? "",
+    profile?.layReviewer ?? "",
+    profile?.independentConsultant ?? "",
+    profile?.honorariumStatus ?? "",
+    classificationDate,
+    classificationDays,
+    ...milestoneCells(submission, "Provision of Documents & Assessment Forms to Primary Reviewer"),
+    ...milestoneCells(submission, "Accomplishment of Assessment Forms"),
+    ...milestoneCells(submission, "Full Review Meeting"),
+    ...milestoneCells(submission, "Finalization of Review Results"),
+    ...milestoneCells(submission, "Communication of Review Results to Project Leader"),
+    ...milestoneCells(submission, "1st Resubmission from Proponent"),
+    ...milestoneCells(submission, "1st Review of Resubmission"),
+    ...milestoneCells(submission, "1st Finalization of Review Results - Resubmission"),
+    ...milestoneCells(submission, "2nd Resubmission from Proponent"),
+    ...milestoneCells(submission, "2nd Review of Resubmission"),
+    ...milestoneCells(submission, "2nd Finalization of Review Results - Resubmission"),
+    ...milestoneCells(submission, "3rd Resubmission from Proponent"),
+    ...milestoneCells(submission, "3rd Review of Resubmission"),
+    ...milestoneCells(submission, "3rd Finalization of Review Results - Resubmission"),
+    ...milestoneCells(submission, "4th Resubmission from Proponent"),
+    ...milestoneCells(submission, "4th Review of Resubmission"),
+    ...milestoneCells(submission, "4th Finalization of Review Results - Resubmission"),
+    ...milestoneCells(submission, "Issuance of Ethics Clearance"),
+    profile?.totalDays ?? "",
+    profile?.submissionCount ?? "",
+    formatBoolean(profile?.withdrawn),
+    formatSpreadsheetDate(profile?.projectEndDate6A),
+    formatSpreadsheetDate(profile?.clearanceExpiration),
+    formatSpreadsheetDate(profile?.progressReportTargetDate),
+    formatSpreadsheetDate(profile?.progressReportSubmission),
+    formatSpreadsheetDate(profile?.progressReportApprovalDate),
+    profile?.progressReportStatus ?? "",
+    profile?.progressReportDays ?? "",
+    formatSpreadsheetDate(profile?.finalReportTargetDate),
+    formatSpreadsheetDate(profile?.finalReportSubmission),
+    formatSpreadsheetDate(profile?.finalReportCompletionDate),
+    profile?.finalReportStatus ?? "",
+    profile?.finalReportDays ?? "",
+    formatSpreadsheetDate(profile?.amendmentSubmission),
+    profile?.amendmentStatusOfRequest ?? "",
+    formatSpreadsheetDate(profile?.amendmentApprovalDate),
+    profile?.amendmentDays ?? "",
+    formatSpreadsheetDate(profile?.continuingSubmission),
+    profile?.continuingStatusOfRequest ?? "",
+    formatSpreadsheetDate(profile?.continuingApprovalDate),
+    profile?.continuingDays ?? "",
+    profile?.primaryReviewer ?? "",
+    profile?.finalLayReviewer ?? "",
+    "",
+    "",
+  ];
+};
+
+const buildReportDatabaseCsv = (submissions: ReportSubmission[]) =>
   [
-    csvHeaders.join(","),
-    ...items.map((item) =>
-      [
-        item.submissionId,
-        item.projectId,
-        item.projectCode,
-        item.title,
-        item.proponent,
-        item.college,
-        item.panel,
-        item.department,
-        item.proponentCategory,
-        item.reviewType,
-        item.status,
-        item.receivedDate,
-      ]
-        .map(escapeCsvCell)
-        .join(",")
+    databaseCsvHeaders.map(escapeCsvCell).join(","),
+    ...submissions.map((submission) =>
+      databaseCsvRow(submission).map(escapeCsvCell).join(",")
     ),
   ].join("\r\n");
 
@@ -130,13 +300,19 @@ export const getReportSubmissionsCsvHandler = async (
 
     const termWindows = await resolveReportWindows(filters);
     const submissions = await fetchReportSubmissions(filters, termWindows);
-    const records = buildSubmissionRecordsPayload(
+    const sortedRecords = buildSubmissionRecordsPayload(
       submissions,
       1,
       Math.max(submissions.length, 1),
       sort
     );
-    const csv = buildReportRecordsCsv(records.items);
+    const submissionsById = new Map(
+      submissions.map((submission) => [submission.id, submission])
+    );
+    const sortedSubmissions = sortedRecords.items
+      .map((item) => submissionsById.get(item.submissionId))
+      .filter((item): item is ReportSubmission => Boolean(item));
+    const csv = buildReportDatabaseCsv(sortedSubmissions);
 
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
     res.setHeader(

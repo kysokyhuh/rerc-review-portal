@@ -88,11 +88,60 @@ type SubmissionForReports = Prisma.SubmissionGetPayload<{
         approvalStartDate: true;
         protocolProfile: {
           select: {
+            title: true;
+            projectLeader: true;
             college: true;
             department: true;
             dateOfSubmission: true;
+            monthOfSubmission: true;
+            typeOfReview: true;
             proponent: true;
+            funding: true;
+            typeOfResearchPhreb: true;
+            typeOfResearchPhrebOther: true;
+            status: true;
+            finishDate: true;
+            monthOfClearance: true;
+            reviewDurationDays: true;
+            remarks: true;
             panel: true;
+            scientistReviewer: true;
+            layReviewer: true;
+            independentConsultant: true;
+            honorariumStatus: true;
+            classificationOfProposalRerc: true;
+            totalDays: true;
+            submissionCount: true;
+            withdrawn: true;
+            projectEndDate6A: true;
+            clearanceExpiration: true;
+            progressReportTargetDate: true;
+            progressReportSubmission: true;
+            progressReportApprovalDate: true;
+            progressReportStatus: true;
+            progressReportDays: true;
+            finalReportTargetDate: true;
+            finalReportSubmission: true;
+            finalReportCompletionDate: true;
+            finalReportStatus: true;
+            finalReportDays: true;
+            amendmentSubmission: true;
+            amendmentStatusOfRequest: true;
+            amendmentApprovalDate: true;
+            amendmentDays: true;
+            continuingSubmission: true;
+            continuingStatusOfRequest: true;
+            continuingApprovalDate: true;
+            continuingDays: true;
+            primaryReviewer: true;
+            finalLayReviewer: true;
+          };
+        };
+        protocolMilestones: {
+          select: {
+            label: true;
+            days: true;
+            dateOccurred: true;
           };
         };
         committee: { select: { code: true; name: true } };
@@ -721,11 +770,61 @@ export async function fetchReportSubmissions(filters: ReportViewFilters, termWin
           approvalStartDate: true,
           protocolProfile: {
             select: {
+              title: true,
+              projectLeader: true,
               college: true,
               department: true,
               dateOfSubmission: true,
+              monthOfSubmission: true,
+              typeOfReview: true,
               proponent: true,
+              funding: true,
+              typeOfResearchPhreb: true,
+              typeOfResearchPhrebOther: true,
+              status: true,
+              finishDate: true,
+              monthOfClearance: true,
+              reviewDurationDays: true,
+              remarks: true,
               panel: true,
+              scientistReviewer: true,
+              layReviewer: true,
+              independentConsultant: true,
+              honorariumStatus: true,
+              classificationOfProposalRerc: true,
+              totalDays: true,
+              submissionCount: true,
+              withdrawn: true,
+              projectEndDate6A: true,
+              clearanceExpiration: true,
+              progressReportTargetDate: true,
+              progressReportSubmission: true,
+              progressReportApprovalDate: true,
+              progressReportStatus: true,
+              progressReportDays: true,
+              finalReportTargetDate: true,
+              finalReportSubmission: true,
+              finalReportCompletionDate: true,
+              finalReportStatus: true,
+              finalReportDays: true,
+              amendmentSubmission: true,
+              amendmentStatusOfRequest: true,
+              amendmentApprovalDate: true,
+              amendmentDays: true,
+              continuingSubmission: true,
+              continuingStatusOfRequest: true,
+              continuingApprovalDate: true,
+              continuingDays: true,
+              primaryReviewer: true,
+              finalLayReviewer: true,
+            },
+          },
+          protocolMilestones: {
+            orderBy: [{ orderIndex: "asc" }, { id: "asc" }],
+            select: {
+              label: true,
+              days: true,
+              dateOccurred: true,
             },
           },
           committee: { select: { code: true, name: true } },
