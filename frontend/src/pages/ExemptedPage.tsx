@@ -120,7 +120,7 @@ export default function ExemptedPage() {
   }, [exemptedQuery.error]);
 
   return (
-    <div className="dashboard-content queue-page-content">
+    <div className="dashboard-content queue-page-content exempted-page-content">
       <header className="queue-page-header">
         <h1>Exempted Protocols</h1>
         <p>Protocols classified as Exempt awaiting issuance/notification.</p>
@@ -144,50 +144,53 @@ export default function ExemptedPage() {
         </div>
 
         <div className="panel-body">
-          <div className="filter-row exempted-filter-row" style={{ marginBottom: 12 }}>
-            <div className="filter-inline-search exempted-filter-search">
-              <svg className="filter-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <path d="M21 21l-4.35-4.35" />
-              </svg>
-              <input
-                className="filter-search-input"
-                value={q}
-                onChange={(e) => setParam("q", e.target.value || null, true)}
-                placeholder="Search by code, title, or proponent"
-              />
-            </div>
-
-            <label className="filter-label">
-              College
+          <div className="filter-row exempted-filter-row">
+            <label className="exempted-filter-field exempted-filter-search-field">
+              <span className="filter-label">Search</span>
+              <span className="filter-inline-search exempted-filter-search">
+                <svg className="filter-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
+                </svg>
+                <input
+                  className="filter-search-input"
+                  value={q}
+                  onChange={(e) => setParam("q", e.target.value || null, true)}
+                  placeholder="Code, title, or proponent"
+                />
+              </span>
             </label>
-            <select
-              className="filter-select"
-              value={college}
-              onChange={(e) => setParam("college", e.target.value || null, true)}
-            >
-              <option value="">All colleges</option>
-              {(collegesQuery.data ?? []).map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
 
-            <label className="filter-label">
-              Rows
+            <label className="exempted-filter-field">
+              <span className="filter-label">College</span>
+              <select
+                className="filter-select"
+                value={college}
+                onChange={(e) => setParam("college", e.target.value || null, true)}
+              >
+                <option value="">All colleges</option>
+                {(collegesQuery.data ?? []).map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
             </label>
-            <select
-              className="filter-select"
-              value={pageSize}
-              onChange={(e) => setParam("pageSize", e.target.value, true)}
-            >
-              {PAGE_SIZE_OPTIONS.map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
+
+            <label className="exempted-filter-field exempted-filter-rows-field">
+              <span className="filter-label">Rows</span>
+              <select
+                className="filter-select"
+                value={pageSize}
+                onChange={(e) => setParam("pageSize", e.target.value, true)}
+              >
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
 
           <ExemptedTable
@@ -198,7 +201,7 @@ export default function ExemptedPage() {
             onNotifyAndClose={handleNotifyAndClose}
           />
 
-          <div className="table-pagination" style={{ marginTop: 12 }}>
+          <div className="table-pagination exempted-pagination">
             <div className="pagination-info">{pageInfo}</div>
             <div className="pagination-controls">
               <button
