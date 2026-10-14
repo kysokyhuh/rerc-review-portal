@@ -30,15 +30,27 @@ export default function ExemptedTable({
   }
 
   return (
-    <div className="table-wrap exempted-table-wrap">
+    <div
+      className="table-wrap exempted-table-wrap"
+      role="region"
+      aria-label="Exempted protocols table"
+      tabIndex={0}
+    >
       <table className="data-table exempted-table">
+        <colgroup>
+          <col className="exempted-column-code" />
+          <col className="exempted-column-title" />
+          <col className="exempted-column-leader" />
+          <col className="exempted-column-college" />
+          <col className="exempted-column-actions" />
+        </colgroup>
         <thead>
           <tr>
-            <th>Project Code</th>
-            <th>Title</th>
-            <th>Leader</th>
-            <th>College</th>
-            <th>Actions</th>
+            <th scope="col">Project Code</th>
+            <th scope="col">Title</th>
+            <th scope="col">Leader</th>
+            <th scope="col">College</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -46,9 +58,9 @@ export default function ExemptedTable({
             const isBusy = busyId === item.id;
             return (
               <tr key={item.id}>
-                <td>{item.projectCode}</td>
+                <td className="exempted-code-cell">{item.projectCode}</td>
                 <td className="exempted-title-cell" title={item.title}>
-                  {item.title}
+                  <span className="exempted-title-text">{item.title}</span>
                 </td>
                 <td>{item.proponentOrLeader}</td>
                 <td>{item.college}</td>
