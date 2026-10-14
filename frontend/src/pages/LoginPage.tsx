@@ -32,7 +32,6 @@ export default function LoginPage() {
   const [capsLock, setCapsLock] = useState(false);
   const [emailValid, setEmailValid] = useState<boolean | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [greeting] = useState(getGreeting());
 
   useEffect(() => {
@@ -73,14 +72,11 @@ export default function LoginPage() {
     setTimeout(() => setShake(false), 500);
   };
 
-  const navigateAfterAuth = async (
+  const navigateAfterAuth = (
     user: { roles: string[] },
     mustChangePassword: boolean
   ) => {
     const nextPath = getSafeNextPath(searchParams.get("next"));
-
-    setSuccess(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     const doNavigate = () => {
       if (mustChangePassword) {
@@ -129,7 +125,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const result = await authLogin(email, password);
-      await navigateAfterAuth(result.user, result.mustChangePassword);
+      navigateAfterAuth(result.user, result.mustChangePassword);
     } catch (err: unknown) {
       const apiMessage = getErrorData(err)?.message;
       setError(apiMessage ?? "Invalid email or password.");
@@ -142,23 +138,6 @@ export default function LoginPage() {
   return (
     <div className="login-bg">
       {loading ? <div className="login-loading-bar" /> : null}
-
-      {success ? (
-        <div className="login-success-overlay">
-          <div className="login-success-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" className="login-success-circle" />
-              <path
-                d="M8 12l2.5 2.5L16 9"
-                className="login-success-check"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-          <p>Welcome back!</p>
-        </div>
-      ) : null}
 
       <a href="#login-form" className="login-skip">
         Skip to login form

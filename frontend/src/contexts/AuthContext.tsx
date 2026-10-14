@@ -11,9 +11,7 @@ import {
   changeOwnPassword,
   ensureCsrfCookie,
   fetchMyProfile,
-  forceSessionExpiredRedirect,
   logoutSession,
-  refreshAccessSession,
   registerSessionExpiredHandler,
   updateMyProfile,
   updateMyPreferences,
@@ -25,7 +23,6 @@ import type {
   UpdatePreferencesPayload,
   UpdateProfilePayload,
 } from "@/types";
-import { getErrorStatus } from "@/utils";
 import { useRef } from "react";
 
 export type AuthUser = AuthProfile;
@@ -81,20 +78,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const profile = await fetchMyProfile();
       setAuthenticatedUser(profile);
-      return;
-    } catch (error: unknown) {
-      if (getErrorStatus(error) === 401) {
-        try {
-          await refreshAccessSession();
-          const retry = await fetchMyProfile();
-          setAuthenticatedUser(retry);
-          return;
-        } catch {
-          forceSessionExpiredRedirect();
-          return;
-        }
-      }
-
+    } catch {
+      // The API interceptor already refreshes and retries expired sessions.
+      // A failure here is final; repeating that flow adds requests on startup.
       clearAuthState();
     }
   }, [clearAuthState, setAuthenticatedUser]);
