@@ -31,6 +31,13 @@ jest.mock("../../src/services/audit/auditService", () => ({
   logAuditEvent: jest.fn().mockResolvedValue(undefined),
 }));
 
+// Schema detection uses a separate pg client, outside the mocked Prisma client.
+// Unit tests exercise the current schema without connecting to a live database.
+jest.mock("../../src/utils/projectSoftDelete", () => ({
+  __esModule: true,
+  hasProjectSoftDeleteColumns: jest.fn().mockResolvedValue(true),
+}));
+
 const prisma = prismaClient as unknown as {
   submission: {
     findMany: jest.Mock;

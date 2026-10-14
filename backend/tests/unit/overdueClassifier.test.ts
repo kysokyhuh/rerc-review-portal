@@ -8,7 +8,7 @@ describe("overdueClassifier", () => {
     const result = classifyOverdue("AWAITING_REVISIONS");
     expect(result.overdueOwner).toBe("RESEARCHER");
     expect(result.overdueOwnerRole).toBe("PROJECT_LEADER_RESEARCHER_PROPONENT");
-    expect(result.overdueOwnerLabel).toBe("Researcher");
+    expect(result.overdueOwnerLabel).toBe("Proponent");
     expect(result.overdueReason).toContain("Researcher");
   });
 
@@ -56,7 +56,7 @@ describe("overdueClassifier", () => {
   it("classifies pre-review statuses as staff ownership", () => {
     const result = classifyOverdue("RECEIVED");
     expect(result.overdueOwnerRole).toBe("RESEARCH_ASSOCIATE_PROCESSING_STAFF");
-    expect(result.overdueOwnerLabel).toBe("Staff");
+    expect(result.overdueOwnerLabel).toBe("RERC staff");
   });
 
   it("classifies chair-gate status as chairperson ownership", () => {
@@ -64,7 +64,7 @@ describe("overdueClassifier", () => {
       hasChairGate: true,
     });
     expect(result.overdueOwnerRole).toBe("COMMITTEE_CHAIRPERSON_DESIGNATE");
-    expect(result.overdueOwnerLabel).toBe("Chairperson");
+    expect(result.overdueOwnerLabel).toBe("Chair");
   });
 
   it("classifies missing assignee/routing metadata as unassigned process gap", () => {
