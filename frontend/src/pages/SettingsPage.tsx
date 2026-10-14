@@ -171,6 +171,15 @@ export default function SettingsPage() {
     normalizeName(profileForm.fullName).length > 0 &&
     profileDirty &&
     (!profileRequiresPassword || profileForm.currentPassword.trim().length > 0);
+  const profileSaveHint = profileSaving
+    ? "Saving your account..."
+    : !profileDirty
+      ? "No unsaved changes"
+      : !normalizeName(profileForm.fullName)
+        ? "Full name is required"
+        : profileRequiresPassword && !profileForm.currentPassword.trim()
+          ? "Current password required"
+          : "Unsaved changes";
   const preferencesDirty =
     preferencesForm.layoutDensity !== currentPreferences.layoutDensity ||
     preferencesForm.defaultPageSize !== currentPreferences.defaultPageSize;
@@ -374,8 +383,8 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {loadError ? <div className="settings-notice error">{loadError}</div> : null}
-      {!loadError && notice ? <div className="settings-notice success">{notice}</div> : null}
+      {loadError ? <div className="settings-notice error" role="alert">{loadError}</div> : null}
+      {!loadError && notice ? <div className="settings-notice success" role="status">{notice}</div> : null}
 
       <div className="settings-shell">
         <aside className="settings-nav-panel" aria-label="Settings sections">
@@ -393,7 +402,7 @@ export default function SettingsPage() {
           </nav>
         </aside>
 
-        <main className="settings-main">
+        <div className="settings-main">
           {activeSection === "account" ? (
             <section className="settings-panel">
               <div className="settings-section-heading">
@@ -426,6 +435,8 @@ export default function SettingsPage() {
                     <span>Email address</span>
                     <input
                       className={`settings-input ${profileRequiresPassword && profileError ? "has-error" : ""}`}
+                      type="email"
+                      aria-describedby="settings-email-help"
                       value={profileForm.email}
                       onChange={(event) => {
                         setProfileForm((current) => ({
@@ -441,26 +452,31 @@ export default function SettingsPage() {
                   </label>
                 </div>
 
-                <div className="settings-inline-note">
+                <div className="settings-inline-note" id="settings-email-help">
                   <div>
-                    <strong>Email changes need your current password.</strong>
-                    <span>Name changes can be saved directly.</span>
+                    <strong>{profileRequiresPassword ? "Enter your current password, then save this email change." : "Name changes can be saved directly."}</strong>
+                    <span>{profileRequiresPassword ? "Your password is checked when you select Save account." : "Email changes require your current password when you select Save account."}</span>
                   </div>
-                  <button
-                    className="settings-tertiary-button"
-                    type="button"
-                    onClick={() => setShowEmailPassword((current) => !current)}
-                  >
-                    {showEmailPassword || profileRequiresPassword ? "Hide confirmation" : "Confirm email change"}
-                  </button>
+                  {!profileRequiresPassword ? (
+                    <button
+                      className="settings-tertiary-button"
+                      type="button"
+                      aria-expanded={showEmailPassword}
+                      aria-controls="settings-email-password"
+                      onClick={() => setShowEmailPassword((current) => !current)}
+                    >
+                      {showEmailPassword ? "Hide password field" : "Show password field"}
+                    </button>
+                  ) : null}
                 </div>
 
                 {showEmailPassword || profileRequiresPassword ? (
-                  <label className="settings-field">
-                    <span>Current password</span>
+                  <div className="settings-field settings-email-password-field" id="settings-email-password">
+                    <label htmlFor="profile-current-password">Current password</label>
                     <div className={`settings-password-shell ${profileRequiresPassword && profileError ? "has-error" : ""}`}>
                       <input
                         className="settings-input settings-password-input"
+                        id="profile-current-password"
                         type={showProfileCurrentPassword ? "text" : "password"}
                         value={profileForm.currentPassword}
                         onChange={(event) => {
@@ -471,17 +487,19 @@ export default function SettingsPage() {
                           setProfileError(null);
                         }}
                         autoComplete="current-password"
+                        aria-describedby="settings-email-help"
                         disabled={profileSaving}
                       />
                       <button
                         className="settings-password-toggle"
                         type="button"
+                        aria-label={showProfileCurrentPassword ? "Hide current password" : "Show current password"}
                         onClick={() => setShowProfileCurrentPassword((current) => !current)}
                       >
                         {showProfileCurrentPassword ? "Hide" : "Show"}
                       </button>
                     </div>
-                  </label>
+                  </div>
                 ) : null}
 
                 {profileError ? (
@@ -491,6 +509,9 @@ export default function SettingsPage() {
                 ) : null}
 
                 <div className="settings-form-actions">
+                  <span className="settings-save-hint" role="status">
+                    {profileSaveHint}
+                  </span>
                   <button
                     className="settings-secondary-button"
                     type="button"
@@ -546,6 +567,8 @@ export default function SettingsPage() {
                     <input
                       className="settings-input settings-password-input"
                       type={showCurrentPassword ? "text" : "password"}
+                      aria-label="Current password"
+                      aria-invalid={showCurrentPasswordError}
                       value={passwordForm.currentPassword}
                       onChange={(event) => {
                         setPasswordForm((current) => ({
@@ -561,6 +584,7 @@ export default function SettingsPage() {
                     <button
                       className="settings-password-toggle"
                       type="button"
+                      aria-label={showCurrentPassword ? "Hide current password" : "Show current password"}
                       onClick={() => setShowCurrentPassword((current) => !current)}
                     >
                       {showCurrentPassword ? "Hide" : "Show"}
@@ -580,6 +604,8 @@ export default function SettingsPage() {
                       <input
                         className="settings-input settings-password-input"
                         type={showNewPassword ? "text" : "password"}
+                        aria-label="New password"
+                        aria-invalid={showPasswordError}
                         value={passwordForm.newPassword}
                         onChange={(event) => {
                           setPasswordForm((current) => ({
@@ -594,6 +620,7 @@ export default function SettingsPage() {
                       <button
                         className="settings-password-toggle"
                         type="button"
+                        aria-label={showNewPassword ? "Hide new password" : "Show new password"}
                         onClick={() => setShowNewPassword((current) => !current)}
                       >
                         {showNewPassword ? "Hide" : "Show"}
@@ -607,6 +634,8 @@ export default function SettingsPage() {
                       <input
                         className="settings-input settings-password-input"
                         type={showConfirmPassword ? "text" : "password"}
+                        aria-label="Confirm new password"
+                        aria-invalid={showConfirmRequired || showPasswordMismatch}
                         value={passwordForm.confirmPassword}
                         onChange={(event) => {
                           setPasswordForm((current) => ({
@@ -621,6 +650,7 @@ export default function SettingsPage() {
                       <button
                         className="settings-password-toggle"
                         type="button"
+                        aria-label={showConfirmPassword ? "Hide confirmation password" : "Show confirmation password"}
                         onClick={() => setShowConfirmPassword((current) => !current)}
                       >
                         {showConfirmPassword ? "Hide" : "Show"}
@@ -634,7 +664,7 @@ export default function SettingsPage() {
                     <span>Password strength</span>
                     <strong className={`is-${passwordStrength.tone}`}>{passwordStrength.label}</strong>
                   </div>
-                  <div className="settings-password-strength-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={passwordStrength.progress}>
+                  <div className="settings-password-strength-track" role="progressbar" aria-label="Password strength" aria-valuemin={0} aria-valuemax={100} aria-valuenow={passwordStrength.progress}>
                     <span
                       className={`settings-password-strength-fill is-${passwordStrength.tone}`}
                       style={{ width: `${passwordStrength.progress}%` }}
@@ -838,7 +868,7 @@ export default function SettingsPage() {
               </form>
             </section>
           ) : null}
-        </main>
+        </div>
       </div>
     </div>
   );

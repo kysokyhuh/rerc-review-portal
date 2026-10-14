@@ -162,16 +162,24 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
           renderState(emptyMessage, emptyHint ?? "Try changing filters or check another queue state.")
         ) : (
           <>
-            <div className="table-wrap">
+            <div className="table-wrap queue-results-scroll" role="region" aria-label={`${title} table`} tabIndex={0}>
               <table className="data-table queue-results-table">
+                <colgroup>
+                  <col className="queue-column-project" />
+                  <col className="queue-column-investigator" />
+                  <col className="queue-column-status" />
+                  <col className="queue-column-date" />
+                  <col className="queue-column-sla" />
+                  {hasActions ? <col className="queue-column-actions" /> : null}
+                </colgroup>
                 <thead>
                   <tr>
-                    <th>Project</th>
-                    <th>Principal Investigator</th>
-                    <th>{showReviewType ? "Review Type" : "Status"}</th>
-                    <th>Received</th>
-                    <th>SLA</th>
-                    {hasActions ? <th className="table-actions-header">Actions</th> : null}
+                    <th scope="col">Project</th>
+                    <th scope="col">Principal Investigator</th>
+                    <th scope="col">{showReviewType ? "Review Type" : "Status"}</th>
+                    <th scope="col">Received</th>
+                    <th scope="col">SLA</th>
+                    {hasActions ? <th scope="col" className="table-actions-header">Actions</th> : null}
                   </tr>
                 </thead>
                 <tbody>
@@ -186,6 +194,7 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                         className="queue-table-row"
                         onClick={() => navigate(`/submissions/${item.id}`)}
                         onKeyDown={(event) => {
+                          if (event.target !== event.currentTarget) return;
                           if (event.key === "Enter" || event.key === " ") {
                             event.preventDefault();
                             navigate(`/submissions/${item.id}`);
@@ -247,6 +256,7 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                         </td>
                         {hasActions ? (
                           <td className="table-actions">
+                            <div className="queue-row-actions">
                             {canAssignAssistants ? (
                               <button
                                 type="button"
@@ -286,6 +296,7 @@ export const QueueDataTable: React.FC<QueueDataTableProps> = ({
                             ) : !canAssignAssistants ? (
                               <span className="table-muted">—</span>
                             ) : null}
+                            </div>
                           </td>
                         ) : null}
                       </tr>

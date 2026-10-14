@@ -374,11 +374,12 @@ export default function QueuePage() {
               <div className="queue-segment-block-heading">
                 <span className="queue-filter-label">Queue state</span>
               </div>
-              <div className="queue-segments" role="tablist" aria-label="Queue segment tabs">
+              <div className="queue-segments" role="group" aria-label="Queue state">
                 {segmentTabs.map((tab) => (
                   <button
                     key={tab.value}
                     type="button"
+                    aria-pressed={effectiveSegment === tab.value}
                     className={`queue-segment ${effectiveSegment === tab.value ? "active" : ""}`}
                     onClick={() => updateSegment(tab.value)}
                   >

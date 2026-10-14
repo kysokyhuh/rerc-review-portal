@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import type { QueueCounts } from "@/types";
 import { BRAND } from "@/config/branding";
@@ -41,6 +41,57 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
   const navigate = useNavigate();
   const { user } = useAuth();
   const [pendingApprovalCount, setPendingApprovalCount] = useState(0);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const sidebarRef = useRef<HTMLElement>(null);
+  const mobileToggleRef = useRef<HTMLButtonElement>(null);
+  const mobileCloseRef = useRef<HTMLButtonElement>(null);
+  const closeNavigation = useCallback(() => {
+    setMobileOpen(false);
+    mobileToggleRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const media = window.matchMedia("(max-width: 900px)");
+    const main = sidebarRef.current
+      ?.closest(".dashboard-layout")
+      ?.querySelector<HTMLElement>(".dashboard-main");
+    const previousOverflow = document.body.style.overflow;
+    const previousInert = main?.inert ?? false;
+    document.body.style.overflow = "hidden";
+    if (main) main.inert = true;
+    mobileCloseRef.current?.focus();
+
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeNavigation();
+      }
+      if (event.key !== "Tab") return;
+      const links = sidebarRef.current?.querySelectorAll<HTMLElement>("a[href], button:not(:disabled)");
+      if (!links?.length) return;
+      const first = links[0];
+      const last = links[links.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    const handleViewport = () => {
+      if (!media.matches) closeNavigation();
+    };
+    document.addEventListener("keydown", handleKey);
+    media.addEventListener("change", handleViewport);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (main) main.inert = previousInert;
+      document.removeEventListener("keydown", handleKey);
+      media.removeEventListener("change", handleViewport);
+    };
+  }, [mobileOpen, closeNavigation]);
 
   const roles = user?.roles ?? [];
   const capabilities = getRoleCapabilities(roles);
@@ -83,7 +134,40 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
   }, [capabilities.isChair]);
 
   return (
-    <aside className="dashboard-sidebar">
+    <>
+      <button
+        ref={mobileToggleRef}
+        className="sidebar-mobile-toggle"
+        type="button"
+        aria-expanded={mobileOpen}
+        aria-controls="portal-navigation"
+        onClick={() => setMobileOpen(true)}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        Menu
+      </button>
+      {mobileOpen ? (
+        <button
+          className="sidebar-mobile-backdrop"
+          type="button"
+          aria-label="Close navigation"
+          tabIndex={-1}
+          onClick={closeNavigation}
+        />
+      ) : null}
+      <aside
+        id="portal-navigation"
+        ref={sidebarRef}
+        className={`dashboard-sidebar${mobileOpen ? " is-mobile-open" : ""}`}
+        role={mobileOpen ? "dialog" : undefined}
+        aria-modal={mobileOpen || undefined}
+        aria-label="Portal navigation"
+        onClickCapture={(event) => {
+          if (mobileOpen && (event.target as Element).closest("a")) closeNavigation();
+        }}
+      >
       <div className="sidebar-header">
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">
@@ -91,9 +175,12 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
           </div>
           <div className="sidebar-brand-text">
             <h1>{BRAND.name}</h1>
-            <span>{sidebarTagline}</span>
+            <span title={sidebarTagline}>{sidebarTagline}</span>
           </div>
         </div>
+        <button ref={mobileCloseRef} className="sidebar-mobile-close" type="button" aria-label="Close navigation" onClick={closeNavigation}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+        </button>
       </div>
 
       <nav className="sidebar-nav" aria-label="Primary navigation">
@@ -293,24 +380,19 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ counts }) =>
         </div>
       </nav>
 
-      <div className="sidebar-footer">
-        <div className="sidebar-footer-card">
-          <div className="sidebar-account-header">
-            <span>Account</span>
-            <span className="sidebar-user-role-badge">{roleLabel}</span>
-          </div>
-          <NavLink to="/settings/account" className="sidebar-account-link">
-            <div className="sidebar-avatar">{user?.fullName?.[0]?.toUpperCase() ?? "U"}</div>
+      <footer className="sidebar-footer">
+          <NavLink to="/settings/account" className="sidebar-account-link" aria-label={`Account settings for ${displayName}, ${roleLabel}`} title={`${displayName} — ${roleLabel}`}>
+            <div className="sidebar-avatar" aria-hidden="true">{user?.fullName?.[0]?.toUpperCase() ?? "U"}</div>
             <div className="sidebar-user-info">
               <div className="sidebar-user-name">{displayName}</div>
-              <div className="sidebar-user-meta">Settings</div>
+              <div className="sidebar-user-meta">{roleLabel}</div>
             </div>
             <svg className="sidebar-account-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <path d="M9 18l6-6-6-6" />
             </svg>
           </NavLink>
-        </div>
-      </div>
+      </footer>
     </aside>
+    </>
   );
 };
